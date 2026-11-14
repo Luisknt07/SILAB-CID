@@ -57,6 +57,56 @@ de equipo deben trasladarse por un canal privado junto con los medios; la guía
 local está en `var/traslado-20261114/LEEME-DATOS.txt`. El estado para continuar
 está en [TRASPASO.md](TRASPASO.md).
 
+## Desarrollo con Docker en SILAB-CID
+
+Abrir esta carpeta como proyecto y trabajar sobre `main`. Iniciar Docker Desktop
+antes del portal. El perfil local reutiliza PostgreSQL y sus dos bases existentes,
+además de los adjuntos de `var/media`; el código se monta desde esta carpeta y
+los cambios se recargan automáticamente.
+
+```powershell
+cd C:\Users\PC2\Documents\GitHub\SILAB-CID
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\iniciar_docker_desarrollo.ps1
+```
+
+El script verifica la instalación y ejecuta `docker-compose.local.yml`. La primera
+construcción descarga las dependencias; las siguientes reutilizan la imagen.
+El portal queda en `http://127.0.0.1:8000/`. Con PostgreSQL ya activo también:
+
+```powershell
+docker compose -f docker-compose.local.yml up -d --build --wait web
+```
+
+Operación habitual:
+
+```powershell
+docker compose -f docker-compose.local.yml logs -f web
+docker compose -f docker-compose.local.yml exec web python manage.py check
+docker compose -f docker-compose.local.yml stop web
+```
+
+Para cambios de modelos, generar la migración en el servicio temporal, revisar
+los archivos generados y disponer de un respaldo actualizado antes de aplicarla:
+
+```powershell
+docker compose -f docker-compose.local.yml run --rm --entrypoint python migrar manage.py makemigrations
+docker compose -f docker-compose.local.yml run --rm migrar
+```
+
+La web monta el código en lectura. El servicio manual de mantenimiento puede
+escribir en `apps/` para guardar migraciones y recibe las credenciales de los
+propietarios de ambas bases. La web mantiene sus roles restringidos y no ejecuta
+migraciones ni tareas programadas al iniciar. Los correos de desarrollo se
+muestran en el registro del contenedor.
+
+La web no monta `.env`, respaldos ni la raíz completa del proyecto. PostgreSQL y
+su volumen se administran aparte; el perfil local no crea ni sustituye bases.
+En otro equipo se deben restaurar primero los datos privados. El perfil de
+producción permanece en `docker-compose.yml`, con su procedimiento institucional.
+
+Referencias: [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/)
+y [redes externas](https://docs.docker.com/reference/compose-file/networks/).
+
 ## Puesta en marcha local
 
 Para reutilizar el PostgreSQL local existente con Django nativo, configurar

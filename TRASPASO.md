@@ -1,13 +1,23 @@
 # Estado actual del proyecto — 14 de noviembre de 2026
 
-Bloque vigente: **traslado a SILAB-CID y publicación en la nueva cuenta**.
+Bloque vigente: **desarrollo con Docker en SILAB-CID**.
 El usuario identificó expresamente la carpeta
 `C:\Users\PC2\Documents\GitHub\SILAB-CID` y el repositorio
 `https://github.com/Luisknt07/SILAB-CID`. La rama principal es `main` y `origin`
 apunta exclusivamente a ese repositorio. La copia inicial proviene del árbol
 validado de CITT, commit `6f6b9a56`; el historial anterior permanece en la carpeta
-original. Este repositorio parte de un único commit, con los dos vídeos LFS
+original. El traslado partió de un único commit, con los dos vídeos LFS
 completos. Consultar Git para comprobar el estado de la publicación.
+
+**Arranque de desarrollo.** Usar `docker-compose.local.yml` o
+`scripts/iniciar_docker_desarrollo.ps1`, con Docker Desktop iniciado. El perfil
+usa PostgreSQL existente en `citt_default`; no recrea bases, volúmenes ni
+contenedores de datos. El código y los adjuntos se montan desde SILAB-CID, con
+recarga de cambios. La web no recibe credenciales de migración/respaldo ni
+montajes del `.env` o de respaldos. El servicio manual `migrar` dispone de
+escritura en `apps/` para generar migraciones y de los propietarios para
+aplicarlas. Ver comandos y límites locales en README. Producción conserva
+su Compose y su procedimiento separados.
 
 **Datos conservados.** Se copiaron `.env`, `var/media`, `var/private`,
 `var/microproyectos` y `var/output`. El manifiesto privado con tamaños y huellas
@@ -36,7 +46,7 @@ los expedientes existentes. La existencia física de equipos e inventario debe
 validarse institucionalmente. HTTPS, SMTP y el servidor universitario siguen
 aplazados. Las claves antiguas de OAuth y el historial compartido del repositorio
 anterior mantienen los límites descritos en el mantenimiento del 11 de noviembre.
-Para arrancar aquí: `.\.venv\Scripts\python.exe scripts/servidor_local_seguro.py`.
+Para el desarrollo habitual iniciar el perfil Docker local descrito arriba.
 
 ## Historial de bloques anteriores
 

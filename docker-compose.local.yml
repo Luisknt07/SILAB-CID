@@ -1,0 +1,90 @@
+# Desarrollo local con datos existentes. Producción usa docker-compose.yml.
+name: silab-cid-desarrollo
+
+x-entorno: &entorno
+  DJANGO_SETTINGS_MODULE: config.settings
+  PYTHON_DOTENV_DISABLED: "1"
+  DJANGO_DEBUG: "true"
+  SLCID_RLS_ENABLED: "true"
+  DB_HOST: slcid-postgresql-institucional
+  DB_PORT: "5432"
+  DB_NETWORK_ISOLATED: "true"
+  CENTROS_DB_HOST: slcid-postgresql-institucional
+  CENTROS_DB_PORT: "5432"
+  CENTROS_DB_NETWORK_ISOLATED: "true"
+  ALLOWED_HOSTS: localhost,127.0.0.1
+  SITE_URL: http://127.0.0.1:${WEB_PORT:-8000}
+  CSRF_TRUSTED_ORIGINS: http://localhost:${WEB_PORT:-8000},http://127.0.0.1:${WEB_PORT:-8000}
+  LANGUAGE_COOKIE_SECURE: "false"
+  EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+  DB_BACKUP_USER: ""
+  DB_BACKUP_PASSWORD: ""
+  CENTROS_DB_BACKUP_USER: ""
+  CENTROS_DB_BACKUP_PASSWORD: ""
+  DB_RUNTIME_USER: ""
+  DB_RUNTIME_PASSWORD: ""
+  CENTROS_DB_RUNTIME_USER: ""
+  CENTROS_DB_RUNTIME_PASSWORD: ""
+
+x-codigo: &codigo
+  - ./manage.py:/app/manage.py:ro
+  - ./apps:/app/apps
+  - ./config:/app/config:ro
+  - ./templates:/app/templates:ro
+  - ./locale:/app/locale:ro
+  - ./scripts:/app/scripts:ro
+
+services:
+  web:
+    image: silab-cid-desarrollo:local
+    build:
+      context: .
+      target: web
+    container_name: silab-cid-desarrollo-web
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      <<: *entorno
+      DB_MIGRATION_USER: ""
+      DB_MIGRATION_PASSWORD: ""
+      CENTROS_DB_MIGRATION_USER: ""
+      CENTROS_DB_MIGRATION_PASSWORD: ""
+    entrypoint: [sh, /app/scripts/docker_desarrollo.sh]
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8000}:8000"
+    volumes:
+      - ./manage.py:/app/manage.py:ro
+      - ./apps:/app/apps:ro
+      - ./config:/app/config:ro
+      - ./templates:/app/templates:ro
+      - ./locale:/app/locale:ro
+      - ./scripts:/app/scripts:ro
+      - ./var/media:/app/var/media
+      - ./var/private/institutional-brand:/app/var/private/institutional-brand
+      - ./var/output:/app/var/output
+    networks: [datos_existentes]
+    healthcheck:
+      test: [CMD, python, /app/scripts/comprobar_salud.py]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+  # Acción manual para cambios de modelos. No se ejecuta al iniciar la web.
+  migrar:
+    image: silab-cid-desarrollo:local
+    profiles: [mantenimiento]
+    env_file: [.env]
+    environment: *entorno
+    entrypoint: [python, /app/scripts/migrar_desarrollo.py]
+    volumes: *codigo
+    networks: [datos_existentes]
+    restart: "no"
+
+networks:
+  datos_existentes:
+    external: true
+    name: citt_default
