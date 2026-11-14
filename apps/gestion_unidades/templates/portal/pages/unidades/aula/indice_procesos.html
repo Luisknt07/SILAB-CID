@@ -1,0 +1,46 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{{ titulo_indice }}{% endblock %}
+{% block contenido %}
+<section class="unit-report__intro">
+  <span>{% translate "SECCIÓN" %} {{ numero_indice }}</span>
+  <h2>{{ titulo_indice }}</h2>
+  <p>{{ descripcion_indice }}</p>
+</section>
+
+<section class="unit-report__section">
+  <div class="saber-ruta">
+    <article><i class="fas fa-book-open"></i><div><strong>{% translate "Comprender" %}</strong><small>{% translate "Conceptos, variables y unidades." %}</small></div></article>
+    <article><i class="fas fa-project-diagram"></i><div><strong>{% translate "Reconocer" %}</strong><small>{% translate "Secuencia, entradas y recursos." %}</small></div></article>
+    <article><i class="fas fa-calculator"></i><div><strong>{% translate "Calcular" %}</strong><small>{% translate "Balances, tiempos y capacidad." %}</small></div></article>
+    <article><i class="fas fa-clipboard-check"></i><div><strong>{% translate "Comprobar" %}</strong><small>{% translate "Límites, resultados y evidencia." %}</small></div></article>
+  </div>
+  <p class="unit-report__note">{% translate "Este índice organiza la consulta. Cada dato conserva una sola fuente en la ficha del proceso y en su documentación técnica." %}</p>
+</section>
+
+{% for grupo in grupos_indice %}
+<section class="unit-report__section indice-procesos">
+  <h3>{{ grupo.nombre }}</h3>
+  {% for ficha in grupo.fichas %}
+  <details class="aula-grupo"{% if forloop.first and forloop.parentloop.first %} open{% endif %}>
+    <summary>{{ ficha.receta.nombre_publico }} <b>{{ ficha.total }}</b><small>{{ ficha.receta.codigo }}</small></summary>
+    <div class="indice-procesos__cuerpo">
+      {% for fila in ficha.filas %}
+      <article>
+        <i class="{% if modo_indice == 'materiales' %}fas fa-cubes{% elif modo_indice == 'metodos' %}fas fa-stopwatch{% elif modo_indice == 'empaque' %}fas fa-box{% else %}fas fa-book{% endif %}"></i>
+        <div><strong>{{ fila.principal }}</strong><p>{{ fila.detalle }}</p><small>{{ fila.meta }}{% if fila.extra %} · {{ fila.extra }}{% endif %}</small></div>
+      </article>
+      {% empty %}
+      <p class="unit-report__empty">{% translate "El responsable todavía no ha declarado información para este proceso." %}</p>
+      {% endfor %}
+      <nav class="indice-procesos__acciones" aria-label="Acciones de {{ ficha.receta.nombre_publico }}">
+        <a href="{{ ficha.ficha_url }}">{% translate "Abrir ficha técnica" %}</a>
+        <a href="{{ ficha.documentacion_url }}">{% translate "Abrir documentación" %}</a>
+      </nav>
+    </div>
+  </details>
+  {% endfor %}
+</section>
+{% endfor %}
+{% endblock %}

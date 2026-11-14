@@ -1,0 +1,85 @@
+/* Jerarquía visual y señales compartidas por la unidad y Dirección. */
+.reporte-titulo {
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px;
+  margin:18px 0 10px; padding:9px 12px;
+  border-left:4px solid var(--institucion-acento, #f7d447); border-radius:0 5px 5px 0;
+  background:#fff; color:#17243b; font-size:15px; font-weight:800;
+}
+.reporte-nota { margin-left:auto; padding:3px 9px; border:1px solid var(--institucion-borde, #c8d8cd); border-radius:5px; background:#fff; color:var(--institucion-primario, #006633); font-size:14px; white-space:nowrap; }
+.cierre-indicadores__tabla .cierre-grupo th { padding:6px 9px; background:#eef2f0; color:#4b5c53; border-left:4px solid #94a29b; font-size:11px; }
+.cierre-indicadores__tabla .cierre-grupo.is-obligatorio th { background:#edf3ef; color:#315b42; border-left-color:#52765e; }
+.cierre-indicadores__tabla .cierre-grupo.is-opcional th { background:#eef2f0; color:#4b5c53; border-left-color:#94a29b; }
+.cierre-indicadores__tabla .cierre-grupo.is-sin-definir th { background:#f1f3f2; color:#52635a; border-left-color:#94a29b; }
+.cierre-indicadores__tabla .cierre-grupo.is-no-aplica th { background:#edf0f2; color:#52616c; border-left-color:#94a0a9; }
+.cierre-grupo th > span { margin-left:5px; padding:1px 6px; border-radius:10px; background:#fff9; font-weight:600; }
+.reporte-exigencia { display:inline-block; padding:2px 5px; border-radius:4px; background:#edf0f2; color:#52616c; font-size:10px; font-weight:600; line-height:1.4; }
+.reporte-exigencia.is-obligatorio { background:#eef3ef; color:#365b43; }
+.reporte-exigencia.is-opcional { background:#eef2f0; color:#4b5c53; }
+.reporte-exigencia.is-sin-definir { background:#f1f3f2; color:#52635a; }
+.reporte-estado { display:inline-block; padding:3px 6px; border:1px solid #cbd5dc; border-radius:5px; background:#f0f3f5; color:#485b68; font-size:11px; line-height:1.4; }
+.reporte-estado > span { margin-right:3px; font-weight:800; }
+.reporte-estado.is-cumple { background:#e5f5ec; color:#12613c; border-color:#b2d7c0; }
+.reporte-estado.is-no-cumple { background:#fcebea; color:#9e302b; border-color:#edc2be; }
+.reporte-estado.is-pendiente { background:#fff6e3; color:#8a5900; border-color:#f3dcaa; }
+.reporte-estado.is-opcional { background:#eef2f0; color:#4b5c53; border-color:#cbd5ce; }
+.reporte-progreso { --avance-color:#748078; margin-top:5px; }
+.reporte-progreso.is-rojo { --avance-color:#c43e42; }
+.reporte-progreso.is-amarillo { --avance-color:#d5a012; }
+.reporte-progreso.is-verde { --avance-color:#2b683e; }
+.reporte-progreso progress { display:block; width:100%; max-width:220px; height:7px; border:0; border-radius:4px; overflow:hidden; background:#e6ebe7; accent-color:var(--avance-color); }
+.reporte-progreso progress::-webkit-progress-bar { background:#e6ebe7; }
+.reporte-progreso progress::-webkit-progress-value { background:var(--avance-color); }
+.reporte-progreso progress::-moz-progress-bar { background:var(--avance-color); }
+.reporte-progreso small { display:block; margin-top:3px; }
+.reporte-progreso[hidden], .reporte-estado[hidden] { display:none; }
+.cierre-indicadores__ayuda { margin:8px 0 12px; font-size:12px; }
+.cierre-indicadores__ayuda > summary { cursor:pointer; color:var(--institucion-primario, #006633); font-weight:600; }
+.cierre-indicadores__ayuda > p { margin:6px 0; }
+.cierre-evidencia-nombre { display:flex; align-items:center; gap:8px; }
+.cierre-documento-icono { flex:0 0 16px; color:#7b9083; }
+.cierre-avance > span { display:block; font-weight:600; white-space:nowrap; }
+.cierre-avance .reporte-progreso { margin-top:4px; }
+.cierre-detalle { color:#52665a; }
+.cierre-detalle a { color:var(--institucion-primario, #006633); }
+.cierre-detalle details > summary { color:var(--institucion-primario, #006633); cursor:pointer; }
+.cierre-detalle details > p { margin:6px 0 0; }
+
+/* Resumen compacto: avance operativo, nota y requisitos tienen su propio lugar. */
+.cierre-resumen__cabecera { display:flex; align-items:flex-start; justify-content:space-between; gap:10px 20px; margin:20px 0 12px; }
+.cierre-indicadores .cierre-resumen__cabecera h3 { margin:0; padding:0; border:0; background:none; color:#22382c; font-size:17px; line-height:1.35; }
+.cierre-resumen__cabecera p { margin:4px 0 0; color:#647168; font-size:12px; }
+.cierre-resumen__corte { flex:0 0 auto; border:1px solid #dce3de; border-radius:5px; padding:3px 8px; background:#fff; color:#5b6961; font-size:10px; white-space:nowrap; }
+.cierre-resumen { display:grid; grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) minmax(260px,1.8fr); gap:12px; margin:0 0 12px; }
+.cierre-resumen__tarjeta { --avance-color:#748078; --avance-texto:#536159; min-width:0; box-sizing:border-box; padding:13px 15px; border:1px solid #dce3de; border-radius:8px; background:#fff; }
+.cierre-resumen__tarjeta.is-rojo { --avance-color:#c43e42; --avance-texto:#a62e33; }
+.cierre-resumen__tarjeta.is-amarillo { --avance-color:#d5a012; --avance-texto:#805b00; }
+.cierre-resumen__tarjeta.is-verde { --avance-color:#2b683e; --avance-texto:#245d36; }
+.cierre-resumen__etiqueta { display:flex; align-items:center; gap:7px; color:#526159; font-size:11px; font-weight:600; line-height:1.4; }
+.cierre-resumen__etiqueta > i { color:#7d8d83; }
+.cierre-resumen__etiqueta > b { display:inline-flex; align-items:center; justify-content:center; min-width:19px; height:19px; border-radius:50%; background:#eef1ef; font-size:11px; }
+.cierre-resumen__tarjeta .cierre-resumen__valor { display:block; margin:6px 0 7px; color:var(--avance-texto); font-size:27px; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums; }
+.cierre-resumen__valor > span { font-size:15px; }
+.cierre-resumen__tarjeta .reporte-progreso progress { max-width:none; height:8px; }
+.cierre-resumen__tarjeta > small { display:block; margin-top:8px; color:#647168; font-size:10.5px; line-height:1.45; }
+.cierre-resumen__requisitos ul { display:grid; gap:7px; padding-left:15px; margin:9px 0 0; color:#526159; font-size:11px; line-height:1.45; }
+.cierre-resumen__requisitos p { margin:9px 0 0; color:#526159; font-size:11px; }
+.cierre-resumen__requisitos p i { color:#2b683e; margin-right:4px; }
+.cierre-indicadores .cierre-resumen__consulta { margin:8px 0; color:#647168; font-size:11px; line-height:1.5; }
+.cierre-indicadores .cierre-indicadores__ayuda { margin:8px 0 12px; font-size:11px; }
+
+/* Los anexos de preparación conservan sus acciones dentro de cada tarjeta. */
+.reportes__catalogo .explorador__anexos { margin:12px 0 20px; border:1px solid #dce3de; border-radius:8px; background:#fff; overflow:hidden; }
+.reportes__catalogo .explorador__anexos-cabecera { padding:11px 13px; background:#fff; }
+.reportes__catalogo .explorador__actualizar { margin:0; padding:0 13px 8px; }
+.reportes__catalogo .explorador__actualizar button { display:inline-flex; gap:5px; align-items:center; padding:5px 9px; border:1px solid #cbd8d0; border-radius:5px; background:#fff; color:#315b42; font-family:inherit; font-size:11px; font-weight:600; line-height:1.4; cursor:pointer; }
+.reportes__catalogo .reportes-anexos__tarjetas { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:10px; margin:0; padding:0 13px 13px; list-style:none; }
+.reportes__catalogo .reportes-anexos__tarjetas > li { display:grid; grid-template-columns:20px minmax(0,1fr); align-content:start; gap:6px 8px; margin:0; padding:11px; border:1px solid #dce3de; border-radius:6px; background:#fff; }
+.reportes-anexos__tarjetas > li > i { grid-column:1; grid-row:1 / 3; color:#7d8d83; margin-top:2px; }
+.reportes-anexos__tarjetas .reportes-anexos__nombre, .reportes-anexos__tarjetas .explorador__anexo-estado, .reportes-anexos__tarjetas .explorador__anexo-acciones { grid-column:2; min-width:0; }
+.reportes-anexos__tarjetas .explorador__anexo-estado { text-align:left; }
+.reportes-anexos__tarjetas .explorador__anexo-acciones { justify-content:flex-start; flex-wrap:wrap; gap:6px; }
+.reportes__catalogo .reportes-anexos__tarjetas.is-unico > li { grid-template-columns:20px minmax(0,1fr) auto; align-items:center; }
+.reportes-anexos__tarjetas.is-unico .explorador__anexo-estado { grid-column:3; grid-row:1; text-align:right; }
+.reportes-anexos__tarjetas.is-unico .explorador__anexo-acciones { grid-column:3; grid-row:2; justify-content:flex-end; }
+@media(max-width:800px) { .cierre-resumen { grid-template-columns:repeat(2,minmax(0,1fr)); } .cierre-resumen__requisitos { grid-column:1 / -1; } }
+@media(max-width:540px) { .cierre-resumen { gap:8px; } .cierre-resumen__tarjeta { padding:11px; } .cierre-resumen__cabecera { flex-wrap:wrap; gap:6px; } .cierre-resumen__corte { font-size:9px; } .cierre-resumen__tarjeta .cierre-resumen__valor { font-size:23px; } .reportes__catalogo .reportes-anexos__tarjetas.is-unico > li { grid-template-columns:20px minmax(0,1fr); } .reportes-anexos__tarjetas.is-unico .explorador__anexo-estado, .reportes-anexos__tarjetas.is-unico .explorador__anexo-acciones { grid-column:2; grid-row:auto; text-align:left; justify-content:flex-start; } }

@@ -1,0 +1,6 @@
+{% if documento.resultado != None and documento.fuente and documento.fuente != 'Sistema' %}
+<span class="ensayo__revision-humana">✓ Revisión humana registrada en el ensayo</span>
+{% if documento.hallazgos %}<details><summary>Comprobaciones previas ({{ documento.hallazgos|length }})</summary><p>Diagnóstico automático anterior a la revisión humana: {{ documento.control }}.</p><ul>{% for hallazgo in documento.hallazgos %}<li>{{ hallazgo.mensaje }}</li>{% endfor %}</ul></details>{% endif %}
+{% else %}
+<span>{{ documento.control }}</span>{% if documento.hallazgos %}<details><summary>Comprobaciones ({{ documento.hallazgos|length }})</summary><ul>{% for hallazgo in documento.hallazgos %}<li>{{ hallazgo.mensaje }}</li>{% endfor %}</ul></details>{% endif %}
+{% endif %}

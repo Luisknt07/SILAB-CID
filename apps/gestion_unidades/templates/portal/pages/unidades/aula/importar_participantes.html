@@ -1,0 +1,31 @@
+{% load static i18n %}<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importar participantes · {{ curso.nombre }}</title>
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/importacion_participantes.css' %}?v=20261010-importacion-compacta-v2">
+{% include 'portal/components/paleta_institucional.html' %}</head>
+<body class="conoce aula-curso importacion-participantes">
+<header class="aula-curso__cabecera"><a href="{{ inscritos_url }}" class="aula-curso__volver">Volver a participantes</a><div><span class="conoce__antetitulo">{{ unidad.nombre }}</span><h1>Importar participantes</h1><p>{{ curso.nombre }}</p></div></header>
+<main class="importacion">
+{% if errores %}<div class="importacion__errores" role="alert"><strong>No se guardó la lista.</strong><ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+{% if not resultado %}
+<ol class="importacion__pasos" aria-label="Proceso"><li>1. Completa la plantilla</li><li>2. Revisa todas las filas</li><li>3. Confirma el registro</li></ol>
+<section class="importacion__tarjeta"><h2>Subir una lista</h2><p>Excel XLSX o CSV UTF-8. Hasta 500 personas y 2 MB. Escribe la cédula como texto para conservar los ceros iniciales. Pega valores, sin fórmulas ni hipervínculos.</p>
+<div class="importacion__plantillas"><div><strong>Inscripción en cursos</strong><p>Cédula, nombres completos y correo. El correo puede quedar vacío si la cédula identifica una cuenta con correo verificado.</p><a href="{{ plantilla_url }}?modo=matricula" download>Plantilla Excel</a> · <a href="{{ plantilla_url }}?modo=matricula&amp;formato=csv" download>Plantilla CSV</a></div><div><strong>Certificados de eventos</strong><p>Cédula y nombres completos. Registra participantes sin crear cuentas. La acreditación requiere comprobar su asistencia o función.</p><a href="{{ plantilla_url }}?modo=evento" download>Plantilla Excel</a> · <a href="{{ plantilla_url }}?modo=evento&amp;formato=csv" download>Plantilla CSV</a></div></div>
+<form method="post" enctype="multipart/form-data" class="importacion__formulario" data-importacion-form>{% csrf_token %}<input type="hidden" name="accion" value="revisar">{{ formulario.non_field_errors }}
+<div class="importacion__campos">{% for campo in formulario %}<div class="importacion__campo{% if campo.name == 'motivo' %} importacion__campo--ancho{% endif %}"{% if campo.name == 'tipo' or campo.name == 'motivo' %} data-evento-campo{% endif %}>{{ campo.label_tag }}{{ campo }}{% if campo.help_text %}<small id="{{ campo.auto_id }}_helptext">{{ campo.help_text }}</small>{% endif %}{{ campo.errors }}</div>{% endfor %}</div>
+<p class="importacion__nota">Las matrículas importadas conservan el costo, los cupos y los requisitos del curso. Si falta una cuenta con correo verificado, se registra una invitación. No se envían correos automáticamente.</p>
+<button class="conoce__boton is-principal" type="submit">Revisar lista</button></form></section>
+{% if filas %}<section class="importacion__tarjeta"><h2>Revisión de {{ filas|length }} participantes · {{ edicion.nombre }}</h2>
+{% if actividad %}<dl class="importacion__actividad"><div><dt>Modalidad</dt><dd>{{ actividad.tipo_rotulo|default:actividad.tipo }}</dd></div><div><dt>Desde / hasta</dt><dd>{{ actividad.fecha_inicio|date:"d/m/Y" }} – {{ actividad.fecha_fin|date:"d/m/Y" }}</dd></div><div><dt>Horas acreditadas</dt><dd>{{ actividad.horas|floatformat:"-2" }}</dd></div><div><dt>Entidad organizadora</dt><dd>{{ actividad.emisor }}</dd></div><div class="importacion__campo--ancho"><dt>Registro de acreditación</dt><dd>{{ actividad.motivo }}</dd></div></dl>{% endif %}
+{% include 'portal/pages/unidades/aula/includes/importacion_tabla.html' with registros=filas %}
+{% if estado %}<form method="post" class="importacion__confirmar">{% csrf_token %}<input type="hidden" name="accion" value="confirmar"><input type="hidden" name="token" value="{{ estado.token }}"><label><input type="checkbox" name="confirmacion" value="1" required> Revisé la lista completa{% if modo == 'evento' %} y confirmo el registro que respalda la asistencia, participación o función de estas personas{% endif %}.</label><p>Esta revisión es válida por 20 minutos. Al confirmar se revisarán nuevamente los datos. Si una fila dejó de ser válida, no se registrará ninguna.</p><button type="submit" class="conoce__boton is-principal">{% if modo == 'evento' %}Emitir certificados{% else %}Confirmar inscripciones{% endif %}</button></form>{% else %}<p class="importacion__errores">Corrige los errores y vuelve a subir el archivo. No se ha registrado ninguna persona.</p>{% endif %}
+</section>{% endif %}
+{% else %}
+<section class="importacion__tarjeta"><h2>Importación completada</h2><p role="status">{{ resultado|length }} filas procesadas. Los registros existentes se conservaron.</p>
+{% include 'portal/pages/unidades/aula/includes/importacion_tabla.html' with registros=resultado %}
+<div class="importacion__acciones">{% if estado.modo == 'evento' %}<form method="post" action="{% url 'descargar_certificados_importados' unidad.slug curso.codigo %}">{% csrf_token %}<input type="hidden" name="token" value="{{ estado.token }}"><button type="submit" class="conoce__boton is-principal">Descargar todos los documentos en ZIP</button></form>{% endif %}<a class="conoce__boton" href="{{ inscritos_url }}?edicion={{ estado.edicion }}">Ver participantes del grupo</a><a class="conoce__boton" href="?edicion={{ estado.edicion }}&amp;modo={{ estado.modo }}">Importar otra lista</a></div></section>
+{% endif %}</main>
+<script src="{% static 'portal/js/pages/unidades/importacion_participantes.js' %}?v=20261010-v1" defer></script>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}</body></html>

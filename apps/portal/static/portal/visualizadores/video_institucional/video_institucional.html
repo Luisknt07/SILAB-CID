@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video institucional de la unidad</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+
+      overflow: hidden;
+    }
+
+    .video-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      overflow: hidden;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      border: none;
+      aspect-ratio: 16 / 9;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(51, 50, 50, 0.055), rgba(41, 40, 40, 0.363));
+      z-index: -1;
+    }
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  color: white;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+    .content h1 {
+      font-size: 3rem;
+      margin: 0.5rem 0;
+    }
+
+    .content h2 {
+      font-size: 2.2rem;
+      margin: 0.5rem 0;
+    }
+
+    .content h3 {
+      font-size: 2rem;
+      color: #00552b;
+      margin: 0.5rem 0;
+    }
+
+.content p {
+  max-width: 700px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-top: 1rem;
+  padding: 0 1rem;
+}
+
+    @media (max-width: 768px) {
+      .content h1 { font-size: 2.2rem; }
+      .content h2, .content h3 { font-size: 1.4rem; }
+      .content p { font-size: 0.95rem; }
+    }
+    .institutional-logo {
+      display: block;
+      width: min(9rem, 46%);
+      max-height: 3rem;
+      margin: .65rem auto 0;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fondo de video sin bordes -->
+  <div class="video-wrapper">
+    <iframe
+      id="institutionalVideo"
+      src="about:blank"
+      allow="autoplay"
+      referrerpolicy="strict-origin-when-cross-origin"
+      tabindex="-1"
+      aria-hidden="true">
+    </iframe>
+  </div>
+
+  <!-- Capa de sombra -->
+  <div class="overlay"></div>
+
+  <!-- Contenido centrado -->
+<div class="content text-center relative z-20">
+    <h2 id="videoTitle" style="font-weight: 700; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);text-shadow: 0 0 5px rgba(15, 15, 15, 0.5);">Laboratorios y Unidades experimentales</h2>
+    <h3 id="videoSubtitle" style="font-weight: 700; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);text-shadow: 0 0 5px rgba(15, 15, 15, 0.5);">Universidad Politécnica Estatal del Carchi</h3>
+    <p id="videoDescription">Vinculando el conocimiento científico con el desarrollo productivo y social de la región</p>
+    <!-- Logo centrado -->
+    <img src="/static/img/logo_upec.png" alt="Logo UPEC" class="institutional-logo">
+  </div>
+
+  <script>
+    (function configureInstitutionalVideo() {
+      const params = new URLSearchParams(window.location.search);
+      const defaultVideoId = 'IJxxIxTuMb8';
+      const requestedVideoId = params.get('video') || defaultVideoId;
+      const videoId = /^[A-Za-z0-9_-]+$/.test(requestedVideoId) ? requestedVideoId : defaultVideoId;
+      const player = document.getElementById('institutionalVideo');
+      const title = document.getElementById('videoTitle');
+      const subtitle = document.getElementById('videoSubtitle');
+      const description = document.getElementById('videoDescription');
+
+      title.textContent = params.get('titulo') || 'Laboratorios y Unidades experimentales';
+      subtitle.textContent = params.get('subtitulo') || 'Universidad Politécnica Estatal del Carchi';
+      description.textContent = params.get('descripcion') || 'Vinculando el conocimiento científico con el desarrollo productivo y social de la región';
+      player.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&rel=0&loop=1&playlist=${videoId}&modestbranding=1&iv_load_policy=3&playsinline=1`;
+    }());
+  </script>
+
+</body>
+</html>

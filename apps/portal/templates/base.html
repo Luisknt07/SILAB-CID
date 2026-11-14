@@ -1,0 +1,60 @@
+{% load static i18n idiomas %}
+<!DOCTYPE html>
+<html lang="{{ regional_institucion.idioma }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    {{ regional_institucion|json_script:"configuracion-regional-institucion" }}
+    <script src="{% static 'portal/js/components/regional_institucion.js' %}?v=20260916-regional-v1"></script>
+    <script src="{% url 'javascript_catalog' %}?language={{ idioma_actual }}"></script>
+    <script src="{% static 'portal/js/components/idiomas.js' %}?v=20260916-i18n-v1"></script>
+    <!-- Archivos CSS -->
+    <link rel="stylesheet" href="{% static 'font/iconsmind-s/css/iconsminds.css' %}" />
+    <link rel="stylesheet" href="{% static 'font/simple-line-icons/css/simple-line-icons.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/vendor/bootstrap.min.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/vendor/perfect-scrollbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/dore.light.bluenavy.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/vendor/glide.core.min.css' %}" />
+
+    <!-- Sistema visual institucional compartido -->
+    <link rel="stylesheet" href="{% static 'portal/css/components/idiomas.css' %}?v=20260920-contraste-v215">
+    <link rel="stylesheet" href="{% static 'portal/css/core/tokens.css' %}?v=20261009-responsive-v4" />
+    <link rel="stylesheet" href="{% static 'portal/css/core/foundation.css' %}?v=20260920-contraste-v215" />
+
+    <!-- Bloque para CSS adicional -->
+    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'portal/css/components/botones.css' %}?v=20260915-perfil-puerta-v6" />
+    <link rel="stylesheet" href="{% static 'portal/css/components/encabezado_institucional.css' %}?v=20261009-responsive-v4" />
+
+    {% include 'portal/components/paleta_institucional.html' %}
+    {% include 'portal/components/panel_trabajo_assets.html' %}
+    <title>{% block title %}{% translate "Entornos Experimentales" %}{% endblock %}</title>
+  </head >
+
+
+  <body id="app-container" class="ltr menu-hidden{% if modo_modal %} management-embedded{% else %} has-institutional-header{% endif %}">
+    {% if not modo_modal %}{% include 'portal/components/navegacion/encabezado_institucional.html' with active_page=institutional_active_page show_youtube=True %}{% endif %}
+
+    <!-- Contenido Principal -->
+    <main >
+      {% if messages %}<div class="portal-messages" role="status" aria-live="polite">{% for message in messages %}<p class="portal-messages__item is-{{ message.tags|default:"info" }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      {% block content %} {% endblock %}
+    </main>
+
+    <!-- Scripts -->
+
+    <script src="{% static 'js/vendor/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/vendor/bootstrap.bundle.min.js' %}?v=4.6.2"></script>
+    <script src="{% static 'js/vendor/perfect-scrollbar.min.js' %}"></script>
+    <script src="{% static 'js/vendor/mousetrap.min.js' %}"></script>
+    <script src="{% static 'js/dore.script.js' %}"></script>
+    <script src="{% static 'portal/js/components/encabezado_institucional.js' %}?v=20260901-reservation-notifications-v1"></script>
+    {% block extra_scripts %}{% endblock %}
+    {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+
+  </body>
+</html>

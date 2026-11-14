@@ -1,0 +1,22 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{{ simulacion.nombre }}{% endblock %}
+{% block encabezado %}{{ reporte_gestion.category_label }}{% endblock %}
+{% block subtitulo %}{{ simulacion.nombre }}{% endblock %}
+{% block pie %}{{ simulacion.nombre }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Proceso" %}</dt><dd>{{ simulacion.receta.nombre_publico }}</dd></div><div><dt>{% translate "Guardada" %}</dt><dd>{{ simulacion.actualizada_en|date:"d/m/Y H:i" }}</dd></div>{% endblock %}
+{% block barra %}<div>
+  <a class="es-navegacion" href="{{ abrir_url }}">{% translate "Abrir en el simulador" %}</a>
+<a href="{{ ver_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_url }}" data-pdf-titulo="Resultado de la simulación">{% translate "Ver el documento" %}</a>
+  <a class="is-primary" href="{{ descargar_url }}">{% translate "Descargar documento" %}</a>
+</div>{% endblock %}
+{% block contenido %}
+<section class="unit-report__context">
+  <span>{% translate "ASÍ SE VA A DESCARGAR" %}</span>
+  <h2>{{ simulacion.nombre }}</h2>
+  <p>{% translate "Esta pantalla es el documento: el PDF sale con este mismo encabezado, estos criterios y estas tablas." %} {% if simulacion.notas %}{{ simulacion.notas }}{% else %}{% translate "La simulación se recalcula con el proceso como está hoy, así que si la receta cambió, aquí se nota." %}{% endif %}</p>
+</section>
+
+{% include 'portal/pages/unidades/gestion/includes/reporte_contenido.html' %}
+{% endblock %}

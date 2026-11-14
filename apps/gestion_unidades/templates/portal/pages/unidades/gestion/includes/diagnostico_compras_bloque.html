@@ -1,0 +1,4 @@
+{% if auto.tipo == 'tabla' %}<div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr>{% for encabezado in auto.cabecera %}<th>{{ encabezado }}</th>{% endfor %}</tr></thead><tbody>{% for fila in auto.filas %}<tr>{% for celda in fila %}<td>{{ celda }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ auto.cabecera|length }}">Sin registros conservados.</td></tr>{% endfor %}</tbody></table></div>
+{% elif auto.tipo == 'pares' %}<dl class="pac-legado__clasificacion">{% for etiqueta, valor in auto.pares %}<div><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}</dl>
+{% elif auto.tipo == 'lista' %}<ul>{% for elemento in auto.items %}<li>{{ elemento }}</li>{% endfor %}</ul>
+{% else %}<p>{{ auto.texto }}</p>{% endif %}

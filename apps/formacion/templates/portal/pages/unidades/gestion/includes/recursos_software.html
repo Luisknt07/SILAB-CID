@@ -1,0 +1,32 @@
+{% load i18n idiomas %}
+<div class="recursos-cabecera">
+  <div><h2>{% translate "Software" %}</h2><p>{% translate "Programas y licencias de la unidad. Consulta la ficha para revisar instalaciones, acceso y documentación." %}</p></div>
+  {% if puede_operar_recursos %}<div class="recursos-cabecera__acciones"><button type="button" data-agenda-operation-open="software"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Nuevo software" %}</button></div>{% endif %}
+</div>
+<div class="catalogo-recursos" data-catalogo-browser data-tabla>
+  {% include 'portal/pages/unidades/gestion/includes/catalogo_categorias.html' %}
+  {% if not catalogos_remotos %}<label class="inventario__buscar"><i class="fas fa-search" aria-hidden="true"></i><input type="search" placeholder="{% translate 'Buscar por programa o equipo donde está instalado' %}" data-tabla-buscar aria-label="{% translate 'Buscar software' %}"></label>{% endif %}
+  <p class="catalogo-recursos__ayuda">{% translate "Las áreas de uso proceden de equipos vinculados. Un área de referencia indica un uso documentado o propuesto; no confirma instalación ni licencias. Cada programa se muestra una vez." %}</p>
+  <div class="catalogo-recursos__lista">
+  {% for grupo in software_grupos %}
+    <section class="catalogo-recursos__grupo" data-catalogo-grupo>
+      <h3 class="sr-only">{{ grupo.clase }} · {{ grupo.familia }} · {{ grupo.items|length }} {% translate "registros mostrados" %}</h3>
+        {% for programa in grupo.items %}{% with medios=programa.medios_publicos %}
+          <article class="catalogo-recurso{% if not programa.activo %} is-inactivo{% endif %}" data-catalogo-item data-texto="{{ programa.nombre|lower }} {{ programa.version|default:''|lower }} {{ programa.equipos_instalados_resumen|default:''|lower }} {{ programa.areas_catalogo_resumen|lower }} {{ programa.areas_catalogo_referencia_resumen|lower }} {{ grupo.clase|lower }} {{ grupo.familia|lower }}">
+            <div class="catalogo-recurso__media"><img src="{{ programa.logo_publico_url }}" alt="" loading="lazy" class="is-logo"></div>
+            <div class="catalogo-recurso__contenido">
+              <p class="catalogo-recurso__categoria" title="{{ grupo.clase }} · {{ grupo.familia }}">{{ grupo.clase }} · {{ grupo.familia }}</p>
+              <h4>{{ programa.nombre }}</h4>{% if programa.version %}<p class="catalogo-recurso__variante">{{ programa.version }}</p>{% endif %}
+              <div class="catalogo-recurso__estados"><span class="catalogo-recurso__estado{% if not programa.activo %} is-inactivo{% endif %}">{% if not programa.activo %}{% translate "Inactivo" %}{% elif programa.requiere_reserva %}{% translate "Reservable" %}{% else %}{% translate "Acceso libre" %}{% endif %}</span>{% if medios.estado == 'referencia_provisional' %}<span class="catalogo-recurso__estado is-provisional">{% translate "Referencia provisional" %}</span>{% elif medios.estado == 'identidad_pendiente' or medios.estado == 'documentado_por_confirmar' %}<span class="catalogo-recurso__estado is-provisional">{% translate "Por confirmar" %}</span>{% endif %}</div>
+              <dl class="catalogo-recurso__meta"><div><dt>{% translate "Licencias disponibles" %}</dt><dd>{{ programa.licencias_disponibles }} {% translate "de" %} {{ programa.licencias_totales }}</dd></div>{% if programa.areas_catalogo_resumen %}<div><dt>{% translate "Área de uso" %}</dt><dd>{{ programa.areas_catalogo_resumen|truncatechars:80 }}</dd></div>{% endif %}{% if programa.areas_catalogo_referencia_resumen %}<div><dt>{% translate "Área de referencia" %}</dt><dd>{{ programa.areas_catalogo_referencia_resumen|truncatechars:80 }}</dd></div>{% endif %}{% if not programa.areas_catalogo_resumen and not programa.areas_catalogo_referencia_resumen %}<div><dt>{% translate "Área" %}</dt><dd>{% translate "Sin área asociada" %}</dd></div>{% endif %}</dl>
+              <div class="catalogo-recurso__acciones"><button type="button" data-catalogo-detalle-open="catalogo-detalle-software-{{ unidad.pk }}-{{ programa.pk }}" aria-controls="catalogo-detalle-software-{{ unidad.pk }}-{{ programa.pk }}" aria-haspopup="dialog">{% translate "Ver ficha" %}<span class="sr-only">: {{ programa.nombre }}</span><i class="fas fa-arrow-right" aria-hidden="true"></i></button>{% if puede_operar_recursos %}{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='recursos' entidad='software' registro=programa.pk activo=programa.activo modo='software' confirmar='' %}{% include 'portal/pages/unidades/gestion/includes/ciclo_recurso_botones.html' with tipo='software' registro=programa.pk activo=programa.activo %}{% endif %}</div>
+            </div>
+            {% include 'portal/pages/unidades/gestion/includes/catalogo_software_detalle.html' %}
+          </article>
+        {% endwith %}{% endfor %}
+    </section>
+  {% empty %}<div class="unit-console__empty"><i class="fas fa-laptop-code" aria-hidden="true"></i><strong>{% translate "Sin software registrado" %}</strong></div>{% endfor %}
+  </div>
+  <p class="inventario__vacio" data-tabla-vacio hidden>{% translate "Ningún programa coincide con la búsqueda." %}</p>
+  {% include 'portal/pages/unidades/gestion/includes/catalogo_paginas.html' %}
+</div>

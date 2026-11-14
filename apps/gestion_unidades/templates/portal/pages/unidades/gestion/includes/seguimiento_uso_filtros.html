@@ -1,0 +1,7 @@
+{% if seguimiento_uso %}
+<section class="seguimiento-uso__filtros" aria-label="Período del seguimiento de uso">
+  <div><strong>Seguimiento del uso real</strong><small>{{ seguimiento_uso.inicio|date:'d/m/Y' }} – {{ seguimiento_uso.fin|date:'d/m/Y' }} · al corte de hoy</small></div>
+  <nav aria-label="Alcance del seguimiento">{% for opcion in seguimiento_uso.opciones %}<a href="{{ opcion.url }}" data-management-load{% if opcion.activa %} class="is-activa" aria-current="page"{% endif %}>{{ opcion.etiqueta }}</a>{% endfor %}</nav>
+  <p>Gestión: {{ seguimiento_uso.semestre_etiqueta }}. El calendario académico es una referencia adicional; no recorta el semestre de gestión.</p>
+</section>
+{% endif %}

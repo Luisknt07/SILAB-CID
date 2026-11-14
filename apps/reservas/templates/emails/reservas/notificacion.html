@@ -1,0 +1,6 @@
+{% load i18n %}
+<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ notificacion.titulo }}</title></head>
+<body style="margin:0;background:{{ paleta_institucional.fondo|default:'#f3f6f4' }};font-family:Arial,Helvetica,sans-serif;color:{{ paleta_institucional.texto|default:'#122e25' }};"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:{{ paleta_institucional.fondo|default:'#f3f6f4' }};padding:24px 12px;"><tr><td align="center"><table role="presentation" width="640" cellspacing="0" cellpadding="0" style="width:100%;max-width:640px;"><tr><td>{% include 'emails/reservas/_comprobante_contenido.html' %}</td></tr></table></td></tr></table></body>
+</html>

@@ -1,0 +1,35 @@
+{% comment %}La escena animada de la portada, en CSS 3D y SVG, sin bibliotecas: cada estilo alude a su pestaña.{% endcomment %}<div class="tech-escena tech-escena--{{ tema }}">
+{% if tema == 'orbitas' %}
+  <span class="tech-escena__nucleo"></span>
+  <span class="tech-escena__orbita is-1"><i></i></span><span class="tech-escena__orbita is-2"><i></i></span><span class="tech-escena__orbita is-3"><i></i></span>
+{% elif tema == 'cubos' %}
+  <div class="tech-escena__cubo"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="tech-escena__cubo is-chico"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="tech-escena__cubo is-mini"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+{% elif tema == 'engranajes' %}
+  <svg viewBox="0 0 300 300" class="tech-escena__svg">
+    <g class="tech-escena__engranaje is-grande"><circle cx="120" cy="140" r="62" class="dientes"/><circle cx="120" cy="140" r="44" class="aro"/><circle cx="120" cy="140" r="12" class="eje"/></g>
+    <g class="tech-escena__engranaje is-chico"><circle cx="213" cy="88" r="36" class="dientes"/><circle cx="213" cy="88" r="24" class="aro"/><circle cx="213" cy="88" r="8" class="eje"/></g>
+    <path d="M20 250 C 90 210, 170 290, 280 230" class="tech-escena__flujo"/>
+  </svg>
+{% elif tema == 'red' %}
+  <svg viewBox="0 0 300 300" class="tech-escena__svg">
+    <g class="tech-escena__enlaces"><line x1="150" y1="60" x2="70" y2="130"/><line x1="150" y1="60" x2="230" y2="120"/><line x1="70" y1="130" x2="110" y2="230"/><line x1="230" y1="120" x2="200" y2="235"/><line x1="110" y1="230" x2="200" y2="235"/><line x1="150" y1="60" x2="150" y2="160"/><line x1="70" y1="130" x2="150" y2="160"/><line x1="230" y1="120" x2="150" y2="160"/><line x1="150" y1="160" x2="110" y2="230"/><line x1="150" y1="160" x2="200" y2="235"/></g>
+    <g class="tech-escena__nodos"><circle cx="150" cy="60" r="9"/><circle cx="70" cy="130" r="7"/><circle cx="230" cy="120" r="8"/><circle cx="150" cy="160" r="12"/><circle cx="110" cy="230" r="7"/><circle cx="200" cy="235" r="8"/></g>
+  </svg>
+{% elif tema == 'reloj' %}
+  <svg viewBox="0 0 300 300" class="tech-escena__svg">
+    <circle cx="150" cy="150" r="118" class="tech-escena__anillo is-1"/><circle cx="150" cy="150" r="92" class="tech-escena__anillo is-2"/><circle cx="150" cy="150" r="66" class="tech-escena__anillo is-3"/>
+    <line x1="150" y1="150" x2="150" y2="96" class="tech-escena__aguja"/><circle cx="150" cy="150" r="8" class="tech-escena__centro"/>
+  </svg>
+{% elif tema == 'molecula' %}
+  <span class="tech-escena__nucleo"></span>
+  <span class="tech-escena__orbita is-atomo is-1"><i></i></span><span class="tech-escena__orbita is-atomo is-2"><i></i></span><span class="tech-escena__orbita is-atomo is-3"><i></i></span>
+{% else %}
+  <svg viewBox="0 0 600 300" class="tech-escena__svg is-ancha">
+    <path d="M0 150 Q 75 70 150 150 T 300 150 T 450 150 T 600 150" class="tech-escena__onda is-1"/>
+    <path d="M0 170 Q 75 110 150 170 T 300 170 T 450 170 T 600 170" class="tech-escena__onda is-2"/>
+    <path d="M0 190 Q 75 150 150 190 T 300 190 T 450 190 T 600 190" class="tech-escena__onda is-3"/>
+  </svg>
+{% endif %}
+</div>

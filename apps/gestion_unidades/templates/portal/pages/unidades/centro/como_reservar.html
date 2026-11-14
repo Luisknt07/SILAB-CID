@@ -1,0 +1,48 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Cómo se reserva el centro" %}{% endblock %}
+{% block encabezado %}{% translate "Cómo se reserva el centro" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué se puede reservar en cada eje, para quién, en qué áreas y temporada, y los pasos desde la solicitud hasta el registro" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Ejes" %}</dt><dd>{{ ejes|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Cómo se reserva el centro" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+<section class="unit-report__section">
+  <h2>{% translate "Qué se puede reservar" %}</h2>
+  <ul class="centro-roles">{% for clave, icono, uso, explicacion, para_quien, con_que in usos %}<li><i class="{{ icono }}" aria-hidden="true"></i><div><strong>{{ uso }}</strong><p>{{ explicacion }}</p><p class="centro-roles__nota">{% translate "Para:" %} {{ para_quien }} · {% translate "Se pide:" %} {{ con_que }}</p></div></li>{% endfor %}</ul>
+</section>
+<section class="unit-report__section">
+  <h2>{% translate "Los pasos" %}</h2>
+  <ol class="centro-ciclo">{% for paso, explicacion in pasos %}<li><strong>{{ paso }}</strong><p>{{ explicacion }}</p></li>{% endfor %}</ol>
+  <p class="centro-fuente"><a href="{{ reservar_url }}">{% translate "Ir a reservar el centro" %} →</a></p>
+</section>
+<section class="unit-report__section">
+  <h2>{% translate "Qué se reserva en cada eje" %}</h2>
+  <div class="centro-tabla-envoltura"><table class="centro-tabla">
+    <thead><tr><th>{% translate "Eje" %}</th><th>{% translate "Áreas" %}</th><th>{% translate "Prácticas que atiende" %}</th><th>{% translate "Temporada" %}</th><th>{% translate "Recorrido" %}</th></tr></thead>
+    <tbody>{% for fila in ejes %}<tr>
+      <td><a href="{% url 'eje_centro' unidad.slug fila.eje.codigo %}">{{ fila.eje.titulo }}</a></td>
+      <td>{% for espacio in fila.espacios %}{{ espacio.nombre }}{% if espacio.capacidad %} <small>({% translate "hasta" %} {{ espacio.capacidad }})</small>{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+      <td>{{ fila.eje.lista_practicas|join:", "|default:"—" }}</td>
+      <td>{% for cuando, que in fila.eje.temporadas %}<strong>{{ cuando }}:</strong> {{ que }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+      <td>{% if fila.visitable %}<span class="centro-estado is-en_curso">{% translate "Se visita" %}</span>{% else %}—{% endif %}</td>
+    </tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% if visitas.acepta %}
+<section class="unit-report__section">
+  <h2>{% translate "Recorridos guiados" %}</h2>
+  <p>{{ visitas.texto }}</p>
+  <ul class="centro-datos">
+    <li><i class="fas fa-user-friends" aria-hidden="true"></i><strong>1 {% translate "guía" %}</strong><span>{% translate "por cada" %} {{ visitas.personas_por_guia }} {% translate "personas" %}</span></li>
+    <li><i class="fas fa-route" aria-hidden="true"></i><strong>{{ visitas.areas|length }}</strong><span>{% translate "áreas en el recorrido" %}</span></li>
+    {% if visitas.aforo %}<li><i class="fas fa-users" aria-hidden="true"></i><strong>{{ visitas.aforo }}</strong><span>{% translate "personas por grupo, según el área más pequeña" %}</span></li>{% endif %}
+  </ul>
+</section>
+{% endif %}
+<section class="unit-report__section">
+  <h2>{% translate "Lo que se cuida al entrar" %}</h2>
+  <ul class="centro-cuidados">{% for cuidado in cuidados %}<li><i class="fas fa-shield-alt" aria-hidden="true"></i>{{ cuidado }}</li>{% endfor %}</ul>
+</section>
+{% endblock %}

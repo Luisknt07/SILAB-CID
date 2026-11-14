@@ -1,0 +1,224 @@
+{
+  "revisado": "2026-10-08",
+  "criterio": "Síntesis docente original y enlaces a fuentes primarias; no se descargan ni redistribuyen videos o tutoriales de terceros. No se afirma aval de sus autores.",
+  "fuentes": [
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/es/5.2/intro/tutorial01/",
+      "uso": "Proyecto, aplicación y servidor local",
+      "idioma": "español/parcial inglés"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/es/5.2/intro/tutorial02/",
+      "uso": "Modelos y administración"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/es/5.2/intro/tutorial04/",
+      "uso": "Formularios y vistas"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/en/5.2/ref/forms/validation/",
+      "uso": "Validación en backend"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/en/5.2/topics/db/transactions/",
+      "uso": "Consistencia de operaciones"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/es/5.2/topics/auth/default/",
+      "uso": "Acceso y permisos"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/es/5.2/topics/testing/overview/",
+      "uso": "Pruebas y evidencias"
+    },
+    {
+      "autor": "Django Software Foundation",
+      "url": "https://docs.djangoproject.com/es/5.2/howto/deployment/checklist/",
+      "uso": "Límites del prototipo local"
+    },
+    {
+      "autor": "Python Software Foundation",
+      "url": "https://docs.python.org/es/3/tutorial/venv.html",
+      "uso": "Entornos virtuales"
+    },
+    {
+      "autor": "Python Software Foundation",
+      "url": "https://docs.python.org/es/3/library/csv.html",
+      "uso": "CSV"
+    },
+    {
+      "autor": "Django Girls",
+      "url": "https://tutorial.djangogirls.org/es/",
+      "uso": "Lectura complementaria para principiantes; sin transcribir el tutorial",
+      "licencia": "CC BY-SA 4.0 del tutorial; contenido enlazado sin adaptación literal"
+    },
+    {
+      "autor": "OpenCode",
+      "url": "https://opencode.ai/docs/",
+      "uso": "Planificación y cambios con IA"
+    },
+    {
+      "autor": "OpenCode",
+      "url": "https://opencode.ai/docs/zen/",
+      "uso": "Opciones y condiciones de modelos; disponibilidad variable"
+    },
+    {
+      "autor": "OpenCode",
+      "url": "https://opencode.ai/docs/mcp-servers/",
+      "uso": "Integración MCP"
+    },
+    {
+      "autor": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "uso": "Herramientas, recursos y límites"
+    },
+    {
+      "autor": "Model Context Protocol",
+      "url": "https://github.com/modelcontextprotocol/python-sdk",
+      "uso": "SDK de Python"
+    },
+    {
+      "autor": "Microsoft",
+      "url": "https://github.com/microsoft/mcp-for-beginners/blob/main/translations/es/00-Introduction/README.md",
+      "uso": "Referencia MCP en español"
+    },
+    {
+      "autor": "GitHub",
+      "url": "https://docs.github.com/es/get-started/start-your-journey/hello-world",
+      "uso": "Versiones y repositorios"
+    },
+    {
+      "autor": "OpenAI",
+      "url": "https://learn.chatgpt.com/docs/pricing",
+      "uso": "Acceso opcional a Codex; no exigir pago200"
+    },
+    {
+      "autor": "Jhoni Ricardo Cerón",
+      "url": "https://www.vivelaeducacion.com/cursosv/mcp/",
+      "uso": "Contexto del enfoque público del autor. La página no identifica estas dos sesiones; no se usa como transcripción ni se supone equivalencia del temario.",
+      "licencia": "Derechos reservados. Se enlaza, sin copiar materiales."
+    }
+  ],
+  "videos": [
+    {
+      "id": "Kp4Mvapo5kc",
+      "autor": "MoureDev",
+      "titulo": "Curso COMPLETO de PYTHON desde CERO para PRINCIPIANTES",
+      "idioma": "es",
+      "url": "https://www.youtube.com/watch?v=Kp4Mvapo5kc",
+      "capitulos": {
+        "configuracion": "00:14:08",
+        "hola_mundo": "00:25:17",
+        "variables": "00:48:57"
+      }
+    },
+    {
+      "id": "aDJNG_f2C3E",
+      "autor": "MoureDev",
+      "titulo": "Curso completo de OpenCode desde cero",
+      "idioma": "es",
+      "url": "https://www.youtube.com/watch?v=aDJNG_f2C3E",
+      "capitulos": {
+        "instalacion": "00:04:20",
+        "proveedores": "00:19:38",
+        "modelos": "00:26:56",
+        "instrucciones": "00:31:16",
+        "flujo": "00:49:39",
+        "mcp": "01:44:05"
+      }
+    },
+    {
+      "id": "e6PkGDH4wWA",
+      "autor": "Fazt",
+      "titulo": "Django CRUD con Autenticacion y Despliegue Gratuito",
+      "idioma": "es",
+      "url": "https://www.youtube.com/watch?v=e6PkGDH4wWA",
+      "nota": "Recurso anterior a Django5.2: conceptos y comparación; las versiones y comandos válidos son los del kit."
+    },
+    {
+      "id": "agBbdiOPLQA",
+      "autor": "Microsoft Developer",
+      "titulo": "Introduction to Model Context Protocol (MCP)",
+      "idioma": "en",
+      "url": "https://www.youtube.com/watch?v=agBbdiOPLQA",
+      "fuente_primaria": "https://github.com/microsoft/mcp-for-beginners/blob/main/00-Introduction/README.md"
+    },
+    {
+      "id": "3GymExBkKjE",
+      "autor": "MoureDev",
+      "titulo": "Curso COMPLETO de GIT y GITHUB desde CERO para PRINCIPIANTES",
+      "idioma": "es",
+      "url": "https://www.youtube.com/watch?v=3GymExBkKjE"
+    },
+    {
+      "id": "WNjQclnnIWA",
+      "autor": "Jhoni Cerón",
+      "titulo": "Curso MCPs - Primera sesión",
+      "idioma": "es",
+      "url": "https://www.youtube.com/watch?v=WNjQclnnIWA",
+      "duracion_segundos": 8937,
+      "uso": "Ampliación opcional de la unidad 4, fuera de las 40 horas obligatorias.",
+      "verificacion": "Metadatos y playableInEmbed=true comprobados en la página pública de YouTube. Existe pista española automática; no fue posible leer su transcripción: timedtext respondió bloqueo de consultas automatizadas y Mostrar transcripción devolvió 400. No se atribuyen temas, capítulos ni resúmenes del audio.",
+      "actividad": "Guía docente original para observar, registrar minutos y contrastar con el kit; no se copian materiales del autor."
+    },
+    {
+      "id": "TmB8mXKs9jI",
+      "autor": "Jhoni Cerón",
+      "titulo": "Curso MCPs Sesion 2",
+      "idioma": "es",
+      "url": "https://www.youtube.com/watch?v=TmB8mXKs9jI",
+      "duracion_segundos": 4859,
+      "uso": "Ampliación opcional de la unidad 4, fuera de las 40 horas obligatorias.",
+      "verificacion": "Metadatos y playableInEmbed=true comprobados en la página pública de YouTube. Existe pista española automática; no fue posible leer su transcripción: timedtext respondió bloqueo de consultas automatizadas y Mostrar transcripción devolvió 400. No se atribuyen temas, capítulos ni resúmenes del audio.",
+      "actividad": "Guía docente original para observar, registrar minutos y contrastar con el kit; no se copian materiales del autor."
+    }
+  ],
+  "comprobacion_video": "Enlaces y títulos verificados en canales y fuentes primarias. La vista pública HTTP del aula cargó el reproductor y la portada del video Kp4Mvapo5kc; no se ensayó la reproducción completa de los cinco videos. Cada lección incluye URL y alternativa textual. Los 30 minutos son carga de estudio seleccionada, no duración total del video.",
+  "recursos_originales": {
+    "bienvenida": {
+      "archivo": "aplicaciones_logisticas_medios/assets/bienvenida-logistica-ia.mp4",
+      "duracion_segundos": 169.024,
+      "narracion": "Sintética en español (Sabina es-MX); no representa a un docente.",
+      "escenas": 8,
+      "subtitulos": "Abiertos y VTT opcional; transcripción completa en el aula.",
+      "sha256": "eac054e31c328130411160111347636c456376a3b84388f0a899c55e53f7ebf8"
+    },
+    "wiki": {
+      "lecturas": 10,
+      "laboratorios": 5,
+      "recursos_con_contenido": 39,
+      "criterio": "Síntesis propia ampliada con ejemplos del kit. Las tablas y diagramas explican reglas verificables; no se atribuye contenido no observado a videos externos."
+    },
+    "diagramas": {
+      "fuente": "aplicaciones_logisticas_medios/diagramas.py",
+      "carpeta_static": "portal/img/cursos/logistica-ia/",
+      "formatos": [
+        "SVG accesible",
+        "PNG para PDF"
+      ],
+      "nombres": [
+        "ruta-curso",
+        "flujo-inventario",
+        "mapa-proyecto",
+        "ciclo-ia",
+        "regla-stock",
+        "datos-indicadores",
+        "arquitectura-mcp",
+        "pruebas-entrega"
+      ]
+    },
+    "kit": {
+      "archivos": 56,
+      "bytes": 60620,
+      "sha256": "6f3e4c3318ca1cf0a22e4ab9618fbe73b18fe6449a0bb57d2b283115be809400",
+      "cambio": "Sólo README y guías: distribución de horas consistente con el aula. Sin cambio de código ni datos."
+    }
+  }
+}

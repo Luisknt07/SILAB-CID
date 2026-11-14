@@ -1,0 +1,56 @@
+{% load i18n %}
+{% if not carga_selectiva_panel or vista_gestion == 'mantenimiento' %}
+<form class="unit-console-operation" data-agenda-operation-form="diagnostico_equipo" data-reload-view="mantenimiento" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="diagnostico_equipo"><input type="hidden" name="registro_id"><input type="hidden" name="incidencia_id">
+  <header><span>REPARACIÓN Y CONTINUIDAD</span><h3>Diagnóstico y decisión</h3><p>El equipo y la unidad se toman de la incidencia. Revisa garantía y opciones de reparación antes de solicitar un equipo completo.</p></header>
+  <div class="unit-console-operation__grid">
+    <label>Fecha de evaluación<input type="date" name="fecha_evaluacion" value="{{ fecha_hoy_reparacion }}" max="{{ fecha_hoy_reparacion }}" required></label>
+    <label>Garantía<select name="garantia_revision">{% for valor, etiqueta in garantias_reparacion %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></label>
+    <label class="is-wide">Hallazgos y posible causa<textarea name="causa" rows="3" required placeholder="Falla observada y pruebas realizadas; diferencia desgaste, avería y obsolescencia."></textarea></label>
+    <label class="is-wide">Impacto y urgencia<textarea name="impacto" rows="3" required placeholder="Actividades y usuarios afectados, seguridad y alternativas disponibles."></textarea></label>
+    <label class="is-wide">Respaldo de garantía<textarea name="garantia_respaldo" rows="2" placeholder="Consulta al proveedor, cobertura o exclusiones. Si no hay documentos, deja constancia y cómo se revisará."></textarea></label>
+  </div>
+  <details><summary>Pieza o accesorio afectado</summary><div class="unit-console-operation__grid">
+    <label class="is-wide">Pieza del catálogo<select name="pieza"><option value="">Selecciona solo si ya está registrada</option>{% for pieza in piezas_reparacion %}<option value="{{ pieza.pk }}">{{ pieza.equipo.nombre }} · {{ pieza.nombre }}</option>{% endfor %}</select><small>Solo se admite una pieza del modelo del equipo de esta incidencia.</small></label>
+    <label>Nombre del componente<input name="componente" maxlength="180" placeholder="Solo el nombre, si no está en el catálogo"></label>
+    <label>Cantidad<input type="number" name="cantidad_componente" min="0.01" step="0.01"></label>
+    <label class="is-wide">Especificación y compatibilidad<textarea name="especificacion_componente" rows="2" placeholder="Modelo compatible, características técnicas y unidad de presentación."></textarea></label>
+  </div></details>
+  <details open><summary>Atención y plazos</summary><div class="unit-console-operation__grid">
+    <label>Ruta de atención<select name="ruta">{% for valor, etiqueta in rutas_reparacion %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></label>
+    <label>Servicio interno<select name="servicio"><option value="">Por confirmar cobertura</option>{% for servicio in servicios_reparacion %}<option value="{{ servicio.pk }}">{{ servicio.nombre }}</option>{% endfor %}</select><small>La cobertura se comprueba por la familia del equipo; no se presume que el centro informático atiende todas las especialidades.</small></label>
+    <label class="is-wide">Servicio especializado a consultar<input name="proveedor_externo" maxlength="200"></label>
+    <label>Fecha de derivación<input type="date" name="fecha_derivacion" max="{{ fecha_hoy_reparacion }}"></label>
+    <label>Respuesta prevista<input type="date" name="respuesta_prevista"></label>
+    <label>Costo estimado (USD)<input type="number" name="costo_estimado" min="0" step="0.01" placeholder="Vacío si aún no hay cotización"></label>
+    <label>Plazo estimado (días)<input type="number" name="plazo_estimado_dias" min="0" step="1"></label>
+    <label class="is-wide">Respuesta recibida<textarea name="respuesta" rows="2"></textarea></label>
+  </div></details>
+  <div class="unit-console-operation__grid">
+    <label>Decisión técnica<select name="decision">{% for valor, etiqueta in decisiones_reparacion %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></label>
+    <label>Financiación propuesta<select name="fuente_financiamiento">{% for valor, etiqueta in fuentes_reparacion %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></label>
+    <label class="is-wide">Justificación de la decisión<textarea name="justificacion_decision" rows="3" placeholder="Compara reparación, garantía, repuesto y sustitución: seguridad, costo, plazo y continuidad de actividades."></textarea></label>
+    <label class="is-wide">Revisión administrativa<select name="revision_adquisicion">{% for valor, etiqueta in revisiones_reparacion %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select><small>La autogestión es financiación. No autoriza compra directa ni exime del procedimiento aplicable por el valor de la compra.</small></label>
+    <label class="is-wide">Referencia de revisión o autorización<input name="autorizacion_referencia" maxlength="250" placeholder="Área competente, expediente y autorización cuando exista"></label>
+    <label class="is-wide">Informe o evidencia<input type="file" name="evidencia"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>Cancelar</button><button type="submit" class="is-primary">Guardar diagnóstico</button></footer>
+</form>
+<form class="unit-console-operation" data-agenda-operation-form="repuesto_mantenimiento" data-reload-view="mantenimiento" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="repuesto_mantenimiento"><input type="hidden" name="registro_id"><input type="hidden" name="mantenimiento_id">
+  <header><span>TRAZABILIDAD DE COMPONENTES</span><h3>Pieza o accesorio utilizado</h3><p>Se vincula a la orden y al equipo intervenido. Registra el egreso en Finanzas y la salida de inventario en su módulo cuando correspondan.</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">Nombre de la pieza o accesorio<input name="descripcion" maxlength="200" required></label>
+    <label class="is-wide">Pieza del catálogo<select name="pieza"><option value="">No registrada en catálogo</option>{% for pieza in piezas_reparacion %}<option value="{{ pieza.pk }}">{{ pieza.equipo.nombre }} · {{ pieza.nombre }}</option>{% endfor %}</select><small>Vincula la pieza del modelo para consultar sus cambios en la ficha del activo.</small></label>
+    <label class="is-wide">Existencia de inventario vinculada<select name="consumible"><option value="">No vinculada</option>{% for consumible in consumibles_reparacion %}<option value="{{ consumible.pk }}">{{ consumible.nombre }}</option>{% endfor %}</select><small>La salida de existencias se registra en Inventario; este vínculo no descuenta por segunda vez.</small></label>
+    <label>Cantidad<input type="number" name="cantidad" min="0.01" step="0.01" value="1" required></label>
+    <label>Costo unitario (USD)<input type="number" name="costo_unitario" min="0" step="0.01" value="0" required></label>
+    <label class="is-wide">Procedencia<select name="procedencia">{% for valor, etiqueta in procedencias_repuesto %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></label>
+    <label class="is-wide">Referencia de adquisición o entrega<input name="referencia_adquisicion" maxlength="250" placeholder="Factura, garantía, salida de inventario o expediente"></label>
+    <label class="is-wide">Compatibilidad y observaciones<input name="observacion" maxlength="200"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>Cancelar</button><button type="submit" class="is-primary">Registrar en la orden</button></footer>
+</form>
+{% endif %}

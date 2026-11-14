@@ -1,0 +1,1328 @@
+:root {
+  /* Colores base */
+  --separator-color-light: #f3f3f3;
+  --separator-color: #5F5F5F; 
+  --background-color: #FFFFFF;
+  --foreground-color: #6F6F6F;
+  --input-background: white;
+
+  /* Colores de botones */
+  --dark-btn-background: var(--upec-color-green-600);
+  --light-btn-background: var(--upec-color-gold-400);
+  --button-text-color: #fff;
+
+  /* Colores principales */
+  --theme-color-1: var(--upec-color-green-600);
+  --theme-color-2: var(--upec-color-green-800);
+  --theme-color-3: var(--upec-color-gold-400);
+  --theme-color-4: var(--upec-color-surface);
+  --theme-color-5: var(--upec-color-muted);
+  --theme-color-6: var(--upec-color-ink);
+
+  /* Colores con transparencia */
+  --theme-color-1-10: rgba(18, 105, 55, 0.1);
+  --theme-color-2-10: rgba(17, 97, 51, 0.1);
+  --theme-color-3-10: rgba(254, 206, 0, 0.1);
+  --theme-color-4-10: rgba(255, 255, 255, 0.1);
+  --theme-color-5-10: rgba(111, 111, 111, 0.1);
+  --theme-color-6-10: rgba(95, 95, 95, 0.1);
+
+  /* Colores primarios y secundarios */
+  --primary-color: var(--upec-color-green-600);
+  --secondary-color: var(--upec-color-muted);
+
+  /* Fuentes */
+  --heading-font-family: var(--upec-font-family-heading);
+  --content-font-family: var(--upec-font-family-body);
+
+  /* Configuración base para bordes redondeados */
+  --border-radius-lg: var(--upec-radius-card);
+  --border-radius-md: var(--upec-radius-control);
+  --border-radius-sm: 0.25rem;
+}
+
+html, body {
+  width: 100%;
+
+  color: var(--theme-color-5);
+  font-family: var(--content-font-family);
+}
+
+body.show-spinner > main {
+  overflow: hidden !important;
+}
+
+body.show-spinner > * {
+  opacity: 0;
+}
+
+body.show-spinner::after {
+  content: " ";
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  border-top-color: rgba(0, 0, 0, 0.3);
+  animation: spin 1s ease-in-out infinite;
+  position: fixed;
+  left: calc(50% - 15px);
+  top: calc(50% - 15px);
+  z-index: 1;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.main-menu .active {
+  background-color: rgba(0,0,0,0.1);
+}
+
+.sub-menu .active {
+  color: var(--theme-color-1);
+}
+
+.menu-sub-hidden .sub-menu {
+  transform: translateX(-100%);
+}
+
+.sub-menu {
+  transition: none;
+}
+
+.collapse {
+  display: none;
+}
+
+.collapse.show {
+  display: block;
+}
+
+.navbar-brand {
+  padding: 0;
+  font-size: 1.2rem;
+  text-decoration: none;
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.navbar-brand:hover {
+  text-decoration: none;
+}
+
+.navbar-brand img {
+  height: 40px;
+  width: auto;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.navbar-brand img:hover {
+  transform: scale(1.05);
+}
+
+/* Botones */
+.btn-primary, .badge-primary, .alert-primary {
+  background-color: var(--theme-color-1);
+  color: var(--button-text-color);
+}
+
+.btn-secondary {
+  background-color: var(--theme-color-2);
+  border-color: var(--theme-color-2);
+}
+
+.text-primary {
+  color: var(--theme-color-3) !important;
+  font-size: 25px;
+}
+
+.bg-primary {
+  background-color: var(--theme-color-1) !important;
+}
+
+/* Enlaces */
+a {
+  color: var(--theme-color-1);
+}
+
+a:hover {
+  color: var(--theme-color-2);
+}
+
+/* Bordes */
+.border-primary {
+  border-color: var(--theme-color-1) !important;
+}
+
+/* Elementos nav/tabs */
+.nav-tabs .nav-link.active {
+  color: var(--theme-color-1);
+  border-color: var(--theme-color-1);
+}
+
+/* Inputs */
+.form-control:focus {
+  border-color: var(--theme-color-1);
+}
+
+/* Checkboxes y radios */
+.custom-control-input:checked ~ .custom-control-label::before {
+  background-color: var(--theme-color-1);
+  border-color: var(--theme-color-1);
+}
+
+/* Header */
+.navbar {
+  box-shadow: 0 1px 15px rgb(0 0 0), 0 1px 6px rgb(0 0 0 / 10%);
+  background: linear-gradient(101deg, #006633 0%, #1a263b 100%) !important;
+
+  padding: 0 1rem !important;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.navbar .navbar-contents {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar .navbar-left, .navbar .navbar-center, .navbar .navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar .navbar-center {
+  flex-grow: 1;
+  justify-content: center;
+}
+
+.navbar .user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar .d-flex.align-items-center.w-100 {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0;
+}
+
+/* Sección izquierda */
+.navbar .d-flex:first-child {
+  flex: 1;
+}
+
+.navbar .d-flex.align-items-center:first-child {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  width: 85px;
+  padding-left: 0;
+}
+
+/* Sección derecha */
+.navbar .d-flex:last-child {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.navbar .d-flex.align-items-center:last-child {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  width: 300px;
+  padding-right: 0;
+}
+
+/* Ajustes responsive */
+@media (max-width: 767px) {
+  .navbar {
+    height: 60px;
+    padding: 0.5rem 1rem;
+  }
+  
+  .menu-mobile {
+    background-color: var(--theme-color-4);
+  }
+
+  .navbar .navbar-center {
+    display: none;
+  }
+}
+
+/* Menú principal */
+.menu .main-menu {
+  background: var(--theme-color-4);
+  height: calc(105% - 70px);
+  /*overflow-y: auto;
+  scrollbar-width: thin;*/
+  -ms-overflow-style: none;
+  border-radius: 0 !important;
+}
+
+.menu .main-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.menu .main-menu::-webkit-scrollbar-thumb {
+  background: var(--theme-color-5);
+  border-radius: 4px;
+}
+
+/* Menú principal - estado normal */
+.menu .main-menu ul li a,
+.menu .main-menu ul li i,
+.menu .main-menu ul li a span {
+ /* color: var(--theme-color-5) !important;*/
+  font-family: var(--content-font-family);
+  padding: 0 10px;
+}
+
+.menu .main-menu ul li i {
+  font-size: 26px;
+  line-height: 30px;
+  margin-bottom: 5px;
+}
+
+.menu .main-menu ul li span {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* Menú principal - estado activo */
+.menu .main-menu ul li.active a,
+.menu .main-menu ul li.active i,
+.menu .main-menu ul li.active span {
+  color: var(--theme-color-3) !important;
+}
+
+.menu .main-menu ul li.active:after {
+  background: var(--theme-color-3) !important;
+}
+
+/* Menú principal - estado hover */
+.menu .main-menu ul li a:hover,
+.menu .main-menu ul li a:hover i,
+.menu .main-menu ul li a:hover span {
+  color: var(--theme-color-3) !important;
+}
+
+/* Submenu normal */
+.menu .sub-menu ul li a,
+.menu .sub-menu ul li i {
+  color: var(--theme-color-5) !important;
+  font-family: 'simple-line-icons';
+  border-radius: 0 !important;
+}
+
+.menu .sub-menu ul li a span,
+.menu .sub-menu ul li i:not(.simple-icon-arrow-down) {
+  color: var(--theme-color-5) !important;
+}
+
+.simple-icon-arrow-down {
+  font-family: 'simple-line-icons' !important;
+}
+
+/* Estado activo del submenu */
+.menu .sub-menu ul li.active a,
+.menu .sub-menu ul li.active i,
+.menu .sub-menu ul li a:hover {
+  color: var(--theme-color-1) !important;
+}
+
+.menu .sub-menu ul li.active:after {
+  background: var(--theme-color-1) !important;
+}
+
+/* Para los submenus anidados */
+.menu .sub-menu ul.inner-level-menu li a,
+.menu .sub-menu ul.inner-level-menu li i {
+  color: var(--theme-color-5) !important;
+  font-family: var(--content-font-family);
+  
+}
+
+.menu .sub-menu ul.inner-level-menu li.active a,
+.menu .sub-menu ul.inner-level-menu li.active i,
+.menu .sub-menu ul.inner-level-menu li a:hover {
+  color: var(--theme-color-1) !important;
+  font-weight: 900;
+}
+
+/* Iconos en el header con color blanco */
+.navbar .menu-button svg .main,
+.navbar .menu-button svg .sub {
+  fill: var(--theme-color-4) !important;
+}
+
+/* Menú móvil */
+@media (max-width: 767px) {
+  .menu .main-menu ul li a {
+    height: 65px;
+  }
+}
+
+/* Títulos */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--heading-font-family);
+  font-weight: 600;
+}
+
+/* Elementos que deben usar Montserrat */
+.navbar-brand,
+.menu .main-menu .menu-title,
+.card-title,
+.page-title,
+.nav-tabs .nav-link,
+.btn,
+.dropdown-item,
+.modal-title {
+  font-family: var(--heading-font-family);
+}
+
+/* Elementos de contenido que deben usar Poppins */
+p, 
+.card-text,
+.form-control,
+.input-group-text,
+.navbar .menu-button,
+.menu .main-menu ul li a,
+.menu .sub-menu ul li a {
+  font-family: var(--content-font-family);
+}
+
+/* Ajustes específicos de peso de fuente */
+.nav-tabs .nav-link,
+.btn {
+  font-weight: 500;
+}
+
+.user img {
+  border-radius: 30px;
+  width: 40px;
+}
+
+.header-icon {
+  padding: 0 0.5rem;
+}
+
+.name {
+  margin-right: 0.5rem;
+}
+
+/* Estilo para el botón de menú */
+.menu-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 85px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent;
+  border: none;
+  flex-shrink: 0;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.menu-button i {
+  font-size: 1.2rem;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+/* Asegurar que el hover no afecte el tamaño */
+.menu-button:hover {
+  width: 85px !important;
+  height: 24px !important;
+}
+
+/* Rotación del ícono cuando el menú está en diferentes estados */
+.menu-sub-hidden .menu-button i {
+  transform: rotate(180deg);
+}
+
+.menu-hidden .menu-button i {
+  transform: rotate(360deg);
+}
+
+/* Color blanco para el ícono del menú en el header */
+.navbar .menu-button i {
+  color: var(--theme-color-4) !important;
+}
+
+/* Color blanco para el nombre de usuario en el header */
+.navbar .user .name {
+  color: var(--theme-color-4) !important;
+}
+
+/* Menú */
+.menu {
+  position: fixed;
+  top: 70px;
+  bottom: 0;
+  padding-top: 0;
+  z-index: 5;
+  height: calc(100% - 70px);
+}
+
+/* Contenido principal */
+main {
+  margin-left: 200px; 
+  margin-right: 60px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  transition: margin-left 300ms;
+}
+
+/* Ajustes responsive */
+@media (max-width: 1439px) {
+  .navbar {
+    height: 70px;
+  }
+  .menu {
+    top: 70px;
+    height: calc(100% - 70px);
+  }
+  main {
+    margin-top: 100px;
+  }
+
+  .menu .main-menu ul li a {
+    height: 75px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .navbar {
+    height: 70px;
+  }
+  .menu {
+    top: 70px;
+    height: calc(100% - 70px);
+  }
+  main {
+    margin-top: 90px;
+  }
+
+  .menu .main-menu ul li a {
+    height: 70px;
+  }
+}
+
+@media (max-width: 767px) {
+  .navbar {
+    height: 60px;
+  }
+  .menu {
+    top: 60px;
+    height: calc(100% - 60px);
+  }
+  main {
+    margin-left: 15px !important;
+    margin-right: 15px !important;
+    margin-top: 80px !important;
+  }
+}
+
+/* Ajustes para el título central */
+.navbar-brand {
+  margin: 0;
+  padding: 0;
+  position: static;
+  transform: none;
+  flex: 0 1 auto;
+}
+
+.navbar-brand a {
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.navbar-brand a:hover {
+  opacity: 0.9;
+}
+
+/* Ajustes para los botones de la derecha */
+.header-icon {
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icon i {
+  font-size: 1.2rem;
+  color: var(--theme-color-4);
+}
+
+/* Ajustes para el botón de usuario */
+.user button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.user .name {
+  margin-right: 0.5rem;
+  color: var(--theme-color-4);
+}
+
+.user img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* Ajustes para el submenú */
+.menu .sub-menu .scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+}
+
+.menu .sub-menu .scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.menu .sub-menu .scroll::-webkit-scrollbar-thumb {
+  background: var(--theme-color-5);
+  border-radius: 4px;
+}
+
+/* Menú principal - ajustes de espaciado */
+.menu .main-menu ul li a {
+  height: 110px;
+  padding: 5px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+}
+
+
+.menu .main-menu ul li i {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.menu .main-menu ul li span {
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Ajustes responsive */
+@media (max-width: 1439px) {
+  .menu .main-menu ul li a {
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 1199px) {
+  .menu .main-menu ul li a {
+    padding: 8px 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .menu .main-menu ul li a {
+    padding: 6px 0;
+  }
+}
+
+/* Ajustes responsive */
+@media (max-width: 1439px) {
+  .menu .main-menu ul li a {
+    height: 70px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .menu .main-menu ul li a {
+    height: 65px;
+  }
+}
+
+@media (max-width: 767px) {
+  .menu .main-menu ul li a {
+    height: 60px;
+  }
+}
+
+/* Ajustes para elementos del menú principal */
+.menu .main-menu ul li {
+  margin-bottom: 5px;
+  height: 110px;
+}
+
+.menu .main-menu ul li span {
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Ajustes responsive */
+@media (max-width: 1439px) {
+  .menu .main-menu ul li {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .menu .main-menu ul li {
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .menu .main-menu ul li {
+    margin-bottom: 8px;
+  }
+}
+
+/* Base styles para elementos del menú */
+
+/* Estado activo - fondo amarillo */
+.menu .main-menu ul li.active {
+  background-color: rgba(254, 206, 0, 0.2);
+  height: auto;
+}
+
+/* Media queries */
+@media (max-width: 1439px) {
+  .menu .main-menu ul li {
+    padding: 8px 0;
+  }
+  .menu .main-menu ul li.active {
+    padding: 12px 0;
+    height: auto;
+  }
+}
+
+@media (max-width: 1199px) {
+  .menu .main-menu ul li {
+    padding: 6px 0;
+    height: auto;
+  }
+  .menu .main-menu ul li.active {
+    padding: 10px 0;
+    height: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .menu .main-menu ul li {
+    padding: 5px 0;
+    height: auto;
+  }
+  .menu .main-menu ul li.active {
+    padding: 8px 0;
+    height: auto;
+  }
+}
+
+/* Estilo para subsección activa en el menú secundario */
+.menu .sub-menu ul li a.subsection-active {
+  color: var(--theme-color-1) !important;
+  font-weight: 900;
+}
+
+.menu .sub-menu ul li a.subsection-active span {
+  color: var(--theme-color-1) !important;
+}
+
+/* Estilos para el header */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vertical-separator {
+  width: 1px;
+  height: 40px;
+  background-color: rgba(255,255,255,0.2);
+  margin: 0 15px;
+}
+
+.upec-logo {
+  height: 40px;
+  width: auto;
+  transition: transform 0.2s ease;
+}
+
+.upec-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .navbar-brand {
+    transform: none;
+    position: static;
+    justify-content: center;
+  }
+  
+  .vertical-separator {
+    height: 30px;
+    margin: 0 10px;
+  }
+  
+  .upec-logo {
+    height: 30px;
+  }
+}
+
+/* Hover amarillo para los iconos del header */
+.navbar .menu-button:hover i,
+.navbar .header-icon:hover i,
+.navbar .user:hover .name {
+  color: var(--theme-color-3) !important;
+  transition: color 0.2s ease;
+}
+
+/* Asegurar que el color base sea blanco */
+.navbar .menu-button i,
+.navbar .header-icon i,
+.navbar .user .name {
+  color: var(--theme-color-4) !important;
+  transition: color 0.2s ease;
+}
+
+/* Hover amarillo para los iconos del header */
+.navbar .menu-button:hover i.iconsminds-align-justify-all,
+.navbar .header-icon.btn-empty:hover i.simple-icon-grid,
+.navbar .user.dropdown:hover .name {
+  color: var(--theme-color-3) !important;
+  transition: color 0.2s ease;
+}
+
+/* Color base blanco */
+.navbar .menu-button i.iconsminds-align-justify-all,
+.navbar .header-icon.btn-empty i.simple-icon-grid,
+.navbar .user.dropdown .name {
+  color: var(--theme-color-4) !important;
+  transition: color 0.2s ease;
+}
+
+/* Estilos base para iconos del header */
+.navbar .menu-button i,
+.navbar .header-icon i,
+.navbar .user .name {
+  color: var(--theme-color-4) !important;
+  transition: all 0.3s ease;
+}
+
+/* Hover amarillo */
+.navbar .menu-button:hover i.iconsminds-align-justify-all,
+.navbar .header-icon.btn-empty:hover i.simple-icon-grid,
+.navbar .user.dropdown:hover .name {
+  color: var(--theme-color-3) !important;
+}
+
+/* ELIMINAR todo esto ya que interfiere con las animaciones nativas */
+/* Animación de rotación del menú */
+.menu-button i {
+  transform: rotate(0deg);
+  transition: all 0.3s ease;
+}
+
+.menu-sub-hidden .menu-button i {
+  transform: rotate(180deg);
+}
+
+.menu-hidden .menu-button i {
+  transform: rotate(360deg);
+}
+
+/* Estados de rotación */
+#app-container.menu-sub-hidden:not(.menu-hidden) .menu-button i {
+  transform: rotate(180deg);
+}
+
+#app-container.menu-hidden .menu-button i {
+  transform: rotate(360deg);
+}
+
+/* Base styles para el botón de menú */
+.menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.menu-button i {
+  display: inline-block;
+  color: var(--theme-color-4) !important;
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+}
+
+/* Estilos base para el botón de menú */
+.menu-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-button .rotate-icon {
+  font-size: 1.5rem;
+  color: var(--theme-color-4);
+  display: inline-block;
+  transition: transform 0.3s ease-in-out;
+  will-change: transform;
+  transform-origin: center;
+}
+
+/* Estados de rotación */
+/* Estado inicial - menu y submenu ocultos (palos verticales) */
+#app-container.menu-hidden .menu-button .rotate-icon {
+  transform: rotate(90deg);
+}
+
+/* Solo menu principal visible (palos horizontales) */
+#app-container.menu-default.menu-sub-hidden .menu-button .rotate-icon {
+  transform: rotate(0deg);
+}
+
+/* Menu y submenu visibles (giro completo) */
+#app-container.menu-default:not(.menu-sub-hidden) .menu-button .rotate-icon {
+  transform: rotate(180deg);
+}
+
+/* Hover state */
+.menu-button:hover .rotate-icon {
+  color: var(--theme-color-3);
+}
+
+/* Estilos base para el botón de menú */
+.menu-button .rotate-icon {
+  font-size: 1.5rem;
+  color: var(--theme-color-4);
+  display: inline-block;
+  transition: transform 0.3s ease-in-out;
+  will-change: transform;
+  transform-origin: center;
+}
+
+/* Estados de rotación con transiciones suaves */
+#app-container.menu-hidden .menu-button .rotate-icon {
+  transform: rotate(90deg);
+}
+
+#app-container.menu-default.menu-sub-hidden .menu-button .rotate-icon {
+  transform: rotate(0deg);
+}
+
+#app-container.menu-default:not(.menu-sub-hidden) .menu-button .rotate-icon {
+  transform: rotate(180deg);
+}
+
+/* Tamaños de texto estandarizados */
+h1, .h1 {
+  font-size: 28px !important;
+  line-height: 1.3;
+}
+
+h2, .h2,
+.card-title.large {
+  font-size: 24px !important;
+  line-height: 1.3;
+}
+
+h3, .h3,
+.card-title {
+  font-size: 18px !important;
+  line-height: 1.3;
+}
+
+p, .card-text,
+.btn,
+.nav-link,
+.dropdown-item {
+  font-size: 14px !important;
+  line-height: 1.5;
+}
+
+/* Ajuste para íconos */
+.icon-size {
+  font-size: 42px !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Ajustes responsive */
+@media (max-width: 767px) {
+  h1, .h1 {
+    font-size: 24px !important;
+  }
+  
+  h2, .h2,
+  .card-title.large {
+    font-size: 20px !important;
+  }
+  
+  h3, .h3,
+  .card-title {
+    font-size: 16px !important;
+  }
+}
+
+/* Ajuste para íconos en cards */
+.icon-size {
+  font-size: 42px !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Ajustes para las cards de la página de inicio */
+.equal-height-container .card {
+  height: 100%;
+}
+
+.equal-height-container .card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 1.5rem 1.25rem;
+}
+
+.equal-height-container .card-title {
+  font-size: 18px !important;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.equal-height-container .card-text {
+  font-size: 14px !important;
+  margin-bottom: 0;
+}
+
+/* Contenedores principales con bordes redondeados */
+.card {
+  border-radius: var(--border-radius-md) !important;
+}
+
+/* Cards dentro de contenedores - mantener consistencia */
+.card .card-body {
+  border-radius: var(--border-radius-md);
+}
+
+/* Mantener las esquinas cuadradas en header, menú y submenú */
+.navbar,
+.menu .main-menu,
+.menu .sub-menu {
+  border-radius: 0 !important;
+}
+
+/* Otros contenedores que necesitan bordes redondeados */
+.modal-content {
+  border-radius: var(--border-radius-md) !important;
+}
+
+.dropdown-menu {
+  border-radius: var(--border-radius-sm) !important;
+}
+
+.alert {
+  border-radius: var(--border-radius-sm) !important;
+}
+
+/* Imágenes en cards */
+.card-img,
+.card-img-top,
+.card-img-bottom {
+  border-radius: var(--border-radius-md) !important;
+}
+
+/* Contenedores de tabs */
+.tab-content {
+  border-radius: var(--border-radius-md);
+}
+
+/* Botones ya tienen su propio radio definido */
+
+/* Ajuste para tablas dentro de cards */
+.card .table {
+  border-radius: var(--border-radius-sm);
+}
+
+/* Contenedor de videos y multimedia */
+.video-container {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+/* Mantener bordes redondeados en responsive */
+@media (max-width: 767px) {
+  .card,
+  .modal-content,
+  .tab-content {
+    border-radius: var(--border-radius-sm) !important;
+  }
+}
+
+/* Ajuste para imágenes dentro de cards */
+.card .img-fluid {
+  border-radius: var(--border-radius-md) !important;
+}
+
+/* Asegurar que las imágenes redondeadas mantengan la consistencia */
+.img-fluid.rounded {
+  border-radius: var(--border-radius-md) !important;
+}
+
+/* Ajuste responsive */
+@media (max-width: 767px) {
+  .card .img-fluid,
+  .img-fluid.rounded {
+    border-radius: var(--border-radius-sm) !important;
+  }
+}
+
+/* Clase para el fondo gris de marca */
+.bg-brand-gray {
+  background-color: var(--theme-color-1) !important;
+}
+
+.bg-brand-gray .card-body {
+  border-radius: var(--border-radius-md);
+}
+
+/* Ajustes responsive para el search */
+@media (max-width: 500px) {
+  .navbar .search {
+    display: none;
+  }
+}
+
+@media (max-width: 991px) {
+  .navbar .search {
+    width: 150px;
+  }
+}
+
+@media (max-width: 860px) {
+  .navbar .search {
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    margin-left: 0.6rem;
+    transition: width 0.3s ease;
+  }
+  
+  .navbar .search input {
+    display: none;
+  }
+  
+  .navbar .search .search-icon {
+    font-size: 17px;
+    width: 30px;
+    height: 30px;
+    bottom: -3px;
+    right: 0;
+  }
+}
+
+/* Estilos para timeline de colaboración */
+.timeline-item {
+  position: relative;
+  padding-top: 20px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: rgba(var(--primary-rgb), 0.1);
+  transform: translateX(-50%);
+}
+
+/* Círculos indicadores en timeline */
+.timeline-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--theme-color-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.timeline-indicator i {
+  color: var(--theme-color-4);
+  font-size: 24px;
+}
+
+/* Cards de estadísticas */
+.stat-card {
+  padding: 1.5rem;
+  text-align: center;
+  border-right: 1px solid var(--separator-color-light);
+}
+
+.stat-card:last-child {
+  border-right: none;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--theme-color-1);
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: var(--theme-color-5);
+  font-size: 0.9rem;
+}
+
+/* Carousel personalizado */
+.custom-carousel {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.custom-carousel .carousel-item {
+  padding: 2rem;
+}
+
+.custom-carousel .carousel-control-prev,
+.custom-carousel .carousel-control-next {
+  width: 40px;
+  height: 40px;
+  background: var(--theme-color-1);
+  border-radius: 50%;
+  opacity: 0.9;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .timeline-item::before {
+    display: none;
+  }
+  
+  .stat-card {
+    border-right: none;
+    border-bottom: 1px solid var(--separator-color-light);
+    margin-bottom: 1rem;
+  }
+  
+  .stat-card:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Estilos adicionales */
+.event-date {
+  min-width: 60px;
+}
+
+.social-icons .btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  line-height: 40px;
+}
+
+.social-icons .btn i {
+  line-height: 38px;
+}
+
+/* Estilos adicionales para el calendario */
+.calendar {
+  min-height: 400px;
+  background: #fff;
+}
+
+.fc-view-container {
+  background: #fff;
+}
+
+.fc-event {
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.fc-day-grid-event .fc-content {
+  white-space: normal;
+}
+
+/* Ajustes para el search */
+.navbar .search {
+  transition: width 0.3s ease;
+}
+@media (max-width: 629px) {
+  .hide-on-small {
+    display: none;
+  }
+}
+.icon {
+  font-family:'simple-line-icons' !important;
+}
+
+.tag {
+  display: inline-block;        
+  font-size: 12px !important;
+  color: #5F5F5F;
+  border: 1px solid #126937;
+  border-radius: 10px;
+  padding: 0 6px;                
+  font-weight: 500;
+  line-height: 15px;            
+  text-align: center;
+  position: relative;           /* 👈 Necesario si usas top/right */
+  top: -4px;
+  right: 2px;
+}

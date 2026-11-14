@@ -1,0 +1,7 @@
+codigo,nombre,unidad,minimo
+AD-201,Producto inicialmente válido,UN,2.00
+AD-201,Código repetido,UN,2.00
+AD-202,Producto con mínimo negativo,KG,-5.00
+AD-203,Unidad inexistente,CAJ,1.00
+AD-204,<script>dato inválido</script>,UN,1.00
+AD-205,Precisión no permitida,UN,1.234

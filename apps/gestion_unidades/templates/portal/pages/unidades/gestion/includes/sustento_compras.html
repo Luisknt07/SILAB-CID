@@ -1,0 +1,17 @@
+<p class="compra-diagnostico__nota">Este apartado respalda las compras solicitadas. El inventario completo, sus cantidades existentes y las intervenciones se consultan en sus módulos.</p>
+<p>{% url 'gestion_unidad' unidad.slug as gestion_recursos_url %}<a href="{{ gestion_recursos_url }}?view=recursos" target="_blank" rel="noopener">Recursos e inventario por área</a> · <a href="{{ gestion_recursos_url }}?view=mantenimiento" target="_blank" rel="noopener">Mantenimiento e incidencias por área</a></p>
+{% if contraste_compras %}{% include 'portal/pages/unidades/gestion/includes/pac_cobertura_areas.html' with contraste=contraste_compras %}{% endif %}
+{% for area in respaldo_compras.areas %}
+<section class="compra-diagnostico__detalle"><h4>{{ area.nombre }} · {{ area.necesidades|length }} necesidad{{ area.necesidades|length|pluralize:'es' }} · {{ area.equipos_actuales }} activos vigentes · {{ area.incidencias_abiertas }} incidencias abiertas</h4>
+  <p>{{ area.equipos_relacionados }} activos relacionados con estas necesidades. Su respaldo se muestra una sola vez, según su área registrada, a continuación.</p>
+</section>
+{% empty %}<p>Primero registra las necesidades en «Compras y programación». Aquí se mostrará su respaldo por área, sin repetir el inventario de la unidad.</p>{% endfor %}
+{% for area in respaldo_compras.evidencias %}
+<section class="compra-diagnostico__detalle"><h4>Respaldo técnico · {{ area.nombre }}</h4>
+  <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Modelo relacionado</th><th>Activos relacionados y condición</th><th>Uso acreditado y fuentes</th></tr></thead><tbody>
+    {% for modelo in area.modelos %}<tr><th scope="row">{{ modelo.nombre }}</th><td>{{ modelo.cantidad }} · {{ modelo.condicion }}<small>{{ modelo.codigos }}</small></td><td>{{ modelo.horas|floatformat:2 }} h · {{ modelo.incidencias }} incidencias · {{ modelo.mantenimientos }} mantenimientos registrados</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endfor %}
+{% if respaldo_compras.cierres_pendientes %}<p class="compra-diagnostico__nota">Hay {{ respaldo_compras.cierres_pendientes }} cierres con identificación de recursos pendiente. La ausencia de horas acreditadas no demuestra inactividad; completa los registros en el módulo correspondiente.</p>{% endif %}
+<small>Fuentes consultadas al {{ respaldo_compras.fecha }}. Las asignaciones y los estados proceden de Recursos e inventario.</small>

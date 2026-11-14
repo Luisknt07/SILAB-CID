@@ -1,0 +1,46 @@
+{% if guia_reportes.grupos %}
+<section class="guia-reportes" aria-labelledby="guia-reportes-titulo" data-guia-reportes>
+  <header class="guia-reportes__cabecera">
+    <div><h2 id="guia-reportes-titulo">Qué reportar y dónde hacerlo</h2><p>{{ guia_reportes.perfil.nombre }}{% if guia_reportes.perfil.enfoque %} · {{ guia_reportes.perfil.enfoque }}{% endif %}</p></div>
+    <span class="guia-reportes__ayuda">Registra una vez; consulta aquí sus documentos y seguimiento.</span>
+  </header>
+  <div class="guia-reportes__grupos">
+    {% for grupo in guia_reportes.grupos %}
+    <article class="guia-reportes__grupo" data-reporte-informacion data-guia-grupo="{{ grupo.clave }}">
+      <div class="guia-reportes__grupo-cabecera"><span class="guia-reportes__icono"><i class="fas {% if grupo.clave == 'base' %}fa-shield-alt{% elif grupo.clave == 'apertura' %}fa-calendar-alt{% elif grupo.clave == 'registros' %}fa-clipboard-list{% else %}fa-flag-checkered{% endif %}" aria-hidden="true"></i></span><div><h3>{{ grupo.titulo }}</h3>{% if grupo.cuando %}<small>{{ grupo.cuando }}</small>{% endif %}</div></div>
+      <p>{{ grupo.resumen }}</p>
+      {% if grupo.clave == 'base' %}<p class="guia-reportes__regla">Vigencia y conformidad · sin puntuación.</p>{% elif grupo.clave == 'apertura' %}<p class="guia-reportes__regla">Planificación conforme y respaldo de actividades · prerrequisito, sin puntos adicionales.</p>{% elif grupo.clave == 'registros' %}<p class="guia-reportes__regla">La evidencia verificada sustenta las metas del cierre.</p>{% else %}<p class="guia-reportes__regla">El informe determina el resultado de 0 a 100; la mejora da seguimiento a las brechas.</p>{% endif %}
+      <div class="guia-reportes__conteo"><span>{{ grupo.items|length }} {% if grupo.items|length == 1 %}documento o consulta{% else %}documentos y consultas{% endif %}</span>{% if grupo.pendientes %}<b>{{ grupo.pendientes }} pendientes</b>{% endif %}</div>
+      {% if grupo.proximo_paso %}<p class="guia-reportes__proximo">{{ grupo.proximo_paso }}</p>{% endif %}
+      <div class="guia-reportes__accesos">{% if grupo.accion %}{% include 'portal/pages/unidades/gestion/includes/guia_reportes_accion.html' with accion=grupo.accion principal=True %}{% endif %}</div>
+      <button class="guia-reportes__explicar" type="button" data-reporte-informacion-abrir data-modal-titulo="{{ grupo.titulo }}" aria-haspopup="dialog"><i class="far fa-question-circle" aria-hidden="true"></i> Qué incluye y cómo cumplir</button>
+      <template data-reporte-informacion-contenido>
+        <div class="guia-reportes-detalle">
+          <p class="guia-reportes-detalle__introduccion">{{ grupo.resumen }}</p>
+          {% if grupo.cuando %}<p class="guia-reportes-detalle__cuando"><i class="far fa-clock" aria-hidden="true"></i> {{ grupo.cuando }}</p>{% endif %}
+          <ol class="guia-reportes-detalle__lista">
+            {% for item in grupo.items %}
+            <li>
+              <article class="guia-reportes-detalle__item">
+                <header><h3 class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ item.nombre }}</span></h3>{% if item.prioridad %}<span class="guia-reportes-detalle__etiqueta">{{ item.prioridad }}</span>{% endif %}</header>
+                {% if item.proposito %}<p>{{ item.proposito }}</p>{% endif %}
+                <dl>
+                  {% if item.alcance %}<div><dt>Qué debe mostrar</dt><dd>{{ item.alcance }}</dd></div>{% endif %}
+                  {% if item.frecuencia %}<div><dt>Cuándo se requiere</dt><dd>{{ item.frecuencia }}</dd></div>{% endif %}
+                  {% if item.origen %}<div><dt>De dónde sale</dt><dd>{{ item.origen }}</dd></div>{% endif %}
+                  {% if item.validacion %}<div><dt>Cómo se comprueba</dt><dd>{{ item.validacion }}</dd></div>{% endif %}
+                  {% if item.seguimiento %}<div><dt>Seguimiento</dt><dd>{{ item.seguimiento }}</dd></div>{% endif %}
+                </dl>
+                {% if item.estado or item.proximo_paso %}<div class="guia-reportes-detalle__siguiente">{% if item.estado %}<span>{{ item.estado }}</span>{% endif %}{% if item.proximo_paso %}<p><strong>Próximo paso:</strong> {{ item.proximo_paso }}</p>{% endif %}</div>{% endif %}
+                {% if item.acciones %}<nav class="guia-reportes-detalle__acciones" aria-label="Acciones de {{ item.nombre }}">{% for accion in item.acciones %}{% include 'portal/pages/unidades/gestion/includes/guia_reportes_accion.html' with nombre=item.nombre principal=False %}{% endfor %}</nav>{% endif %}
+              </article>
+            </li>
+            {% empty %}<li><p>Sin documentos o actividades aplicables en este bloque.</p></li>{% endfor %}
+          </ol>
+        </div>
+      </template>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

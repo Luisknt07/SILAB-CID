@@ -1,0 +1,27 @@
+{% load i18n %}{% comment %}La ficha de un servicio del portafolio: qué incluye, qué entrega, para quién, cómo se atiende y desde dónde
+se pide.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande" aria-hidden="true"><i class="{% if servicio.componente %}{{ servicio.componente.icono }}{% else %}fas fa-concierge-bell{% endif %}"></i></span>
+  <div><span class="ficha__rol">{{ servicio.linea }}</span><h3>{{ servicio.nombre }}</h3><p>{{ servicio.descripcion }}</p></div>
+</header>
+<div class="area__dialogo-cuerpo">
+  {% if servicio.alcance %}<h4>{% translate 'Alcance' %}</h4>{{ servicio.alcance|linebreaks }}{% endif %}
+  {% if servicio.exclusiones %}<h4>{% translate 'Exclusiones' %}</h4>{{ servicio.exclusiones|linebreaks }}{% endif %}
+  {% if servicio.entradas %}<h4>{% translate 'Qué debes aportar' %}</h4>{{ servicio.entradas|linebreaks }}{% endif %}
+  {% if servicio.requisitos %}<h4>{% translate 'Requisitos' %}</h4>{{ servicio.requisitos|linebreaks }}{% endif %}
+  {% if servicio.metodo %}<h4>{% translate 'Método' %}</h4>{{ servicio.metodo|linebreaks }}{% endif %}
+  {% if servicio.aceptacion %}<h4>{% translate 'Criterios de aceptación' %}</h4>{{ servicio.aceptacion|linebreaks }}{% endif %}
+  {% if servicio.condiciones %}<h4>{% translate 'Condiciones de atención' %}</h4>{{ servicio.condiciones|linebreaks }}{% endif %}
+  <table class="area__tabla area__tabla--ficha"><caption>{% translate "El servicio" %}</caption><tbody>
+    <tr><th scope="row">{% translate "Qué se entrega" %}</th><td>{{ servicio.entregable }}</td></tr>
+    <tr><th scope="row">{% translate 'Estado de oferta' %}</th><td>{{ servicio.get_estado_oferta_display }}</td></tr>
+    {% if servicio.plazo %}<tr><th scope="row">{% translate 'Plazo' %}</th><td>{{ servicio.plazo }}</td></tr>{% endif %}
+    {% if servicio.formato_entrega %}<tr><th scope="row">{% translate 'Formato de entrega' %}</th><td>{{ servicio.formato_entrega }}</td></tr>{% endif %}
+    {% if servicio.contacto %}<tr><th scope="row">{% translate 'Contacto' %}</th><td>{{ servicio.contacto }}</td></tr>{% endif %}
+    <tr><th scope="row">{% translate "Para quién" %}</th><td>{{ servicio.get_usuarios_display }}</td></tr>
+    {% if servicio.componente %}<tr><th scope="row">{% translate "Área que lo presta" %}</th><td><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug servicio.componente.codigo %}"><i class="{{ servicio.componente.icono }}" aria-hidden="true"></i> {{ servicio.componente }}</a></td></tr>{% endif %}
+    <tr><th scope="row">{% translate "Tarifa" %}</th><td>{% if servicio.tarifa_documentada %}{{ servicio.tarifa }} · {{ servicio.tarifa_fecha|date:'d/m/Y' }} · {{ servicio.tarifa_fuente }}{% else %}{% translate 'Condiciones económicas por confirmar durante la evaluación' %}{% endif %}</td></tr>
+  </tbody></table>
+  <div><h4 class="cv-dialogo-titulo"><i class="fas fa-route" aria-hidden="true"></i> {% translate "Cómo se atiende" %}</h4>
+    <ol class="area__mini-flujo">{% for nombre, detalle in ruta %}<li><b>{{ forloop.counter }}</b><span><strong>{{ nombre }}</strong> · {{ detalle }}</span></li>{% endfor %}</ol></div>
+  <div class="ficha__documento-acciones">{% if servicio.componente %}<a class="ficha__boton cv-boton--claro" href="{% url 'componente_centro_id' centro.slug servicio.componente.codigo %}"><i class="{{ servicio.componente.icono }}" aria-hidden="true"></i> {% translate "Ver el área" %}</a>{% endif %}{% if servicio.solicitable %}<a class="ficha__boton" href="{{ solicitar_url }}?tipo={% if servicio.modalidad == 'acompanamiento' %}asesoria{% else %}servicio{% endif %}&amp;servicio={{ servicio.pk }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% if servicio.estado_oferta == 'consultar' %}{% translate 'Consultar servicio' %}{% else %}{% translate 'Solicitar servicio' %}{% endif %}</a>{% endif %}</div>
+</div>

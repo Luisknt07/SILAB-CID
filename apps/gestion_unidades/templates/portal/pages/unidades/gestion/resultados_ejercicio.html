@@ -1,0 +1,57 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ ejercicio.codigo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .ej-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    .ej-falta { color: #a12c2c; font-weight: 700; }
+    .ej-espera { color: var(--institucion-acento-tinta, #a35d00); font-weight: 700; }
+    .ej-detalle { display: block; font-size: 11px; color: #4f5f57; }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· AULA" %}</span>
+        <h1>{{ ejercicio.nombre }}</h1>
+        <small>{{ ejercicio.codigo }} · {{ ejercicio.get_simulador_display|ui }} · {{ ejercicio.receta.nombre }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>
+        <div><dt>{% translate "Asignados" %}</dt><dd>{{ resumen.asignados }}</dd></div>
+        <div><dt>{% translate "Entregados" %}</dt><dd>{{ resumen.entregados }}</dd></div>
+        <div><dt>{% translate "Promedio" %}</dt><dd>{% if resumen.promedio is not None %}{{ resumen.promedio|floatformat:"-2" }} / {{ ejercicio.puntaje|floatformat:"-2" }}{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}" target="_top">{% translate "← Volver al aula" %}</a>
+      <div>{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+
+    <section class="unit-report__context"><span>CONSIGNA</span><h2>{% if ejercicio.reserva %}{{ ejercicio.reserva.codigo_reserva }} · {{ ejercicio.reserva.fecha|date:"d/m/Y" }}{% else %}{% translate "Sin sesión ligada" %}{% endif %}</h2><p>{{ ejercicio.consigna|linebreaksbr }}{% if ejercicio.fecha_limite %} {% translate "Plazo de entrega:" %} {{ ejercicio.fecha_limite|date:"d/m/Y" }}.{% endif %} {% translate "Se admite una diferencia de hasta" %} {{ ejercicio.tolerancia_pct|floatformat:"-2" }} {% translate "% respecto del valor que calcula el motor." %}</p></section>
+
+    <section class="unit-report__section">
+      <header><span>ESTUDIANTES</span><small>{% translate "cada uno con su escala" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Estudiante" %}</th><th>{% translate "Escala" %}</th><th>{% translate "Estado" %}</th><th>{% translate "Nota" %}</th><th>{% translate "Respuesta por pregunta" %}</th></tr></thead><tbody>
+        {% for fila in filas %}<tr>
+          <td><strong>{{ fila.intento.estudiante.get_full_name|default:fila.intento.estudiante.username }}</strong><br><small>{{ fila.intento.estudiante.username }}</small></td>
+          <td>{% translate "×" %} {{ fila.intento.factor|floatformat:"-3" }}</td>
+          <td>{% if fila.intento.estado == 'calificado' %}<span class="ej-ok">{% translate "Entregado" %}</span><br><small>{{ fila.intento.entregado_en|date:"d/m/Y H:i" }}{% if fila.intento.fuera_de_plazo %} {% translate "· fuera de plazo" %}{% endif %}</small>{% else %}<span class="ej-espera">{% translate "Sin entregar" %}</span>{% endif %}</td>
+          <td>{% if fila.intento.puntaje is not None %}<strong>{{ fila.intento.puntaje|floatformat:"-2" }}</strong> / {{ ejercicio.puntaje|floatformat:"-2" }}<br><small>{{ fila.intento.aciertos }} de {{ fila.intento.preguntas_totales }}</small>{% else %}—{% endif %}</td>
+          <td>{% for resultado in fila.intento.resultados %}<span class="ej-detalle">{{ resultado.texto }}: <b>{{ resultado.respuesta|default:"—" }}</b> {% translate "frente a" %} {{ resultado.esperado }}{% if resultado.correcta %} · <span class="ej-ok">correcta</span>{% else %} · <span class="ej-falta">fuera</span>{% endif %}</span>{% empty %}{% for pregunta in fila.preguntas %}<span class="ej-detalle">{{ pregunta.texto }}{% translate ": el motor calcula" %} {{ pregunta.esperado_texto }}{% if pregunta.unidad %} {{ pregunta.unidad }}{% endif %}</span>{% endfor %}{% endfor %}{% if fila.intento.comentario %}<span class="ej-detalle"><i>{{ fila.intento.comentario }}</i></span>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="5">{% translate "El ejercicio todavía no está asignado a ningún estudiante." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{{ ejercicio.codigo }} · {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

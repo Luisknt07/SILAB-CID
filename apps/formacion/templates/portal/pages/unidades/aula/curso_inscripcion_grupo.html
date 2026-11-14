@@ -1,0 +1,9 @@
+{% load static i18n %}<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ curso.nombre }} · {% translate "Grupos e inscripción" %}</title>
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+{% include 'portal/components/paleta_institucional.html' %}</head>
+<body class="conoce aula-curso"><header class="aula-curso__cabecera"><a class="aula-curso__volver" href="{{ curso_url }}">{% translate "Página del curso" %}</a><div><span class="conoce__antetitulo">{{ unidad.nombre }}</span><h1>{{ curso.nombre }}</h1></div></header>
+<main class="verificacion"><section class="gestion__bloque"><h2>{% translate "Inscríbete en un grupo" %}</h2><p>{% translate "Elige el grupo y completa los datos que constarán en esta matrícula. Esto no modifica tu cuenta." %}</p>
+<form method="post" action="{% url 'inscribirse_curso' unidad.slug curso.codigo %}" class="gestion__formulario">{% csrf_token %}{{ formulario.as_p }}<button class="conoce__boton is-principal" type="submit">{% translate "Enviar inscripción" %}</button></form></section></main></body></html>

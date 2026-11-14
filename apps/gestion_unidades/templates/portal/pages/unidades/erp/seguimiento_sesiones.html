@@ -1,0 +1,13 @@
+{% load i18n idiomas %}<article class="unit-console__card">
+  <header><div><span>{% translate "ERP DE LA PLANTA" %}</span><h3>{% translate "Sesiones de práctica" %}</h3><p>{% translate "Lo que los grupos operan en el ERP, cada uno en su sesión y sin tocar la producción real. Ábrela para revisar lo que hizo el grupo." %}</p></div><a class="unit-console__manage-reservation is-compact" href="{% url 'erp_planta' unidad.slug %}?view=sesiones"><i class="fas fa-industry"></i> {% translate "Ir al ERP" %}</a></header>
+  <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Sesión" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Responsable" %}</th><th>{% translate "Participantes" %}</th><th>{% translate "Órdenes" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+  {% for sesion in sesiones_erp_unidad %}<tr>
+    <td><a href="{% url 'erp_planta' unidad.slug %}?sesion={{ sesion.codigo }}"><strong>{{ sesion.codigo }}</strong></a><br><small>{{ sesion.nombre }}</small></td>
+    <td>{{ sesion.get_tipo_display|ui }}{% if sesion.reserva_id %}<br><small>{{ sesion.reserva.codigo_reserva }}</small>{% endif %}</td>
+    <td>{% if sesion.responsable %}{{ sesion.responsable.get_full_name|default:sesion.responsable.username }}{% else %}—{% endif %}</td>
+    <td>{{ sesion.participantes }}</td>
+    <td>{{ sesion.ordenes }}</td>
+    <td><span class="unit-console__status{% if sesion.abierta %} is-confirmada{% endif %}">{{ sesion.get_estado_display|ui }}</span></td>
+  </tr>{% empty %}<tr><td colspan="6"><div class="unit-console__empty"><strong>{% translate "Sin sesiones todavía" %}</strong><span>{% translate "Los docentes las abren en el ERP para sus prácticas." %}</span></div></td></tr>{% endfor %}
+  </tbody></table></div>
+</article>

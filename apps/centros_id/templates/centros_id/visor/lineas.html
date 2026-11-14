@@ -1,0 +1,33 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Agenda y líneas: cada línea de investigación con lo que busca, el área que la lidera, sus retos, los proyectos que la
+desarrollan y quiénes investigan en ella, con los bloques de Laboratorios.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "La agenda del centro: qué busca cada línea, qué retos prioriza, qué área la lidera, qué proyectos la desarrollan y quiénes investigan en ella." %}</p>{% endblock %}
+
+{% block contenido %}
+<form class="cv-filtros" method="get">
+  <label>{% translate "Buscar en la agenda" %}<input type="search" name="q" value="{{ filtro.q }}"></label>
+  <label>{% translate "Área" %}<select name="area"><option value="">{% translate "Todas" %}</option>{% for area in c.areas %}<option value="{{ area.codigo }}"{% if filtro.area == area.codigo %} selected{% endif %}>{{ area }}</option>{% endfor %}</select></label>
+  <button class="ficha__boton" type="submit">{% translate "Filtrar" %}</button>
+  {% if filtro.q or filtro.area %}<a href="{% url 'seccion_centro_id' centro.slug 'lineas' %}">{% translate "Limpiar" %}</a>{% endif %}
+</form>
+{% if filas %}
+<section class="conoce__seccion" id="agenda">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Agenda de investigación" %}</span><h2>{% translate "Las líneas del centro" %}</h2></header>
+  <div class="ficha__datos">
+    {% for fila in filas %}
+    <article class="ficha__bloque{% if forloop.first %} ficha__bloque--creacion{% endif %}" id="linea-{{ fila.linea.pk }}" data-aparecer>
+      <header><i class="fas fa-compass" aria-hidden="true"></i><h2>{{ fila.linea.nombre }}</h2></header>
+      {% if fila.linea.componente %}<a class="cv-chip" href="{% url 'componente_centro_id' centro.slug fila.linea.componente.codigo %}"><i class="{{ fila.linea.componente.icono }}" aria-hidden="true"></i> {% translate "La lidera" %} {{ fila.linea.componente }}</a>{% endif %}
+      {% if fila.linea.resultados %}<p class="cv-texto-bloque">{{ fila.linea.resultados }}</p>{% endif %}
+      <p class="ficha__nota">{{ fila.proyectos|length }} {% translate "proyectos publicados" %} · {{ fila.resultados }} {% translate "resultados publicados" %}</p>
+      <button type="button" class="area__boton-ficha" data-modal="{% url 'fragmento_centro_id' centro.slug 'linea' fila.linea.pk %}">{% translate "Ver problema, métodos y participación" %}</button>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("No hay líneas de investigación que coincidan con la consulta.") enlace=completar %}</section>
+{% endif %}
+{% endblock %}

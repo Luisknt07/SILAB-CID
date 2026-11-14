@@ -1,0 +1,27 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Simuladores de producción" %}{% endblock %}
+{% block encabezado %}{% translate "Simuladores de producción" %}{% endblock %}
+{% block subtitulo %}{% translate "Cuánto se puede esperar de cada eje con los rendimientos publicados como punto de partida: cambia los datos por los del centro" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Simuladores" %}</dt><dd>{{ simuladores|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Simuladores de producción" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+{% for simulador in simuladores %}
+<section class="unit-report__section centro-simulador" id="{{ simulador.clave }}">
+  <h2><i class="{{ simulador.icono }}" aria-hidden="true"></i> {{ simulador.nombre }}</h2>
+  <p>{{ simulador.pregunta }}</p>
+  <form class="aula-form" method="get" action="#{{ simulador.clave }}" aria-label="{% translate "Datos de" %} {{ simulador.nombre }}">
+    {% if simulador.clave == 'cosecha' %}<label class="aula-form__wide">{% translate "Cultivo y rendimiento de referencia" %}<select name="cosecha-cultivo">{% for clave, nombre, rendimiento, fuente in simulador.cultivos %}<option value="{{ clave }}"{% if clave == simulador.cultivo.0 %} selected{% endif %}>{{ nombre }} · {{ rendimiento|floatformat:"-2" }} t/ha</option>{% endfor %}</select><small>{{ simulador.cultivo.3 }}</small></label>{% endif %}
+    {% for fila in simulador.datos %}<label>{{ fila.dato.nombre }}<input type="number" name="{{ fila.nombre }}" value="{{ fila.valor|floatformat:'-2u' }}" min="{{ fila.dato.minimo }}"{% if fila.dato.maximo is not None %} max="{{ fila.dato.maximo }}"{% endif %} step="{{ fila.dato.paso }}">{% if fila.dato.fuente %}<small>{{ fila.dato.fuente }}</small>{% endif %}</label>{% endfor %}
+    <div class="aula-form__wide"><button type="submit"><i class="fas fa-calculator" aria-hidden="true"></i> {% translate "Calcular" %}</button></div>
+  </form>
+  <ul class="centro-datos">{% for nombre, valor, unidad_medida in simulador.resultado %}<li><strong>{{ valor|floatformat:"-1" }} {{ unidad_medida }}</strong><span>{{ nombre }}</span></li>{% endfor %}</ul>
+  {% if simulador.nota %}<p class="centro-fuente">{{ simulador.nota }}</p>{% endif %}
+</section>
+{% empty %}
+<p>{% translate "Los simuladores aparecen cuando el centro publica los ejes a los que aplican." %}</p>
+{% endfor %}
+<p class="centro-fuente">{% translate "Un simulador da una expectativa, no un dato del centro: lo real se registra en «Plan y registros de producción»." %}</p>
+{% endblock %}

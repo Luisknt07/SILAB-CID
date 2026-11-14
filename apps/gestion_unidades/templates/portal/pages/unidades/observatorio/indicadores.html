@@ -1,0 +1,21 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Indicadores por eje temático" %}{% endblock %}
+{% block encabezado %}{% translate "Indicadores por eje temático" %}{% endblock %}
+{% block subtitulo %}{% translate "El último valor de cada indicador, su cambio frente al periodo anterior y su tendencia" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Indicadores" %}</dt><dd>{{ filas|length }}</dd></div><div><dt>{% translate "Con datos" %}</dt><dd>{{ con_valor }}</dd></div><div><dt>{% translate "Alertas" %}</dt><dd>{{ alertas }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Indicadores del observatorio" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% if filas %}
+{% for grupo in grupos %}<section class="obs-grupo">
+  <h2>{% if grupo.linea %}<i class="{{ grupo.linea.icono }}" aria-hidden="true"></i><a href="{% url 'linea_observatorio' unidad.slug grupo.linea.codigo %}">{{ grupo.linea.titulo }}</a>{% else %}{% translate "Otros indicadores" %}{% endif %}</h2>
+  <ul class="obs-indicadores">{% for fila in grupo.filas %}{% include 'portal/pages/unidades/observatorio/_tarjeta.html' %}{% endfor %}</ul>
+</section>{% endfor %}
+<p class="unit-report__notice">{% translate "Cada tarjeta abre la ficha del indicador: qué mide, cómo se calcula, de dónde sale el dato y su serie completa." %}</p>
+{% else %}
+<p class="unit-report__notice">{% translate "El observatorio todavía no publica indicadores." %}</p>
+{% endif %}
+{% translate "Nuevo indicador" as titulo_nuevo %}{% translate "Agregar un indicador" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='indicador_observatorio' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

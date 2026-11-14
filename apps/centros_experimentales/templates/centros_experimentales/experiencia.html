@@ -1,0 +1,140 @@
+{% load static i18n idiomas %}
+<details class="observatory-experience experimental-center-experience" id="experiencia-centros-experimentales" data-unit-experience>
+  <summary class="obs-experience__toggle">
+    <span class="obs-experience__toggle-icon"><i class="iconsminds-environmental"></i></span>
+    <span class="obs-experience__toggle-copy">
+      <small>{% translate "Experimentación territorial y producción sostenible" %}</small>
+      <b>{% translate "Conoce nuestros centros experimentales" %}</b>
+      <em>{% translate "Clima cálido, clima frío, cultivos, producción animal e infraestructura" %}</em>
+    </span>
+    <span class="obs-experience__toggle-action"><small class="is-closed">{% translate "Ver contenido" %}</small><small class="is-open">{% translate "Ocultar contenido" %}</small><i class="simple-icon-arrow-down"></i></span>
+  </summary>
+
+  <div class="obs-experience__collapsible">
+    <header class="obs-experience__heading">
+      <div><span><i class="iconsminds-environmental"></i> {% translate "Territorio que enseña" %}</span><h2>{% translate "Dos climas, múltiples posibilidades para experimentar" %}</h2></div>
+      <p>{% translate "La UPEC integra los centros experimentales Alonzo Tadeo y San Francisco para investigar, formar y validar soluciones agropecuarias en condiciones reales de clima cálido y frío." %}</p>
+    </header>
+
+    <div class="obs-overview">
+      <article class="obs-panel obs-about">
+        <span class="obs-panel__index">01</span>
+        <div class="obs-panel__icon"><i class="iconsminds-environmental"></i></div>
+        <h3>{% translate "¿Qué es un centro experimental?" %}</h3>
+        <p>{% translate "Es una unidad territorial donde se desarrollan prácticas, ensayos e investigación aplicada en parcelas, invernaderos, sistemas pecuarios e infraestructura productiva bajo condiciones ambientales reales." %}</p>
+        <ul class="obs-check-list">
+          <li><i class="simple-icon-check"></i> {% translate "Aprendizaje y experimentación en campo" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Seguimiento de cultivos y animales" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Validación tecnológica con impacto territorial" %}</li>
+        </ul>
+      </article>
+
+      <article class="obs-panel obs-route">
+        <span class="obs-panel__eyebrow">{% translate "Ruta de aprovechamiento" %}</span>
+        <div class="obs-route__steps" role="tablist" aria-label="{% translate "Ruta para utilizar un centro experimental" %}">
+          <button class="is-active" type="button" role="tab" aria-selected="true" data-obs-step="1" data-title="{% translate "Define la necesidad" %}" data-copy="Determina el cultivo, sistema animal, práctica, ensayo o problema territorial que deseas abordar." data-result="Plantea el objetivo"><span>1</span><i class="iconsminds-light-bulb-2"></i><b>{% translate "Define" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="2" data-title="{% translate "Selecciona el centro" %}" data-copy="Elige Alonzo Tadeo para condiciones cálidas o San Francisco para sistemas de clima frío." data-result="Elige el entorno"><span>2</span><i class="simple-icon-location-pin"></i><b>{% translate "Selecciona" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="3" data-title="{% translate "Consulta capacidades y ciclos" %}" data-copy="Revisa parcelas, invernaderos, galpones, ganado, plantas piloto, temporadas y recursos disponibles." data-result="Conoce la capacidad"><span>3</span><i class="simple-icon-magnifier"></i><b>{% translate "Consulta" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="4" data-title="{% translate "Coordina el acceso" %}" data-copy="Programa la visita, define responsables, bioseguridad, insumos, herramientas y condiciones de trabajo." data-result="Prepara la jornada"><span>4</span><i class="simple-icon-calendar"></i><b>{% translate "Coordina" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="5" data-title="{% translate "Experimenta y registra" %}" data-copy="Ejecuta la actividad, mide variables y documenta resultados para aprendizaje, investigación o transferencia." data-result="Genera evidencia"><span>5</span><i class="iconsminds-data-center"></i><b>{% translate "Experimenta" %}</b></button>
+        </div>
+        <div class="obs-route__detail" aria-live="polite">
+          <span data-obs-step-number>01</span>
+          <div><small data-obs-step-result>{% translate "Plantea el objetivo" %}</small><h4 data-obs-step-title>{% translate "Define la necesidad" %}</h4><p data-obs-step-copy>{% translate "Determina el cultivo, sistema animal, práctica, ensayo o problema territorial que deseas abordar." %}</p></div>
+          <div class="obs-route__progress"><i data-obs-progress></i></div>
+        </div>
+      </article>
+
+      <article class="obs-panel obs-purpose">
+        <span class="obs-panel__index">03</span>
+        <div class="obs-panel__icon is-outline"><i class="iconsminds-target"></i></div>
+        <h3>{% translate "¿Para qué sirven?" %}</h3>
+        <ul class="obs-check-list">
+          <li><i class="simple-icon-check"></i> {% translate "Formar estudiantes en escenarios productivos" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Investigar cultivos y sistemas pecuarios" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Comparar respuestas en distintos climas" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Validar tecnologías y prácticas sostenibles" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Vincular conocimiento con productores" %}</li>
+        </ul>
+      </article>
+    </div>
+
+    <section class="obs-library" aria-labelledby="experimental-library-title">
+      <header class="obs-library__heading">
+        <div><span>{% translate "Capacidades en territorio" %}</span><h3 id="experimental-library-title">{% translate "Explora los dos centros y sus sistemas productivos" %}</h3></div>
+        <p>{% translate "Selecciona una tarjeta para conocer la extensión, el clima, la infraestructura y las actividades disponibles en cada entorno experimental." %}</p>
+      </header>
+
+      <div class="obs-resource-showcase">
+        <div class="obs-coverflow" data-obs-coverflow aria-label="{% translate "Capacidades interactivas de los centros experimentales UPEC" %}">
+          <button class="obs-coverflow__control is-prev" type="button" data-coverflow-prev aria-label="{% translate "Capacidad anterior" %}"><i class="simple-icon-arrow-left"></i></button>
+          <div class="obs-card-grid" data-coverflow-track>
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Clima cálido" data-title="{% translate "Centro Experimental Alonzo Tadeo" %}" data-copy="Finca experimental de más de 20 hectáreas destinada a formación e investigación agropecuaria en condiciones de clima cálido, con áreas productivas, cultivos y sistemas animales." data-metric="Más de 20 hectáreas" data-icon="iconsminds-environmental" data-image="{% static 'img/generated/industria40-drones-agro.png' %}" data-list="Territorio de clima cálido|Parcelas y áreas de producción agropecuaria|Escenarios para prácticas, ensayos e investigación" data-use="Permite estudiar sistemas productivos tropicales, evaluar tecnologías y desarrollar actividades con estudiantes, investigadores y productores.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/industria40-drones-agro.png' %}" alt="{% translate "Producción agropecuaria y monitoreo tecnológico en clima cálido" %}" loading="lazy"><i class="iconsminds-environmental"></i><small>{% translate "+20 ha" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Clima cálido" %}</small><b>{% translate "Alonzo Tadeo" %}</b><span>{% translate "Finca experimental, cultivos y producción agropecuaria." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Producción avícola" data-title="{% translate "Galpones de gallinas" %}" data-copy="Infraestructura del Centro Alonzo Tadeo para prácticas y seguimiento de sistemas avícolas, manejo, alimentación, bienestar, bioseguridad y evaluación productiva." data-metric="Sistema avícola" data-icon="iconsminds-tractor" data-image="{% static 'img/generated/connected-platforms-v2/centros-experimentales.png' %}" data-list="Galpones e infraestructura de manejo|Prácticas de alimentación, sanidad y bioseguridad|Registro de variables y desempeño productivo" data-use="Facilita la formación en producción avícola y la evaluación de prácticas responsables adaptadas a condiciones de clima cálido.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/connected-platforms-v2/centros-experimentales.png' %}" alt="{% translate "Centro experimental con infraestructura agrícola y producción animal" %}" loading="lazy"><i class="iconsminds-tractor"></i><small>{% translate "Avicultura" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Producción avícola" %}</small><b>{% translate "Galpones de gallinas" %}</b><span>{% translate "Manejo, bioseguridad, alimentación y seguimiento." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Cultivos de clima cálido" data-title="{% translate "Frutales y café" %}" data-copy="Áreas del Centro Alonzo Tadeo para observar el establecimiento, manejo y respuesta de frutales y café, incluyendo prácticas agronómicas, sanidad, cosecha y evaluación de productividad." data-metric="Frutales y café" data-icon="iconsminds-leafs" data-image="{% static 'img/generated/home-hero/hero-agrotecnologia.png' %}" data-list="Parcelas de frutales y café|Manejo agronómico y monitoreo del cultivo|Evaluación de adaptación, sanidad y rendimiento" data-use="Permite desarrollar prácticas, ensayos y proyectos orientados a mejorar la producción y sostenibilidad de cultivos de clima cálido.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/home-hero/hero-agrotecnologia.png' %}" alt="{% translate "Equipo técnico realizando seguimiento agroclimático de cultivos" %}" loading="lazy"><i class="iconsminds-leafs"></i><small>{% translate "Cultivos" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Cultivos de clima cálido" %}</small><b>{% translate "Frutales y café" %}</b><span>{% translate "Manejo agronómico, sanidad, cosecha y rendimiento." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Clima frío" data-title="{% translate "Centro Experimental San Francisco" %}" data-copy="Finca experimental de más de 40 hectáreas destinada a cultivos, producción pecuaria, prácticas y validación tecnológica en condiciones de clima frío; también integra las plantas piloto UPEC." data-metric="Más de 40 hectáreas" data-icon="simple-icon-location-pin" data-image="{% static 'img/cards/upecsanfrancisco.jpg' %}" data-list="Territorio de clima frío y más de 40 hectáreas|Parcelas, invernaderos y sistemas pecuarios|Articulación con plantas piloto y formación práctica" data-use="Conecta la producción primaria con procesos formativos, investigación aplicada y transformación agroindustrial en un mismo entorno.">
+              <span class="obs-content-card__media"><img src="{% static 'img/cards/upecsanfrancisco.jpg' %}" alt="{% translate "Vista del Centro Experimental San Francisco y sus áreas productivas" %}" loading="lazy"><i class="simple-icon-location-pin"></i><small>{% translate "+40 ha" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Clima frío" %}</small><b>{% translate "San Francisco" %}</b><span>{% translate "Finca experimental, producción y plantas piloto." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Producción vegetal" data-title="{% translate "Invernaderos, hortalizas y campo abierto" %}" data-copy="Áreas del Centro San Francisco para producir y evaluar cultivos de clima frío en ambientes protegidos y a campo abierto, considerando manejo agronómico, ambiente, sanidad y productividad." data-metric="Producción vegetal" data-icon="iconsminds-green-house" data-image="{% static 'img/generated/connected-units/unidad-invernadero.png' %}" data-list="Invernaderos y producción protegida|Hortalizas, frutales y parcelas a campo abierto|Monitoreo de clima, sanidad y rendimiento" data-use="Facilita comparar sistemas de producción, probar manejos y desarrollar soluciones para las condiciones altoandinas del territorio.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/connected-units/unidad-invernadero.png' %}" alt="{% translate "Estudiantes trabajando en un invernadero y cultivos de clima frío" %}" loading="lazy"><i class="iconsminds-green-house"></i><small>{% translate "Vegetal" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Producción vegetal" %}</small><b>{% translate "Invernaderos y campo abierto" %}</b><span>{% translate "Hortalizas, frutales y ensayos agronómicos." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Sistema pecuario y transformación" data-title="{% translate "Ganado lechero y plantas piloto" %}" data-copy="El Centro San Francisco integra producción de ganado lechero con infraestructura para prácticas, seguimiento zootécnico y articulación con plantas piloto para transformar materias primas y validar procesos." data-metric="Cadena agroproductiva" data-icon="iconsminds-cow" data-image="{% static 'img/generated/connected-platforms-v2/centros-experimentales.png' %}" data-list="Manejo y seguimiento de ganado lechero|Prácticas de producción, bienestar y calidad|Conexión con plantas piloto y transformación alimentaria" data-use="Permite comprender la cadena desde la producción primaria hasta la transformación, fortaleciendo docencia, investigación y vinculación.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/connected-platforms-v2/centros-experimentales.png' %}" alt="{% translate "Sistemas productivos e infraestructura del centro experimental" %}" loading="lazy"><i class="iconsminds-cow"></i><small>{% translate "Pecuario" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Sistema pecuario y transformación" %}</small><b>{% translate "Ganado lechero y plantas piloto" %}</b><span>{% translate "Producción primaria, calidad y transformación." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+          </div>
+          <div class="obs-coverflow__dots" data-coverflow-dots aria-label="{% translate "Seleccionar capacidad experimental" %}"></div>
+          <button class="obs-coverflow__control is-next" type="button" data-coverflow-next aria-label="{% translate "Capacidad siguiente" %}"><i class="simple-icon-arrow-right"></i></button>
+        </div>
+
+        <article class="obs-panel obs-tutorial">
+          <div class="obs-panel__title"><span>04</span><div><small>{% translate "Orientación rápida" %}</small><h3>{% translate "Recorrido por el territorio experimental" %}</h3></div></div>
+          <video class="obs-tutorial__video" controls playsinline preload="metadata" poster="{% static 'img/generated/connected-platforms-v2/centros-experimentales.png' %}" data-obs-tutorial-video>
+            <source src="{% static 'img/video/fablab.mp4' %}" type="video/mp4">
+            {% translate "Tu navegador no admite la reproducción de video." %}
+          </video>
+        </article>
+      </div>
+
+      <div class="obs-support-grid">
+        <article class="obs-panel obs-access">
+          <div class="obs-panel__title"><span>02</span><div><small>{% translate "Proceso guiado" %}</small><h3>{% translate "¿Cómo utilizar un centro experimental?" %}</h3></div></div>
+          <div class="obs-access__flow">
+            <button class="is-active" type="button" aria-pressed="true"><span>1</span><i class="iconsminds-light-bulb-2"></i><b>{% translate "Define" %}</b><small>{% translate "Actividad y objetivo" %}</small></button>
+            <button type="button" aria-pressed="false"><span>2</span><i class="simple-icon-location-pin"></i><b>{% translate "Selecciona" %}</b><small>{% translate "Centro y clima" %}</small></button>
+            <button type="button" aria-pressed="false"><span>3</span><i class="simple-icon-doc"></i><b>{% translate "Consulta" %}</b><small>{% translate "Capacidades y ciclos" %}</small></button>
+            <button type="button" aria-pressed="false"><span>4</span><i class="simple-icon-calendar"></i><b>{% translate "Coordina" %}</b><small>{% translate "Acceso y recursos" %}</small></button>
+            <button type="button" aria-pressed="false"><span>5</span><i class="iconsminds-data-center"></i><b>{% translate "Experimenta" %}</b><small>{% translate "Mide y registra" %}</small></button>
+          </div>
+          {% if unidades %}<a class="obs-access__cta" href="{{ unidades.0.get_absolute_url }}"><span>{% translate "Ingresar al centro experimental disponible" %}</span><i class="simple-icon-arrow-right"></i></a>{% endif %}
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <dialog class="obs-resource-dialog" data-obs-resource-dialog>
+    <button class="obs-dialog-close" type="button" data-close-resource aria-label="{% translate "Cerrar detalle" %}"><i class="simple-icon-close"></i></button>
+    <div class="obs-resource-dialog__media"><img data-dialog-resource-image src="{% static 'img/generated/connected-platforms-v2/centros-experimentales.png' %}" alt=""><span><i data-dialog-resource-icon class="iconsminds-environmental"></i><b data-dialog-resource-metric>{% translate "Territorio experimental" %}</b></span></div>
+    <div class="obs-resource-dialog__body">
+      <small data-dialog-resource-kicker>{% translate "Experimentación territorial" %}</small><h3 data-dialog-resource-title>{% translate "Centros experimentales UPEC" %}</h3><p data-dialog-resource-copy></p>
+      <div class="obs-resource-dialog__columns"><section><h4>{% translate "¿Qué incluye?" %}</h4><ul data-dialog-resource-list></ul></section><section><h4>{% translate "¿Cómo puedes aprovecharlo?" %}</h4><p data-dialog-resource-use></p></section></div>
+      {% if unidades %}<a href="{{ unidades.0.get_absolute_url }}">{% translate "Explorar centro experimental" %} <i class="simple-icon-arrow-right"></i></a>{% endif %}
+    </div>
+  </dialog>
+</details>

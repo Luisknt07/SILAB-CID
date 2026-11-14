@@ -1,0 +1,79 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Control de calidad ·" %} {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .control-form { display: grid; gap: 10px; margin: 12px 0 0; padding: 14px 16px; border: 1px solid var(--institucion-primario-suave, #dbe7df); border-radius: 6px; background: #f7faf8; }
+    .control-form table { width: 100%; }
+    .control-form input, .control-form select, .control-form textarea { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #c9d8cf; border-radius: 4px; font: inherit; font-size: 13px; background: #fff; }
+    .control-form label.is-bloque { display: block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--institucion-texto, #1f3d2f); }
+    .control-form button { justify-self: start; padding: 9px 16px; border: 0; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .control-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    .control-falta { color: #a12c2c; font-weight: 700; }
+    .control-planes a { display: inline-block; margin: 0 8px 6px 0; padding: 5px 10px; border: 1px solid #c9d8cf; border-radius: 999px; color: var(--institucion-texto, #1f3d2f); font-size: 12px; text-decoration: none; }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· CALIDAD E INOCUIDAD" %}</span>
+        <h1>{% translate "Control de calidad" %}</h1>
+        <small>{% if plan %}{{ plan.nombre }} · {{ plan.get_momento_display|ui }}{% else %}{% translate "Sin plan aplicable" %}{% endif %}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>
+        <div><dt>{% translate "Se controla" %}</dt><dd>{% if lote_producto %}{% translate "Lote" %} {{ lote_producto.codigo }} · {{ lote_producto.producto.nombre }}{% elif lote_consumible %}{% translate "Lote" %} {{ lote_consumible.codigo }} · {{ lote_consumible.consumible.nombre }}{% elif orden %}{% translate "Corrida" %} {{ orden.codigo }} · {{ orden.producto.nombre }}{% else %}{% translate "Elige un lote o una corrida" %}{% endif %}</dd></div>
+        {% if lote_producto %}<div><dt>{% translate "Estado del lote" %}</dt><dd>{{ lote_producto.get_control_calidad_display|ui }} · {{ lote_producto.get_estado_display|ui }}</dd></div>{% endif %}
+        <div><dt>{% translate "Fecha" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver a calidad" %}</a>
+      <div>{% if lote_producto and lote_producto.orden and lote_producto.orden.reserva_id and lote_producto.orden.origen == 'maquila' %}<a href="{% url 'maquila_expediente' unidad.slug lote_producto.orden.reserva_id %}">{% translate "Expediente del encargo" %}</a>{% endif %}{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+    {% if not documento_pdf %}<p class="unit-report__notice">{% translate "El PDF muestra los datos guardados. Guarda los cambios del formulario antes de descargarlo." %}</p>{% endif %}
+
+    {% if hecho %}
+    <section class="unit-report__section">
+      <header><span>{% translate "CONTROL REGISTRADO" %}</span><small>{{ hecho.fecha|date:"d/m/Y H:i" }}</small></header>
+      <p class="unit-report__notice {% if hecho.resultado == 'conforme' %}control-ok{% else %}control-falta{% endif %}">{{ hecho.get_resultado_display|ui }}{% if hecho.resultado == 'conforme' and lote_producto %}{% translate ": el lote queda liberado." %}{% elif hecho.resultado == 'no_conforme' %}: {% for nc in hecho.no_conformidades.all %}{% translate "se abrió la no conformidad" %} {{ nc.codigo }} ({{ nc.get_gravedad_display|lower|ui }}{% translate "); decide su disposición en la pestaña de calidad." %}{% endfor %}{% else %}.{% endif %}</p>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Parámetro" %}</th><th>{% translate "Valor" %}</th><th>{% translate "Límite" %}</th><th>{% translate "Resultado" %}</th></tr></thead><tbody>
+        {% for medicion in hecho.mediciones.all %}<tr><td>{{ medicion.parametro.nombre }}</td><td>{{ medicion.valor }}</td><td>{{ medicion.parametro.limite_texto }}</td><td>{% if medicion.conforme %}<span class="control-ok">{% translate "Conforme" %}</span>{% else %}<span class="control-falta">{% translate "Fuera de límite" %}</span>{% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    {% endif %}
+
+    {% if error %}<p class="unit-report__notice control-falta">{{ error }}</p>{% endif %}
+
+    {% if plan %}
+    <section class="unit-report__section">
+      <header><span>{{ plan.nombre|upper }}</span><small>{{ plan.get_momento_display|ui }} · {{ plan.aplica_a }}</small></header>
+      {% if plan.descripcion %}<p class="unit-report__notice">{{ plan.descripcion }}</p>{% endif %}
+      <form method="post" class="control-form">
+        {% csrf_token %}
+        <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Parámetro" %}</th><th>{% translate "Límite" %}</th><th>{% translate "Método" %}</th><th>{% translate "Valor medido" %}</th></tr></thead><tbody>
+          {% for parametro in parametros %}<tr><td><strong>{{ parametro.nombre }}</strong>{% if parametro.etapa %}<br><small>{% translate "Etapa" %} {{ parametro.etapa.orden }}: {{ parametro.etapa.nombre }}</small>{% endif %}{% if parametro.critico %}<br><small>{% translate "crítico" %}</small>{% endif %}</td><td>{{ parametro.limite_texto }}</td><td>{{ parametro.metodo|default:"—" }}</td><td>{% if parametro.tipo == 'numerico' %}<input type="number" step="0.001" name="parametro_{{ parametro.pk }}" required>{% else %}<input type="text" name="parametro_{{ parametro.pk }}" maxlength="120" placeholder="{{ parametro.valor_esperado|default:'conforme' }}" required>{% endif %}</td></tr>{% endfor %}
+        </tbody></table></div>
+        <label class="is-bloque">{% translate "Observaciones" %}<textarea name="observaciones" rows="2"></textarea></label>
+        <button type="submit">{% translate "Registrar el control" %}</button>
+      </form>
+    </section>
+    {% else %}
+    <section class="unit-report__section">
+      <header><span>{% translate "SIN PLAN APLICABLE" %}</span></header>
+      <p class="unit-report__notice">{% translate "No hay un plan de calidad activo para lo que quieres controlar. Elige uno de los planes de la unidad:" %}</p>
+      <p class="control-planes">{% for item in planes %}<a href="?plan={{ item.pk }}{% if lote_producto %}&lote_producto={{ lote_producto.pk }}{% elif lote_consumible %}&lote_consumible={{ lote_consumible.pk }}{% elif orden %}&orden={{ orden.pk }}{% endif %}">{{ item.nombre }} · {{ item.get_momento_display|ui }}</a>{% empty %}<span>{% translate "La unidad no tiene planes de calidad: créalos en la pestaña de calidad." %}</span>{% endfor %}</p>
+    </section>
+    {% endif %}
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Control de calidad ·" %} {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

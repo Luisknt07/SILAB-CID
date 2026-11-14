@@ -1,0 +1,28 @@
+{% load i18n idiomas static %}
+<link rel="stylesheet" href="{% static 'portal/css/components/visor_pdf.css' %}?v=20261018-ancho-100">
+<link rel="stylesheet" href="{% static 'portal/css/components/visor_pdf_modal.css' %}?v=20261109-pdf-modal-legible-v2">
+<script src="{% static 'portal/js/components/visor_pdf.js' %}?v=20261018-ancho-100" defer></script>
+<script src="{% static 'portal/js/components/visor_pdf_modal.js' %}?v=20261018-modal-unico" defer></script>
+<dialog class="aula-pdf-modal" data-pdf-default-title="{% translate "Documento" %}" data-aula-pdf-modal hidden role="dialog" aria-modal="true" aria-labelledby="aulaPdfModalTitulo">
+  <button class="aula-pdf-modal__fondo" type="button" data-cerrar-pdf aria-label="{% translate "Cerrar vista previa" %}"></button>
+  <section class="aula-pdf-modal__panel">
+    <header>
+      <div><span>{% translate "VISTA PREVIA" %}</span><h2 id="aulaPdfModalTitulo">{% translate "Documento" %}</h2></div>
+      {% comment %}El rango se cambia aquí, sobre el mismo documento: nadie tiene que
+      salir a otra pantalla para ver una semana o un mes.{% endcomment %}
+      <form class="aula-pdf-modal__rango" data-pdf-rango-form hidden>
+        <label>{% translate "Desde" %}<input type="date" data-pdf-desde></label>
+        <label>{% translate "Hasta" %}<input type="date" data-pdf-hasta></label>
+        <button type="submit"><i class="fas fa-filter" aria-hidden="true"></i> {% translate "Ver rango" %}</button>
+        <button type="button" data-pdf-periodo hidden>{% translate "Volver al documento" %}</button>
+      </form>
+      <div class="aula-pdf-modal__acciones">
+        <a class="aula-pdf-modal__descargar" href="#" data-descargar-pdf download><span aria-hidden="true">&#8595;</span> {% translate "Descargar documento" %}</a>
+        <button type="button" data-cerrar-pdf aria-label="{% translate "Cerrar vista previa" %}"><span aria-hidden="true">&times;</span></button>
+      </div>
+    </header>
+    {% comment %}El documento se dibuja con el visor de la plataforma: el
+    complemento del navegador no muestra nada en teléfonos ni tabletas.{% endcomment %}
+    <div class="aula-pdf-modal__visor" data-visor-pdf role="document" aria-label="{% translate "Vista previa del documento" %}"></div>
+  </section>
+</dialog>

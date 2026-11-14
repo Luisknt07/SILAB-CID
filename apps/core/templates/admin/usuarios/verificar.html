@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block bodyclass %}{{ block.super }} grp-change-form{% endblock %}
+{% block extrahead %}{{ block.super }}
+<style>
+  .revision-institucional { max-width: 72rem; overflow-wrap: anywhere; }
+  .revision-institucional form { max-width: 44rem; }
+  .revision-institucional > p, .revision-institucional form p { margin: 0 0 1rem; }
+  .revision-institucional input:not([type=hidden]), .revision-institucional select,
+  .revision-institucional textarea { box-sizing: border-box; max-width: 100%; width: 100%; }
+  .revision-institucional button[type=submit] { position: static !important; float: none !important;
+    display: inline-block !important; text-indent: 0 !important; width: auto; max-width: 100%;
+    min-height: 44px !important; height: auto !important; line-height: 1.35 !important;
+    margin: .5rem 0 1rem; padding: .75rem 1rem; background: #123d31; color: #fff; }
+  .revision-institucional dl { display: grid; grid-template-columns: minmax(7rem, 1fr) minmax(0, 3fr); gap: .5rem; }
+  .revision-institucional dd { margin: 0; }
+  .revision-institucional article { padding: 1rem; margin: 1rem 0; border: 1px solid #ddd; }
+  @media (max-width: 600px) { .revision-institucional dl { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a> &rsaquo;
+<a href="{% url 'admin:core_userprofile_changelist' %}">{% translate "Perfiles" %}</a> &rsaquo; {{ title }}</div>
+{% endblock %}
+{% block content %}
+<section class="revision-institucional">
+  <p><strong>{{ estado.etiqueta }}</strong></p>
+  <p>{% translate "Comprueba la identidad y pertenencia en una fuente institucional autorizada. No incluyas contraseñas, documentos completos ni datos sensibles en el fundamento o la referencia." %}</p>
+  <p>{% translate "Esta revisión no asigna permisos de gestión ni cambia reservas o tarifas anteriores." %}</p>
+  <dl>{% for etiqueta, valor in datos %}<dt>{{ etiqueta }}</dt><dd>{{ valor|default:"—" }}</dd>{% endfor %}</dl>
+  <form method="post">{% csrf_token %}{{ form.as_p }}
+    <button type="submit">{% translate "Registrar decisión" %}</button>
+  </form>
+  <h2>{% translate "Historial de decisiones" %}</h2>
+  {% for revision in historial %}
+    <article><h3>{{ revision.get_decision_display }} · {{ revision.fecha|date:"DATETIME_FORMAT" }}</h3>
+      <p>{% translate "Revisor" %}: {{ revision.revisor.get_full_name|default:revision.revisor.username }}</p>
+      <p>{{ revision.fundamento }}</p><p>{% translate "Referencia de la evidencia" %}: {{ revision.referencia }}</p>
+      {% if revision.vigente_hasta %}<p>{% translate "Vigente hasta" %}: {{ revision.vigente_hasta|date:"DATE_FORMAT" }}</p>{% endif %}
+    </article>
+  {% empty %}<p>{% translate "Todavía no hay decisiones registradas." %}</p>{% endfor %}
+  {% if historial.has_other_pages %}
+    <nav aria-label="{% translate 'Historial de decisiones' %}">
+      {% if historial.has_previous %}<a href="?pagina={{ historial.previous_page_number }}">{% translate "Anterior" %}</a>{% endif %}
+      {{ historial.number }} / {{ historial.paginator.num_pages }}
+      {% if historial.has_next %}<a href="?pagina={{ historial.next_page_number }}">{% translate "Siguiente" %}</a>{% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

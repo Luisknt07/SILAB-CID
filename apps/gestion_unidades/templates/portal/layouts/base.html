@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas %}
+{% block title %}{{ page_title|ui }} | {{ identidad_producto.nombre_corto }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/portal.css' %}?v=20261009-responsive-v2">{% endblock %}
+{% block content %}
+<div class="portal page-{{ page_key }}">
+  <div class="portal-layout">
+    <main class="portal-main">
+      {% block portal_content %}{% endblock %}
+      {% if page_key != 'quienes' %}<footer class="portal-footer"><span>{% translate "© UPEC · Investigación, Innovación y Tecnología" %}</span><span>{% translate "Tulcán, Carchi, Ecuador" %}</span></footer>{% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script><script src="{% static 'portal/js/portal.js' %}?v=20260916-i18n-v141"></script>{% endblock %}

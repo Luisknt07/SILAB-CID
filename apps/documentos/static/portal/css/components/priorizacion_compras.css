@@ -1,0 +1,26 @@
+/* Una recomendación de inversión no sustituye la conformidad del documento. */
+.priorizacion-compras { --prioridad-color:#006633; margin:12px 0; padding:13px 15px; border:1px solid #d7e4dc; border-left:4px solid #ffce00; border-radius:8px; background:#fff; color:#17392b; min-width:0; }
+.priorizacion-compras > header { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.priorizacion-compras__icono { display:grid; place-items:center; flex:0 0 34px; width:34px; height:34px; border-radius:7px; background:#e7f5ed; color:#006633; }
+.priorizacion-compras > header h2 { margin:0; color:#006633; font-size:15px; line-height:1.4; }
+.priorizacion-compras > header p, .priorizacion-compras__resumen > p { margin:4px 0 0; color:#43594c; font-size:12px; line-height:1.5; }
+.priorizacion-compras__estado { display:block; color:var(--prioridad-color); font-size:12px; font-weight:700; line-height:1.4; overflow-wrap:anywhere; }
+.priorizacion-compras.is-alerta { --prioridad-color:#885c00; }
+.priorizacion-compras__resumen > button, .redaccion__indicador-origen > button { display:inline-flex; align-items:center; gap:5px; max-width:100%; margin-top:7px; padding:3px 0; border:0; background:transparent; color:#006633; font:inherit; font-size:11px; font-weight:600; text-align:left; line-height:1.4; cursor:pointer; }
+.priorizacion-compras__resumen > button:hover, .redaccion__indicador-origen > button:hover { text-decoration:underline; }
+.priorizacion-compras__resumen > button:focus-visible, .redaccion__indicador-origen > button:focus-visible { outline:2px solid #006633; outline-offset:3px; }
+.priorizacion-compras--compacta { margin:5px 0 0; padding:5px 0 0; border:0; border-top:1px solid #e0e9e3; border-radius:0; }
+.priorizacion-compras--compacta .priorizacion-compras__estado { font-size:10px; }
+.priorizacion-compras--compacta .priorizacion-compras__resumen > button { margin-top:1px; font-size:10px; }
+.priorizacion-compras__detalle { color:#243d2e; line-height:1.55; }
+.priorizacion-compras__detalle > h3 { margin:15px 0 5px; font-size:14px; color:#006633; }
+.priorizacion-compras__datos, .redaccion__indicador-datos { display:grid; gap:0; margin:12px 0; }
+.priorizacion-compras__datos > div, .redaccion__indicador-datos > div { display:grid; grid-template-columns:minmax(125px,1fr) minmax(0,2fr); gap:12px; padding:8px 0; border-bottom:1px solid #e0e9e3; }
+.priorizacion-compras__datos dt, .redaccion__indicador-datos dt { font-weight:700; color:#006633; }
+.priorizacion-compras__datos dd, .redaccion__indicador-datos dd { margin:0; overflow-wrap:anywhere; }
+.priorizacion-compras__acciones { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.priorizacion-compras__acciones a { padding:6px 9px; border:1px solid #006633; border-radius:5px; color:#006633; font-weight:600; text-decoration:none; }
+.redaccion__capacidad-plan { margin:0 0 12px; padding:11px 13px; border:1px solid #d7e4dc; border-left:4px solid #ffce00; border-radius:6px; background:#fff; color:#304b3a; font-size:12px; line-height:1.5; }
+.redaccion__capacidad-plan > strong { color:#006633; }
+.redaccion__capacidad-plan > p { margin:4px 0 0; }
+@media(max-width:540px) { .priorizacion-compras { padding:11px; } .priorizacion-compras--compacta { padding:5px 0 0; } .priorizacion-compras__datos > div, .redaccion__indicador-datos > div { grid-template-columns:minmax(0,1fr); gap:3px; } }

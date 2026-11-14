@@ -1,0 +1,157 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n %}
+{% comment %}
+La ficha de un Centro I+D: cabecera compacta, seis pestañas iguales para todos los centros, el visualizador
+donde se abre cada sección y el panel «Contenidos», un árbol de secciones, carpetas y archivos con lo que el centro
+registra. Lo que no tiene contenido no se ofrece al público; quien gestiona el centro lo ve pendiente, con el enlace
+para completarlo.
+{% endcomment %}
+
+{% block title %}{{ centro }} | {{ identidad_producto.nombre_corto }}{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="{% static 'centros_id/centros_id.css' %}?v=20261013-organizacion-v6">
+{% if puede_gestionar %}<link rel="stylesheet" href="{% static 'centros_id/gestion.css' %}?v=20261011-opciones-v2">{% endif %}
+{% endblock %}
+
+{% block portal_content %}
+<div class="institutional-page cid cid-ficha" id="cidFicha"
+     data-slug="{{ centro.slug }}" data-ficha-url="{% url 'centro_id' centro.slug %}" data-nombre="{{ centro.nombre }}"
+     data-inicial-pestana="{{ inicial.pestana }}" data-inicial-url="{{ inicial.url }}" data-inicial-titulo="{{ inicial.titulo }}"
+     data-pestana-base="{% url 'pestana_centro_id' centro.slug 'el-centro' %}">
+
+  <section class="institutional-hero cid-hero{% if portada %} con-foto{% endif %}"{% if portada %} style="--foto: url('{{ portada }}')"{% endif %}>
+    <div class="cid-envoltura cid-hero__interior">
+      <nav class="cid-hero__migas" aria-label="{% translate "Ruta" %}">
+        <a class="cid-hero__volver" href="{% url 'centros_id' %}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Centros I+D" %}</a>
+        <span><a href="{% url 'home' %}">{% translate "Inicio" %}</a> <i class="fas fa-chevron-right" aria-hidden="true"></i> <a href="{% url 'centros_id' %}">{% translate "Centros I+D" %}</a> <i class="fas fa-chevron-right" aria-hidden="true"></i> <strong>{{ centro.sigla|default:centro.nombre }}</strong></span>
+      </nav>
+      <div class="cid-hero__cuerpo">
+        <div class="cid-hero__texto">
+          <span class="cid-hero__ceja"><i class="fas fa-landmark" aria-hidden="true"></i> {% translate "Centro de Investigación y Desarrollo" %}{% if centro.sigla %} · {{ centro.sigla }}{% endif %}</span>
+          <h1>{{ centro.nombre }}</h1>
+          {% if centro.lema %}<p class="cid-hero__lema">{{ centro.lema }}</p>{% endif %}
+          <div class="cid-hero__chips">
+            {% if not centro.en_operacion or not centro.estado_validado and not centro.en_escenario %}<span class="cid-chip is-{% if centro.estado_validado %}{{ centro.estado }}{% else %}pendiente{% endif %}"><i class="fas fa-circle" aria-hidden="true"></i> {{ centro.estado_publico }}</span>{% endif %}
+            {% if fase_actual and not centro.en_operacion %}<span class="cid-chip"><i class="fas fa-flag" aria-hidden="true"></i> {% translate "Fase" %} {{ fase_actual.numero }} · {{ fase_actual.nombre }}</span>{% endif %}
+            {% if centro.ubicacion %}<span class="cid-chip"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {{ centro.ubicacion }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="cid-hero__acciones" role="group" aria-label="{% translate 'Acciones del centro' %}">
+          <button type="button" class="cid-accion cid-accion--icono" id="cidCompartir" title="{% translate 'Compartir el centro' %}" aria-label="{% translate 'Compartir el centro' %}"><i class="fas fa-share-alt" aria-hidden="true"></i></button>
+          {% if puede_gestionar %}<a class="cid-accion cid-accion--gestion" href="{% url 'gestion_centro_id' centro.slug %}" data-cid-gestion-abrir aria-haspopup="dialog" aria-controls="cidGestionModal" title="{% translate 'Gestionar el centro' %}" aria-label="{% translate 'Gestionar el centro' %}"><i class="fas fa-sliders-h" aria-hidden="true"></i><span>{% translate 'Gestionar centro' %}</span>{% if solicitudes_pendientes %}<b title="{% translate 'Solicitudes pendientes' %}">{{ solicitudes_pendientes }}</b>{% endif %}</a>{% endif %}
+          {% if puede_gestionar %}<a class="cid-accion" href="{% url 'reportes_centros_id' %}?centro={{ centro.pk }}"><i class="fas fa-chart-bar" aria-hidden="true"></i><span>{% translate 'Reportes del centro' %}</span></a>{% endif %}
+          <button type="button" class="cid-accion cid-accion--primaria" data-abrir-seccion="solicitar"><i class="fas fa-paper-plane" aria-hidden="true"></i> <span>{% translate "Trabajar con el centro" %}</span></button>
+        </div>
+      </div>
+      {% if portada and centro.credito_imagen %}<span class="cid-hero__credito">{% translate "Imagen:" %} {{ centro.credito_imagen }}</span>{% endif %}
+    </div>
+  </section>
+
+  <nav class="cid-pestanas" aria-label="{% translate "Contenido del centro" %}">
+    <div class="cid-envoltura">
+      <ul role="tablist" style="--pestanas: {{ pestanas|length|default:1 }}">
+        {% for pestana in pestanas %}
+        <li><button type="button" role="tab" data-pestana="{{ pestana.clave }}" aria-selected="{% if pestana.clave == inicial.pestana %}true{% else %}false{% endif %}"{% if puede_gestionar and not pestana.total %} title="{% translate "Sin contenido publicado: el público no ve esta pestaña" %}"{% endif %}>
+          <i class="{{ pestana.icono }}" aria-hidden="true"></i><span>{{ pestana.titulo }}</span>
+          {% if puede_gestionar and not pestana.total %}<b class="is-vacia"><i class="fas fa-eye-slash" aria-hidden="true"></i></b>{% endif %}
+        </button></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+
+  <div class="cid-envoltura"><div class="cid-trabajo">
+    <section class="cid-visor" id="cidVisor" aria-label="{% translate "Visualizador de contenidos" %}">
+      <header>
+        <div class="cid-visor__titulo">
+          <div><small id="cidVisorCeja">{% translate "Sección" %}</small><h2 id="cidVisorTitulo" title="{{ inicial.titulo }}">{{ inicial.titulo }}</h2></div>
+        </div>
+        <div class="cid-visor__botones">
+          <button type="button" id="cidVisorEnlace" title="{% translate "Copiar el enlace a esta sección" %}" aria-label="{% translate "Copiar el enlace a esta sección" %}"><i class="fas fa-link" aria-hidden="true"></i></button>
+          <button type="button" id="cidVisorPantalla" title="{% translate "Pantalla completa" %}" aria-label="{% translate "Ver en pantalla completa" %}" aria-pressed="false"><i class="fas fa-expand" aria-hidden="true"></i></button>
+        </div>
+      </header>
+      <div class="cid-visor__marco">
+        <script>
+          // Las páginas hechas con las piezas de Laboratorios («Conoce el centro») abren sus accesos en la ficha que las
+          // contiene (conoce_unidad.js busca esta función); se define antes del visualizador para que ya exista cuando
+          // la primera página cargue. La página abierta avisa después qué es y la ficha se sincroniza.
+          window.abrirUbicacion = function (url) { document.getElementById('cidVisorMarco').src = url; };
+        </script>
+        <iframe id="cidVisorMarco" src="{{ inicial.url }}" title="{{ inicial.titulo }} · {{ centro.sigla|default:centro.nombre }}" allow="fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div class="cid-visor__cargando" id="cidVisorCargando" hidden><i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i></div>
+      </div>
+    </section>
+
+    <aside class="cid-lateral">
+      <section class="cid-panel cid-panel--contenidos">
+        <h2>{% translate "Contenidos" %}</h2>
+        {% for pestana in pestanas %}
+        <div class="cid-lista" data-pestana="{{ pestana.clave }}"{% if pestana.clave != inicial.pestana %} hidden{% endif %}>
+          {% for carpeta in pestana.carpetas %}
+          {% if carpeta.directa %}
+          {# Una sección que es una sola página se abre directo, sin carpeta que desplegar. #}
+          <button type="button" class="cid-seccion" data-clave="{{ carpeta.clave }}" data-url="{{ carpeta.url }}" data-id="{{ carpeta.clave }}" data-titulo="{{ carpeta.titulo }}" title="{{ carpeta.botones.0.detalle|default:carpeta.titulo }}">
+            <span class="cid-seccion__icono"><i class="{{ carpeta.icono }}" aria-hidden="true"></i></span>
+            <span class="cid-seccion__texto"><strong>{{ carpeta.titulo }}</strong></span>
+            <i class="fas fa-chevron-right cid-seccion__flecha" aria-hidden="true"></i>
+          </button>
+          {% else %}
+          <details class="cid-seccion{% if carpeta.pendiente %} is-pendiente{% endif %}{% if carpeta.propia %} is-propia{% endif %}" data-clave="{{ carpeta.clave }}" data-url="{{ carpeta.url }}" data-titulo="{{ carpeta.titulo }}">
+            <summary>
+              <span class="cid-seccion__icono"><i class="{{ carpeta.icono }}" aria-hidden="true"></i></span>
+              <span class="cid-seccion__texto"><strong>{{ carpeta.titulo }}{% if carpeta.interna %} <i class="fas fa-lock" title="{% translate "Solo quien gestiona el centro" %}"></i>{% endif %}</strong></span>
+              {% if carpeta.pendiente %}<b class="cid-seccion__cuenta is-pendiente" title="{% translate "Pendiente: el público no la ve" %}"><i class="fas fa-eye-slash" aria-hidden="true"></i></b>{% else %}<b class="cid-seccion__cuenta">{{ carpeta.total }}</b>{% endif %}
+              <i class="fas fa-chevron-down cid-seccion__flecha" aria-hidden="true"></i>
+            </summary>
+            <div class="cid-arbol">
+              {% if carpeta.pendiente %}
+              <div class="cid-carpeta__pendiente">
+                <p>{% translate "El centro todavía no registra esto; el público no ve la sección." %}</p>
+                <button type="button" class="cid-recurso" data-url="{{ carpeta.url }}" data-id="{{ carpeta.clave }}" data-titulo="{{ carpeta.titulo }}"><i class="{{ carpeta.icono }}" aria-hidden="true"></i><span class="cid-recurso__texto"><strong>{% translate "Ver cómo quedará" %}</strong></span><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                {% if carpeta.completar %}<a class="cid-carpeta__completar" data-cid-gestion-abrir href="{{ carpeta.completar }}"><i class="fas fa-plus-circle" aria-hidden="true"></i> {% translate "Completar contenido" %}</a>{% endif %}
+              </div>
+              {% else %}
+              {% if carpeta.descripcion %}<p class="cid-carpeta__descripcion">{{ carpeta.descripcion }}</p>{% endif %}
+              <ul class="cid-arbol__lista">
+                {% for boton in carpeta.botones %}{% ifchanged boton.grupo %}{% if boton.grupo %}<li class="cid-arbol__categoria">{{ boton.grupo }}</li>{% endif %}{% endifchanged %}<li{% if boton.integrado %} class="cid-arbol__integrado"{% endif %}>{% include 'centros_id/_boton_panel.html' %}{% if boton.integrado %}<small class="cid-arbol__pertenencia">{% translate 'Dentro de' %} {{ boton.contenedor }}</small>{% endif %}</li>{% endfor %}
+                {% for grupo in carpeta.grupos %}
+                <li class="cid-arbol__rama">
+                  <details class="cid-grupo{% if grupo.propia %} is-propia{% endif %}">
+                    <summary><i class="{% if grupo.propia %}{{ grupo.icono }}{% else %}fas fa-folder{% endif %}" aria-hidden="true"></i><span>{{ grupo.nombre }}</span><b>{{ grupo.botones|length }}</b><i class="fas fa-chevron-down" aria-hidden="true"></i></summary>
+                    <ul class="cid-arbol__lista cid-arbol__hojas">
+                      {% if grupo.propia %}<li><button type="button" class="cid-recurso" data-url="{{ grupo.url }}" data-id="{{ grupo.id }}" data-titulo="{{ grupo.nombre }}"><i class="fas fa-folder-open" aria-hidden="true"></i><span class="cid-recurso__texto"><strong>{% translate "Abrir la carpeta" %}</strong></span><i class="fas fa-chevron-right" aria-hidden="true"></i></button></li>{% endif %}
+                      {% for boton in grupo.botones %}<li>{% include 'centros_id/_boton_panel.html' %}</li>{% endfor %}
+                    </ul>
+                  </details>
+                </li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+              {% if carpeta.nueva_carpeta %}<a class="cid-nueva" data-cid-gestion-abrir href="{{ carpeta.nueva_carpeta }}"><i class="fas fa-folder-plus" aria-hidden="true"></i> {% translate "Nueva carpeta" %}</a>{% endif %}
+            </div>
+          </details>
+          {% endif %}
+          {% empty %}
+          <p class="cid-carpeta__vacio">{% translate "Esta pestaña todavía no tiene contenido publicado." %}</p>
+          {% endfor %}
+          {% if puede_gestionar %}<a class="cid-nueva cid-nueva--seccion" data-cid-gestion-abrir href="{% url 'gestion_centro_id' centro.slug %}?panel=contenidos&amp;tipo=carpetas&amp;editar=nuevo&amp;pestana={{ pestana.clave }}"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Nueva sección en esta pestaña" %}</a>{% endif %}
+        </div>
+        {% endfor %}
+      </section>
+
+      {% include 'centros_id/_informacion_centro.html' with informacion=c.informacion_general %}
+    </aside>
+  </div></div>
+  <div class="cid-aviso" id="cidAviso" role="status" aria-live="polite" hidden></div>
+</div>
+{% if puede_gestionar %}{% include 'centros_id/gestion/modal.html' %}{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script src="{% static 'centros_id/ficha.js' %}?v=20261007-cid-v20" defer></script>
+{% if puede_gestionar %}<script src="{% static 'portal/js/pages/unidades/catalogos_busqueda.js' %}?v=20261011-catalogos-v1" defer></script><script src="{% static 'centros_id/gestion.js' %}?v=20261011-opciones-v2" defer></script>{% endif %}
+{% endblock %}

@@ -1,0 +1,62 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Inscripción" %} · {{ curso.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce aula-curso">
+  <header class="aula-curso__cabecera">
+    <a class="aula-curso__volver" href="{{ curso_url }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Página del curso" %}</a>
+    <div>
+      <span class="conoce__antetitulo">{% translate "Inscripción" %}{% if edicion %} · {{ edicion.nombre }}{% endif %}</span>
+      <h1>{{ curso.nombre }}</h1>
+    </div>
+    <p class="aula-curso__previa"><i class="fas fa-tag" aria-hidden="true"></i> {% translate "Costo" %}: <strong>${{ curso.costo }}</strong></p>
+  </header>
+  <main class="verificacion">
+    {% if cerrado %}
+    <article class="verificacion__resultado is-anulado"><header><i class="fas fa-calendar-times" aria-hidden="true"></i><div><strong>{{ cerrado }}</strong></div></header></article>
+    {% else %}
+    <form method="post" enctype="multipart/form-data" class="verificacion__buscar pago">{% csrf_token %}
+      {% if reenvio %}<p class="calificada__aviso">{% translate "La unidad no pudo verificar tu pago anterior. Revisa los datos y vuelve a enviar el comprobante." %}</p>{% endif %}
+      <section class="pago__paso">
+        <h2>{% translate "Grupo y datos de la matrícula" %}</h2>
+        <label>{{ formulario.edicion.label }}{{ formulario.edicion }}</label>{{ formulario.edicion.errors }}
+        <label>{{ formulario.nombres_completos.label }}{{ formulario.nombres_completos }}</label>{{ formulario.nombres_completos.errors }}
+        <label>{{ formulario.documento.label }}{{ formulario.documento }}</label>{{ formulario.documento.errors }}
+        <p class="aula-curso__nota">{% translate "Estos datos se guardan en esta matrícula y no modifican tu cuenta." %}</p>
+      </section>
+      <section class="pago__paso">
+        <h2><b>1</b> {% translate "¿Tienes un código de descuento?" %}</h2>
+        <label>{{ formulario.codigo }}</label>{{ formulario.codigo.errors }}
+        <p class="aula-curso__nota">{% translate "Si el código cubre todo el costo, entras sin pagar." %}</p>
+      </section>
+      <section class="pago__paso">
+        <h2><b>2</b> {% translate "Paga por el medio que prefieras" %}</h2>
+        {% if medios %}
+        <ul class="pago__medios">
+          {% for clave, texto in medios %}<li><i class="fas fa-{% if clave == 'transferencia' %}university{% elif clave == 'ventanilla' %}cash-register{% else %}credit-card{% endif %}" aria-hidden="true"></i><div><strong>{{ texto }}</strong>{% if clave == 'enlace' %}<a class="conoce__boton is-principal" href="{{ curso.enlace_pago }}" target="_blank" rel="noopener noreferrer">{% translate "Pagar en línea" %}</a>{% endif %}</div></li>{% endfor %}
+        </ul>
+        {% if curso.datos_pago %}<div class="pago__datos">{{ curso.datos_pago|urlize|linebreaks }}</div>{% endif %}
+        {% else %}<p class="aula-curso__nota">{% translate "Consulta con la unidad cómo pagar este curso." %}</p>{% endif %}
+      </section>
+      <section class="pago__paso">
+        <h2><b>3</b> {% translate "Registra tu pago" %}</h2>
+        {{ formulario.non_field_errors }}
+        <label>{{ formulario.medio.label }}{{ formulario.medio }}</label>{{ formulario.medio.errors }}
+        <label>{{ formulario.referencia.label }}{{ formulario.referencia }}</label>
+        <label>{{ formulario.comprobante.label }}{{ formulario.comprobante }}</label>{{ formulario.comprobante.errors }}
+      </section>
+      <button type="submit" class="conoce__boton is-principal"><i class="fas fa-user-plus" aria-hidden="true"></i> {% translate "Enviar mi inscripción" %}</button>
+      <p class="aula-curso__nota">{% translate "La unidad verifica tu pago y te confirma el ingreso; lo verás en la página del curso y en «Mis cursos»." %}</p>
+    </form>
+    {% endif %}
+  </main>
+</body>
+</html>

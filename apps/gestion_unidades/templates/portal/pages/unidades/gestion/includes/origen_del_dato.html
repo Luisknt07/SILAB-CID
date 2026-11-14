@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}
+De donde sale el dato de la tarjeta y por donde se corrige. La ficha reune
+informacion que ya vive en otro sitio: decirlo evita que alguien la vuelva a
+escribir aparte y deja claro que se edita a mano y que se calcula solo.
+El enlace solo aparece para quien puede entrar a esa pantalla.
+{% endcomment %}
+{% if origen.texto %}
+<p class="ficha__origen">
+  <i class="fas fa-info-circle" aria-hidden="true"></i>
+  <span>{{ origen.texto }}{% if origen.url %} <a href="{{ origen.url }}">{{ origen.etiqueta }} →</a>{% endif %}</span>
+</p>
+{% endif %}

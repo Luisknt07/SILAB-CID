@@ -1,0 +1,48 @@
+{% load i18n %}{% comment %}En la página de inscritos: pagos por verificar, matrícula de personas o grupos, códigos de descuento e
+invitaciones por correo pendientes.{% endcomment %}
+{% if mensaje %}<p class="gestion__mensaje" role="status"><i class="fas fa-info-circle" aria-hidden="true"></i> {{ mensaje }}</p>{% endif %}
+<div class="gestion">
+  <section class="gestion__bloque gestion__bloque--ancho">
+    <h2>Importar participantes desde Excel o CSV</h2>
+    <p>Revisa hasta 500 filas antes de confirmar la inscripción en un curso o emitir certificados de asistencia, participación, ponentes u organizadores de un evento.</p>
+    <a class="conoce__boton is-principal" href="{% url 'importar_participantes_curso' unidad.slug curso.codigo %}{% if elegida %}?edicion={{ elegida.pk }}{% endif %}" data-curso-modal="Importar participantes">Subir lista y revisar</a>
+    <p class="aula-curso__nota">Las inscripciones importadas conservan los pagos y requisitos. Para eventos basta cédula y nombres completos, con una acreditación autorizada y registrada.</p>
+  </section>
+  {% if pagos_pendientes %}
+  <section class="gestion__bloque gestion__bloque--ancho">
+    <h2><i class="fas fa-receipt" aria-hidden="true"></i> {% translate "Pagos por verificar" %} <span class="curso__estado">{{ pagos_pendientes|length }}</span></h2>
+    <div class="calificaciones__entregas">
+      {% for pago in pagos_pendientes %}<article class="calificaciones__entrega">
+        <header><strong>{% firstof pago.inscripcion.usuario.get_full_name pago.inscripcion.usuario.username %}</strong><span>{{ pago.get_medio_display }} · ${{ pago.monto }}{% if pago.descuento %} ({{ pago.descuento }} % {% translate "de descuento" %}{% if pago.codigo %}, {{ pago.codigo.codigo }}{% endif %}){% endif %}</span></header>
+        <ul>{% if pago.comprobante %}<li><a href="{% url 'comprobante_pago' unidad.slug curso.codigo pago.pk %}"{% if pago.comprobante.name|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="Comprobante de pago · {{ curso.nombre }}"{% else %} download{% endif %}><i class="fas fa-paperclip" aria-hidden="true"></i> {% translate "Ver el comprobante" %}</a></li>{% endif %}{% if pago.referencia %}<li>{% translate "Referencia" %}: <strong>{{ pago.referencia }}</strong></li>{% endif %}</ul>
+        <form method="post">{% csrf_token %}<input type="hidden" name="pago" value="{{ pago.pk }}"><label>{% translate "Observación (si lo rechazas)" %}<input name="observacion" maxlength="300"></label>
+          <div><button type="submit" name="accion" value="verificar_pago" class="conoce__boton is-principal">{% translate "Verificar y aceptar" %}</button><button type="submit" name="accion" value="rechazar_pago" class="conoce__boton">{% translate "Rechazar" %}</button></div></form>
+      </article>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="gestion__bloque">
+    <h2>{% translate "Matrícula individual" %}</h2>
+    <p><a class="conoce__boton" href="{{ grupos_url }}">{% translate "Organizar grupos y fechas" %}</a></p>
+    <form method="post" class="gestion__formulario">{% csrf_token %}<input type="hidden" name="accion" value="matricular_individual">{{ matricula_individual_form.as_p }}<button type="submit" class="conoce__boton is-principal">{% translate "Matricular persona" %}</button></form>
+  </section>
+
+
+  {% if pagado %}
+  <section class="gestion__bloque">
+    <h2><i class="fas fa-ticket-alt" aria-hidden="true"></i> {% translate "Códigos de descuento" %}</h2>
+    {% if codigos %}<ul class="gestion__codigos">{% for codigo in codigos %}<li{% if not codigo.activo %} class="is-oculto"{% endif %}><strong>{{ codigo.codigo }}</strong> <span>{{ codigo.porcentaje }} %{% if codigo.descripcion %} · {{ codigo.descripcion }}{% endif %} · {{ codigo.usos }}{% if codigo.usos_maximos %}/{{ codigo.usos_maximos }}{% endif %} {% translate "usos" %}{% if codigo.vigente_hasta %} · {% translate "hasta" %} {{ codigo.vigente_hasta|date:"d/m/Y" }}{% endif %}</span>{% translate "Código de descuento" as titulo_codigo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='codigo_descuento' pk=codigo.pk titulo=titulo_codigo rotulo='' grupo='' padre='' %}</li>{% endfor %}</ul>
+    {% else %}<p class="aula-curso__nota">{% translate "Crea códigos para becas, convenios o promociones; al 100 % el curso queda gratis para quien lo use." %}</p>{% endif %}
+    {% translate "Nuevo código" as titulo_nuevo_codigo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='codigo_descuento' pk='nuevo' padre=curso.pk titulo=titulo_nuevo_codigo rotulo=titulo_nuevo_codigo grupo='' %}
+  </section>
+  {% endif %}
+
+  {% if invitaciones %}
+  <section class="gestion__bloque">
+    <h2><i class="fas fa-envelope-open-text" aria-hidden="true"></i> {% translate "Matrículas por correo pendientes" %}</h2>
+    <ul class="gestion__codigos">{% for invitacion in invitaciones %}<li><strong>{% firstof invitacion.nombres_completos invitacion.correo %}</strong> <span>{{ invitacion.correo }} · {{ invitacion.documento }} · {{ invitacion.edicion.nombre }} · {{ invitacion.creada|date:"d/m/Y" }}</span><form method="post">{% csrf_token %}<input type="hidden" name="accion" value="cancelar_invitacion"><input type="hidden" name="invitacion" value="{{ invitacion.pk }}"><button class="conoce__boton" type="submit">{% translate "Cancelar invitación y liberar plaza" %}</button></form></li>{% endfor %}</ul>
+    <p class="aula-curso__nota">{% translate "Reservan una plaza. Se vincularán al confirmar ese correo; cancelar una invitación libera su cupo." %}</p>
+  </section>
+  {% endif %}
+</div>

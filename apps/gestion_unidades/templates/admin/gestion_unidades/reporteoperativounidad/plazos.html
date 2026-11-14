@@ -1,0 +1,20 @@
+{% if plazos_casilla %}{% with casilla=plazos_casilla documento=plazos_casilla.documento %}
+<section id="plazos-documento" class="citt-revision">
+  <header><div><small>FECHAS DE ENTREGA · HORA LOCAL: America/Guayaquil</small><h2 class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ documento.nombre_documental }}</span></h2><p>{{ documento.unidad.nombre }} · {{ documento.etiqueta_corte }}</p></div></header>
+  <div class="citt-plazos-grid">
+    {% if documento.correccion_hasta or documento.estado == 'observado' %}<section class="citt-plazos-grid__correccion"><h3>Fecha de corrección de esta entrega</h3>
+      {% include 'portal/pages/unidades/gestion/includes/plazo_documento.html' with parte='correccion' %}
+      {% if not documento.correccion_hasta %}<p>Devolución anterior sin fecha específica de corrección. Dirección debe fijar un límite para abrir esta corrección.</p>{% endif %}
+      {% if documento.estado != 'validado' and user.is_superuser and documento.recurso_id %}<details><summary>{% if documento.correccion_hasta %}Fijar nueva fecha de corrección{% else %}Asignar fecha de corrección{% endif %}</summary>{% include 'admin/gestion_unidades/reporteoperativounidad/devolver_correccion.html' with d=documento %}</details>{% endif %}
+    </section>{% endif %}
+    <section><h3>1. Plazo institucional</h3><p>Fecha común definida por el semestre de gestión y la regla del documento. Los documentos históricos conservan su alcance y fechas.</p>{% if documento.exigido.plazo_regla == 'cierre' %}<p>Este documento se entrega {{ documento.exigido.plazo_dias }} días después del cierre del semestre de gestión. Ese plazo permite preparar el informe y enviarlo; no extiende las fechas de las actividades que se acreditan.</p>{% endif %}{% include 'admin/gestion_unidades/reporteoperativounidad/plazo_fila.html' with parte='institucional' %}
+      {% if user.is_superuser and documento.plazo_original %}<a href="{% url 'admin:documentos_documentoexigido_change' documento.exigido_id %}">Consultar configuración institucional</a><p>Para ampliar un plazo ya vencido, usa el ultimátum o la reapertura; se conserva la fecha original.</p>{% endif %}
+    </section>
+    <section><h3>2. Ultimátum colectivo</h3><p>Dirección concede un cierre adicional a las unidades con este documento vencido y pendiente. La entrega conserva su condición de tardía.</p>{% include 'admin/gestion_unidades/reporteoperativounidad/plazo_fila.html' with parte='ultimatum' %}</section>
+    <section><h3>3. Reapertura individual</h3><p>Después del ultimátum vencido, la unidad solicita una nueva apertura y justifica el retraso. Dirección decide su fecha de cierre.</p>{% include 'admin/gestion_unidades/reporteoperativounidad/plazo_fila.html' with parte='reapertura' %}
+      {% if documento.solicitud_reapertura_pendiente %}<p><strong>Solicitud pendiente:</strong> {{ documento.tardanza_motivo }}</p>{% endif %}
+    </section>
+  </div>
+  {% if documento.correccion_hasta and documento.estado != 'validado' %}<p class="citt-revision__aviso"><strong>Corrección pendiente.</strong> Esta fecha habilita a la unidad para corregir y reenviar. Si vence, la unidad puede solicitar una reapertura individual justificada, sin esperar un ultimátum colectivo nuevo.</p>{% endif %}
+</section>
+{% endwith %}{% endif %}

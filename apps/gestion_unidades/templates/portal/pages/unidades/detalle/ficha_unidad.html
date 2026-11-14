@@ -1,0 +1,117 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Ficha de la unidad" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce ficha">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{% translate "Ficha de la unidad" %}</span>
+      <h1>{{ unidad.nombre }}</h1>
+      <ul class="conoce__datos">
+        <li><i class="fas fa-layer-group" aria-hidden="true"></i>{{ unidad.nombre_tipologia|ui }}{% if unidad.nombre_corto %} · {{ unidad.nombre_corto }}{% endif %}</li>
+        {% if unidad.codigo %}<li><i class="fas fa-tag" aria-hidden="true"></i>{{ unidad.codigo }}</li>{% endif %}
+        <li><i class="fas fa-circle ficha__estado-{{ unidad.estado_catalogo }}" aria-hidden="true"></i>{{ unidad.get_estado_catalogo_display|ui }}</li>
+      </ul>
+    </div>
+    <div class="conoce__portada-acciones">
+      <button type="button" class="conoce__boton is-principal" data-accion="ubicacion" data-url="{{ ubicacion_url }}"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% translate "Cómo llegar" %}</button>
+      {% if equipo %}<a class="conoce__boton" href="#equipo"><i class="fas fa-users" aria-hidden="true"></i> {% translate "Quién la atiende" %}</a>{% endif %}
+    </div>
+  </header>
+
+  {% if contactos %}
+  <section class="ficha__contactos" aria-label="{% translate "Contacto" %}">
+    {% for contacto in contactos %}<a class="ficha__contacto" href="{{ contacto.enlace }}"{% if contacto.externo %} target="_blank" rel="noopener"{% endif %} data-aparecer><i class="fas {{ contacto.icono }}" aria-hidden="true"></i><span><small>{{ contacto.etiqueta }}</small><strong>{{ contacto.valor }}</strong></span></a>{% endfor %}
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion ficha__datos">
+    <article class="ficha__bloque" data-aparecer>
+      <header><i class="fas fa-landmark" aria-hidden="true"></i><h2>{% translate "Identidad" %}</h2>{% translate "Identidad" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='unidad' pk='unidad' grupo='identidad' titulo=titulo %}</header>
+      <dl>
+        <div><dt>{% translate "Dependencia académica" %}</dt><dd>{% firstof unidad.facultad unidad.centro_vinculado _("Por registrar") %}{% if unidad.carreras %}<small>{% translate "Carreras" %}: {{ unidad.carreras }}</small>{% endif %}</dd></div>
+        {% if adscrita_aparte %}<div><dt>{% translate "Adscrita a" %}</dt><dd>{{ unidad.adscrita_a }}</dd></div>{% endif %}
+        {% if unidad.centro_vinculado and unidad.facultad %}<div><dt>{% translate "Centro vinculado" %}</dt><dd>{{ unidad.centro_vinculado }}</dd></div>{% endif %}
+        <div><dt>{% translate "Área de conocimiento" %}</dt><dd>{{ unidad.get_area_conocimiento_display|default:_("Por registrar")|ui }}</dd></div>
+        <div><dt>{% translate "Modo de operación" %}</dt><dd>{{ unidad.get_modo_operacion_display|default:_("Por registrar")|ui }}</dd></div>
+      </dl>
+    </article>
+
+    <article class="ficha__bloque" data-aparecer>
+      <header><i class="fas fa-clock" aria-hidden="true"></i><h2>{% translate "Operación y atención" %}</h2>{% translate "Operación y atención" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='unidad' pk='unidad' grupo='atencion' titulo=titulo %}</header>
+      <dl>
+        <div><dt>{% translate "Horario" %}</dt><dd>{{ horario|default:_("Consultar disponibilidad") }}</dd></div>
+        {% if unidad.capacidad_personas %}<div><dt>{% translate "Capacidad" %}</dt><dd>{{ unidad.capacidad_personas }} {% translate "personas" %}</dd></div>{% endif %}
+        <div><dt>{% translate "Ubicación" %}</dt><dd>{{ unidad.espacio_completo|default:_("Por registrar") }}{% if unidad.direccion %}<small>{{ unidad.direccion }}</small>{% endif %}<button type="button" class="ficha__enlace" data-accion="ubicacion" data-url="{{ ubicacion_url }}"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% translate "Ver en el mapa" %}</button></dd></div>
+      </dl>
+    </article>
+
+    <article class="ficha__bloque ficha__bloque--creacion" data-aparecer>
+      <header><i class="fas fa-file-signature" aria-hidden="true"></i><h2>{% translate "Creación y trayectoria" %}</h2>{% translate "Creación y trayectoria" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='unidad' pk='unidad' grupo='creacion' titulo=titulo %}</header>
+      <dl>
+        {% if unidad.resolucion_numero %}<div><dt>{% translate "Resolución de creación" %}</dt><dd>{{ unidad.resolucion_numero }}</dd></div>{% endif %}
+        {% if unidad.fecha_resolucion %}<div><dt>{% translate "Creada el" %}</dt><dd>{{ unidad.fecha_resolucion|date:"j \d\e F \d\e Y" }}</dd></div>{% endif %}
+        {% if unidad.fecha_inicio %}<div><dt>{% translate "Inicio de operaciones" %}</dt><dd>{{ unidad.fecha_inicio|date:"j \d\e F \d\e Y" }}</dd></div>{% endif %}
+      </dl>
+      {% if resolucion %}
+      <div class="ficha__documento">
+        <i class="fas fa-file-pdf" aria-hidden="true"></i>
+        <div><strong>{{ resolucion.nombre }}</strong><small>{% if resolucion.validada %}{% translate "Validada" %}{% else %}{{ resolucion.documento.get_estado_display|ui }}{% endif %}{% if resolucion.fecha %} · {{ resolucion.fecha|date:"d/m/Y" }}{% endif %}</small></div>
+      </div>
+      {% if resolucion.url %}<div class="ficha__documento-acciones">
+        <button type="button" class="ficha__boton" data-accion="documento" data-url="{{ resolucion.url }}"><i class="fas fa-eye" aria-hidden="true"></i> {% translate "Ver documento" %}</button>
+      </div>{% else %}<p class="ficha__nota">{% translate "El archivo se publica cuando termina su verificación de seguridad." %}</p>{% endif %}
+      {% elif gestor %}
+      <p class="ficha__nota">{% translate "Todavía no está cargada. Se carga una sola vez en el expediente de la unidad y se muestra aquí cuando se valida." %}</p>
+      <a class="ficha__boton" href="{{ expediente_url }}" target="_top"><i class="fas fa-upload" aria-hidden="true"></i> {% translate "Cargarla en el expediente" %}</a>
+      {% else %}
+      <p class="ficha__nota">{% translate "La unidad todavía no publica su resolución de creación." %}</p>
+      {% endif %}
+    </article>
+  </section>
+
+  {% if lineas_accion or areas_trabajo %}
+  <section class="conoce__seccion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En qué trabaja" %}</span><h2>{% translate "Líneas de trabajo" %}</h2>{% translate "Nueva línea de trabajo" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='linea' pk='nuevo' titulo=titulo %}</header>
+    {% if areas_trabajo %}<div class="ficha__areas" data-aparecer>{{ areas_trabajo|linebreaks }}</div>{% endif %}
+    {% if lineas_accion %}<ul class="ficha__lineas" data-aparecer>{% for linea in lineas_accion %}<li><i class="fas {{ linea.icono }}" aria-hidden="true"></i>{{ linea.titulo }}</li>{% endfor %}</ul>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion ficha__equipo-seccion" id="equipo">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Quién la atiende" %}</span><h2>{% translate "Responsable y equipo técnico" %}</h2></header>
+    {% if equipo %}
+    <div class="ficha__equipo">
+      {% for persona in equipo %}<article class="ficha__persona{% if persona.coordina %} is-coordina{% endif %}" data-aparecer>
+        <div class="ficha__avatar">{% if persona.foto %}<img src="{{ persona.foto }}" alt="{{ persona.nombre }}">{% else %}{{ persona.iniciales }}{% endif %}</div>
+        <div class="ficha__persona-datos">
+          <span class="ficha__rol">{{ persona.rol|ui }}</span>
+          <h3>{{ persona.nombre }}</h3>
+          {% if persona.descripcion %}<p>{{ persona.descripcion }}</p>{% endif %}
+          <ul class="ficha__medios">
+            {% if persona.email %}<li><a href="mailto:{{ persona.email }}"><i class="fas fa-envelope" aria-hidden="true"></i>{{ persona.email }}</a></li>{% endif %}
+            {% if persona.telefono %}<li><a href="{{ persona.enlace_telefono }}"><i class="fas fa-phone-alt" aria-hidden="true"></i>{{ persona.telefono }}</a></li>{% endif %}
+            {% if persona.horario %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ persona.horario }}</li>{% endif %}
+          </ul>
+          {% if persona.pk %}{% include 'portal/pages/unidades/includes/editar.html' with clave='responsable' pk=persona.pk titulo=persona.nombre %}{% endif %}
+        </div>
+      </article>{% endfor %}
+    </div>
+    {% elif gestor %}
+    <p class="ficha__nota">{% translate "Todavía no hay responsables públicos: se registran en el editor de la unidad, en «Responsables»." %}</p>
+    {% endif %}
+  </section>
+
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+</body>
+</html>

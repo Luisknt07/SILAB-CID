@@ -1,0 +1,70 @@
+{% load i18n idiomas %}
+{% comment %}
+La portada de cada pestaña, lista para que el visor la muestre cuando no hay ningún documento abierto. Van en
+<template> porque no se pintan hasta que el JS las pide: al entrar a la ficha y cada vez que se cambia de pestaña.
+Un lado del visor es un escenario de fotos reales de la unidad que se funden unas en otras bajo un degradado, con la
+escena animada de la pestaña encima; el otro lado presenta la información: texto, cifras, secciones y de dónde salen
+los datos. La unidad edita su frase, su texto, el estilo, la imagen o una escena 3D publicada.
+{% endcomment %}
+{% for portada in portadas_modulo %}
+<template data-portada-modulo="{{ portada.clave }}">
+  <article class="tech-portada tema-{{ portada.tema }}{% if portada.imagenes %} con-fotos{% endif %}">
+    <div class="tech-portada__escenario" aria-hidden="true">
+      {% if portada.imagenes %}
+      <ul class="tech-portada__diapositivas">
+        {% for imagen in portada.imagenes %}<li{% if forloop.first %} class="is-activa"{% endif %} style="background-image: url('{{ imagen }}')"></li>{% endfor %}
+      </ul>
+      {% endif %}
+      <span class="tech-portada__velo"></span>
+      <span class="tech-portada__rejilla"></span>
+      <span class="tech-portada__barrido"></span>
+      {% if portada.escena %}<iframe class="tech-portada__escena3d" src="{{ portada.escena }}" title="{% translate 'Escena 3D de' %} {{ portada.titulo }}" loading="lazy" allow="autoplay; fullscreen; xr-spatial-tracking" referrerpolicy="no-referrer"></iframe>
+      {% else %}<div class="tech-portada__holograma">{% include 'portal/pages/unidades/detalle/includes/escena_tecnologica.html' with tema=portada.tema %}</div>{% endif %}
+    </div>
+
+    <div class="tech-portada__contenido">
+      <span class="tech-portada__puntos" aria-hidden="true"></span>
+      <header class="tech-portada__cabeza">
+        <span class="tech-portada__chip"><i class="{{ portada.icono|default:'iconsminds-folder' }}" aria-hidden="true"></i> {% translate "Sección de la ficha" %} · {% firstof unidad.nombre_corto unidad.nombre %}</span>
+        <h2>{{ portada.titulo }}</h2>
+        {% if portada.lema %}<p class="tech-portada__lema">{{ portada.lema }}</p>{% endif %}
+        <p class="tech-portada__entrada">{{ portada.entrada }}</p>
+        {% translate "Portada de la pestaña" as titulo_portada %}{% translate "Editar la portada" as rotulo_portada %}{% include 'portal/pages/unidades/includes/editar.html' with clave='portada' pk=portada.pk titulo=titulo_portada rotulo=rotulo_portada grupo='' padre='' %}
+        {% if portada.cifras %}
+        <ul class="tech-portada__cifras">
+          {% for elemento in portada.cifras %}<li style="--orden: {{ forloop.counter }}"><strong>{{ elemento.total }}</strong><span>{{ elemento.nombre }}</span></li>{% endfor %}
+        </ul>
+        {% endif %}
+      </header>
+
+      <section class="tech-portada__bloque">
+        <h3>{% translate "Qué vas a encontrar" %}</h3>
+        {% if portada.elementos %}
+        <ul class="tech-portada__modulos">
+          {% for elemento in portada.elementos %}
+          <li style="--orden: {{ forloop.counter }}">
+            <button type="button" class="tech-portada__modulo{% if elemento.pendiente %} is-pendiente{% endif %}"{% if elemento.numero %} data-abrir-seccion="{{ elemento.numero }}"{% elif elemento.abrir %} data-abrir-carpeta="{{ elemento.abrir }}"{% endif %}>
+              <i class="{{ elemento.icono }}" aria-hidden="true"></i>
+              <span><strong>{{ elemento.nombre }}</strong>{% if elemento.detalle %}<small>{{ elemento.detalle }}</small>{% endif %}{% if elemento.carpeta %}<small>{{ elemento.carpeta }}</small>{% endif %}</span>
+              <b aria-hidden="true">›</b>
+            </button>
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="tech-portada__pista">{% translate "Elige cualquiera aquí o en la lista de la derecha y se abre en este visor." %}</p>
+        {% else %}
+        <p class="tech-portada__pista">{% translate "La unidad todavía no publica contenido en esta pestaña." %}</p>
+        {% endif %}
+      </section>
+
+      <footer class="tech-portada__pie">
+        <section><h4>{% translate "De dónde salen los datos" %}</h4><p>{{ portada.datos }}</p></section>
+        <section><h4>{% translate "Cómo se lee" %}</h4><ul>{% for nota in portada.como_leerlo %}<li>{{ nota }}</li>{% endfor %}</ul></section>
+        {% if portada.elementos %}
+        <div class="tech-portada__cinta" aria-hidden="true"><div>{% for vuelta in '12' %}{% for elemento in portada.elementos %}<span><i class="{{ elemento.icono }}"></i> {{ elemento.nombre }}</span>{% endfor %}{% endfor %}</div></div>
+        {% endif %}
+      </footer>
+    </div>
+  </article>
+</template>
+{% endfor %}

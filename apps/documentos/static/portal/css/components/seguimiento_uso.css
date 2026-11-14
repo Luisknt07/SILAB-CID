@@ -1,0 +1,34 @@
+.seguimiento-uso__filtros { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:9px 16px; margin:0 0 12px; padding:12px 14px; border:1px solid #dce7df; border-left:4px solid #ffce00; border-radius:8px; background:#fff; color:#244332; }
+.seguimiento-uso__filtros > div { display:grid; gap:3px; }
+.seguimiento-uso__filtros strong { color:#006633; font-size:14px; }
+.seguimiento-uso__filtros small { font-size:11px; }
+.seguimiento-uso__filtros > nav { display:flex; flex-wrap:wrap; gap:5px; }
+.seguimiento-uso__filtros nav a { padding:6px 9px; border:1px solid #cdddD2; border-radius:5px; background:#fff; color:#006633; text-decoration:none; font-size:11px; font-weight:700; }
+.seguimiento-uso__filtros nav a.is-activa { border-color:#006633; background:#006633; color:#fff; }
+.seguimiento-uso__filtros > p { flex:1 0 100%; margin:0; font-size:11px; line-height:1.5; color:#42594a; }
+.seguimiento-uso { margin:12px 0; min-width:0; color:#213d2e; }
+.seguimiento-uso__acciones { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:6px; margin-bottom:9px; }
+.seguimiento-uso__acciones > a { display:inline-flex; align-items:center; gap:6px; padding:6px 9px; border:1px solid #cdded3; border-radius:5px; background:#fff; color:#006633; font-size:11px; font-weight:700; text-decoration:none; }
+.seguimiento-uso__tarjetas { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.seguimiento-uso__tarjetas > article { min-width:0; padding:12px 13px; border:1px solid #dce7df; border-radius:8px; background:#fff; }
+.seguimiento-uso__tarjetas > article > span { display:block; color:#42594a; font-size:11px; font-weight:600; }
+.seguimiento-uso__tarjetas > article > strong { display:block; margin:6px 0; color:#006633; font-size:24px; line-height:1.3; overflow-wrap:anywhere; }
+.seguimiento-uso__tarjetas strong > small { font-size:12px; font-weight:600; }
+.seguimiento-uso__tarjetas p { margin:0; font-size:11px; color:#435c4c; line-height:1.5; }
+.seguimiento-uso__tarjetas .seguimiento-uso__cumplimiento.is-provisional > strong { color:#805b00; }
+.seguimiento-uso__provisional { display:block; margin:3px 0; color:#805b00; font-size:10px; font-weight:700; line-height:1.4; }
+.seguimiento-uso__tasas { display:flex; flex-wrap:wrap; align-items:center; gap:8px 20px; padding:11px 0; font-size:11px; line-height:1.4; }
+.seguimiento-uso__tasas b { color:#006633; }
+.seguimiento-uso button { padding:3px 0; border:0; background:none; color:#006633; font-family:inherit; font-size:11px; font-weight:700; text-align:left; line-height:1.4; cursor:pointer; }
+.seguimiento-uso__tasas > button { margin-left:auto; }
+.seguimiento-uso__avisos { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 12px; margin:0 0 10px; padding:9px 11px; border:1px solid #f0dda2; border-radius:6px; background:#fffdf5; color:#71540a; font-size:11px; line-height:1.5; }
+.seguimiento-uso__tabla { overflow:auto; border:1px solid #dce7df; border-radius:7px; background:#fff; }
+.seguimiento-uso__tabla:focus-visible { outline:2px solid #006633; outline-offset:2px; }
+.seguimiento-uso__tabla table { width:100%; border-collapse:collapse; min-width:570px; font-size:11px; }
+.seguimiento-uso__tabla caption { padding:9px 11px; text-align:left; color:#006633; font-weight:700; }
+.seguimiento-uso__tabla th,.seguimiento-uso__tabla td { padding:7px 10px; border-bottom:1px solid #e2eae5; text-align:left; }
+.seguimiento-uso__tabla thead th { background:#006633; color:#fff; font-weight:700; }
+.seguimiento-uso__tabla tbody th { color:#264432; background:#fff; }
+.seguimiento-uso a:focus-visible,.seguimiento-uso button:focus-visible,.seguimiento-uso__filtros a:focus-visible { outline:2px solid #006633; outline-offset:3px; }
+@media(max-width:1000px) { .seguimiento-uso__tarjetas { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px) { .seguimiento-uso__filtros { padding:10px; } .seguimiento-uso__filtros > nav { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .seguimiento-uso__filtros nav a { text-align:center; } .seguimiento-uso__acciones { justify-content:flex-start; } .seguimiento-uso__tarjetas { gap:7px; } .seguimiento-uso__tarjetas > article { padding:10px; } .seguimiento-uso__tarjetas > article > strong { font-size:20px; } .seguimiento-uso__tasas > span { flex:1 0 100%; } .seguimiento-uso__tasas > button { margin-left:0; } }

@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% comment %}
+Resumen anual de entregas: cuanto de lo exigido esta validado,
+que esta vencido u observado, unidad por unidad y carpeta por carpeta.
+{% endcomment %}
+
+{% block bodyclass %}grp-change-list citt-evidencias-page{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="grp-horizontal-list">
+    <li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li>
+    <li><a href="{% url 'admin:index' %}#reportes">{% translate "Reportes e indicadores" %}</a></li>
+    <li>{% translate "Resumen anual de entregas" %}</li>
+  </ul>
+{% endblock %}
+
+{% block content_title %}<h1>{% translate "Resumen anual de entregas" %}</h1>{% endblock %}
+
+{% block content %}
+  <section class="citt-evidencias">
+    {% include 'portal/pages/unidades/gestion/includes/aviso_ensayo_fablab.html' %}
+    <p>Resumen de las entregas del año: compara los períodos A y B y los documentos anuales. Para consultar la vigencia, la conformidad documental y las excepciones, abre «Revisar cumplimiento».</p>
+    <form method="get" class="citt-evidencias__filtros">
+      <label>{% translate "Tipo de unidad" %}
+        <select name="tipo">{% for codigo, nombre in tipos %}<option value="{{ codigo }}"{% if codigo == tipo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select>
+      </label>
+      <label>{% translate "Año de gestión" %}<input type="number" name="anio" value="{{ anio }}" min="2020" max="2100"></label>
+      <button type="submit" class="grp-button">{% translate "Aplicar" %}</button>
+    </form>
+    <p class="citt-evidencias__ayuda">{% blocktranslate %}Cada unidad firma dos documentos por período: la planificación al abrir y el informe al cerrar. Lo que el sistema produce viaja como anexo y se valida con ellos. Aparte, los documentos de una sola vez.{% endblocktranslate %}</p>
+    <div class="citt-evidencias__tabla-envoltura">
+      <table class="grp-table citt-evidencias__tabla">
+        <thead>
+          <tr>
+            <th>{% translate "Unidad" %}</th>
+            <th>{% translate "Período A" %}</th>
+            <th>{% translate "Período B" %}</th>
+            <th>{% translate "Documentos de la unidad" %}</th>
+            <th>{% translate "Enviadas" %}</th>
+            <th>{% translate "Por validar" %}</th>
+            <th>{% translate "Vencidos" %}</th>
+            <th>{% translate "Observados" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in filas %}
+          <tr>
+            <th scope="row">{{ fila.unidad.nombre }}</th>
+            {% for periodo in fila.periodos %}
+            <td>{% for entrega in periodo.entregas %}<span class="citt-cumplimiento__firma is-{{ entrega.documento.semaforo_actual }}" title="{{ entrega.documento.nombre_documental }}">{{ entrega.nombre }} · {{ entrega.documento.nombre_semaforo }}</span>{% empty %}—{% endfor %}</td>
+            {% endfor %}
+            <td>{% for d in fila.de_la_unidad %}<span class="citt-cumplimiento__firma is-{{ d.semaforo_actual }}" title="{{ d.nombre_documental }}">{{ d.nombre_documental|truncatechars:26 }} · {{ d.nombre_semaforo }}</span>{% empty %}—{% endfor %}</td>
+            <td>{{ fila.validados }} / {{ fila.total }} · {{ fila.completo }} %</td>
+            <td>{{ fila.por_validar }}</td>
+            <td>{{ fila.vencidos }}</td>
+            <td>{{ fila.observados }}</td>
+            <td><a href="{% url 'admin:reportes-cumplimiento-expediente' %}?unidad={{ fila.unidad.slug }}&amp;anio={{ anio }}&amp;corte=">{% translate "Revisar cumplimiento" %} &rarr;</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9">{% translate "Este tipo no tiene unidades activas." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <style>
+    .citt-cumplimiento__firma { display: inline-block; margin: 1px 4px 1px 0; padding: 2px 7px; border-radius: 4px; background: #eef2f0; color: #4b5c53; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .citt-cumplimiento__firma.is-validado { background: #e2f3e8; color: #0b6b3a; }
+    .citt-cumplimiento__firma.is-por_validar, .citt-cumplimiento__firma.is-por_vencer { background: #fff1cf; color: #8a5a00; }
+    .citt-cumplimiento__firma.is-vencido, .citt-cumplimiento__firma.is-observado { background: #fbe4e4; color: #9b2b2b; }
+  </style>
+{% endblock %}

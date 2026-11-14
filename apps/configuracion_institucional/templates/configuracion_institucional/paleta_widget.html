@@ -1,0 +1,128 @@
+{% load static i18n %}
+<link rel="stylesheet" href="{% static 'configuracion_institucional/paleta_editor.css' %}?v=20260920-tonos-encima-v216">
+<script src="{% static 'configuracion_institucional/paleta_editor.js' %}?v=20260920-tonos-encima-v216" defer></script>
+<div class="institution-palette-editor" data-palette-editor
+  data-texto-automatico="{% translate 'Automático' %}"
+  data-texto-restablecer="{% translate 'Volver a automático' %}"
+  data-texto-angulo="{% translate 'Ángulo del degradado' %}"
+  data-texto-color-inicial="{% translate 'Color inicial del degradado' %}"
+  data-texto-color-final="{% translate 'Color final del degradado' %}"
+  data-texto-externo="{% translate 'Valor pegado: se usa tal cual.' %}"
+  data-texto-usar-generador="{% translate 'Editar con los controles' %}"
+  data-texto-limpiar="{% translate 'Quitar degradado' %}"
+  data-texto-elegir="{% translate 'Elegir de la paleta' %}"
+  data-texto-paleta-institucional="{% translate 'Colores de esta institución' %}"
+  data-texto-paleta-tonos="{% translate 'Tonos disponibles' %}"
+  data-texto-cerrar="{% translate 'Cerrar' %}"
+  data-texto-tapado="{% translate 'El degradado de abajo lo cubre: quítalo para ver este color.' %}"
+  data-texto-anadir-color="{% translate 'Añadir un color al degradado' %}"
+  data-texto-quitar-color="{% translate 'Quitar un color del degradado' %}"
+  data-texto-heredado="{% translate 'Vacío: esta superficie usa el degradado principal.' %}"
+  data-texto-editar="{% translate 'Personalizar' %}"
+>
+
+{{ widget.plantillas|json_script:"institution-palette-templates" }}
+<section class="institution-templates" data-palette-templates>
+  <h4>{% translate "Combinaciones listas" %}</h4>
+  <p>{% translate "Elige una y la presentación queda resuelta: todos los colores se rellenan y se comprueban. Después puedes ajustar lo que quieras en los controles de abajo." %}</p>
+  <div class="institution-template-grid">
+    {% for plantilla in widget.plantillas %}
+    <button type="button" class="institution-template" data-palette-template="{{ plantilla.clave }}">
+      <span class="institution-template-swatches" aria-hidden="true">
+        <i style="background: {{ plantilla.paleta.primario }}"></i><i style="background: {{ plantilla.paleta.oscuro }}"></i><i style="background: {{ plantilla.paleta.acento }}"></i><i style="background: {{ plantilla.paleta.fondo }}"></i>
+      </span>
+      <strong>{{ plantilla.nombre }}</strong>
+      <small>{{ plantilla.descripcion }}</small>
+    </button>
+    {% endfor %}
+    <button type="button" class="institution-template institution-template--nueva" data-palette-template="">
+      <span class="institution-template-swatches" aria-hidden="true"><i class="is-empty"></i><i class="is-empty"></i><i class="is-empty"></i><i class="is-empty"></i></span>
+      <strong>{% translate "Crear una nueva" %}</strong>
+      <small>{% translate "Parte de los colores actuales y define la combinación a mano." %}</small>
+    </button>
+  </div>
+</section>
+
+<div class="institution-palette-controls">
+{% for widget in widget.subwidgets %}
+{% ifchanged widget.grupo %}{% if widget.grupo %}<h4 class="institution-palette-group{% if widget.solo_visualizador %} institution-palette-control--visualizador{% endif %}">{{ widget.grupo }}</h4>{% if widget.ayuda_grupo %}<p class="institution-palette-group-help{% if widget.solo_visualizador %} institution-palette-control--visualizador{% endif %}">{{ widget.ayuda_grupo }}</p>{% endif %}{% endif %}{% endifchanged %}
+{% if widget.type == 'checkbox' %}<label class="institution-palette-enable" for="{{ widget.attrs.id }}">{% include widget.template_name %}<span>{{ widget.etiqueta }}</span></label>
+{% else %}<div class="institution-palette-control{% if widget.attrs.rows %} institution-palette-gradient{% endif %}{% if widget.solo_visualizador %} institution-palette-control--visualizador{% endif %}"><label for="{{ widget.attrs.id }}">{{ widget.etiqueta }}</label>{% include widget.template_name %}</div>{% endif %}
+{% endfor %}
+<p class="institution-palette-guidance">{% translate "Pulsa cualquier pieza de la vista previa para configurarla: color plano, degradado, tipografía o medidas, según lo que esa pieza admita. Un campo vacío conserva el valor automático; escribir solo hace falta para pegar un color o un degradado que ya tengas." %}</p>
+
+</div>
+
+<aside class="institution-palette-preview-column">
+<section class="institution-palette-components" data-palette-components aria-label="{% translate 'Esquema de la plataforma' %}">
+
+  <div class="ipv-pantalla" data-pantalla="barra">
+    <span class="ipv-titulo">{% translate "Barra superior y navegación" %}</span>
+    <div class="ipv-barra" data-editable="barra_color barra_degradado" data-editable-nombre="{% translate 'Barra superior' %}"><span>{% translate "Contacto institucional" %}</span><b data-editable="boton_acento boton_degradado" data-editable-nombre="{% translate 'Botón destacado' %}">{% translate "Iniciar sesión" %}</b></div>
+    <div class="ipv-nav" data-editable="oscuro" data-editable-nombre="{% translate 'Navegación oscura' %}"><b>{% translate "Marca" %}</b><span class="is-active">{% translate "Inicio" %}</span><span>{% translate "Servicios" %}</span><span>{% translate "Noticias" %}</span></div>
+    <div class="ipv-migas"><span>{% translate "Inicio" %}</span> \ <b>{% translate "Sección actual" %}</b></div>
+  </div>
+
+  <div class="ipv-pantalla" data-pantalla="portada">
+    <span class="ipv-titulo">{% translate "Portada sobre fotografía" %}</span>
+    <div class="ipv-heroe" data-editable="capa_color capa_intensidad capa_ancho" data-editable-nombre="{% translate 'Veladura sobre la fotografía' %}"><div class="ipv-capa"></div><div class="ipv-heroe-texto"><em>{% translate "Subtítulo de sección" %}</em><strong>{% translate "Título de portada" %}</strong><span class="ipv-acciones"><i class="ipv-principal" data-editable="boton_principal boton_degradado" data-editable-nombre="{% translate 'Botón principal' %}">{% translate "Acción principal" %}</i><i class="ipv-secundaria">{% translate "Acción secundaria" %}</i></span></div></div>
+  </div>
+
+  <div class="ipv-pantalla" data-pantalla="catalogo">
+    <span class="ipv-titulo">{% translate "Catálogo, tarjetas y botones" %}</span>
+    <div class="ipv-pestanas" data-editable="fondo" data-editable-nombre="{% translate 'Color de fondo' %}"><span class="is-active">{% translate "Laboratorios" %}</span><span>{% translate "Observatorios" %}</span></div>
+    <article class="institution-palette-sample-card" data-editable="color_secundario" data-editable-nombre="{% translate 'Fondo de tarjetas y paneles' %}">
+      <span class="institution-palette-sample-eyebrow" data-editable="acento" data-editable-nombre="{% translate 'Color de acento' %}">✦ {% translate "Subtítulo de sección" %}</span>
+      <h3 data-editable="fuente_titulos titulo_color" data-editable-nombre="{% translate 'Títulos' %}">{% translate "Título de la tarjeta" %}</h3>
+      <div class="institution-palette-sample-line" data-editable="linea_color linea_degradado linea_grosor linea_intensidad linea_ancho" data-editable-nombre="{% translate 'Filetes decorativos' %}"></div>
+      <p data-editable="texto fuente_cuerpo escala_fuente" data-editable-nombre="{% translate 'Texto de lectura' %}">{% translate "Texto de lectura: así se ven los párrafos, con la tipografía y el tamaño elegidos." %}</p>
+      <p class="institution-palette-sample-small">{% translate "Texto secundario, más pequeño y de apoyo." %}</p>
+      <div class="institution-palette-sample-tags"><span>{% translate "Etiqueta" %}</span><span>{% translate "Categoría" %}</span></div>
+      <div class="institution-palette-sample-actions">
+        <span class="institution-palette-sample-primary" data-editable="boton_principal boton_degradado" data-editable-nombre="{% translate 'Botón principal' %}">{% translate "Acción principal" %}</span>
+        <span class="institution-palette-sample-accent" data-editable="boton_acento boton_degradado" data-editable-nombre="{% translate 'Botón destacado' %}">{% translate "Acción destacada" %}</span>
+        <span class="institution-palette-sample-outline">{% translate "Acción secundaria" %}</span>
+        <span class="institution-palette-sample-link">{% translate "Enlace" %} ›</span>
+      </div>
+    </article>
+  </div>
+
+  {% comment %}Panel de contenidos: las mismas piezas que la unidad real.{% endcomment %}
+  <div class="ipv-pantalla" data-pantalla="contenidos">
+    <span class="ipv-titulo">{% translate "Panel de contenidos" %}</span>
+    <div class="ipv-panel">
+      <h5>{% translate "Contenidos" %}</h5>
+      <div class="ipv-carpeta-mod">
+        <div class="ipv-modulo is-open" data-editable="panel_modulo_fondo icono_color" data-editable-nombre="{% translate 'Fila del módulo' %}"><span data-editable="panel_modulo panel_degradado" data-editable-nombre="{% translate 'Distintivo del módulo' %}">2.1</span><i aria-hidden="true">▤</i><strong>{% translate "Módulo principal" %}</strong><b>24</b><em aria-hidden="true">⌃</em></div>
+        <div class="ipv-grupo is-open" data-editable="panel_carpeta panel_carpeta_fondo" data-editable-nombre="{% translate 'Carpeta abierta' %}"><i aria-hidden="true">▣</i><span>{% translate "Carpeta abierta" %}</span><em aria-hidden="true">⌃</em></div>
+        <ul class="ipv-archivos">
+          <li class="ipv-archivo is-destacado"><i aria-hidden="true">▤</i><span><strong>{% translate "Ficha destacada" %}</strong><small>{% translate "Documento de la carpeta" %}</small></span><u class="ipv-punto"></u><em aria-hidden="true">›</em></li>
+          <li class="ipv-archivo"><i aria-hidden="true">▤</i><span><strong>{% translate "Archivo o ficha" %}</strong><small>{% translate "Documento de la carpeta" %}</small></span><u class="ipv-punto"></u><em aria-hidden="true">›</em></li>
+          <li class="ipv-archivo is-active" data-editable="panel_seleccion panel_degradado" data-editable-nombre="{% translate 'Archivo seleccionado' %}"><i aria-hidden="true">▤</i><span><strong>{% translate "Archivo seleccionado" %}</strong><small>{% translate "Lo que se está viendo" %}</small></span><u class="ipv-punto"></u><em aria-hidden="true">›</em></li>
+        </ul>
+        <div class="ipv-grupo"><i aria-hidden="true">▣</i><span>{% translate "Carpeta cerrada" %}</span><em aria-hidden="true">⌄</em></div>
+      </div>
+      <div class="ipv-carpeta-mod"><div class="ipv-modulo"><span>2.2</span><i aria-hidden="true">▦</i><strong>{% translate "Otro módulo" %}</strong><b>1</b><em aria-hidden="true">⌄</em></div></div>
+    </div>
+  </div>
+
+  <div class="ipv-pantalla" data-pantalla="formularios">
+    <span class="ipv-titulo">{% translate "Formularios y tablas" %}</span>
+    <div class="ipv-formulario"><label>{% translate "Campo" %}</label><input type="text" value="{% translate 'Texto de ejemplo' %}" readonly tabindex="-1"><i class="ipv-principal" data-editable="boton_principal boton_degradado" data-editable-nombre="{% translate 'Botón principal' %}">{% translate "Guardar" %}</i></div>
+    <table class="ipv-tabla"><thead><tr><th>{% translate "Columna" %}</th><th>{% translate "Estado" %}</th></tr></thead>
+      <tbody><tr><td>{% translate "Primera fila" %}</td><td>{% translate "Vigente" %}</td></tr>
+      <tr><td>{% translate "Segunda fila" %}</td><td>{% translate "Vigente" %}</td></tr></tbody></table>
+  </div>
+
+  <div class="ipv-pantalla" data-pantalla="bandas">
+    <span class="ipv-titulo">{% translate "Bandas, degradados y líneas" %}</span>
+    <div class="institution-palette-sample-gradient" data-editable="primario degradado_primario degradado_alcance degradado_intensidad degradado_ancho" data-editable-nombre="{% translate 'Degradado principal' %}"><span>{% translate "Degradado principal" %}</span></div>
+    <div class="institution-palette-sample-band" data-editable="degradado_superficie" data-editable-nombre="{% translate 'Bandas oscuras' %}">✦ {% translate "Título e icono sobre fondo oscuro" %}</div>
+    <div class="institution-palette-sample-line" aria-hidden="true"></div>
+    <div class="institution-palette-sample-image"><div class="institution-palette-sample-layer"></div><p>{% translate "Texto protegido sobre una imagen" %}</p></div>
+  </div>
+
+</section>
+<p class="institution-palette-status" data-palette-status role="status" aria-live="polite" data-invalid="{% translate 'Revisa el código: usa HEX de seis dígitos y un degradado lineal válido.' %}" data-contrast="{% translate 'El contraste del degradado con blanco y acento debe ser al menos 4.5:1.' %}" data-solid-contrast="{% translate 'Los colores de texto y fondo deben tener contraste de al menos 4.5:1.' %}" data-surface-contrast="{% translate 'El fondo de tarjetas y paneles necesita contraste de al menos 4.5:1 con el texto.' %}" data-valid="{% translate 'Vista previa válida. El servidor comprobará los colores al guardar.' %}" data-disabled="{% translate 'Paleta desactivada: se conserva el diseño original.' %}"></p>
+</aside>
+</div>

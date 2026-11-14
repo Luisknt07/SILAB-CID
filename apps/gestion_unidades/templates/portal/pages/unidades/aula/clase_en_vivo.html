@@ -1,0 +1,47 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ leccion.titulo }} · {{ curso.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce aula-curso aula-sala">
+  {% comment %}La clase en vivo dentro de la plataforma: la sala de BigBlueButton ocupa la página; quien gestiona la
+  modera y puede traer la grabación cuando el servidor la tenga lista.{% endcomment %}
+  <header class="aula-curso__cabecera">
+    <a class="aula-curso__volver" href="{% url 'aula_curso_leccion' unidad.slug curso.codigo leccion.pk %}{{ edicion_query }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Volver a la lección" %}</a>
+    <div>
+      <span class="conoce__antetitulo">{% translate "Clase en vivo" %} · {{ curso.nombre }}{% if edicion_seleccionada %} · {{ edicion_seleccionada.nombre }}{% endif %}</span>
+      <h1>{{ leccion.titulo }}</h1>
+    </div>
+    {% if leccion.fecha_hora %}<p class="aula-curso__previa"><i class="fas fa-calendar-day" aria-hidden="true"></i> {{ leccion.fecha_hora|date:"l d/m/Y, H:i" }}</p>{% endif %}
+  </header>
+  <main class="aula-sala__cuerpo">
+    {% if mensaje %}<p class="servidor-clases__mensaje" role="status"><i class="fas fa-info-circle" aria-hidden="true"></i> {{ mensaje }}</p>{% endif %}
+    {% if not configurado %}
+      <div class="aula-curso__cerrada"><i class="fas fa-video-slash" aria-hidden="true"></i><h3>{% translate "La sala en vivo aún no está disponible" %}</h3>
+        <p>{% if administra %}{% translate "Falta conectar el servicio de videollamadas del aula. Con Digital Samba basta una cuenta gratuita, sin tarjeta." %}{% elif moderador %}{% translate "Falta que quien administra la plataforma conecte el servicio de videollamadas. Mientras tanto, la clase puede ir por YouTube Live o con un enlace externo." %}{% else %}{% translate "La unidad está preparando la sala. Vuelve a esta lección a la hora de la clase." %}{% endif %}</p>
+        {% if administra %}<div class="aula-curso__acciones"><a class="conoce__boton is-principal" href="{% url 'servidor_clases_en_vivo' %}?volver={{ request.path|urlencode }}" target="_top"><i class="fas fa-plug" aria-hidden="true"></i> {% translate "Conectar el servicio" %}</a></div>{% endif %}</div>
+    {% elif not abierta %}
+      <div class="aula-curso__cerrada"><i class="fas fa-clock" aria-hidden="true"></i><h3>{% translate "La sala se abre 15 minutos antes de la clase" %}</h3>
+        <p>{% translate "Vuelve a esta página a la hora indicada; entrarás directamente a la clase." %}</p></div>
+    {% else %}
+      <iframe class="aula-sala__marco" src="{% url 'entrar_clase_en_vivo' unidad.slug curso.codigo leccion.pk %}{{ edicion_query }}" title="{% translate "Sala de la clase en vivo" %}" allow="camera; microphone; display-capture; fullscreen; autoplay; clipboard-write" allowfullscreen></iframe>
+    {% endif %}
+    {% if moderador and configurado %}
+      <form method="post" class="aula-sala__grabacion">{% csrf_token %}{% if edicion_seleccionada %}<input type="hidden" name="edicion" value="{{ edicion_seleccionada.pk }}">{% endif %}
+        {% if grabacion_id and proveedor == 'samba' %}<a class="conoce__boton" href="{% url 'ver_grabacion_clase' unidad.slug curso.codigo leccion.pk %}{{ edicion_query }}" target="_blank" rel="noopener"><i class="fas fa-play-circle" aria-hidden="true"></i> {% translate "Ver la grabación publicada" %}</a>
+        {% elif grabacion_url %}<a class="conoce__boton" href="{{ grabacion_url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-play-circle" aria-hidden="true"></i> {% translate "Ver la grabación publicada" %}</a>{% endif %}
+        {% if proveedor == 'samba' %}<button type="submit" name="accion" value="asistencia" class="conoce__boton"><i class="fas fa-user-check" aria-hidden="true"></i> {% translate "Registrar la asistencia y publicar la grabación" %}</button>
+        {% elif proveedor == 'daily' %}<button type="submit" name="accion" value="asistencia" class="conoce__boton"><i class="fas fa-user-check" aria-hidden="true"></i> {% translate "Registrar la asistencia de la clase" %}</button>
+        {% else %}<button type="submit" name="accion" value="grabacion" class="conoce__boton"><i class="fas fa-cloud-download-alt" aria-hidden="true"></i> {% translate "Traer la grabación del servidor" %}</button>{% endif %}
+      </form>
+    {% endif %}
+  </main>
+</body>
+</html>

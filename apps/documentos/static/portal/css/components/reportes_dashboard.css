@@ -1,0 +1,227 @@
+/* Centro de reportes: superficies neutras y color reservado para acciones y estados. */
+.reportes-dashboard {
+  --reportes-tinta: #142039;
+  --reportes-secundario: #60708a;
+  --reportes-linea: #e0e7ef;
+  --reportes-fondo: #f7f9fc;
+  min-width: 0;
+  color: var(--reportes-tinta);
+}
+.reportes-dashboard *, .reportes-dashboard *::before, .reportes-dashboard *::after { box-sizing: border-box; }
+.reportes-dashboard .expediente__barra { margin-bottom: 12px; gap: 10px 20px; }
+.reportes-dashboard .expediente__periodos { display: flex; flex-wrap: wrap; gap: 6px; border: 0; }
+.reportes-dashboard .expediente__periodos a {
+  min-height: 34px; padding: 8px 16px; border: 1px solid var(--reportes-linea);
+  border-radius: 6px; background: #fff; color: #344362; font-size: 12px; font-weight: 600;
+}
+.reportes-dashboard .expediente__periodos a.is-active { color: #fff; background: #075539; border-color: #075539; }
+.reportes-dashboard .expediente__anio label { color: #35435d; font-size: 12px; }
+.reportes-dashboard .expediente__anio select { border-color: var(--reportes-linea); border-radius: 6px; color: var(--reportes-tinta); background: #fff; }
+.reportes-dashboard .expediente__decision { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.reportes-dashboard .expediente__decision button { border: 1px solid var(--reportes-linea); border-radius: 5px; padding: 7px 10px; background: #fff; color: #344362; font: inherit; font-size: 11px; }
+.reportes-dashboard .expediente__decision small { max-width: 55ch; color: var(--reportes-secundario); font-size: 11px; }
+
+/* El contexto ocupa su fila; el cumplimiento acompaña a las entregas. */
+[data-entregas-panel].reportes-dashboard .reportes-dashboard__resumen {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  align-items: stretch; gap: 14px 16px; padding: 0; margin: 0 0 16px;
+  border: 0; background: transparent;
+}
+.reportes-dashboard__principal {
+  min-width: 0; padding: 16px; border: 1px solid var(--reportes-linea);
+  border-left: 3px solid #f0bd29; border-radius: 9px; background: #fff;
+}
+.reportes-dashboard__titulo { display: flex; align-items: center; gap: 11px; }
+.reportes-dashboard .reportes-dashboard__titulo h2 { margin: 0; padding: 0; font-size: clamp(18px, 1.6vw, 23px); font-weight: 750; line-height: 1.25; color: #101d32; }
+.reportes-dashboard__icono {
+  display: inline-grid; place-items: center; flex: 0 0 auto;
+  width: 40px; height: 40px; border-radius: 10px; font-size: 19px;
+}
+.reportes-dashboard__icono.is-azul, .reportes-dashboard__paso.is-azul { color: #0874d9; background: #e9f3ff; }
+.reportes-dashboard__icono.is-verde, .reportes-dashboard__paso.is-verde { color: #087b48; background: #e7f7ef; }
+.reportes-dashboard__icono.is-amarillo, .reportes-dashboard__paso.is-amarillo { color: #aa7400; background: #fff4d9; }
+.reportes-dashboard__icono.is-violeta, .reportes-dashboard__paso.is-violeta { color: #7144d6; background: #f0ebfc; }
+.reportes-dashboard__icono.is-celeste, .reportes-dashboard__paso.is-celeste { color: #087d8a; background: #e9f6f8; }
+.reportes-dashboard .expediente__cadena, .reportes-dashboard__periodo {
+  margin: 7px 0 0; color: var(--reportes-secundario); font-size: 11.5px; line-height: 1.5;
+}
+.reportes-dashboard .expediente__cadena { display: block; color: var(--reportes-secundario)!important; font-size:11.5px!important; font-weight: 500; }
+.reportes-dashboard .expediente__cadena > i { margin-right: 3px; color: #386b55; }
+.reportes-dashboard .reportes__ruta { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 14px 0 12px; }
+.reportes-dashboard .reportes__ruta li {
+  position: relative; min-width: 0; gap: 7px; padding: 9px 7px;
+  border: 1px solid #e7edf5; border-radius: 8px; background: #fff;
+}
+.reportes-dashboard .reportes__ruta li > div { min-width: 0; }
+.reportes-dashboard__paso { position: relative; flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; font-size: 13px; }
+.reportes-dashboard__paso b { position: absolute; left: -3px; top: -6px; font-size: 8px; color: #61718a; }
+.reportes-dashboard .reportes__ruta strong { display: block; color: #17243c; font-size: 10.5px; line-height: 1.35; }
+.reportes-dashboard .reportes__ruta small { color: var(--reportes-secundario); font-size: 9.5px; line-height: 1.4; margin-top: 4px; }
+[data-entregas-panel].reportes-dashboard .expediente__cifras {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: none;
+  gap: 8px; margin: 0; padding: 0;
+}
+[data-entregas-panel].reportes-dashboard .expediente__cifras article {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 8px;
+  border: 1px solid var(--reportes-linea); border-radius: 7px; background: #fff; box-shadow: none;
+}
+.reportes-dashboard .expediente__cifras article > div { display: grid; min-width: 0; gap: 3px; }
+.reportes-dashboard .expediente__cifras .reportes-dashboard__icono { width: 32px; height: 36px; border-radius: 8px; font-size: 16px; }
+.reportes-dashboard .expediente__cifras .reportes-dashboard__icono.is-azul { color: #0874d9; }
+.reportes-dashboard .expediente__cifras .reportes-dashboard__icono.is-verde { color: #087b48; }
+.reportes-dashboard .expediente__cifras .reportes-dashboard__icono.is-amarillo { color: #aa7400; }
+.reportes-dashboard .expediente__cifras .reportes-dashboard__icono.is-violeta { color: #7144d6; }
+[data-entregas-panel].reportes-dashboard .expediente__cifras strong { color: #142039; font-size: 25px; font-weight: 750; line-height: 1; }
+[data-entregas-panel].reportes-dashboard .expediente__cifras span:not(.reportes-dashboard__icono) { color: #44516c; font-size: 10px; font-weight: 550; line-height: 1.35; }
+.reportes-dashboard #entregas-documentos { min-width:0; scroll-margin-top:12px; }
+.reportes-dashboard #entregas-documentos > .expediente-progreso { margin:0 0 12px; }
+.reportes-dashboard .reportes__accesos { grid-column: 1 / -1; gap: 7px; margin: 0; }
+.reportes-dashboard .reportes__accesos a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 35px; padding: 8px 14px; border: 1px solid var(--reportes-linea); border-radius: 6px; color: #31425f; background: #fff; font-size: 11px; font-weight: 600; }
+.reportes-dashboard .reportes__accesos a i { color: #0e694a; }
+.reportes-dashboard .reportes__accesos a:hover { background: #f5f7fb; border-color: #b7c7db; }
+
+/* Histórico y búsqueda permanecen a mano sin desplegar las filas. */
+.reportes-dashboard__historico { margin: 0 0 9px; }
+.reportes-dashboard .reportes-dashboard__historico > button {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px;
+  border: 1px solid var(--reportes-linea); border-radius: 6px;
+  background: #fff; color: #364663; font: inherit; font-size: 11.5px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.reportes-dashboard__historico > button > i:last-child { margin-left: auto; color: #7c8ca5; font-size: 10px; }
+.reportes-dashboard .entregas__filtros { gap: 10px 12px; align-items: end; padding: 0; margin-bottom: 9px; }
+.reportes-dashboard .entregas__filtros label { gap: 4px; color: #35435d; font-size: 11px; font-weight: 600; }
+.reportes-dashboard .entregas__filtros input, .reportes-dashboard .entregas__filtros select { min-height: 34px; padding: 7px 10px; border: 1px solid #dbe3ef; border-radius: 6px; font-size: 12px; color: #344362; background: #fff; }
+.reportes-dashboard__busqueda { position: relative; display: block; }
+.reportes-dashboard .reportes-dashboard__busqueda input { width: 265px; max-width: 100%; padding-right: 34px; }
+.reportes-dashboard__busqueda > i { position: absolute; right: 12px; top: 11px; pointer-events: none; color: #667a98; font-size: 12px; }
+.reportes-dashboard .entregas__filtros select { width: 210px; max-width: 100%; }
+.reportes-dashboard .entregas__filtros > span { padding: 8px 0; color: var(--reportes-secundario); font-size: 11px; }
+.reportes-dashboard .entregas__tabla-scroll { border: 1px solid var(--reportes-linea); border-radius: 7px; }
+.reportes-dashboard .entregas__soporte-planificacion > th { border-left:3px solid #dfb52a; }
+.reportes-dashboard .entregas__soporte-planificacion > th small { color:#536b5b; }
+.reportes-dashboard .entregas__soporte-planificacion .entregas__soporte-gestion { box-sizing:border-box; width:100%; max-width:100%; min-width:0; padding:5px 3px; gap:0; font-size:10.5px; white-space:normal; overflow-wrap:anywhere; }
+.reportes-dashboard .entregas__fila[hidden] + .entregas__soporte-planificacion { display:none!important; }
+.reportes-consultas-visibles { min-width:0; max-width:100%; margin:18px 0; }
+.reportes-dashboard .reportes-consultas-visibles h2 { margin:0 0 5px; color:#285d3a; font-size:17px; }
+.reportes-dashboard .reportes-consultas-visibles header p { margin:0 0 11px; color:#52675a; font-size:12px!important; }
+.reportes-consultas-visibles__tabla { max-width:100%; overflow-x:auto; border:1px solid #d8e3db; border-radius:7px; }
+.reportes-consultas-visibles table { width:100%; min-width:540px; border-collapse:collapse; background:#fff; font-size:12px; }
+.reportes-consultas-visibles thead th { padding:10px 12px; border-bottom:2px solid #e2bd36; background:#285d3a; color:#fff; text-align:left; }
+.reportes-consultas-visibles tbody th, .reportes-consultas-visibles tbody td { padding:11px 12px; border-bottom:1px solid #e2e9e3; text-align:left; vertical-align:middle; }
+.reportes-consultas-visibles tbody th { color:#233e2e; width:46%; }
+.reportes-consultas-visibles small { display:block; margin-top:3px; color:#5d6e62; font-size:10.5px; }
+.reportes-consultas-visibles .documento-accion { white-space:nowrap; }
+.reportes-dashboard .entregas__tabla { min-width:1240px; color: #27364e; font-size: 11px; line-height: 1.4; }
+.reportes-dashboard .entregas__tabla .col-item { width:3%; }
+.reportes-dashboard .entregas__tabla .col-documento { width:22%; }
+.reportes-dashboard .entregas__tabla .col-plazo { width:10%; }
+.reportes-dashboard .entregas__tabla .col-edicion { width:7%; }
+
+.reportes-dashboard .entregas__tabla .col-envio { width:10%; }
+.reportes-dashboard .entregas__tabla .col-fecha { width:7%; }
+.reportes-dashboard .entregas__tabla .col-estado { width:9%; }
+.reportes-dashboard .entregas__tabla .col-observacion { width:8%; }
+.reportes-dashboard .entregas__tabla .col-avance { width:7%; }
+.reportes-dashboard .entregas__tabla .col-calificacion { width:12%; }
+.reportes-dashboard .control-documental__estado { white-space:nowrap; font-size:10px; }
+.reportes-dashboard .control-documental > button { flex-wrap:wrap; column-gap:3px; }
+.reportes-dashboard .control-documental-resumen h3 { color:#17243b; font-size:16px; }
+.reportes-dashboard .cierre-dashboard, .reportes-dashboard #entregas-documentos, .reportes-dashboard #reportes-anexos, .reportes-dashboard #informes-gestion, .reportes-dashboard #resultado-seguimiento { scroll-margin-top:100px; }
+.reportes-dashboard .entregas__tabla th, .reportes-dashboard .entregas__tabla td { border-color: #e3e8ef; padding: 7px 8px; }
+.reportes-dashboard .entregas__tabla td { background: #fff; }
+.reportes-dashboard .entregas__tabla thead th { padding: 9px 8px; background: #075539; font-size: 10px; font-weight: 650; }
+.reportes-dashboard .entregas__tabla .entregas__grupo th { padding: 5px 9px; background: #f2f5f9; color: #374860; font-size: 10.5px; }
+.reportes-dashboard .entregas__grupo small { color: #6e7a90; font-size: 10px; }
+.reportes-dashboard .entregas__tabla td > strong { color: #19273f; }
+.reportes-dashboard .entregas__tabla td > small { color: #718095; }
+.reportes-dashboard .entregas__tabla caption { margin: 0; padding: 8px 10px; color: var(--reportes-secundario); font-size: 10.5px; }
+.reportes-dashboard .entregas__tabla .entregas__pdf, .reportes-dashboard .entregas__tabla .entregas__ver, .reportes-dashboard .entregas__tabla .entregas__acciones a { border-color: #cdd9e2; border-radius: 5px; font-size: 10.5px; padding: 5px 7px; }
+.reportes-dashboard .entregas__tabla .entregas__ver, .reportes-dashboard .entregas__tabla .entregas__item, .reportes-dashboard .entregas__tabla thead th:first-child { white-space:nowrap; }
+
+/* Secciones de consulta con fondos blancos y títulos breves. */
+.reportes-dashboard .reportes__catalogo { margin-top: 24px; }
+.reportes-dashboard .reporte-titulo { display: flex; align-items: center; gap: 10px; margin: 0 0 7px; padding: 0; border: 0; background: transparent; color: #15223a; font-size: 21px; line-height: 1.35; }
+.reportes-dashboard .reporte-titulo > i { width: 33px; height: 33px; display: inline-grid; place-items: center; border-radius: 8px; background: #f0f3f9; color: #4d6485; font-size: 17px; }
+.reportes-dashboard .reportes__catalogo > p { color: var(--reportes-secundario); font-size: 12px; line-height: 1.5; }
+.reportes-dashboard .explorador { margin-top: 20px; padding: 0; background: transparent; border: 0; }
+.reportes-dashboard__consultas { background: #fff; border: 1px solid var(--reportes-linea); border-radius: 9px; }
+.reportes-dashboard__seccion-cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 14px; border-bottom: 1px solid var(--reportes-linea); }
+.reportes-dashboard__seccion-cabecera > i { color: #5f7391; font-size: 18px; }
+.reportes-dashboard__seccion-cabecera h2 { margin: 0; color: #17243b; font-size: 17px; }
+.reportes-dashboard__seccion-cabecera small { flex-basis: 100%; color: var(--reportes-secundario); font-size: 11px; line-height: 1.5; }
+.reportes-dashboard__seccion-cabecera > b { order: 0; margin-left: auto; padding: 3px 8px; border-radius: 6px; background: #f1f4f9; color: #4c5d77; font-size: 11px; }
+.reportes-dashboard .explorador__lista.is-consultas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
+.reportes-dashboard .explorador__lista.is-consultas .explorador__anexo { min-width: 0; margin: 0; border: 1px solid var(--reportes-linea); border-radius: 7px; background: #fff; }
+.reportes-dashboard .explorador__lista.is-consultas .explorador__anexo > i { color: #4c73a4; }
+.reportes-dashboard .explorador__lista.is-consultas .explorador__anexo strong { color: #1d2c45; }
+.reportes-dashboard .explorador__lista.is-consultas .explorador__anexo small { color: var(--reportes-secundario); }
+.reportes-dashboard__seguimiento { margin-top: 24px; }
+.reportes-dashboard .nivel { border: 1px solid var(--reportes-linea); border-radius: 9px; background: #fff; }
+.reportes-dashboard .nivel__cabecera { gap: 14px; padding: 14px; }
+.reportes-dashboard .nivel .nivel__total { border-color: var(--reportes-linea); border-radius: 7px; }
+.reportes-dashboard .nivel .nivel__uso li { border: 1px solid var(--reportes-linea); border-radius: 7px; background: #fff; }
+.reportes-dashboard .nivel .nivel__uso b { color: #263c5d; }
+.reportes-dashboard .nivel__explicacion button { padding: 0; border: 0; background: transparent; color: #3b5b86; font: inherit; font-size: 11.5px; cursor: pointer; }
+.reportes-dashboard button:focus-visible, .reportes-dashboard a:focus-visible, .reportes-dashboard input:focus-visible, .reportes-dashboard select:focus-visible { outline: 3px solid #90baf2; outline-offset: 2px; }
+
+@media (max-width: 1250px) {
+  [data-entregas-panel].reportes-dashboard .reportes-dashboard__resumen { grid-template-columns: minmax(0, 1fr); }
+  .reportes-dashboard .reportes__ruta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-entregas-panel].reportes-dashboard .expediente__cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  [data-entregas-panel].reportes-dashboard .reportes-dashboard__resumen { grid-template-columns: minmax(0, 1fr); }
+  .reportes-dashboard .reportes__ruta { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  [data-entregas-panel].reportes-dashboard .expediente__cifras { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .reportes-dashboard .explorador__lista.is-consultas { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 650px) {
+  .reportes-dashboard__principal { padding: 12px; }
+  .reportes-dashboard .reportes-dashboard__titulo h2 { font-size: 19px; }
+  .reportes-dashboard .reportes__ruta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-entregas-panel].reportes-dashboard .expediente__cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reportes-dashboard .reportes__accesos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reportes-dashboard .reportes__accesos a { padding: 8px; font-size: 10.5px; }
+  .reportes-dashboard .entregas__filtros label { flex: 1 1 140px; }
+  .reportes-dashboard .reportes-dashboard__busqueda input, .reportes-dashboard .entregas__filtros select { width: 100%; }
+  .reportes-dashboard .entregas__filtros > span { flex: 1 1 100%; margin: 0; padding: 0; }
+  .reportes-dashboard .entregas__tabla-scroll { border: 0; border-radius: 0; }
+  .reportes-dashboard .entregas__tabla { min-width:0; }
+  .reportes-dashboard .entregas__tabla .entregas__fila { border: 1px solid var(--reportes-linea); border-radius: 7px; overflow: hidden; }
+  .reportes-dashboard .entregas__tabla td { padding: 7px 9px; }
+  .reportes-dashboard .entregas__tabla .entregas__grupo th { padding: 8px; border-radius: 5px; }
+  .reportes-dashboard .reporte-titulo { font-size: 18px; }
+}
+@media (max-width: 360px) {
+  .reportes-dashboard .reportes__ruta { grid-template-columns: minmax(0, 1fr); }
+  [data-entregas-panel].reportes-dashboard .expediente__cifras { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Los anexos de planificación comparten columnas con las demás entregas. */
+.reportes-anexos__tabla-scroll { max-width:100%; overflow:auto; margin:0 10px 10px; border:1px solid var(--reportes-linea,#dce5df); border-radius:6px; }
+.reportes-anexos__barra { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:0 10px 8px; }
+.reportes-anexos__barra:empty { display:none; }
+.reportes-anexos__barra form, .reportes-anexos__barra .explorador__actualizar { margin:0; padding:0; }
+.reportes-anexos__comprobar button { display:inline-flex; align-items:center; gap:6px; padding:6px 9px; border:1px solid var(--institucion-primario,#2b6339); border-radius:5px; background:var(--institucion-primario,#2b6339); color:#fff; font:inherit; font-size:10px; font-weight:600; cursor:pointer; }
+.reportes-anexos__tabla { width:100%; min-width:680px; table-layout:fixed; border-collapse:collapse; font-size:11px; line-height:1.35; background:#fff; }
+.reportes-anexos__tabla .col-anexo { width:43%; }
+.reportes-anexos__tabla .col-avance { width:16%; }
+.reportes-anexos__tabla .col-control { width:18%; }
+.reportes-anexos__tabla .col-acciones { width:23%; }
+.reportes-anexos__tabla th, .reportes-anexos__tabla td { padding:8px 10px; text-align:left; vertical-align:middle; border-bottom:1px solid var(--reportes-linea,#dce5df); overflow-wrap:anywhere; }
+.reportes-anexos__tabla thead th { padding:7px 10px; background:var(--institucion-primario,#2b6339); color:#fff; font-size:10px; font-weight:650; }
+.reportes-anexos__tabla tbody tr:last-child > * { border-bottom:0; }
+.reportes-anexos__documento { display:flex; align-items:center; gap:10px; min-width:0; }
+.reportes-anexos__documento > i { color:var(--institucion-primario,#2b6339); font-size:17px; flex:0 0 auto; }
+.reportes-anexos__documento strong { display:block; color:#23382d; font-size:11px; font-weight:650; }
+.reportes-anexos__documento small { display:block; margin-top:3px; color:#5e6e65; font-weight:400; font-size:9px; }
+.reportes-anexos__estado { display:block; color:#647269; font-size:10px; }
+.reportes-anexos__estado.is-ok { color:var(--institucion-primario,#2b6339); }
+.reportes-anexos__acciones { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+.reportes-anexos__acciones > a { display:inline-flex; align-items:center; gap:5px; padding:5px 7px; border:1px solid #cfdbd2; border-radius:5px; color:var(--institucion-primario,#2b6339); font-size:10px; font-weight:600; text-decoration:none; }
+.reportes-anexos__acciones [data-reporte-informacion] > .reportes-anexos__gestionar { position:relative; display:inline-grid; place-items:center; width:28px; height:28px; margin:0; padding:0; border:1px solid #cfdbd2; border-radius:5px; background:#fff; color:var(--institucion-primario,#2b6339); cursor:pointer; }
+.reportes-anexos__operaciones { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.reportes-anexos__operaciones form { margin:0; }
+.reportes-anexos__operaciones button { padding:8px 11px; border:1px solid var(--institucion-primario,#2b6339); border-radius:5px; color:var(--institucion-primario,#2b6339); background:#fff; font:inherit; cursor:pointer; }
+.reportes-anexos__acciones .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+@container (max-width:850px) { .reportes-dashboard .entregas__tabla { min-width:0; } }

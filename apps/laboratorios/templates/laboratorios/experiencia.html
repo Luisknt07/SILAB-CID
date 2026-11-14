@@ -1,0 +1,140 @@
+{% load static i18n idiomas %}
+<details class="observatory-experience laboratory-experience" id="experiencia-laboratorios" data-unit-experience>
+  <summary class="obs-experience__toggle">
+    <span class="obs-experience__toggle-icon"><i class="iconsminds-microscope"></i></span>
+    <span class="obs-experience__toggle-copy">
+      <small>{% translate "Aprendizaje práctico y experimentación" %}</small>
+      <b>{% translate "Conoce y aprovecha nuestros laboratorios" %}</b>
+      <em>{% translate "Administración, usuarios, recursos, prácticas y reservas" %}</em>
+    </span>
+    <span class="obs-experience__toggle-action"><small class="is-closed">{% translate "Ver contenido" %}</small><small class="is-open">{% translate "Ocultar contenido" %}</small><i class="simple-icon-arrow-down"></i></span>
+  </summary>
+
+  <div class="obs-experience__collapsible">
+    <header class="obs-experience__heading">
+      <div><span><i class="iconsminds-microscope"></i> {% translate "Formación experimental" %}</span><h2>{% translate "De la teoría a la práctica con propósito" %}</h2></div>
+      <p>{% translate "Descubre cómo funcionan los laboratorios UPEC, quiénes los utilizan y qué recursos permiten desarrollar prácticas, investigación formativa y servicios especializados." %}</p>
+    </header>
+
+    <div class="obs-overview">
+      <article class="obs-panel obs-about">
+        <span class="obs-panel__index">01</span>
+        <div class="obs-panel__icon"><i class="iconsminds-microscope"></i></div>
+        <h3>{% translate "¿Qué es un laboratorio de docencia?" %}</h3>
+        <p>{% translate "Es un entorno equipado y seguro donde la comunidad universitaria aplica conocimientos, desarrolla competencias y valida resultados mediante experiencias reales." %}</p>
+        <ul class="obs-check-list">
+          <li><i class="simple-icon-check"></i> {% translate "Aprendizaje práctico y demostrativo" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Equipamiento y software especializado" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Protocolos de uso y seguridad" %}</li>
+        </ul>
+      </article>
+
+      <article class="obs-panel obs-route">
+        <span class="obs-panel__eyebrow">{% translate "Ruta de aprovechamiento" %}</span>
+        <div class="obs-route__steps" role="tablist" aria-label="{% translate "Ruta para utilizar un laboratorio" %}">
+          <button class="is-active" type="button" role="tab" aria-selected="true" data-obs-step="1" data-title="{% translate "Identifica el laboratorio" %}" data-copy="Selecciona el espacio relacionado con tu asignatura, proyecto o necesidad técnica." data-result="Define tu necesidad"><span>1</span><i class="iconsminds-microscope"></i><b>{% translate "Descubre" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="2" data-title="{% translate "Consulta capacidades y recursos" %}" data-copy="Revisa equipos, software, materiales, guías, servicios y condiciones de acceso." data-result="Conoce la capacidad"><span>2</span><i class="simple-icon-magnifier"></i><b>{% translate "Consulta" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="3" data-title="{% translate "Prepara la práctica" %}" data-copy="Consulta la guía, los requisitos de seguridad y los materiales necesarios antes de ingresar." data-result="Planifica la actividad"><span>3</span><i class="iconsminds-file-clipboard-file---text"></i><b>{% translate "Prepara" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="4" data-title="{% translate "Reserva equipos o espacios" %}" data-copy="Solicita la fecha, el horario y los recursos disponibles para tu actividad." data-result="Asegura disponibilidad"><span>4</span><i class="simple-icon-calendar"></i><b>{% translate "Reserva" %}</b></button>
+          <button type="button" role="tab" aria-selected="false" data-obs-step="5" data-title="{% translate "Experimenta y registra" %}" data-copy="Realiza la práctica con acompañamiento, aplica el protocolo y documenta tus resultados." data-result="Genera experiencia"><span>5</span><i class="iconsminds-gear-2"></i><b>{% translate "Practica" %}</b></button>
+        </div>
+        <div class="obs-route__detail" aria-live="polite">
+          <span data-obs-step-number>01</span>
+          <div><small data-obs-step-result>{% translate "Define tu necesidad" %}</small><h4 data-obs-step-title>{% translate "Identifica el laboratorio" %}</h4><p data-obs-step-copy>{% translate "Selecciona el espacio relacionado con tu asignatura, proyecto o necesidad técnica." %}</p></div>
+          <div class="obs-route__progress"><i data-obs-progress></i></div>
+        </div>
+      </article>
+
+      <article class="obs-panel obs-purpose">
+        <span class="obs-panel__index">03</span>
+        <div class="obs-panel__icon is-outline"><i class="iconsminds-student-hat"></i></div>
+        <h3>{% translate "¿Quiénes los utilizan?" %}</h3>
+        <ul class="obs-check-list">
+          <li><i class="simple-icon-check"></i> {% translate "Estudiantes en prácticas formativas" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Docentes y responsables académicos" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Investigadores y grupos de estudio" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Técnicos y personal de apoyo" %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Instituciones y usuarios autorizados" %}</li>
+        </ul>
+      </article>
+    </div>
+
+    <section class="obs-library" aria-labelledby="lab-library-title">
+      <header class="obs-library__heading">
+        <div><span>{% translate "Contenido del laboratorio" %}</span><h3 id="lab-library-title">{% translate "Explora lo que encontrarás en cada espacio" %}</h3></div>
+        <p>{% translate "Selecciona una tarjeta para conocer los recursos disponibles y utiliza el video como guía rápida para preparar tu visita." %}</p>
+      </header>
+
+      <div class="obs-resource-showcase">
+        <div class="obs-coverflow" data-obs-coverflow aria-label="{% translate "Recursos interactivos de los laboratorios" %}">
+          <button class="obs-coverflow__control is-prev" type="button" data-coverflow-prev aria-label="{% translate "Recurso anterior" %}"><i class="simple-icon-arrow-left"></i></button>
+          <div class="obs-card-grid" data-coverflow-track>
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Aprendizaje aplicado" data-title="{% translate "Prácticas y guías" %}" data-copy="Consulta prácticas planificadas, guías de laboratorio, resultados esperados y criterios de evaluación para desarrollar cada actividad con orden y seguridad." data-metric="Guías formativas" data-icon="iconsminds-file-clipboard-file---text" data-image="{% static 'img/generated/laboratorios-docencia.png' %}" data-list="Guías paso a paso|Resultados de aprendizaje|Protocolos y criterios de evaluación" data-use="Permiten preparar la actividad antes de ingresar y registrar correctamente procedimientos, observaciones y resultados.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/laboratorios-docencia.png' %}" alt="{% translate "Estudiantes desarrollando una práctica de laboratorio" %}" loading="lazy"><i class="iconsminds-file-clipboard-file---text"></i><small>{% translate "Prácticas" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Aprendizaje aplicado" %}</small><b>{% translate "Prácticas y guías" %}</b><span>{% translate "Actividades, procedimientos y resultados esperados." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Capacidad tecnológica" data-title="{% translate "Equipos y software" %}" data-copy="Conoce la instrumentación, simuladores, aplicaciones y tecnologías disponibles, junto con sus capacidades, requisitos y condiciones de operación." data-metric="Recursos especializados" data-icon="iconsminds-gear-2" data-image="{% static 'img/generated/connected-units/laboratorio-realidad-extendida.png' %}" data-list="Equipos e instrumentación|Simuladores y software licenciado|Fichas técnicas y condiciones de uso" data-use="Ayudan a seleccionar el recurso adecuado para una práctica, ensayo, prototipo o proyecto de investigación.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/connected-units/laboratorio-realidad-extendida.png' %}" alt="{% translate "Laboratorio equipado con simuladores y tecnología inmersiva" %}" loading="lazy"><i class="iconsminds-gear-2"></i><small>{% translate "Tecnología" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Capacidad tecnológica" %}</small><b>{% translate "Equipos y software" %}</b><span>{% translate "Instrumentación, simuladores y aplicaciones especializadas." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Acceso organizado" data-title="{% translate "Reservas de equipos y espacios" %}" data-copy="Consulta disponibilidad y solicita equipos, estaciones de trabajo o espacios completos de acuerdo con el horario, responsable y modalidad de uso." data-metric="Agenda disponible" data-icon="simple-icon-calendar" data-image="{% static 'img/generated/home-hero/hero-laboratorio-conectado.png' %}" data-list="Disponibilidad por fecha y horario|Reserva de equipos o espacios|Seguimiento y estado de solicitudes" data-use="Facilita la planificación de clases, prácticas, proyectos y servicios sin cruces de horario ni recursos.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/home-hero/hero-laboratorio-conectado.png' %}" alt="{% translate "Laboratorio tecnológico conectado y preparado para reservas" %}" loading="lazy"><i class="simple-icon-calendar"></i><small>{% translate "Reservas" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Acceso organizado" %}</small><b>{% translate "Reservas de equipos y espacios" %}</b><span>{% translate "Disponibilidad, horarios y solicitudes en línea." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Preparación de actividades" data-title="{% translate "Materiales y consumibles" %}" data-copy="Identifica materiales, reactivos, herramientas y consumibles requeridos para cada práctica, así como las cantidades y recomendaciones de manejo." data-metric="Preparación previa" data-icon="iconsminds-test-tube" data-image="{% static 'img/generated/multimedia-alimentos-v2.png' %}" data-list="Materiales requeridos|Reactivos y consumibles|Recomendaciones de manipulación" data-use="Permite verificar requisitos antes de la práctica y utilizar responsablemente los insumos disponibles.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/multimedia-alimentos-v2.png' %}" alt="{% translate "Materiales y muestras preparados para una práctica de alimentos" %}" loading="lazy"><i class="iconsminds-test-tube"></i><small>{% translate "Materiales" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Preparación de actividades" %}</small><b>{% translate "Materiales y consumibles" %}</b><span>{% translate "Insumos, reactivos y herramientas para cada práctica." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Gestión y trazabilidad" data-title="{% translate "Inventario del laboratorio" %}" data-copy="Revisa el inventario publicado de equipos, accesorios y recursos, incluyendo identificación, características y estado de disponibilidad." data-metric="Inventario actualizado" data-icon="iconsminds-data-storage" data-image="{% static 'img/generated/connected-units/laboratorio-robotica.png' %}" data-list="Equipos y accesorios registrados|Estado y disponibilidad|Características y códigos de identificación" data-use="Ofrece una visión clara de la capacidad instalada y apoya la planificación, mantenimiento y uso responsable de los bienes.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/connected-units/laboratorio-robotica.png' %}" alt="{% translate "Laboratorio de robótica con equipos inventariados" %}" loading="lazy"><i class="iconsminds-data-storage"></i><small>{% translate "Inventario" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Gestión y trazabilidad" %}</small><b>{% translate "Inventario del laboratorio" %}</b><span>{% translate "Equipos, accesorios, características y disponibilidad." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+
+            <button class="obs-content-card" type="button" data-open-resource data-kicker="Operación responsable" data-title="{% translate "Administración y seguridad" %}" data-copy="Conoce al responsable del laboratorio, las normas de acceso, los protocolos de seguridad, los horarios de atención y los canales para solicitar acompañamiento." data-metric="Uso seguro" data-icon="iconsminds-administrator" data-image="{% static 'img/generated/industria40-biotecnologia-v2.png' %}" data-list="Responsable y personal técnico|Normas y protocolos de seguridad|Horarios y canales de atención" data-use="Garantiza que estudiantes, docentes e investigadores utilicen la infraestructura con acompañamiento y bajo condiciones seguras.">
+              <span class="obs-content-card__media"><img src="{% static 'img/generated/industria40-biotecnologia-v2.png' %}" alt="{% translate "Personal administrando un laboratorio de biotecnología" %}" loading="lazy"><i class="iconsminds-administrator"></i><small>{% translate "Gestión" %}</small></span>
+              <span class="obs-content-card__body"><small>{% translate "Operación responsable" %}</small><b>{% translate "Administración y seguridad" %}</b><span>{% translate "Responsables, normas, horarios y acompañamiento." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+            </button>
+          </div>
+          <div class="obs-coverflow__dots" data-coverflow-dots aria-label="{% translate "Seleccionar recurso" %}"></div>
+          <button class="obs-coverflow__control is-next" type="button" data-coverflow-next aria-label="{% translate "Recurso siguiente" %}"><i class="simple-icon-arrow-right"></i></button>
+        </div>
+
+        <article class="obs-panel obs-tutorial">
+          <div class="obs-panel__title"><span>04</span><div><small>{% translate "Orientación rápida" %}</small><h3>{% translate "Recorrido y uso del laboratorio" %}</h3></div></div>
+          <video class="obs-tutorial__video" controls playsinline preload="metadata" poster="{% static 'img/generated/connected-platforms-v2/laboratorios-docencia.png' %}" data-obs-tutorial-video>
+            <source src="{% static 'img/video/fablab.mp4' %}" type="video/mp4">
+            {% translate "Tu navegador no admite la reproducción de video." %}
+          </video>
+        </article>
+      </div>
+
+      <div class="obs-support-grid">
+        <article class="obs-panel obs-access">
+          <div class="obs-panel__title"><span>02</span><div><small>{% translate "Proceso guiado" %}</small><h3>{% translate "¿Cómo utilizar un laboratorio?" %}</h3></div></div>
+          <div class="obs-access__flow">
+            <button class="is-active" type="button" aria-pressed="true"><span>1</span><i class="iconsminds-microscope"></i><b>{% translate "Selecciona" %}</b><small>{% translate "Elige el laboratorio" %}</small></button>
+            <button type="button" aria-pressed="false"><span>2</span><i class="simple-icon-doc"></i><b>{% translate "Consulta" %}</b><small>{% translate "Ficha, guía y recursos" %}</small></button>
+            <button type="button" aria-pressed="false"><span>3</span><i class="simple-icon-calendar"></i><b>{% translate "Reserva" %}</b><small>{% translate "Espacio o equipo" %}</small></button>
+            <button type="button" aria-pressed="false"><span>4</span><i class="iconsminds-security-check"></i><b>{% translate "Prepárate" %}</b><small>{% translate "Materiales y seguridad" %}</small></button>
+            <button type="button" aria-pressed="false"><span>5</span><i class="iconsminds-gear-2"></i><b>{% translate "Experimenta" %}</b><small>{% translate "Práctica y resultados" %}</small></button>
+          </div>
+          {% if unidades %}<a class="obs-access__cta" href="{{ unidades.0.get_absolute_url }}"><span>{% translate "Ingresar al laboratorio disponible" %}</span><i class="simple-icon-arrow-right"></i></a>{% endif %}
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <dialog class="obs-resource-dialog" data-obs-resource-dialog>
+    <button class="obs-dialog-close" type="button" data-close-resource aria-label="{% translate "Cerrar detalle" %}"><i class="simple-icon-close"></i></button>
+    <div class="obs-resource-dialog__media"><img data-dialog-resource-image src="{% static 'img/generated/laboratorios-docencia.png' %}" alt=""><span><i data-dialog-resource-icon class="iconsminds-microscope"></i><b data-dialog-resource-metric>{% translate "Recursos del laboratorio" %}</b></span></div>
+    <div class="obs-resource-dialog__body">
+      <small data-dialog-resource-kicker>{% translate "Aprendizaje aplicado" %}</small><h3 data-dialog-resource-title>{% translate "Prácticas y guías" %}</h3><p data-dialog-resource-copy></p>
+      <div class="obs-resource-dialog__columns"><section><h4>{% translate "¿Qué incluye?" %}</h4><ul data-dialog-resource-list></ul></section><section><h4>{% translate "¿Cómo puedes aprovecharlo?" %}</h4><p data-dialog-resource-use></p></section></div>
+      {% if unidades %}<a href="{{ unidades.0.get_absolute_url }}">{% translate "Explorar laboratorio" %} <i class="simple-icon-arrow-right"></i></a>{% endif %}
+    </div>
+  </dialog>
+</details>

@@ -1,0 +1,22 @@
+{% with d=revision.documento qr=revision.documento.resumen_interfaz.revision_simple %}
+<section id="evaluacion" class="citt-revision revision-documental" data-revision-titulo="Revisar documento">
+  <header><div><h2>{{ d.nombre_documental }}</h2><p>{{ d.unidad.nombre }} · {{ d.etiqueta_corte }} · Versión {{ d.version }}</p></div></header>
+  <p class="revision-documental__estado"><strong class="documento-validacion is-{{ qr.color }}" data-estado-aprobacion="{{ qr.estado }}">{{ qr.etiqueta }}</strong>{% if qr.actor %}<span>{{ qr.actor }}</span>{% endif %}{% if qr.fecha %}<time datetime="{{ qr.fecha|date:'c' }}">{{ qr.fecha|date:'d/m/Y H:i' }}</time>{% endif %}</p>
+  {% if revision.cierre %}<p>Resultado calculado de las metas: <strong>{{ revision.cierre.nota|floatformat:2 }} %</strong>.{% if not revision.cierre.plan_aprobado %} Falta la planificación conforme del semestre.{% endif %}</p>{% endif %}
+  {% if revision.modalidad == 'permanente' %}<p>Documento permanente: se conserva mientras siga vigente. No recibe calificación numérica.</p>{% endif %}
+  <div class="revision-documental__acciones">
+    {% if d.recurso_id %}<a class="revision-documental__boton is-ver" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-titulo="{{ d.nombre_documental }}">Ver</a>{% endif %}
+    {% if user.is_superuser %}
+    <form method="post"{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %}>{% include 'admin/gestion_unidades/reporteoperativounidad/qr_datos_decision.html' with accion_qr=qr.accion_aprobar %}<button type="submit" class="revision-documental__boton is-aprobar"{% if not qr.puede_aprobar %} disabled{% endif %}>Aprobar</button></form>
+    <button type="button" class="revision-documental__boton is-rechazar" data-rechazar-documento{% if not qr.puede_rechazar or request.GET.decision == 'rechazar' %} hidden{% endif %}>Rechazar</button>
+    {% endif %}
+  </div>
+  {% if qr.mensaje_bloqueo %}<p><small class="revision-documental__bloqueo" data-bloqueo-preparacion>{{ qr.mensaje_bloqueo }}</small></p>{% endif %}
+  {% if qr.puede_rechazar and user.is_superuser %}<form method="post" class="revision-documental__rechazo" data-rechazo-qr{% if request.GET.decision != 'rechazar' %} hidden{% endif %}{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %}>
+    {% include 'admin/gestion_unidades/reporteoperativounidad/qr_datos_decision.html' with accion_qr=qr.accion_rechazar %}
+    <label>Observación para la unidad<textarea name="observacion" required maxlength="2000" rows="3" placeholder="Indica qué debe corregirse."></textarea></label>
+    <div class="revision-documental__acciones"><button type="submit" class="revision-documental__boton is-rechazar">Rechazar</button><button type="button" class="revision-documental__boton is-ver" data-cancelar-rechazo>Cancelar</button></div>
+  </form>{% endif %}
+  {% if qr.rechazado %}<p>La unidad debe corregir y reenviar. El motivo está en Observaciones.</p>{% endif %}
+  <details class="revision-documental__detalles"><summary>Detalles de la revisión</summary>{% for comprobacion in revision.comprobaciones %}<p>{{ comprobacion }}</p>{% endfor %}{% for falta in revision.faltantes %}<p>{{ falta }}</p>{% endfor %}{% if revision.cierre %}{% include 'portal/pages/unidades/gestion/includes/cumplimiento_cierre.html' with anexos=anexos_revision documento_principal=d modo_admin=True %}{% endif %}{% if revision.priorizacion_inversion %}{% include 'portal/pages/unidades/gestion/includes/priorizacion_compras.html' with priorizacion=revision.priorizacion_inversion compacto=True %}{% endif %}</details>
+</section>{% endwith %}

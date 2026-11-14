@@ -1,0 +1,36 @@
+{% include 'portal/pages/unidades/gestion/includes/plazo_documento.html' %}
+{% if user.is_superuser and documento.pk %}
+  {% if parte == 'ultimatum' and casilla.ultimatable %}
+  <details class="citt-plazo-editor">
+    <summary>Establecer ultimátum colectivo</summary>
+    <form method="post" data-plazo-form data-documento="{{ documento.pk }}">
+      {% csrf_token %}
+      <input type="hidden" name="query" value="{{ query }}">
+      <input type="hidden" name="documento" value="{{ documento.pk }}">
+      <input type="hidden" name="accion" value="ultimatum">
+      <p>Se aplica a todas las unidades con este documento vencido y sin enviar, en {{ documento.etiqueta_corte }}. No requiere solicitud individual. Solo un ultimátum por documento y período.</p>
+      <label>Entregar hasta (hora local)<input type="datetime-local" name="hasta" required></label>
+      <label>Motivo e instrucciones<textarea name="motivo" required></textarea></label>
+      <button class="grp-button grp-default" type="submit">Aplicar a las unidades pendientes</button>
+      <p role="status" aria-live="polite"></p>
+    </form>
+  </details>
+  {% endif %}
+  {% if parte == 'institucional' and not documento.plazo_original or parte == 'reapertura' and casilla.habilitable %}
+  <details class="citt-plazo-editor">
+    <summary>{% if casilla.habilitable %}Editar fecha de reapertura{% else %}Asignar fecha y hora{% endif %}</summary>
+    <form method="post" data-plazo-form data-documento="{{ documento.pk }}">
+      {% csrf_token %}
+      <input type="hidden" name="query" value="{{ query }}">
+      <input type="hidden" name="documento" value="{{ documento.pk }}">
+      <input type="hidden" name="accion" value="{% if casilla.habilitable %}habilitar_tardia{% else %}asignar_plazo{% endif %}">
+      {% if casilla.habilitable %}<p>Solo esta unidad. Motivo: {{ documento.tardanza_motivo }}</p>{% else %}<p>Plazo institucional para todas las unidades en {{ documento.anio }}.</p>{% endif %}
+      <label>Fecha y hora límite<input type="datetime-local" name="hasta" required></label>
+      <button class="grp-button grp-default" type="submit">Guardar plazo</button>
+      <p role="status" aria-live="polite"></p>
+    </form>
+  </details>
+  {% elif parte == 'reapertura' and documento.ultimatum_hasta and documento.vencido and not casilla.enviado and not documento.prorroga_activa %}
+    <small>Para cambiar la fecha, la unidad debe solicitar la reapertura con su justificación.</small>
+  {% endif %}
+{% endif %}

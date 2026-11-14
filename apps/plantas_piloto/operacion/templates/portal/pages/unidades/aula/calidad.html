@@ -1,0 +1,56 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Calidad e inocuidad" %}{% endblock %}
+{% block encabezado %}{% if solo_transversales %}{% translate "Recepción y controles comunes" %}{% else %}{% translate "Calidad e inocuidad" %}{% endif %}{% endblock %}
+{% block subtitulo %}{% if solo_transversales %}{% translate "Controles transversales de materias primas que sirven a más de una familia" %}{% else %}{% translate "Control de calidad de los lotes, requisitos de ingreso y normas de seguridad" %}{% endif %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Puntos críticos" %}</dt><dd>{{ calidad.total_puntos }}</dd></div><div><dt>{% translate "Parámetros controlados" %}</dt><dd>{{ calidad.publicada.parametros_totales }}</dd></div><div><dt>{% translate "Lotes aprobados" %}</dt><dd>{{ calidad.conteo.aprobado }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Calidad e inocuidad" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__summary" aria-label="{% translate "Control de calidad de los lotes" %}">
+  {% if not solo_transversales %}<article><span>{% translate "Puntos críticos de control" %}</span><strong>{{ calidad.total_puntos }}</strong><small>en {{ calidad.protocolos|length }} proceso{{ calidad.protocolos|length|pluralize }} · <a href="{{ protocolos_url }}">{% translate "ver los protocolos" %}</a></small></article>{% endif %}
+  <article><span>{% translate "Planes de calidad" %}</span><strong>{{ calidad.publicada.planes|length }}</strong><small>{% translate "recepción, proceso y liberación" %}</small></article>
+  <article><span>{% translate "Parámetros con límite" %}</span><strong>{{ calidad.publicada.parametros_totales }}</strong><small>{% translate "se miden en cada control" %}</small></article>
+  <article><span>{% translate "Controles registrados" %}</span><strong>{{ calidad.publicada.controles }}</strong><small>{{ calidad.publicada.conformes }} conforme{{ calidad.publicada.conformes|pluralize:"s" }}</small></article>
+  <article><span>{% translate "No conformidades abiertas" %}</span><strong{% if calidad.publicada.no_conformidades_abiertas %} class="aula-falta"{% endif %}>{{ calidad.publicada.no_conformidades_abiertas }}</strong><small>{% translate "en tratamiento" %}</small></article>
+  <article><span>{% translate "Lotes en control" %}</span><strong>{{ calidad.conteo.pendiente }}</strong><small>{% translate "pendientes de liberar" %}</small></article>
+  <article><span>{% translate "Lotes aprobados" %}</span><strong class="aula-ok">{{ calidad.conteo.aprobado }}</strong><small>{% translate "liberados por calidad" %}</small></article>
+  <article><span>{% translate "Lotes rechazados" %}</span><strong{% if calidad.conteo.rechazado %} class="aula-falta"{% endif %}>{{ calidad.conteo.rechazado }}</strong><small>{% translate "retirados del flujo" %}</small></article>
+</section>
+
+{% if not solo_transversales %}<section class="unit-report__section">
+  <header><span>{% translate "QUÉ CONTROLA CADA PROCESO" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Proceso" %}</th><th>{% translate "Puntos críticos" %}</th><th>{% translate "Etapas controladas" %}</th></tr></thead><tbody>
+    {% for item in calidad.protocolos %}<tr><td><strong>{{ item.receta.nombre_publico }}</strong></td><td>{{ item.puntos|length }} de {{ item.total_etapas }} etapas</td><td>{% for punto in item.puntos %}{{ punto.orden }}. {{ punto.nombre }}{% if punto.limite %} <small>({{ punto.limite }})</small>{% endif %}{% if not forloop.last %} · {% endif %}{% empty %}—{% endfor %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>{% endif %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "QUÉ MIDE CADA PLAN Y CON QUÉ LÍMITE" %}</span>{% if not solo_transversales %}<small><a href="{{ haccp_url }}">{% translate "ver el Plan HACCP completo" %}</a></small>{% endif %}</header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Plan" %}</th><th>{% translate "Momento" %}</th><th>{% translate "Aplica a" %}</th><th>{% translate "Parámetros y límites" %}</th></tr></thead><tbody>
+    {% for item in calidad.publicada.planes %}<tr><td><strong>{{ item.plan.nombre }}</strong><br><small>{{ item.plan.codigo }}</small></td><td>{{ item.plan.get_momento_display|ui }}</td><td>{{ item.plan.aplica_a }}</td><td>{% for parametro in item.parametros %}<strong>{{ parametro.nombre }}</strong>: {{ parametro.limite_texto }}{% if parametro.metodo %} <small>· {{ parametro.metodo }}</small>{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}<small>{% translate "Sin parámetros declarados." %}</small>{% endfor %}</td></tr>{% empty %}<tr><td colspan="4">{% translate "La unidad todavía no publica planes de calidad: el control de cada lote se apoya en los puntos críticos de sus procesos." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if calidad.publicada.controles %}<p class="unit-report__notice">{{ calidad.publicada.conformes }} de {{ calidad.publicada.controles }} {% translate "controles registrados salieron conformes;" %} {{ calidad.publicada.no_conformidades_abiertas }} {% translate "no conformidad" %}{{ calidad.publicada.no_conformidades_abiertas|pluralize:"es" }} sigue{{ calidad.publicada.no_conformidades_abiertas|pluralize:"n" }} {% translate "en tratamiento." %}</p>{% endif %}
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "CONTROL DE CALIDAD DE LOS LOTES, POR PRODUCTO" %}</span><small>{% translate "resumen; el detalle de cada lote es interno" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Producto" %}</th><th>{% translate "Lotes" %}</th><th>{% translate "Liberados" %}</th><th>{% translate "Rechazados" %}</th><th>{% translate "Por liberar" %}</th></tr></thead><tbody>
+    {% for fila in calidad.por_producto %}<tr><td><strong>{{ fila.producto__nombre }}</strong></td><td>{{ fila.total }}</td><td>{{ fila.liberados }}</td><td>{{ fila.rechazados }}</td><td>{{ fila.por_liberar }}</td></tr>{% empty %}<tr><td colspan="5">{% translate "Todavía no hay lotes registrados." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "REQUISITOS PARA INGRESAR A LA UNIDAD" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Requisito" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "A quién aplica" %}</th><th>{% translate "Vigencia" %}</th><th>{% translate "Exigido" %}</th></tr></thead><tbody>
+    {% for requisito in calidad.requisitos %}<tr><td><strong>{{ requisito.nombre }}</strong>{% if requisito.descripcion %}<br><small>{{ requisito.descripcion }}</small>{% endif %}</td><td>{{ requisito.tipo_display }}</td><td>{{ requisito.aplica_display }}</td><td>{% if requisito.vigencia_dias %}{{ requisito.vigencia_dias }} {% translate "días" %}{% else %}{% translate "Permanente" %}{% endif %}</td><td>{% if requisito.obligatorio %}<span class="aula-ok">{% translate "Obligatorio" %}</span>{% else %}{% translate "Opcional" %}{% endif %}</td></tr>{% empty %}<tr><td colspan="5">{% translate "La unidad no declara requisitos de ingreso." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+{% if calidad.normas %}
+<section class="unit-report__section">
+  <header><span>{% translate "NORMAS DE SEGURIDAD DEL REGLAMENTO" %}</span></header>
+  <ul class="aula-lista">{% for norma in calidad.normas %}<li>{{ norma }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

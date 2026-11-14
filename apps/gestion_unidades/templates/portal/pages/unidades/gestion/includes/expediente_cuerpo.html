@@ -1,0 +1,141 @@
+{% load i18n static reportes_estilo %}
+<link rel="stylesheet" href="{% static 'portal/css/components/control_automatico.css' %}?v=20261018-avance-1">
+<link rel="stylesheet" href="{% static 'portal/css/components/reportes_dashboard.css' %}?v=20261020-anexos-perfiles-1">
+<link rel="stylesheet" href="{% static 'portal/css/components/guia_reportes.css' %}?v=20261018-flujo-1">
+<div class="reportes-dashboard" data-entregas-panel data-entregas-actualizar="{% if en_consola %}{% url 'gestion_unidad' unidad.slug %}?view=reportes&amp;fragment=1&amp;modal=1&amp;{% else %}{% url 'gestion_expediente_unidad' unidad.slug %}?{% endif %}anio={{ anio }}&amp;corte={{ corte }}" data-entregas-volver="{{ volver }}">
+{% include 'portal/pages/unidades/gestion/includes/aviso_ensayo_fablab.html' %}
+{% comment %}
+El cuerpo del expediente, como explorador de archivos: una carpeta con los
+documentos de la unidad (una sola vez) y una carpeta por período con sus dos
+documentos firmados; sus anexos se muestran en una lista visible propia. Todo se ve y
+se abre desde aquí en el visualizador de la plataforma, sin salir del expediente.
+Es la página propia del expediente y la puerta del Centro de
+reportes.
+
+Espera en el contexto: anio, anios, corte, cortes, de_la_unidad, periodos,
+resumen, resumen_unidad, historico, etiqueta_periodo, rango_periodo,
+consultas, minimo_cumplimiento y user.
+{% endcomment %}
+    {% comment %}El expediente se lleva período a período: el vigente al abrir, los
+    demás a un clic.{% endcomment %}
+    <section class="expediente__barra" aria-label="{% translate "Período del expediente" %}">
+      <nav class="expediente__periodos">
+        <a href="{{ enlace_base|default:'?' }}anio={{ anio }}&amp;corte=A"{% if corte == 'A' %} class="is-active" aria-current="page"{% endif %}{% if en_consola %} data-management-load{% endif %} title="Semestre de gestión: enero a junio">{{ anio }} · I semestre</a>
+        <a href="{{ enlace_base|default:'?' }}anio={{ anio }}&amp;corte=B"{% if corte == 'B' %} class="is-active" aria-current="page"{% endif %}{% if en_consola %} data-management-load{% endif %} title="Semestre de gestión: julio a diciembre">{{ anio }} · II semestre</a>
+        <a href="{{ enlace_base|default:'?' }}anio={{ anio }}&amp;corte="{% if not corte %} class="is-active" aria-current="page"{% endif %}{% if en_consola %} data-management-load{% endif %}>{% translate "Todo el año" %}</a>
+      </nav>
+      <form method="get" class="expediente__anio"{% if en_consola %} data-management-filter-form action="{% url 'gestion_unidad' unidad.slug %}"{% endif %}>
+        {% if en_consola %}<input type="hidden" name="view" value="reportes">{% endif %}
+        <input type="hidden" name="corte" value="{{ corte }}">
+        <label>{% translate "Año de gestión" %}
+          <select name="anio" data-ui-change="submit-form">{% for opcion in anios %}<option value="{{ opcion }}"{% if opcion == anio %} selected{% endif %}>{{ opcion }}</option>{% endfor %}</select>
+        </label>
+      </form>
+      {% if not solo_lectura and requiere_preparacion %}
+      <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="expediente__decision">
+        {% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}"><input type="hidden" name="accion" value="preparar">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}
+        <button type="submit">{% translate "Habilitar expediente del año" %}</button>
+        <small>{% translate "Crea los registros que faltan para trabajar; no genera PDFs ni valida entregas." %}</small>
+      </form>
+      {% endif %}
+    </section>
+
+    <section class="unit-report__context expediente__resumen reportes-dashboard__resumen">
+      <div class="reportes-dashboard__principal">
+      <div class="reportes-dashboard__titulo"><span class="reportes-dashboard__icono is-amarillo"><i class="fas fa-calendar-alt" aria-hidden="true"></i></span><h2>{% blocktranslate with periodo=etiqueta_periodo %}Entregas · {{ periodo }}{% endblocktranslate %}</h2></div>
+      <p class="expediente__cadena"><i class="fas fa-user-check" aria-hidden="true"></i>
+        {% if unidad.administrador %}{% blocktranslate with coordinador=unidad.administrador.get_full_name|default:unidad.administrador.username %}Coordina y envía: {{ coordinador }}{% endblocktranslate %}{% else %}{% translate "Sin coordinador designado" %}{% endif %}
+        {% if unidad.adscrita_a %} · {% blocktranslate with dependencia=unidad.adscrita_a %}lo designa {{ dependencia }}, que recibe el informe{% endblocktranslate %}{% endif %}
+        · {% if unidad|es_unidad_auditable %}control automático y revisión de excepciones por Dirección{% else %}{% translate "la Dirección recibe y califica" %}{% endif %}</p>
+      <p class="reportes-dashboard__periodo">{% blocktranslate with desde=rango_periodo.0|date:'d/m/Y' hasta=rango_periodo.1|date:'d/m/Y' %}Gestión del {{ desde }} al {{ hasta }}. Entrega la planificación firmada al inicio y el informe firmado al cierre.{% endblocktranslate %} El calendario académico orienta la docencia; los documentos históricos conservan el tramo con el que se emitieron.</p>
+      <div class="expediente__cifras">
+        <article><span class="reportes-dashboard__icono is-azul"><i class="fas fa-file-alt" aria-hidden="true"></i></span><div><strong>{{ cumplimiento.filas|length }}</strong><span>Documentos obligatorios</span></div></article>
+        <article><span class="reportes-dashboard__icono is-verde"><i class="fas fa-check-circle" aria-hidden="true"></i></span><div><strong>{{ cumplimiento.entregadas }}</strong><span>Entregados</span></div></article>
+        <article><span class="reportes-dashboard__icono is-amarillo"><i class="fas fa-clock" aria-hidden="true"></i></span><div><strong>{{ cumplimiento.recibidas }}</strong><span>{% if unidad|es_unidad_auditable %}Recibidos{% else %}Recibidos por Dirección{% endif %}</span></div></article>
+        <article><span class="reportes-dashboard__icono is-violeta"><i class="fas fa-users" aria-hidden="true"></i></span><div><strong>{{ cumplimiento.calificadas }}</strong><span>{% if unidad|es_unidad_auditable %}Revisados por Dirección{% else %}Calificados{% endif %}</span></div></article>
+      </div>
+      </div>
+      <nav class="reportes__accesos" aria-label="Secciones del centro de reportes">
+        <a href="#entregas-documentos"><i class="fas fa-shield-alt" aria-hidden="true"></i> 1. Documentos base</a>
+        <a href="#planificacion-{{ corte|default:'A' }}"><i class="far fa-calendar-alt" aria-hidden="true"></i> 2. Planificación</a>
+        <a href="#reportes-anexos"><i class="far fa-file-alt" aria-hidden="true"></i> 3. Anexos y seguimiento</a>
+        {% if consultas %}<a href="#informes-gestion"><i class="far fa-calendar-alt" aria-hidden="true"></i> Informes de gestión</a>{% endif %}
+        <a href="#resultado-seguimiento"><i class="fas fa-tasks" aria-hidden="true"></i> 4. Mejora y seguimiento</a>
+      </nav>
+    </section>
+
+    {% include 'portal/pages/unidades/gestion/includes/guia_reportes.html' %}
+
+    {% if unidad|es_unidad_auditable %}{% include 'portal/pages/unidades/gestion/includes/resumen_automatizacion.html' with control_resumen=automatizacion_resumen permitir_automatizar=True %}{% endif %}
+
+    {% comment %}Lo de los períodos cerrados no desaparece: queda a un clic, con lo
+    que se alcanzó a entregar en cada uno.{% endcomment %}
+    {% if historico %}
+    <div class="reportes-dashboard__historico" data-reporte-informacion>
+    <button type="button" data-reporte-informacion-abrir data-modal-titulo="Períodos anteriores" aria-haspopup="dialog"><i class="fas fa-history" aria-hidden="true"></i> Períodos anteriores <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+    <template data-reporte-informacion-contenido>
+    <section class="expediente__historico" aria-label="{% translate "Períodos anteriores" %}">
+      <h3>{% translate "Histórico por período" %}</h3>
+      <ul>
+        {% for fila in historico %}
+        <li><a href="{{ enlace_base|default:'?' }}anio={{ fila.anio }}&amp;corte={{ fila.corte }}"{% if en_consola %} data-management-load{% endif %}>
+          <b>{{ fila.etiqueta }}</b>
+          <span class="{% if fila.completo == 100 %}is-ok{% elif fila.vencidos %}is-bad{% endif %}">{{ fila.validados }}/{{ fila.total }} {% translate "enviadas" %} · {{ fila.completo }} %</span>
+          <small>{{ fila.inicio|date:"d/m/Y" }} – {{ fila.fin|date:"d/m/Y" }}{% if fila.vencidos %} · {{ fila.vencidos }} {% translate "vencidas" %}{% endif %}{% if not fila.cerrado %} · {% translate "en curso" %}{% endif %}</small>
+        </a></li>
+        {% endfor %}
+      </ul>
+    </section>
+    </template>
+    </div>
+    {% endif %}
+
+
+    <section id="entregas-documentos" aria-label="Entregas del expediente">
+    {% include 'portal/pages/unidades/gestion/includes/progreso_general.html' %}
+    <div class="entregas__filtros" data-entregas-filtros hidden>
+      <label>Buscar entrega<span class="reportes-dashboard__busqueda"><input type="search" data-entregas-buscar placeholder="Nombre de la entrega…" autocomplete="off"><i class="fas fa-search" aria-hidden="true"></i></span></label>
+      <label>Estado<select data-entregas-estado><option value="">Todos</option><option value="pendientes">Pendientes</option><option value="observados">Observados</option><option value="enviados">Enviados, recibidos y evaluados</option><option value="no_aplica">No aplica</option></select></label>
+      <span data-entregas-conteo aria-live="polite"></span>
+    </div>
+    <p class="entregas__vacio" data-entregas-vacio hidden>No hay entregas que coincidan con la búsqueda.</p>
+      <div class="entregas__tabla-scroll" role="region" aria-label="Documentos obligatorios" tabindex="0">
+      <table class="entregas__tabla entregas__tabla--simple">
+        <caption>{{ total_entregas }} documentos obligatorios · {{ etiqueta_periodo }}</caption>
+        <thead><tr><th scope="col">Documento</th><th scope="col">Estado</th><th scope="col">Avance</th><th scope="col">Fechas</th><th scope="col">Observaciones</th><th scope="col">Acciones</th></tr></thead>
+        <tbody data-entregas-grupo>
+          <tr class="entregas__grupo"><th colspan="6" scope="rowgroup">1. Documentos base de la unidad <small>{{ resumen_unidad.validados }}/{{ resumen_unidad.total }} enviados · vigencia sin puntuación</small></th></tr>
+          {% for documento in de_la_unidad %}{% include 'portal/pages/unidades/gestion/includes/expediente_fila.html' with nombre=documento.nombre_documental %}{% endfor %}
+        </tbody>
+        {% if del_anio %}<tbody data-entregas-grupo>
+          <tr class="entregas__grupo"><th colspan="6" scope="rowgroup">Documentos administrativos del año {{ anio }} <small>{{ resumen_anio.validados }}/{{ resumen_anio.total }} enviados · conformidad sin puntuación</small></th></tr>
+          {% for documento in del_anio %}{% include 'portal/pages/unidades/gestion/includes/expediente_fila.html' with nombre=documento.nombre_documental %}{% endfor %}
+        </tbody>{% endif %}
+        {% for periodo in periodos %}{% for entrega in periodo.entregas %}<tbody data-entregas-grupo>
+          <tr class="entregas__grupo"{% if entrega.documento.exigido.codigo == 'PLANIFICACION' %} id="planificacion-{{ periodo.corte }}"{% endif %}><th colspan="6" scope="rowgroup">{% if entrega.documento.exigido.codigo == 'PLANIFICACION' %}2. Planificación y respaldo de actividades{% else %}3. Informe de cierre y metas{% endif %} · {{ periodo.etiqueta }} <small>{% if entrega.documento.exigido.codigo == 'PLANIFICACION' %}Prerrequisito de gestión · sin puntos adicionales{% else %}Resultado operativo de 0 a 100{% endif %}</small></th></tr>
+          {% include 'portal/pages/unidades/gestion/includes/expediente_fila.html' with documento=entrega.documento nombre=entrega.nombre corte=periodo.corte con_anexos=True %}
+        </tbody>{% endfor %}{% endfor %}
+      </table>
+      </div>
+    </section>
+
+    {% include 'portal/pages/unidades/gestion/includes/expediente_trabajo.html' %}
+
+    <section class="reportes__catalogo" id="reportes-anexos" aria-labelledby="reportes-anexos-titulo">
+      <h2 class="reporte-titulo" id="reportes-anexos-titulo"><i class="fas fa-flag-checkered" aria-hidden="true"></i> 3. Anexos y seguimiento</h2>
+      <p>El cierre mide el cumplimiento real de las actividades planificadas. Los documentos base y los anexos no agregan puntos a este resultado.</p>
+      {% for periodo in periodos %}
+        {% include 'portal/pages/unidades/gestion/includes/anexos_periodo.html' %}
+      {% endfor %}
+    </section>
+
+      {% comment %}Lo que no es evidencia pero la unidad y la Dirección necesitan consultar:
+      informes de gestión del período, en el visualizador de la plataforma.
+      No cuentan para calidad.{% endcomment %}
+{% include 'portal/pages/unidades/gestion/includes/consultas_gestion.html' %}
+
+    {% include 'portal/pages/unidades/gestion/includes/mejora_seguimiento.html' %}
+
+
+
+</div>

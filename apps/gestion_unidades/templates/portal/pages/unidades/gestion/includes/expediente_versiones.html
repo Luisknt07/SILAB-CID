@@ -1,0 +1,12 @@
+<section class="entregas__versiones" data-entrega-versiones>
+  <ul>
+    {% if borrador_url %}<li><div><strong>Borrador del sistema</strong><small>Se actualiza al abrirlo con los registros actuales del período.</small></div><a class="documento-accion is-borrador" href="{{ borrador_url }}" data-ver-pdf data-pdf-titulo="Borrador del sistema · {{ documento.nombre_documental }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver borrador</a></li>{% endif %}
+    {% if documento.recurso_id and documento.estado == 'validado' %}
+    <li><div><strong>{% if documento.exigido.requiere_firma %}Documento firmado enviado{% else %}Documento enviado{% endif %}</strong><small>{{ documento.validado_en|date:'d/m/Y H:i' }} · Contenido archivado de la entrega.</small></div><a class="documento-accion is-pdf" href="{% url 'recurso_unidad' documento.recurso_id %}" data-ver-pdf data-pdf-titulo="Documento enviado · {{ documento.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' documento.recurso_id %}?download=1">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver enviado</a></li>
+    {% elif documento.recurso_id and documento.firma_verificada %}
+    <li><div><strong>Documento firmado para enviar</strong><small>{{ documento.cargado_en|date:'d/m/Y H:i' }} · Todavía no enviado a Dirección.</small></div><a class="documento-accion is-borrador" href="{% url 'recurso_unidad' documento.recurso_id %}" data-ver-pdf data-pdf-titulo="Documento enviado · {{ documento.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' documento.recurso_id %}?download=1">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver firmado</a></li>
+    {% elif documento.recurso_id and not borrador_url %}
+    <li><div><strong>Documento cargado</strong><small>{{ documento.cargado_en|date:'d/m/Y H:i' }}</small></div><a class="documento-accion is-borrador" href="{% url 'recurso_unidad' documento.recurso_id %}" data-ver-pdf data-pdf-titulo="Documento enviado · {{ documento.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' documento.recurso_id %}?download=1">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver preparado</a></li>
+    {% else %}<li><div><strong>Entrega pendiente</strong><small>{% if documento.exigido.requiere_firma %}Carga el documento firmado para enviarlo.{% else %}El documento definitivo aparecerá después del envío.{% endif %}</small></div></li>{% endif %}
+  </ul>
+</section>

@@ -1,0 +1,9 @@
+{% load static panel_trabajo %}
+{% include 'portal/components/reportes_interfaz_assets.html' %}
+{% rutas_panel_trabajo as rutas_trabajo %}
+{{ rutas_trabajo|json_script:"panelTaskRoutes" }}
+<link data-panel-task-style rel="stylesheet" href="{% static 'portal/css/components/panel_trabajo.css' %}?v=20261010-certificados-v7">
+<script defer src="{% static 'portal/js/components/panel_trabajo.js' %}?v=20261018-decision-documental-1"></script>
+<script defer src="{% static 'portal/js/pages/unidades/entregas.js' %}?v=20261018-observaciones-1"></script>
+
+<link rel="stylesheet" href="{% static 'portal/css/components/plazos_documentales.css' %}?v=2">

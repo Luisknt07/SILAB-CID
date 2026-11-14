@@ -1,0 +1,81 @@
+/* Consultas compactas y formularios operativos con una sola copia de sus campos. */
+.reporte-informacion-modal__cabecera { border-bottom: 2px solid var(--institucion-acento, #f7d447); }
+.reporte-informacion-modal__cabecera h2 { color: var(--institucion-primario-tinta, #20522e); }
+.reporte-informacion-modal__contenido a { color: var(--institucion-primario, #2b6339); }
+.reporte-informacion-modal__cerrar:focus-visible,
+.unit-console [data-reporte-informacion-abrir]:focus-visible { outline-color: var(--institucion-acento, #f7d447); }
+.unit-console .gestion-solicitud > .gestion-solicitud__cabecera {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 6px;
+}
+.gestion-solicitud__cabecera time { color: #31475f; font-size: 12px; font-weight: 700; }
+.gestion-solicitud__cabecera strong { display: block; color: #172b45; font-size: 13px; }
+.gestion-solicitud__cabecera small { display: block; color: #64748b; font-size: 12px; }
+.gestion-solicitud__cabecera > b { padding: 4px 8px; border-radius: 6px; background: #fff5d9; color: #785600; font-size: 11px; }
+.unit-console .gestion-solicitud > .gestion-solicitud__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 4px 0 12px 66px; }
+.unit-console .gestion-solicitud__acciones button { margin: 0; }
+.unit-console .gestion-solicitud__acciones [data-reporte-informacion-abrir] { color: var(--uc-brand); font-size: 12px; font-weight: 600; }
+.gestion-solicitud__alertas { display: inline-flex; align-items: center; gap: 4px; padding: 2px 5px; border-radius: 4px; background: #fff0e6; color: #9d3e17; font-size: 11px; }
+.gestion-seccion-operativa > .gestion-seccion-operativa__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  color: #172b45;
+}
+.gestion-seccion-operativa__cabecera > div { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: center; gap: 2px 8px; }
+.gestion-seccion-operativa__cabecera > div > i { grid-row: span 2; color: var(--institucion-primario, #2b6339); }
+.gestion-seccion-operativa__cabecera strong { color: #172b45; font-size: 13px; font-weight: 700; }
+.gestion-seccion-operativa__cabecera small { color: #64748b; font-size: 12px; }
+.gestion-seccion-operativa__cabecera > span { color: #52667b; font-size: 12px; }
+.gestion-consulta > [data-reporte-informacion-abrir] { margin: 0 16px 16px; padding: 8px 12px; border: 1px solid var(--uc-brand-line); border-radius: 7px; color: var(--institucion-primario, #2b6339); font-size: 12px; font-weight: 600; }
+.gestion-informes-familia > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; padding: 10px 12px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; color: #172b45; }
+.gestion-informes-familia > header strong { color: #172b45; font-size: 12px; }
+.gestion-informes-familia > header b { padding: 2px 7px; border-radius: 5px; background: #e9eff6; color: #52667b; font-size: 11px; }
+.gestion-informes-familia > div { padding-top: 6px; }
+.gestion-proceso > .gestion-proceso__cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 14px; padding: 12px; }
+.gestion-proceso__cabecera > strong { color: #172b45; font-size: 13px; }
+.gestion-proceso__cabecera > span { flex: 1 1 250px; color: #64748b; font-size: 12px; }
+.gestion-proceso__cabecera > button { padding: 6px 9px; border: 1px solid var(--uc-brand-line); border-radius: 6px; background: #fff; color: var(--uc-brand); font-size: 12px; font-weight: 600; cursor: pointer; }
+.reporte-informacion-modal .gestion-consulta__detalle dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 16px; }
+.reporte-informacion-modal .gestion-consulta__detalle dl > div { padding: 11px 12px; border: 1px solid #e2e8f0; border-radius: 7px; background: #f8fafc; }
+.reporte-informacion-modal .gestion-consulta__detalle dt { color: #64748b; font-size: 11px; text-transform: uppercase; }
+.reporte-informacion-modal .gestion-consulta__detalle dd { margin: 3px 0 0; color: #172b45; font-size: 14px; font-weight: 600; }
+.reporte-informacion-modal .gestion-consulta__detalle .unit-console__reservation-risks { padding: 12px; border: 1px solid #f1c8a5; border-radius: 7px; background: #fff8f0; color: #8b431f; }
+.reporte-informacion-modal .gestion-consulta__detalle .unit-console__reservation-risks strong { color: #8b431f; }
+.reporte-informacion-modal .unit-console__audit-list { display: grid; gap: 10px; padding: 0; }
+.reporte-informacion-modal .unit-console__audit-list > article { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+.reporte-informacion-modal .unit-console__audit-list > article > span { color: #59738d; }
+.reporte-informacion-modal .unit-console__audit-list strong { display: block; color: #172b45; font-size: 13px; }
+.reporte-informacion-modal .unit-console__audit-list time { grid-column: 2; color: #64748b; font-size: 12px; }
+.reporte-informacion-modal .unit-console__audit-list small { margin: 3px 0 0; }
+.reporte-informacion-modal .unit-console__process-body { display: grid; gap: 16px; padding: 0; }
+.reporte-informacion-modal .unit-console__process-diagram { max-height: 440px; overflow: auto; }
+.reporte-informacion-modal .unit-console__process-diagram svg { display: block; max-width: 100%; height: auto; }
+.reporte-informacion-modal .unit-console__table-wrap { max-width: 100%; overflow: auto; }
+.reporte-informacion-modal .unit-console__table { min-width: 620px; border-collapse: collapse; }
+.reporte-informacion-modal .unit-console__table th { padding: 9px; background: #f1f5f9; color: #233c56; text-align: left; }
+.reporte-informacion-modal .unit-console__table td { padding: 9px; border-bottom: 1px solid #e2e8f0; color: #33475b; vertical-align: top; }
+.coverage__tabs .coverage__pestana > .coverage__abrir { width: 100%; max-width: none; margin: 0; border: 0; border-radius: 0; background: #f8fafc; color: #172b45; text-decoration: none; text-align: left; }
+.coverage__tabs .coverage__pestana > .coverage__abrir:hover { background: #f1f5f9; text-decoration: none; }
+.reporte-informacion-modal .coverage__table { max-width: 100%; overflow: auto; }
+.reporte-informacion-modal .coverage__table table { min-width: 580px; border-collapse: collapse; }
+.reporte-informacion-modal .coverage__table th { padding: 10px; border-bottom: 1px solid #dfe6ef; background: #f1f5f9; color: #33475b; text-align: left; }
+.reporte-informacion-modal .coverage__table td { padding: 10px; border-bottom: 1px solid #e2e8f0; color: #33475b; }
+.reporte-informacion-modal .gestion-haccp-diagrama { max-width: 100%; overflow: auto; }
+.reporte-informacion-modal .gestion-haccp-diagrama svg { display: block; min-width: 640px; max-width: 100%; height: auto; margin: 0 auto; }
+.haccp-diagrama[data-reporte-informacion] > [data-reporte-informacion-abrir] { margin: 0; padding: 10px 12px; color: var(--institucion-primario, #2b6339); font-size: 13px; font-weight: 700; }
+@media (max-width: 640px) {
+  .unit-console .gestion-solicitud > .gestion-solicitud__cabecera { grid-template-columns: 48px minmax(0, 1fr); }
+  .gestion-solicitud__cabecera > b { grid-column: 2; justify-self: start; }
+  .unit-console .gestion-solicitud > .gestion-solicitud__acciones { padding-left: 58px; }
+  .gestion-seccion-operativa > .gestion-seccion-operativa__cabecera { padding: 12px; }
+  .reporte-informacion-modal .gestion-consulta__detalle dl { grid-template-columns: 1fr; }
+}

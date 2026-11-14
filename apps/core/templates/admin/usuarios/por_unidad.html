@@ -1,0 +1,20 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+{% block extrahead %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/directorio_unidades.css' %}?v=1">{% endblock %}
+{% block content %}
+<section class="directorio-unidades">
+  <header><div><h1>Usuarios por tipo y unidad</h1><p>{{ total }} cuentas. Despliega una unidad para consultar su administrador y personal asignado.</p></div><a class="directorio-boton" href="{% url 'admin:auth_user_add' %}">Crear cuenta</a></header>
+  <form method="get" role="search"><label for="buscar-cuenta">Nombre, usuario o correo</label><input id="buscar-cuenta" name="q" value="{{ busqueda }}" type="search"><button class="directorio-boton" type="submit">Buscar</button><a href="{% url 'admin:auth_user_changelist' %}">Limpiar</a><a href="?{{ query }}&amp;vista=tabla">Tabla y filtros avanzados</a></form>
+  {% for grupo in grupos %}
+  <section class="directorio-tipo"><h2>{{ grupo.nombre }} <small>{{ grupo.unidades|length }} unidades</small></h2>
+    {% for fila in grupo.unidades %}
+    <details class="directorio-unidad"{% if busqueda %} open{% endif %}>
+      <summary><strong>{{ fila.unidad.nombre }}</strong><span>{{ fila.usuarios|length }} cuentas{% if not fila.unidad.activo %} · Unidad inactiva{% endif %}{% if not fila.unidad.administrador_id %} · Sin administrador principal{% endif %}</span></summary>
+      {% include 'admin/usuarios/tabla_directorio.html' with usuarios=fila.usuarios %}
+    </details>
+    {% endfor %}
+  </section>
+  {% endfor %}
+  <details class="directorio-unidad"{% if busqueda %} open{% endif %}><summary><strong>Cuentas sin asignación de unidad</strong><span>{{ sin_unidad|length }} cuentas</span></summary><p>Incluye administración institucional y usuarios solicitantes. Una reserva no concede acceso de gestión a la unidad.</p>{% include 'admin/usuarios/tabla_directorio.html' with usuarios=sin_unidad %}</details>
+</section>
+{% endblock %}

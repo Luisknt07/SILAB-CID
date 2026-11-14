@@ -1,0 +1,8 @@
+<div class="revision-documental__acciones" data-acciones-qr>
+  {% if d.recurso_id %}<a class="revision-documental__boton is-ver" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-titulo="{{ d.nombre_documental }}">Ver</a>{% elif d.exigido.generable %}<a class="revision-documental__boton is-ver" href="{% url 'gestion_expediente_unidad' d.unidad.slug %}?anio={{ d.anio }}&amp;corte={{ d.corte }}&amp;gestionar={% if d.pk %}{{ d.pk }}{% else %}{{ d.exigido.codigo }}{% endif %}&amp;borrador=1" data-ver-pdf data-pdf-titulo="{{ d.nombre_documental }}">Ver</a>{% else %}<button class="revision-documental__boton is-ver" disabled>Ver</button>{% endif %}
+  {% if user.is_superuser %}
+  <form method="post" action="{{ request.path }}" data-decision-qr>{% include 'admin/gestion_unidades/reporteoperativounidad/qr_datos_decision.html' with accion_qr=lectura.revision_simple.accion_aprobar %}<button type="submit" class="revision-documental__boton is-aprobar"{% if not lectura.revision_simple.puede_aprobar %} disabled{% endif %}>Aprobar</button></form>
+  {% if lectura.revision_simple.puede_rechazar %}<a class="revision-documental__boton is-rechazar" data-evaluar-documento href="?{{ query }}&amp;revisar={{ d.pk }}&amp;decision=rechazar#evaluacion" aria-haspopup="dialog">Rechazar</a>{% else %}<button type="button" class="revision-documental__boton is-rechazar" disabled>Rechazar</button>{% endif %}
+  {% endif %}
+</div>
+{% if lectura.revision_simple.mensaje_bloqueo %}<small class="revision-documental__bloqueo" data-bloqueo-preparacion>{{ lectura.revision_simple.mensaje_bloqueo }}</small>{% endif %}

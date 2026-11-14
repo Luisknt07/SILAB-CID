@@ -1,0 +1,149 @@
+WEBVTT
+
+1
+00:00:00.500 --> 00:00:04.505
+Bienvenido al curso Desarrollo de Aplicaciones Logísticas con Inteligencia Artificial.
+
+2
+00:00:04.505 --> 00:00:10.511
+Aquí transformarás una necesidad de inventarios y operaciones en un prototipo que puedas utilizar, explicar
+
+3
+00:00:10.511 --> 00:00:16.518
+y comprobar. En este video conocerás la ruta del curso y cómo avanzar paso a
+
+4
+00:00:16.518 --> 00:00:16.919
+paso.
+
+5
+00:00:18.500 --> 00:00:25.961
+Este curso es introductorio. Está dirigido a estudiantes, egresados de Logística y carreras afines, y
+
+6
+00:00:25.961 --> 00:00:31.432
+personas interesadas en digitalizar operaciones. No necesitas experiencia previa en programación.
+
+7
+00:00:31.432 --> 00:00:37.400
+Trabajarás con una plantilla, instrucciones sencillas y cambios pequeños que puedas entender.
+
+8
+00:00:39.500 --> 00:00:43.081
+La ruta tiene cinco unidades y cuarenta horas.
+
+9
+00:00:43.081 --> 00:00:46.662
+Primero defines el problema y diseñas la aplicación.
+
+10
+00:00:46.662 --> 00:00:53.376
+Después preparas las herramientas. Luego construyes funciones logísticas, trabajas con datos y una conexión de
+
+11
+00:00:53.376 --> 00:00:57.404
+inteligencia artificial, y finalmente pruebas y presentas tu proyecto.
+
+12
+00:00:59.500 --> 00:01:02.991
+Nuestro caso es Andina Distribución, una organización ficticia.
+
+13
+00:01:02.991 --> 00:01:06.482
+Su almacén registra productos, entradas, salidas y existencias.
+
+14
+00:01:06.482 --> 00:01:13.028
+Aprenderás a impedir una salida sin stock y a conservar el historial de cada operación.
+
+15
+00:01:13.028 --> 00:01:16.083
+Todos los datos de práctica son ficticios;
+
+16
+00:01:16.083 --> 00:01:19.574
+no cargues información real de empresas o personas.
+
+17
+00:01:21.500 --> 00:01:27.534
+En cada unidad sigue este recorrido: lee la explicación, mira los videos de apoyo, descarga
+
+18
+00:01:27.534 --> 00:01:31.958
+los archivos y practica. Comprueba lo que obtienes antes de continuar.
+
+19
+00:01:31.958 --> 00:01:35.579
+Los pasos están organizados como una guía de consulta:
+
+20
+00:01:35.579 --> 00:01:38.394
+puedes volver a ellos cuando lo necesites.
+
+21
+00:01:38.394 --> 00:01:41.210
+Guarda evidencias y entrega las actividades solicitadas.
+
+22
+00:01:42.500 --> 00:01:47.456
+Los cuestionarios requieren al menos setenta por ciento y permiten tres intentos.
+
+23
+00:01:47.456 --> 00:01:52.413
+Lee la retroalimentación y revisa la explicación antes de volver a intentar.
+
+24
+00:01:52.413 --> 00:01:56.130
+Las entregas y el proyecto final reciben revisión docente.
+
+25
+00:01:56.130 --> 00:02:00.674
+Presenta resultados esperados y obtenidos, y explica las decisiones que tomaste.
+
+26
+00:02:00.674 --> 00:02:03.565
+Las condiciones completas están en el aula.
+
+27
+00:02:05.500 --> 00:02:09.109
+La inteligencia artificial ayuda a comprender y desarrollar.
+
+28
+00:02:09.109 --> 00:02:14.522
+No necesitas contratar un plan de doscientos dólares para realizar el curso.
+
+29
+00:02:14.522 --> 00:02:19.935
+Usarás las alternativas disponibles y una plantilla que funciona sin inteligencia artificial.
+
+30
+00:02:19.935 --> 00:02:23.543
+La conexión preparada mediante MCP sólo consulta existencias.
+
+31
+00:02:23.543 --> 00:02:26.701
+Siempre contrasta su respuesta con los registros;
+
+32
+00:02:26.701 --> 00:02:28.505
+no modifica el inventario.
+
+33
+00:02:30.500 --> 00:02:34.589
+Si un paso falla, pausa el video y vuelve a la guía.
+
+34
+00:02:34.589 --> 00:02:36.975
+Anota qué hiciste y qué mensaje apareció.
+
+35
+00:02:36.975 --> 00:02:42.087
+Busca ayuda en el espacio de acompañamiento del aula y conserva una versión anterior antes
+
+36
+00:02:42.087 --> 00:02:47.198
+de cambiar archivos. Ahora abre la primera unidad y comienza con el problema logístico que
+
+37
+00:02:47.198 --> 00:02:47.880
+quieres resolver.

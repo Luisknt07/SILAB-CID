@@ -1,0 +1,128 @@
+{% extends "admin/base_site.html" %}
+{% load i18n idiomas %}
+
+
+{% block content %}
+<div id="content-main">
+  <div style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;border-radius:12px;background:#0d2b25;color:#fff;">
+    <p style="margin:0;color:#e3bc47;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">{% translate "Reportes institucionales" %}</p>
+    <h1 style="margin:.3rem 0;color:#fff;">{% translate "Reporte de uso por carreras y usuarios" %}</h1>
+    <p style="margin:0;">{{ total_solicitudes }} {% translate "solicitudes y" %} {{ total_participaciones }} {% translate "participaciones registradas. Se distingue la procedencia del usuario de la carrera, proyecto o entidad beneficiaria." %}</p>
+  </div>
+
+  <p><a class="button" href="{% url 'admin:reservas_reserva_changelist' %}">{% translate "Volver a reservas" %}</a></p>
+
+  <form method="get" class="module" style="padding:1rem 1.25rem;margin-bottom:1rem;border-radius:10px;">
+    <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:.8rem;">
+      <div>
+        <h2 style="margin:0 0 .25rem;">{% translate "Corte temporal del reporte" %}</h2>
+        <p style="margin:0;color:#5f6f69;">{% translate "El período académico representa el semestre institucional; mes, trimestre y año son cortes calendario dentro del historial." %}</p>
+      </div>
+      {% if periodo_seleccionado %}
+        <strong style="padding:.4rem .7rem;border-radius:999px;background:#eaf3ed;color:#185541;">{{ periodo_seleccionado.codigo }} · {{ periodo_seleccionado.get_estado_display|ui }}</strong>
+      {% endif %}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;align-items:end;">
+      <label>
+        <span style="display:block;font-weight:700;margin-bottom:.3rem;">{% translate "Laboratorio o unidad" %}</span>
+        <select name="unidad" style="width:100%;min-height:38px;">
+          <option value="">{% translate "Todas las unidades" %}</option>
+          {% for unidad in unidades %}
+            <option value="{{ unidad.pk }}"{% if unidad_seleccionada.pk == unidad.pk %} selected{% endif %}>{{ unidad.nombre }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span style="display:block;font-weight:700;margin-bottom:.3rem;">{% translate "Período académico" %}</span>
+        <select name="periodo" style="width:100%;min-height:38px;">
+          <option value="">{% translate "Todos los períodos" %}</option>
+          {% for periodo in periodos %}
+            <option value="{{ periodo.pk }}"{% if periodo_seleccionado.pk == periodo.pk %} selected{% endif %}>{{ periodo.codigo }} · {{ periodo.get_ambito_display|ui }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span style="display:block;font-weight:700;margin-bottom:.3rem;">{% translate "Semana académica" %}</span>
+        <select name="semana" style="width:100%;min-height:38px;">
+          <option value="">{% translate "Todas las semanas" %}</option>
+          {% for numero in semanas_disponibles %}
+            <option value="{{ numero }}"{% if semana_numero == numero|stringformat:"s" %} selected{% endif %}>{% translate "Semana" %} {{ numero }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span style="display:block;font-weight:700;margin-bottom:.3rem;">{% translate "Agrupar resultados" %}</span>
+        <select name="agrupacion" style="width:100%;min-height:38px;">
+          <option value="semana_academica"{% if agrupacion == 'semana_academica' %} selected{% endif %}>{% translate "Semana académica" %}</option>
+          <option value="periodo"{% if agrupacion == 'periodo' %} selected{% endif %}>{% translate "Período académico" %}</option>
+          <option value="semana_calendario"{% if agrupacion == 'semana_calendario' %} selected{% endif %}>{% translate "Semana calendario" %}</option>
+          <option value="mes"{% if agrupacion == 'mes' %} selected{% endif %}>{% translate "Mensual" %}</option>
+          <option value="trimestre"{% if agrupacion == 'trimestre' %} selected{% endif %}>{% translate "Trimestral" %}</option>
+          <option value="anio"{% if agrupacion == 'anio' %} selected{% endif %}>{% translate "Anual" %}</option>
+          <option value="tipo_jornada"{% if agrupacion == 'tipo_jornada' %} selected{% endif %}>{% translate "Días laborables / fin de semana" %}</option>
+        </select>
+      </label>
+      <label>
+        <span style="display:block;font-weight:700;margin-bottom:.3rem;">{% translate "Desde" %}</span>
+        <input type="date" name="fecha_desde" value="{{ fecha_desde }}" style="width:100%;box-sizing:border-box;min-height:38px;">
+      </label>
+      <label>
+        <span style="display:block;font-weight:700;margin-bottom:.3rem;">{% translate "Hasta" %}</span>
+        <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" style="width:100%;box-sizing:border-box;min-height:38px;">
+      </label>
+      <div style="display:flex;gap:.5rem;">
+        <button type="submit" class="button" style="min-height:38px;">{% translate "Aplicar filtros" %}</button>
+        <a class="button" href="{% url 'admin:reservas-reporte-uso' %}" style="min-height:38px;line-height:38px;box-sizing:border-box;">{% translate "Limpiar" %}</a>
+      </div>
+    </div>
+  </form>
+
+  <section style="margin:0 0 1.25rem;padding:1.15rem;border:1px solid #cbdcd2;border-radius:14px;background:linear-gradient(135deg,#f4faf6,#fffaf0);box-shadow:0 12px 30px rgba(13,58,42,.09);">
+    <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1rem;">
+      <div>
+        <p style="margin:0;color:#9a7420;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">{% translate "Solo administración · capacidad y utilización" %}</p>
+        <h2 style="margin:.25rem 0;color:#123d2d;">{% translate "Uso real frente a la capacidad disponible" %}</h2>
+        <p style="margin:0;color:#5e6f66;">{{ indicator_start|date:"d/m/Y" }}–{{ indicator_end|date:"d/m/Y" }}. Utilización = horas-persona reservadas ÷ horas-persona teóricas disponibles.</p>
+      </div>
+      <span style="padding:.45rem .7rem;border-radius:999px;background:#123d2d;color:#fff;font-weight:700;">{% translate "Se descuentan feriados y cierres de unidad" %}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:1rem;">
+      {% for indicador in indicadores_utilizacion %}
+      <article style="padding:1rem;border:1px solid #d5e1da;border-top:5px solid {{ indicador.level.color }};border-radius:12px;background:#fff;box-shadow:0 8px 22px rgba(18,61,45,.08);">
+        <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:start;">
+          <div><strong style="display:block;color:#123d2d;font-size:1rem;">{{ indicador.unit.nombre }}</strong><small style="color:#68776f;">{% translate "Capacidad efectiva:" %} {{ indicador.capacity }} {% translate "personas · limita:" %} {{ indicador.limiting_factor }}</small></div>
+          <span style="padding:.35rem .55rem;border-radius:999px;background:{{ indicador.level.color }};color:#fff;font-size:.72rem;font-weight:800;white-space:nowrap;">{{ indicador.level.label }}</span>
+        </div>
+        <div style="margin:.85rem 0 .4rem;height:12px;overflow:hidden;border-radius:999px;background:#e9efeb;"><div style="width:{{ indicador.utilization }}%;height:100%;background:{{ indicador.level.color }};"></div></div>
+        <strong style="color:{{ indicador.level.color }};font-size:1.55rem;">{{ indicador.utilization }}%</strong>
+        <span style="color:#5d6d65;"> {% translate "de utilización integral" %}</span>
+        <dl style="display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin:.9rem 0 0;">
+          <div style="padding:.65rem;border-radius:9px;background:#f4f8f5;"><dt style="font-size:.68rem;color:#6f7c75;">{% translate "Frecuencia" %}</dt><dd style="margin:.2rem 0 0;font-weight:800;color:#183e2f;">{{ indicador.frequency }}%</dd></div>
+          <div style="padding:.65rem;border-radius:9px;background:#f4f8f5;"><dt style="font-size:.68rem;color:#6f7c75;">{% translate "Ocupación" %}</dt><dd style="margin:.2rem 0 0;font-weight:800;color:#183e2f;">{{ indicador.occupancy }}%</dd></div>
+          <div style="padding:.65rem;border-radius:9px;background:#f4f8f5;"><dt style="font-size:.68rem;color:#6f7c75;">{% translate "Equipos disponibles" %}</dt><dd style="margin:.2rem 0 0;font-weight:800;color:#183e2f;">{{ indicador.equipment_availability }}%</dd></div>
+        </dl>
+        <p style="margin:.7rem 0 0;color:#6a7971;font-size:.75rem;">{{ indicador.actual_person_hours }} de {{ indicador.theoretical_person_hours }} {% translate "horas-persona ·" %} {{ indicador.occupied_hours }} de {{ indicador.theoretical_hours }} {% translate "horas abiertas ·" %} {{ indicador.administrative_block_hours }} {% translate "h de cierre descontadas." %}</p>
+      </article>
+      {% empty %}<p>{% translate "No hay unidades activas para calcular." %}</p>{% endfor %}
+    </div>
+    <p style="margin:1rem 0 0;padding:.75rem;border-left:4px solid #e1b43f;background:#fff9e8;color:#62511d;">{% translate "El tramo superior al 90% se marca como" %} <strong>{% translate "muy alto" %}</strong>{% translate ", no “excelente”: en un laboratorio sostenido puede significar saturación, falta de mantenimiento preventivo o poca capacidad de contingencia." %}</p>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;align-items:start;">
+    {% for reporte in reportes %}
+    <section class="module" style="margin:0;overflow:hidden;border-radius:10px;">
+      <h2 style="padding:.85rem 1rem;">{{ reporte.titulo }}</h2>
+      {% if reporte.cuenta_varias_veces %}<p style="margin:0;padding:0 1rem .6rem;font-size:.82rem;color:#666;">{% translate "Una solicitud que combina varios recursos aparece en más de una fila, por lo que el total no suma el número de solicitudes." %}</p>{% endif %}
+      <table style="width:100%;">
+        <thead><tr><th>{% translate "Clasificación" %}</th><th>{{ reporte.metrica }}</th><th>{% translate "Efectivas" %}</th><th>{{ reporte.horas_label }}</th><th>{% translate "Participantes" %}</th></tr></thead>
+        <tbody>
+          {% for fila in reporte.filas %}
+          <tr><td>{{ fila.nombre }}</td><td>{{ fila.total }}</td><td>{{ fila.efectivas }}</td><td>{{ fila.horas }}</td><td>{{ fila.participantes }}</td></tr>
+          {% empty %}<tr><td colspan="5">{% translate "Aún no existen datos." %}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

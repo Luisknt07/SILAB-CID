@@ -1,0 +1,20 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Temas de investigación" %}{% endblock %}
+{% block encabezado %}{% translate "Temas de investigación" %}{% endblock %}
+{% block subtitulo %}{% translate "Preguntas abiertas en los ejes del centro, para tesis, prácticas y proyectos" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Temas" %}</dt><dd>{{ total }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Temas de investigación" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+<div class="centro-tabla-envoltura"><table class="centro-tabla">
+  <thead><tr><th>{% translate "Eje productivo" %}</th><th>{% translate "Tema abierto" %}</th><th>{% translate "Prácticas relacionadas" %}</th></tr></thead>
+  <tbody>{% for eje in ejes %}{% for tema in eje.lista_temas %}<tr>
+    <td>{% if forloop.first %}<a href="{% url 'eje_centro' unidad.slug eje.codigo %}">{{ eje.titulo }}</a>{% endif %}</td>
+    <td>{{ tema }}</td>
+    <td>{% if forloop.first %}{{ eje.lista_practicas|join:", " }}{% endif %}</td>
+  </tr>{% endfor %}{% endfor %}</tbody>
+</table></div>
+<p class="centro-fuente">{% translate "Los ensayos se hacen en los lotes, parcelas y animales del centro, con el registro de producción desde el primer día. Para proponer uno, reserva el área con el tipo «Investigación»." %} <a href="{{ reservar_url }}">{% translate "Reservar" %} →</a></p>
+{% endblock %}

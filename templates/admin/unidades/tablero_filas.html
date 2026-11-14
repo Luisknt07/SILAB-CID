@@ -1,0 +1,14 @@
+{% load i18n %}<ul class="tablero-lista">
+  {% for fila in filas %}
+  <li>
+    <span class="tablero-lista__icono" aria-hidden="true">{% include "admin/includes/category_icon.html" with icon=fila.icono %}</span>
+    <div class="tablero-lista__texto">
+      <a href="{{ fila.lista }}">{{ fila.nombre }}</a>
+      <small>{{ fila.descripcion }}</small>
+      {% if con_seccion and fila.seccion %}<em>{% translate "En la ficha:" %} {{ fila.seccion }}</em>{% endif %}
+    </div>
+    <b class="tablero-lista__total" title="{% translate 'Registros de esta planta' %}">{{ fila.total }}</b>
+    {% if fila.nuevo %}<a class="tablero-lista__nuevo" href="{{ fila.nuevo }}">+ {% translate "Nuevo" %}</a>{% endif %}
+  </li>
+  {% endfor %}
+</ul>

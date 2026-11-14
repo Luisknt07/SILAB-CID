@@ -1,0 +1,67 @@
+{% load i18n idiomas %}
+<section id="visitaDatosReserva" class="rw-visit-section" hidden data-unit-name="{{ unidad.nombre }}" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-internal-account="{% if user.is_authenticated and user.profile.tipo_usuario and user.profile.tipo_usuario != 'externo' %}true{% else %}false{% endif %}">
+  {{ oferta_visitas.temas|json_script:'visitaTemasReserva' }}
+  <div class="rw-grid">
+    <fieldset class="reservation-field-wide rw-visit-category"><legend>{% translate "1. Elige el tipo de visita" %}</legend><p id="visitaCategoriaAyuda">{% translate "Elige según la procedencia del grupo. Más abajo podrás indicar el propósito de la visita." %}</p>
+      <select name="visita_categoria" hidden aria-hidden="true" tabindex="-1" disabled><option value="externa"{% if not user.is_authenticated or user.profile.tipo_usuario == 'externo' %} selected{% endif %}>{% translate "Externa" %}</option><option value="interna"{% if user.is_authenticated and user.profile.tipo_usuario != 'externo' %} selected{% endif %}>{% translate "Interna" %}</option></select>
+      <div class="rw-visit-category__options" aria-describedby="visitaCategoriaAyuda">
+        <button type="button" class="rw-visit-category__button" data-visit-category="interna" aria-pressed="false" aria-describedby="visitaInternaAyuda"><i class="fas fa-university" aria-hidden="true"></i><span><strong>{% translate "Visita interna" %}</strong><small id="visitaInternaAyuda">{% translate "Para estudiantes, docentes y personal de la institución. Busca sus cuentas para completar los datos del grupo." %}</small><em>{% translate "Requiere sesión institucional" %}</em></span><b data-visit-category-state>{% translate "Elegir" %}</b></button>
+        <button type="button" class="rw-visit-category__button" data-visit-category="externa" aria-pressed="false" aria-describedby="visitaExternaAyuda"><i class="fas fa-users" aria-hidden="true"></i><span><strong>{% translate "Visita externa" %}</strong><small id="visitaExternaAyuda">{% translate "Para colegios, empresas, organizaciones u otros grupos externos. Completa los datos del responsable y los asistentes." %}</small><em>{% translate "Puede solicitarse sin cuenta" %}</em></span><b data-visit-category-state>{% translate "Elegir" %}</b></button>
+      </div>
+    </fieldset>
+    <div class="rw-field" data-visit-login hidden><p>{% translate "Las visitas internas requieren iniciar sesión con una cuenta institucional." %}</p><a class="rw-button" href="{% url 'login' %}?next={{ request.path|urlencode }}%3Freserva%3Dvisita">{% translate "Iniciar sesión" %}</a></div>
+    <fieldset class="reservation-field-wide rw-visit-guest" data-visit-guest hidden><legend>{% translate "Responsable de la visita externa" %}</legend><p>{% translate "Puedes solicitar una visita externa sin crear una cuenta. Guarda el número de referencia al terminar; la unidad revisará la solicitud y coordinará contigo." %}</p><div class="rw-grid"><label class="rw-field">{% translate "Nombres completos *" %}<input name="visita_responsable_nombre" maxlength="100" autocomplete="name" disabled></label><label class="rw-field">{% translate "Correo *" %}<input name="visita_responsable_correo" type="email" maxlength="254" autocomplete="email" disabled></label><label class="rw-field">{% translate "Celular *" %}<input name="visita_responsable_telefono" type="tel" maxlength="20" autocomplete="tel" disabled></label></div></fieldset>
+    <label class="rw-field">{% translate "Institución o grupo *" %}<input name="visita_institucion" maxlength="180" placeholder="{% translate 'Escribe el nombre de la institución o del grupo' %}" required disabled></label>
+    <label class="rw-field">{% translate "Propósito de la visita" %}<select name="visita_proposito" disabled><option value="academica">{% translate "Académica" %}</option><option value="institucional">{% translate "Institucional" %}</option><option value="comercial">{% translate "Comercial" %}</option></select></label>
+    <label class="rw-field">{% translate "Cómo contar al grupo" %}<select name="visita_conteo" disabled><option value="lista">{% translate "Automático desde la tabla" %}</option><option value="estimado">{% translate "Cantidad estimada; lista pendiente" %}</option></select><small data-visit-count-mode-help>{% translate "Si aún no conoces los nombres, indica una cantidad estimada." %}</small></label>
+    <label class="rw-field"><span>{% translate "Número de visitantes *" %} <small class="rw-visit-field-status" data-visit-count-state>{% translate "Automático" %}</small></span><input name="visita_personas" type="number" min="1" max="200" value="0" required disabled><small data-visit-count-help>{% translate "Se calcula con los asistentes de la tabla, sin incluir a los guías de la unidad." %}</small></label>
+    <section class="reservation-intent reservation-field-wide rw-visit-writing">
+      <div class="reservation-intent__grid">
+        <label class="rw-field">{% translate "¿Qué espera conocer el grupo?" %}<small>{% translate "Usa un modelo de redacción y ajusta el objetivo a tu visita." %}</small><textarea name="visita_descripcion" rows="7" maxlength="2000" disabled></textarea><button type="button" class="rw-button" data-use-visit-template><i class="fas fa-magic" aria-hidden="true"></i> {% translate "Usar modelo de redacción" %}</button></label>
+        <aside class="reservation-intent__help">
+          <label class="rw-field">{% translate "Modelo según el propósito" %}<select data-visit-template disabled></select></label>
+          <strong>{% translate "Qué incluir" %}</strong><ul><li>{% translate "Quiénes visitan y en qué contexto." %}</li><li>{% translate "Qué temas o capacidades quieren conocer." %}</li><li>{% translate "Para qué utilizarán lo aprendido y qué apoyo necesitan." %}</li></ul>
+          <strong>{% translate "Ejemplo de redacción" %}</strong><blockquote data-visit-template-preview></blockquote>
+          <small>{% translate "El modelo se adapta a esta unidad y a los datos del grupo. Puedes editarlo antes de continuar." %}</small>
+        </aside>
+      </div>
+    </section>
+    <section class="rw-visit-attendees reservation-field-wide" aria-label="{% translate 'Lista editable de asistentes' %}">
+      <header><div><strong>{% translate "Lista de asistentes" %}</strong><p>{% translate "Nombres y rol obligatorios; cédula y contactos opcionales." %}</p></div><button type="button" class="rw-button" data-add-visit-attendee><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Añadir fila" %}</button></header>
+      <div data-visit-internal-search hidden><label class="rw-field">{% translate "Buscar visitantes internos por nombre, usuario o correo" %}<input type="search" data-visit-user-search autocomplete="off" disabled></label><small>{% translate "Selecciona una cuenta activa. Sus datos se verifican al enviar. Si el responsable también asistirá, inclúyelo en la búsqueda." %}</small><div class="reservation-participants__results" data-visit-user-results hidden></div><p data-visit-user-status role="status" aria-live="polite"></p></div>
+      <div class="rw-visit-attendees__scroll"><table><caption class="sr-only">{% translate "Cédula, nombres completos, rol, celular y correo de cada visitante" %}</caption><colgroup><col class="rw-visit-col--number"><col class="rw-visit-col--document"><col class="rw-visit-col--name"><col class="rw-visit-col--role"><col class="rw-visit-col--phone"><col class="rw-visit-col--email"><col class="rw-visit-col--action"></colgroup><thead><tr><th scope="col">#</th><th scope="col">{% translate "Cédula" %}</th><th scope="col">{% translate "Nombres completos" %}</th><th scope="col">{% translate "Rol" %}</th><th scope="col">{% translate "Celular" %}</th><th scope="col">{% translate "Correo" %}</th><th scope="col"><span class="sr-only">{% translate "Quitar" %}</span></th></tr></thead><tbody data-visit-attendees-body></tbody></table></div>
+      <footer><p data-visit-attendees-count role="status" aria-live="polite"></p><small>{% translate "Enter en el último correo añade una fila." %}</small></footer>
+      <input type="hidden" name="visita_asistentes_json" value="[]" disabled>
+      <input type="hidden" name="visita_usuarios_json" value="[]" disabled>
+    </section>
+  </div>
+</section>
+<section id="visitaRecorridoReserva" class="rw-resource-card rw-visit-section" hidden data-personas-por-guia="{{ oferta_visitas.personas_por_guia }}" data-costo-por-guia="{{ oferta_visitas.costo_por_guia|stringformat:'s' }}" data-aforo-unidad="{{ unidad.capacidad_personas|default:0 }}">
+  {{ oferta_visitas.materiales_por_visitante|json_script:"visitaMaterialesPorPersona" }}
+  {{ oferta_visitas.impuestos|json_script:"visitaImpuestos" }}
+  <h4>{% translate "1. Recorrido de la visita" %}</h4>
+  <p>{% if oferta_visitas.texto %}{{ oferta_visitas.texto|linebreaksbr }}{% else %}{% translate "Elige qué deseas conocer y consulta su disponibilidad en la agenda integrada." %}{% endif %}</p>
+  <div class="rw-visit-areas">
+  {% for area in oferta_visitas.areas %}
+    <label><input type="checkbox" name="visita_recorrido" value="{{ area.pk }}" data-capacidad="{{ area.capacidad|default:0 }}" data-nombre="{{ area.nombre }}" disabled><span><strong>{{ area.nombre }}</strong><small>{% if area.capacidad %}{% translate "Hasta" %} {{ area.capacidad }} {% translate "visitantes" %}{% endif %}{% if area.descripcion_publica %} · {{ area.descripcion_publica }}{% endif %}</small></span></label>
+  {% empty %}
+    <p>{% translate "Visita de presentación y orientación. La unidad confirmará el punto de encuentro y el recorrido al aprobar la solicitud. No incluye ingreso a áreas técnicas sin autorización." %}</p>
+  {% endfor %}
+  </div>
+  <p data-visit-capacity role="status"></p>
+</section>
+<section id="visitaCondicionesReserva" class="rw-visit-section" hidden>
+  {% include 'portal/pages/unidades/visitas/condiciones.html' with oferta=oferta_visitas %}
+  <p class="rw-visit-estimate" data-visit-estimate></p>
+  <label class="rw-visit-accept"><input type="checkbox" name="visita_requisitos_aceptados" required disabled> {% translate "He revisado el recorrido, las áreas excluidas y los requisitos; los acepto en nombre del grupo." %}</label>
+</section>
+<section id="visitaResumenReserva" class="rw-summary rw-visit-section" hidden>
+  <div class="rw-summary__item"><strong>{% translate "Tipo de solicitud" %}</strong><span>{% translate "Reserva de visita guiada" %}</span></div>
+  <div class="rw-summary__item"><strong>{% translate "Responsable" %}</strong><span data-visit-summary="responsable"></span></div>
+  <div class="rw-summary__item"><strong>{% translate "Institución o grupo" %}</strong><span data-visit-summary="institucion"></span></div>
+  <div class="rw-summary__item"><strong>{% translate "Visitantes y guías" %}</strong><span data-visit-summary="grupo"></span></div>
+  <div class="rw-summary__item rw-summary__item--wide"><strong>{% translate "Recorrido" %}</strong><span data-visit-summary="recorrido"></span></div>
+  <div class="rw-summary__item rw-summary__item--wide"><strong>{% translate "Fecha y horario" %}</strong><span data-visit-summary="horario"></span></div>
+  <div class="rw-summary__item rw-summary__item--wide"><strong>{% translate "Interés de la visita" %}</strong><span data-visit-summary="descripcion"></span></div>
+  <div class="rw-summary__item"><strong>{% translate "Valor estimado a tu cargo" %}</strong><span data-visit-summary="valor"></span><small>{% translate "Solo materiales consumidos. El recorrido y los guías los asume la UPEC." %}</small></div>
+</section>

@@ -1,0 +1,49 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% translate "Verificar un certificado" %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce aula-curso">
+  <header class="aula-curso__cabecera">
+    <div>
+      <span class="conoce__antetitulo">{% translate "Cursos y capacitaciones" %}</span>
+      <h1>{% translate "Verificar un certificado" %}</h1>
+    </div>
+  </header>
+  <main class="verificacion">
+    <form method="get" action="{% url 'verificar_certificado_buscar' %}" class="verificacion__buscar">
+      <label for="codigo">{% translate "Código del certificado" %}</label>
+      <div><input id="codigo" name="codigo" value="{{ codigo }}" placeholder="CERT-XXXX-XXXX" autocomplete="off" maxlength="20" required><button type="submit" class="conoce__boton is-principal"><i class="fas fa-search" aria-hidden="true"></i> {% translate "Verificar" %}</button></div>
+    </form>
+    {% if certificado %}
+    <article class="verificacion__resultado{% if certificado.anulado %} is-anulado{% endif %}">
+      <header><i class="fas fa-{% if certificado.anulado %}ban{% else %}check-circle{% endif %}" aria-hidden="true"></i><div><strong>{% if certificado.anulado %}{% translate "Certificado anulado" %}{% else %}{% translate "Certificado auténtico y vigente" %}{% endif %}</strong><span>{{ certificado.codigo }}</span></div></header>
+      {% if certificado.anulado %}<p class="verificacion__motivo">{% translate "Motivo" %}: {{ certificado.motivo_anulacion }}</p>{% endif %}
+      <dl>
+        <div><dt>{% translate "Otorgado a" %}</dt><dd>{{ certificado.nombre }}</dd></div>
+        <div><dt>{% translate "Tipo" %}</dt><dd>{{ certificado.get_tipo_display }}</dd></div>
+        <div><dt>{% translate "Actividad" %}</dt><dd>{{ certificado.curso_nombre }} <small>({{ certificado.clasificacion }})</small></dd></div>
+        {% if certificado.horas %}<div><dt>{% translate "Duración" %}</dt><dd>{{ certificado.horas|floatformat:"-2" }} {% translate "horas" %}</dd></div>{% endif %}
+        <div><dt>{% translate "Edición" %}</dt><dd>{{ certificado.edicion }}</dd></div>
+        {% if certificado.fecha_inicio %}<div><dt>{% translate "Fecha de inicio" %}</dt><dd>{{ certificado.fecha_inicio|date:"d/m/Y" }}</dd></div>{% endif %}
+        {% if certificado.fecha_fin %}<div><dt>{% translate "Fecha de finalización" %}</dt><dd>{{ certificado.fecha_fin|date:"d/m/Y" }}</dd></div>{% endif %}
+        <div><dt>{% translate "Entidad organizadora" %}</dt><dd>{{ certificado.diseno_certificado.emisor|default:certificado.unidad_nombre }}</dd></div>
+        <div><dt>{% translate "Emitido el" %}</dt><dd>{{ certificado.emitido_en|date:"d/m/Y" }}</dd></div>
+      </dl>
+      {% if not certificado.anulado %}<a class="conoce__boton" href="{% url 'verificar_certificado' certificado.codigo %}?formato=pdf" data-ver-pdf data-pdf-titulo="Certificado · {{ certificado.curso_nombre }}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver el certificado" %}</a>{% endif %}
+    </article>
+    {% elif buscado %}
+    <article class="verificacion__resultado is-anulado"><header><i class="fas fa-times-circle" aria-hidden="true"></i><div><strong>{% translate "No existe un certificado con ese código" %}</strong><span>{{ codigo }}</span></div></header><p class="verificacion__motivo">{% translate "Revise que el código esté escrito tal como aparece en el certificado." %}</p></article>
+    {% endif %}
+  </main>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

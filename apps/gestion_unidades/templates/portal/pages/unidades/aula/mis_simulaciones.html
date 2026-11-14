@@ -1,0 +1,36 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Mis simulaciones" %}{% endblock %}
+{% block encabezado %}{% translate "Mis simulaciones" %}{% endblock %}
+{% block subtitulo %}{% translate "Lo que guardaste en esta unidad" %}{% endblock %}
+{% block pie %}{% translate "Simulaciones guardadas" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Guardadas" %}</dt><dd>{{ simulaciones|length }}</dd></div>{% endblock %}
+{% block barra %}<div>{% if ver_documento_url %}<a href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="Mis simulaciones · {{ unidad.nombre }}">{% translate "Ver el documento" %}</a><a class="is-primary" href="{{ descargar_documento_url }}">{% translate "Descargar documento" %}</a>{% endif %}</div>{% endblock %}
+{% block contenido %}
+{% if borrada %}<p class="unit-report__notice aula-ok">{% translate "La simulación se eliminó." %}</p>{% endif %}
+
+<section class="unit-report__context">
+  <span>{% translate "TUS SIMULACIONES" %}</span>
+  <h2>{% translate "Guardadas por ti, en" %} {{ unidad.nombre }}</h2>
+  <p>{% translate "Cada una guarda las variables con que la corriste, no una foto de los resultados: al abrirla se vuelve a calcular con el proceso como está hoy. Puedes retomarla y cambiarla, ver el documento antes de bajarlo, o eliminarla." %}</p>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "SIMULACIONES GUARDADAS" %}</span><small>{{ simulaciones|length }} {% translate "en total" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Nombre" %}</th><th>{% translate "Simulador" %}</th><th>{% translate "Proceso" %}</th><th>{% translate "Resumen" %}</th><th>{% translate "Actualizada" %}</th><th>{% translate "Qué hacer con ella" %}</th></tr></thead><tbody>
+    {% for fila in simulaciones %}<tr>
+      <td><strong>{{ fila.objeto.nombre }}</strong>{% if fila.objeto.notas %}<small>{{ fila.objeto.notas }}</small>{% endif %}</td>
+      <td>{{ fila.objeto.get_simulador_display|ui }}</td>
+      <td>{% if fila.objeto.receta %}{{ fila.objeto.receta.nombre_publico }}<small>{{ fila.objeto.receta.codigo }}</small>{% else %}{% translate "Varios procesos" %}{% endif %}</td>
+      <td>{% for etiqueta, valor in fila.objeto.resumen %}<small>{{ etiqueta }}: <b>{{ valor }}</b></small>{% empty %}<small>—</small>{% endfor %}</td>
+      <td>{{ fila.objeto.actualizada_en|date:"d/m/Y H:i" }}<small>{% translate "creada el" %} {{ fila.objeto.creada_en|date:"d/m/Y" }}</small></td>
+      <td>
+        <a href="{{ fila.abrir_url }}">{% translate "Abrir y editar" %}</a>
+        {% if fila.objeto.receta %} · <a href="{{ fila.reporte_url }}">{% translate "Ver el documento" %}</a>{% endif %}
+        <form method="post" action="{{ fila.eliminar_url }}" data-ui-submit="confirm" data-ui-message="¿Eliminar «{{ fila.objeto.nombre }}»? No se puede deshacer.">{% csrf_token %}<button type="submit" class="aula-borrar">{% translate "Eliminar" %}</button></form>
+      </td>
+    </tr>{% empty %}<tr><td colspan="6" class="unit-report__empty">{% translate "Todavía no has guardado ninguna simulación. Corre una en cualquier simulador y usa «Guardar esta simulación»." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

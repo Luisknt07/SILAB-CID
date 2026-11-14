@@ -1,0 +1,77 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Plan y registros de producción" %}{% endblock %}
+{% block encabezado %}{% translate "Plan y registros de producción" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué planificó producir cada eje, cuánto lleva producido y a dónde fue: el centro compara lo real con lo planificado" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Ciclos" %}</dt><dd>{{ total_ciclos }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Plan y registros de producción" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+{% if messages %}{% for mensaje in messages %}<p class="centro-aviso">{{ mensaje }}</p>{% endfor %}{% endif %}
+
+{% for item in ejes %}
+<section class="unit-report__section">
+  <h2><i class="{{ item.eje.icono }}" aria-hidden="true"></i> <a href="{% url 'eje_centro' unidad.slug item.eje.codigo %}">{{ item.eje.titulo }}</a></h2>
+  {% if item.ciclos %}
+  <div class="centro-tabla-envoltura"><table class="centro-tabla">
+    <thead><tr><th>{% translate "Ciclo" %}</th><th>{% translate "Periodo" %}</th><th>{% translate "Meta" %}</th><th>{% translate "Producido" %}</th><th>{% translate "Cumplimiento" %}</th><th>{% translate "Rendimiento" %}</th><th>{% translate "Estado" %}</th></tr></thead>
+    <tbody>{% for fila in item.ciclos %}{% with ciclo=fila.ciclo %}<tr>
+      <td><strong>{{ ciclo.nombre }}</strong><br><small>{{ ciclo.rubro }}{% if ciclo.lugar %} · {{ ciclo.lugar.nombre }}{% endif %}{% if ciclo.superficie_ha %} · {{ ciclo.superficie_ha|floatformat:"-2" }} ha{% endif %}{% if ciclo.animales %} · {{ ciclo.animales }} {% translate "animales" %}{% endif %}</small></td>
+      <td>{{ ciclo.inicio|date:"d/m/Y" }} – {{ ciclo.fin|default:ciclo.fin_previsto|date:"d/m/Y" }}</td>
+      <td>{{ ciclo.meta|floatformat:"-2" }} {{ ciclo.unidad_medida }}{% if ciclo.referencia %}<br><small>{{ ciclo.referencia }}</small>{% endif %}</td>
+      <td>{{ fila.producido|floatformat:"-2" }} {{ ciclo.unidad_medida }}</td>
+      <td>{% if fila.cumplimiento is not None %}<span class="centro-avance" role="img" aria-label="{{ fila.cumplimiento }} %"><span style="width: {{ fila.barra }}%"></span></span> {{ fila.cumplimiento }} %{% else %}—{% endif %}</td>
+      <td>{% if fila.por_ha %}{{ fila.por_ha|floatformat:"1" }} {{ ciclo.unidad_medida }}/ha{% elif fila.por_animal_dia %}{{ fila.por_animal_dia|floatformat:"2" }} {{ ciclo.unidad_medida }} {% translate "por animal al día" %}{% else %}—{% endif %}</td>
+      <td><span class="centro-estado is-{{ ciclo.estado }}">{{ ciclo.get_estado_display }}</span>{% if gestor %} {% include 'portal/pages/unidades/includes/editar.html' with clave='ciclo_productivo' pk=ciclo.pk titulo=ciclo.nombre %}{% endif %}</td>
+    </tr>{% endwith %}{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="centro-fuente">{% translate "Este eje todavía no planifica ciclos." %}</p>{% endif %}
+</section>
+{% endfor %}
+
+{% if entregas %}
+<section class="unit-report__section">
+  <h2>{% translate "A dónde fue lo entregado en" %} {{ anio }}</h2>
+  <ul class="centro-datos">{% for fila in entregas %}<li><i class="fas fa-truck-loading" aria-hidden="true"></i><strong>{{ fila.total|floatformat:"-2" }} {{ fila.unidad_medida }}</strong><span>{{ fila.destino }}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if referencias %}
+<section class="unit-report__section">
+  <h2>{% translate "Referencias para fijar las metas" %}</h2>
+  <p>{% translate "Rendimientos publicados con su fuente: sirven para planificar cuánto debería producir cada ciclo. El centro compara su rendimiento real con ellos." %}</p>
+  <div class="centro-tabla-envoltura"><table class="centro-tabla">
+    <thead><tr><th>{% translate "Eje" %}</th><th>{% translate "Referencia" %}</th><th>{% translate "Valor" %}</th><th>{% translate "Fuente" %}</th></tr></thead>
+    <tbody>{% for grupo in referencias %}{% for referencia, valor, fuente in grupo.filas %}<tr>
+      <td>{% if forloop.first %}<a href="{% url 'eje_centro' unidad.slug grupo.eje.codigo %}">{{ grupo.eje.titulo }}</a>{% endif %}</td>
+      <td>{{ referencia }}</td><td><strong>{{ valor }}</strong></td><td><small>{{ fuente }}</small></td>
+    </tr>{% endfor %}{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+
+{% if gestor %}
+<section class="unit-report__section" id="registrar">
+  <h2>{% translate "Registrar lo de hoy" %}</h2>
+  <p>{% translate "Cada cosecha, ordeño, postura, labor, entrega o novedad se anota el mismo día. Solo lo ve quien gestiona la producción del centro; la ficha pública muestra los totales." %}</p>
+  <div class="centro-acciones">
+    {% translate "Nuevo ciclo productivo" as titulo_nuevo %}{% translate "Planificar un ciclo" as rotulo_nuevo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='ciclo_productivo' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}
+    <a href="{% url 'produccion_csv_centro' unidad.slug %}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar los registros en CSV" %}</a>
+  </div>
+  {% if formulario.fields.ciclo.queryset.exists %}
+  <form method="post" class="centro-formulario">{% csrf_token %}
+    {% for campo in formulario %}<label>{{ campo.label }}{{ campo }}{{ campo.errors }}</label>{% endfor %}
+    <div><button type="submit"><i class="fas fa-save" aria-hidden="true"></i> {% translate "Guardar el registro" %}</button></div>
+  </form>
+  {% else %}<p class="centro-fuente">{% translate "Planifica primero un ciclo: los registros se anotan dentro de un ciclo abierto." %}</p>{% endif %}
+  {% if recientes %}
+  <h3>{% translate "Últimos registros" %}</h3>
+  <div class="centro-tabla-envoltura"><table class="centro-tabla">
+    <thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Ciclo" %}</th><th>{% translate "Registro" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Destino" %}</th><th>{% translate "Detalle" %}</th><th>{% translate "Anotó" %}</th></tr></thead>
+    <tbody>{% for registro in recientes %}<tr><td>{{ registro.fecha|date:"d/m/Y" }}</td><td>{{ registro.ciclo.nombre }}</td><td>{{ registro.get_tipo_display }}</td><td>{% if registro.cantidad is not None %}{{ registro.cantidad|floatformat:"-2" }} {{ registro.unidad_medida }}{% else %}—{% endif %}</td><td>{{ registro.get_destino_display|default:"—" }}</td><td>{{ registro.detalle|default:"—" }}</td><td>{{ registro.registrado_por.get_full_name|default:registro.registrado_por.username|default:"—" }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

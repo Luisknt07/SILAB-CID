@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Ultimaker Cura</title>
+  <rect width="160" height="160" rx="34" fill="#eefbff"/>
+  <path d="M34 35h26v61c0 15 8 22 20 22s21-7 21-22V35h26v63c0 30-19 44-47 44S34 128 34 98V35Z" fill="#12a8cc"/>
+  <path d="M68 72h25v25H68z" fill="#fff" opacity=".8"/>
+  <text x="80" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#08738e">Cura</text>
+</svg>

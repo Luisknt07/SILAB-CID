@@ -1,0 +1,178 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preparación presencial · Logística UPEC</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/logistica_operacion.css' %}?v=20261012-2">
+</head>
+<body>
+  <a class="op-saltar" href="#contenido">Ir al contenido</a>
+  <header class="op-cabecera">
+    <a href="{{ volver_url }}">← Volver a la práctica virtual</a>
+    <span>UPEC · Operación del laboratorio</span>
+  </header>
+  <main class="op-main" id="contenido">
+    <section class="op-hero" aria-labelledby="op-titulo">
+      <div>
+        <p class="op-kicker">Bloque 4 · Preparación presencial</p>
+        <h1 id="op-titulo">De la simulación a una práctica trazable</h1>
+        <p>Organiza recursos, seguridad, documentación y responsables antes de trabajar con una maqueta. Registra después lo que realmente ocurrió.</p>
+        <div class="op-chips"><span>{{ unidad.nombre }}</span><span>Escenario {{ caso }}</span><span>Semilla {{ semilla }}</span></div>
+        <a class="op-boton op-destacado" href="{{ simulador_url }}">Volver al escenario 3D →</a>
+      </div>
+      <figure class="op-diagrama">
+        <svg viewBox="0 0 520 300" role="img" aria-labelledby="op-plano-titulo op-plano-desc">
+          <title id="op-plano-titulo">Esquema de preparación y operación supervisada</title>
+          <desc id="op-plano-desc">Un puesto de control documental conecta una maqueta de almacén, los participantes y el registro de evidencias. El esquema no representa instalaciones reales.</desc>
+          <defs>
+            <pattern id="op-reticula" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#a9dac2" stroke-opacity=".13"/></pattern>
+          </defs>
+          <rect x="1" y="1" width="518" height="298" rx="18" fill="url(#op-reticula)" stroke="#8bc6aa" stroke-opacity=".35"/>
+          <g stroke="#a9dac2" stroke-width="2" fill="#064b32">
+            <path d="M36 109 230 36 423 109 230 186Z"/>
+            <path d="M36 109v67l194 78v-68M423 109v67l-193 78M36 176l194-75 193 75" fill="none"/>
+            <path d="m106 103 52-20 36 14-52 20Z"/><path d="m106 103v48l36 14v-48m0 0 52-20v48l-52 20"/>
+            <path d="m209 65 52-20 36 14-52 20Z"/><path d="m209 65v48l36 14V79m0 0 52-20v48l-52 20"/>
+            <path d="m240 147 52-20 36 14-52 20Z"/><path d="m240 147v48l36 14v-48m0 0 52-20v48l-52 20"/>
+            <rect x="371" y="201" width="119" height="73" rx="10"/>
+          </g>
+          <g stroke="#ffce00" fill="none" stroke-width="2"><path class="op-trazado" d="M57 202 218 264 342 216"/><path d="m331 213 11 3-5 10"/><path d="M389 219h42m-42 12h70m-70 12h70m-70 12h31"/><circle cx="456" cy="218" r="8"/></g>
+          <g fill="#dff2e8" font-family="system-ui,sans-serif" font-size="11"><text x="36" y="280">MAQUETA · SUPERVISIÓN · DATOS</text><text x="36" y="28">RECURSOS IDENTIFICADOS</text><text x="375" y="192">EVIDENCIA Y CONTROL</text></g>
+        </svg>
+        <figcaption>Esquema educativo. El inventario y la autorización se verifican en la unidad.</figcaption>
+      </figure>
+    </section>
+
+    <aside class="op-aviso" aria-labelledby="op-alcance">
+      <h2 id="op-alcance">Los registros no sustituyen la verificación presencial</h2>
+      <p>«Registrado» describe información en el sistema. «Verificado» identifica un dato confirmado, cuando existe ese registro. Ninguno de estos estados autoriza por sí solo el uso de equipos ni acredita aforo, seguridad o aptitud técnica.</p>
+      <p>Las partidas virtuales conservan datos sintéticos. No se convierten automáticamente en asistencia, consumo, ejecución física o calificación oficial.</p>
+    </aside>
+
+    {% if avisos %}
+    <section class="op-mensajes" aria-labelledby="op-mensajes-titulo">
+      <h2 id="op-mensajes-titulo">Antes de continuar</h2>
+      <ul>{% for aviso in avisos %}<li>{{ aviso }}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+
+    <nav class="op-ruta" aria-label="Etapas de la operación presencial">
+      <ol>
+        <li><a href="#recursos"><span>01</span><strong>Recursos</strong><small>Identificar y comprobar</small></a></li>
+        <li><a href="#seguridad"><span>02</span><strong>Seguridad</strong><small>Inducción y supervisión</small></a></li>
+        <li><a href="#actividad"><span>03</span><strong>Actividad y guía</strong><small>Seleccionar y aprobar</small></a></li>
+        <li><a href="#planificacion"><span>04</span><strong>Reserva y FT02</strong><small>Programar la sesión</small></a></li>
+        <li><a href="#ejecucion"><span>05</span><strong>Ejecución FT03</strong><small>Registrar lo ocurrido</small></a></li>
+        <li><a href="#reportes"><span>06</span><strong>Evidencias y reportes</strong><small>Revisar y cerrar</small></a></li>
+      </ol>
+    </nav>
+
+    <section class="op-seccion" id="recursos" aria-labelledby="op-recursos-titulo">
+      <div class="op-seccion-encabezado"><span class="op-numero">01</span><div><p class="op-kicker">Punto de partida</p><h2 id="op-recursos-titulo">Comprueba la preparación de la unidad</h2></div></div>
+      <p>Consulta los registros existentes y contrástalos con los equipos instalados. Un equipo catalogado puede estar sin verificar, bloqueado o sujeto a condiciones de operación.</p>
+      <div class="op-indicadores">
+        {% for indicador in indicadores %}
+        <article class="op-indicador">
+          <span class="op-estado op-estado--{{ indicador.estado }}">{{ indicador.estado|capfirst }}</span>
+          <h3>{{ indicador.titulo }}</h3><strong class="op-valor">{{ indicador.valor }}</strong><p>{{ indicador.detalle }}</p>
+        </article>
+        {% empty %}
+        <p class="op-vacio">No hay indicadores disponibles para tu alcance de consulta. Solicita la revisión al responsable de la unidad.</p>
+        {% endfor %}
+      </div>
+      <details class="op-detalle"><summary>Qué comprobar en la maqueta y los puestos de trabajo</summary>
+        <ul><li>Identificación de cada equipo, ubicación, estado y responsable. La cantidad registrada debe coincidir con la comprobación física.</li><li>Escala, zonas de recepción, almacenamiento, picking y despacho; capacidad y límites reales de movimiento.</li><li>Alimentación, conexiones, parada segura y estado de sensores o actuadores. Las interfaces se documentan antes de conectar aplicaciones.</li><li>Ordenadores, red, licencias y accesibilidad. La práctica virtual puede prepararse con los datasets descargables si no hay equipo 3D disponible.</li><li>Insumos previstos y condiciones de entrega, devolución y registro de consumo.</li></ul>
+        <p class="op-nota">La simulación actual no controla robots, montacargas, drones ni otros dispositivos físicos.</p>
+      </details>
+    </section>
+
+    <section class="op-seccion" id="seguridad" aria-labelledby="op-seguridad-titulo">
+      <div class="op-seccion-encabezado"><span class="op-numero">02</span><div><p class="op-kicker">Preparación supervisada</p><h2 id="op-seguridad-titulo">Define las condiciones de acceso y trabajo</h2></div></div>
+      <div class="op-dos">
+        <article class="op-panel"><h3>Antes de abrir la sesión</h3><ol><li>Confirmar el responsable técnico, la inducción requerida y los participantes autorizados.</li><li>Verificar aforo, circulación, accesibilidad y separación entre personas y partes móviles.</li><li>Revisar riesgos, procedimientos de parada y respuesta ante incidentes con el personal de la unidad.</li><li>Bloquear recursos no aptos en la gestión correspondiente; la autorización final pertenece al responsable institucional.</li></ol></article>
+        <article class="op-panel"><h3>Traslada el caso con límites claros</h3><p>La práctica virtual seleccionada es <strong>{{ guia_virtual.titulo }}</strong>, con semilla <strong>{{ semilla }}</strong>.</p><p>Usa sus pedidos y reglas como material didáctico. Ajusta distancias, tiempos, capacidad y procedimiento a lo que se haya medido en la maqueta; registra cualquier diferencia.</p><p class="op-nota">Una falla del simulador se analiza como contingencia. No se provoca una avería física ni se anulan protecciones para reproducirla.</p></article>
+      </div>
+    </section>
+
+    <section class="op-seccion" id="actividad" aria-labelledby="op-actividad-titulo">
+      <div class="op-seccion-encabezado"><span class="op-numero">03</span><div><p class="op-kicker">Base documental</p><h2 id="op-actividad-titulo">Selecciona la actividad y prepara su guía</h2></div></div>
+      <p>Trabaja sobre una actividad formal de esta unidad. La guía virtual aporta metodología; su adaptación presencial se revisa y publica mediante el flujo institucional de guías.</p>
+      <form class="op-buscar" method="get" action="">
+        <input type="hidden" name="caso" value="{{ caso }}"><input type="hidden" name="semilla" value="{{ semilla }}">
+        {% if actividad %}<input type="hidden" name="actividad" value="{{ actividad.pk|default:actividad.id }}">{% endif %}
+        {% if plan_seleccionado %}<input type="hidden" name="plan" value="{{ plan_seleccionado }}">{% endif %}
+        <label for="op-q">Buscar actividad<input id="op-q" name="q" type="search" value="{{ q }}" maxlength="100" placeholder="Nombre o código de la actividad"></label>
+        <button class="op-boton" type="submit">Buscar</button>
+      </form>
+      {% if actividad %}<div class="op-seleccion"><p class="op-kicker">Actividad seleccionada</p><h3>{{ actividad.nombre }}</h3><p>{% if actividad.codigo %}<strong>{{ actividad.codigo }}</strong> · {% endif %}{{ actividad.responsable|default:"Responsable no registrado" }}</p><p class="op-nota">La selección organiza la consulta. No reserva recursos ni crea una planificación.</p></div>{% endif %}
+      <div class="op-actividades">
+        {% for item in actividades %}
+        <article class="op-actividad{% if item.id == actividad.pk or item.id == actividad.id %} op-actividad--seleccionada{% endif %}">
+          <div><p class="op-kicker">{{ item.codigo|default:"Actividad formal" }}</p><h3>{{ item.nombre }}</h3><p>{{ item.responsable|default:"Responsable no registrado" }}</p></div>
+          <a class="op-boton" href="{{ item.url }}">{% if item.id == actividad.pk or item.id == actividad.id %}Seleccionada{% else %}Seleccionar actividad →{% endif %}</a>
+        </article>
+        {% empty %}
+        <div class="op-vacio"><h3>No hay actividades para esta consulta</h3><p>Prueba otro término. Si todavía no existe la actividad presencial, el responsable debe registrarla y definir su alcance antes de planificar una sesión.</p></div>
+        {% endfor %}
+      </div>
+      {% if pagina.paginator.num_pages > 1 %}
+      <nav class="op-paginacion" aria-label="Páginas de actividades">
+        {% if pagina.has_previous %}<a class="op-boton" href="?caso={{ caso|urlencode }}&amp;semilla={{ semilla }}&amp;q={{ q|urlencode }}{% if actividad %}&amp;actividad={{ actividad.pk|default:actividad.id }}{% endif %}{% if plan_seleccionado %}&amp;plan={{ plan_seleccionado }}{% endif %}&amp;page={{ pagina.previous_page_number }}#actividad">← Anterior</a>{% endif %}
+        <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+        {% if pagina.has_next %}<a class="op-boton" href="?caso={{ caso|urlencode }}&amp;semilla={{ semilla }}&amp;q={{ q|urlencode }}{% if actividad %}&amp;actividad={{ actividad.pk|default:actividad.id }}{% endif %}{% if plan_seleccionado %}&amp;plan={{ plan_seleccionado }}{% endif %}&amp;page={{ pagina.next_page_number }}#actividad">Siguiente →</a>{% endif %}
+      </nav>
+      {% endif %}
+      <div class="op-dos">
+        <article class="op-panel"><h3>Guías de la actividad seleccionada</h3>{% if guia_publicada %}<div class="op-guia-publicada"><span class="op-estado op-estado--registrado">Publicada</span><strong>{{ guia_publicada.titulo }}</strong><small>Versión {{ guia_publicada.version }} · Disponible para la planificación</small><a href="{{ guia_publicada.url }}" target="_top">Consultar guía publicada →</a></div>{% endif %}<ul class="op-registros">{% for item in guias %}<li><div><strong>{{ item.titulo }}</strong><small>Versión {{ item.version }} · {{ item.estado_label|default:item.estado }}</small></div>{% if item.url %}<a href="{{ item.url }}" target="_top">Abrir guía →</a>{% endif %}</li>{% empty %}<li>No hay guías visibles para la actividad seleccionada. Una guía adaptada necesita revisión institucional antes de usarse como publicada.</li>{% endfor %}</ul></article>
+        <article class="op-panel op-panel--accion"><h3>Adapta el centro de distribución</h3><p>Parte de la guía virtual, conserva caso y semilla y completa con los recursos, riesgos y condiciones verificadas de la práctica presencial.</p>{% if adaptar_url %}<a class="op-boton op-principal" href="{{ adaptar_url }}" target="_top">Adaptar guía al trabajo presencial →</a><p class="op-nota">Abre el editor institucional. No se guarda ni publica una guía al pulsar este enlace.</p>{% else %}<p class="op-nota">La adaptación corresponde al personal autorizado para gestionar la actividad y sus guías. Puedes consultar la práctica virtual mientras se completa esa preparación.</p>{% endif %}</article>
+      </div>
+    </section>
+
+    <section class="op-seccion" id="planificacion" aria-labelledby="op-planificacion-titulo">
+      <div class="op-seccion-encabezado"><span class="op-numero">04</span><div><p class="op-kicker">Sesión programada</p><h2 id="op-planificacion-titulo">Vincula la reserva y la planificación FT02</h2></div></div>
+      <p>Selecciona recursos disponibles y un horario autorizado. La planificación reúne guía, tema de la asignatura, resultado de aprendizaje, participantes previstos y responsable técnico.</p>
+      <div class="op-tabla op-tabla--sesiones" id="op-planes" tabindex="0" role="region" aria-label="Planificaciones de la actividad; desplaza horizontalmente para consultar todas las columnas"><table><caption>Hasta cinco planificaciones recientes. Elige una sesión para consultar su seguimiento; el expediente seleccionado también puede ser anterior.</caption><thead><tr><th scope="col">Planificación</th><th scope="col">Fecha y horario</th><th scope="col">Estado FT02</th><th scope="col">Reserva</th><th scope="col">Ejecución FT03</th><th scope="col">Seguimiento</th></tr></thead><tbody>{% for item in planes %}<tr{% if item.seleccionado %} class="op-fila-seleccionada"{% endif %}><th scope="row"><strong>{{ item.codigo }}</strong><small>{{ item.tema }}</small></th><td>{{ item.fecha|date:'d/m/Y' }}<small>{{ item.hora_inicio|time:'H:i' }}–{{ item.hora_fin|time:'H:i' }}</small></td><td><span class="op-estado">{{ item.estado_label|default:item.estado }}</span></td><td>{{ item.reserva_codigo|default:"Sin vincular" }}{% if item.reserva_estado_label %}<small>{{ item.reserva_estado_label }}</small>{% endif %}</td><td>{{ item.ejecucion_estado_label|default:"Sin registrar" }}</td><td><a class="op-boton op-boton--compacto" href="{{ item.seleccion_url }}"{% if item.seleccionado %} aria-current="true"{% endif %} aria-label="{% if item.seleccionado %}Consultar seguimiento de{% else %}Seleccionar sesión{% endif %} {{ item.codigo }}">{% if item.seleccionado %}En seguimiento{% else %}Seleccionar sesión{% endif %}</a><a class="op-enlace-secundario" href="{{ item.url }}" target="_top" aria-label="Abrir expediente completo {{ item.codigo }}">Abrir expediente completo ↗</a></td></tr>{% empty %}<tr><td colspan="6" class="op-vacio">No hay planificaciones visibles para la actividad seleccionada. La práctica virtual no genera una reserva física.</td></tr>{% endfor %}</tbody></table></div>
+      <section class="op-expediente" id="expediente" aria-labelledby="op-expediente-titulo">
+        {% if expediente %}
+        <header class="op-expediente-cabecera"><div><p class="op-kicker">Seguimiento de una sesión</p><h3 id="op-expediente-titulo">{{ expediente.codigo }} · {{ expediente.tema }}</h3><p>{{ expediente.fecha|date:'d/m/Y' }} · {{ expediente.hora_inicio|time:'H:i' }}–{{ expediente.hora_fin|time:'H:i' }}{% if not expediente.vigente %} · Versión anterior{% endif %}</p></div><span class="op-estado">{{ expediente.estado_label }}</span></header>
+        <p class="op-nota">Los controles siguientes corresponden únicamente a este expediente. Describen registros y pendientes; la comprobación de recursos, acceso y supervisión corresponde al personal de la unidad.</p>
+        {% if expediente.proxima_accion %}<aside class="op-proxima" aria-labelledby="op-proxima-titulo"><div><p class="op-kicker">Siguiente acción documental</p><h4 id="op-proxima-titulo">{{ expediente.proxima_accion.titulo }}</h4><p>{{ expediente.proxima_accion.detalle }}</p></div>{% if expediente.proxima_accion.url %}<a class="op-boton op-principal" href="{{ expediente.proxima_accion.url }}"{% if expediente.proxima_accion.target_top %} target="_top"{% endif %}>{{ expediente.proxima_accion.titulo }} ↗</a>{% endif %}</aside>{% endif %}
+        {% if controles %}<ol class="op-seguimiento" aria-label="Condiciones documentales de la sesión">{% for control in controles %}<li class="op-seguimiento--{{ control.estado }}"><span class="op-estado op-estado--{{ control.estado }}">{% if control.estado == 'no_aplica' %}No aplica{% elif control.estado == 'observado' %}Requiere revisión{% else %}{{ control.estado|capfirst }}{% endif %}</span><h4>{{ control.titulo }}</h4><p>{{ control.detalle }}</p></li>{% endfor %}</ol>{% endif %}
+        <div class="op-expediente-datos">
+          <article class="op-panel"><h4>Guía vinculada a FT02</h4>{% if expediente.guia %}<strong>{{ expediente.guia.titulo }}</strong><p class="op-nota">Versión {{ expediente.guia.version }} · {{ expediente.guia.estado_label }}</p>{% if expediente.guia.url %}<a href="{{ expediente.guia.url }}" target="_top">Consultar esta guía ↗</a>{% endif %}{% else %}<p>Sin guía vinculada.</p><p class="op-nota">Revisa el control de guía: el expediente indica si se requiere para su alcance.</p>{% endif %}</article>
+          <article class="op-panel"><h4>Reserva vinculada</h4>{% if expediente.reserva %}<strong>{{ expediente.reserva.codigo }}</strong><p>{{ expediente.reserva.estado_label }}</p>{% if expediente.reserva.resultado_label %}<p class="op-nota">Resultado del cierre: {{ expediente.reserva.resultado_label }}</p>{% endif %}{% else %}<p>Sin reserva vinculada.</p><p class="op-nota">La planificación por sí sola no asigna recursos ni habilita la ejecución.</p>{% endif %}</article>
+          <article class="op-panel"><h4>FT03 · Resultado registrado</h4>{% if expediente.ejecucion %}<dl class="op-ficha"><dt>Estado</dt><dd>{{ expediente.ejecucion.estado_label }}</dd><dt>Resultado</dt><dd>{{ expediente.ejecucion.resultado_label }}</dd><dt>Fecha</dt><dd>{{ expediente.ejecucion.fecha|date:'d/m/Y' }}</dd><dt>Asistentes registrados</dt><dd>{{ expediente.ejecucion.asistentes }}</dd><dt>Incidencia declarada</dt><dd>{{ expediente.ejecucion.incidente|yesno:'Sí,No' }}</dd><dt>Uso efectivo en reportes</dt><dd>{{ expediente.ejecucion.efectiva|yesno:'Sí,No' }}</dd></dl><p class="op-nota">El uso efectivo exige una ejecución realizada y validada. Una cancelación o reprogramación conserva su propio resultado.</p>{% else %}<p>Todavía no se ha registrado una ejecución.</p>{% endif %}{% if expediente.ejecucion_url %}<a class="op-boton op-boton--compacto" href="{{ expediente.ejecucion_url }}" target="_top">Registrar o completar FT03 ↗</a>{% endif %}</article>
+          <article class="op-panel"><h4>Evidencias de esta ejecución</h4><p class="op-total-evidencias"><strong>{{ expediente.evidencias_total }}</strong> archivo{{ expediente.evidencias_total|pluralize }} registrado{{ expediente.evidencias_total|pluralize }}</p><ul class="op-evidencias-resumen">{% for evidencia in expediente.evidencias %}<li><span>{{ evidencia.titulo }}</span><strong>{{ evidencia.total }}</strong></li>{% empty %}<li>No hay archivos registrados para esta ejecución.</li>{% endfor %}</ul><p class="op-nota">Los formatos y las descargas se consultan en el expediente completo con sus permisos. Un archivo adjunto no certifica por sí solo asistencia o aptitud de los equipos.</p></article>
+        </div>
+        <footer class="op-expediente-pie"><a class="op-boton" href="{{ expediente.url }}" target="_top">Abrir expediente completo {{ expediente.codigo }} ↗</a><a href="#reportes">Revisar evidencias y reportes ↓</a></footer>
+        {% else %}
+        <div class="op-vacio"><p class="op-kicker">Seguimiento por sesión</p><h3 id="op-expediente-titulo">Selecciona una planificación para continuar</h3><p>Elige una sesión en la tabla para consultar su guía, reserva, ejecución y evidencias. El seguimiento conserva el caso y la semilla de la práctica virtual y muestra únicamente los datos autorizados del expediente.</p>{% if planes %}<a class="op-boton" href="#op-planes">Elegir una sesión ↑</a>{% else %}<p class="op-nota">Si todavía no existe una planificación, completa la actividad y su guía mediante las acciones disponibles para tu perfil.</p>{% endif %}</div>
+        {% endif %}
+      </section>
+    </section>
+
+    <section class="op-seccion" id="ejecucion" aria-labelledby="op-ejecucion-titulo">
+      <div class="op-seccion-encabezado"><span class="op-numero">05</span><div><p class="op-kicker">Lo que realmente ocurrió</p><h2 id="op-ejecucion-titulo">Registra y revisa la ejecución FT03</h2></div></div>
+      <div class="op-dos">
+        <article class="op-panel"><h3>Registro de la sesión presencial</h3><ul><li>Horario real, resultado de la sesión y asistencia confirmada.</li><li>Equipos, espacios y software realmente usados, junto con el consumo efectivo de insumos.</li><li>Diferencias frente a lo planificado, incidencias y acciones adoptadas.</li><li>Observaciones sobre el aprendizaje y evidencias identificadas.</li></ul><p class="op-nota">El flujo existente exige planificación aprobada y reserva vinculada para registrar la ejecución. La revisión del responsable valida y cierra el registro.</p></article>
+        <article class="op-panel"><h3>Contrasta simulación y maqueta</h3><ol><li>Conserva la semilla, las versiones y las decisiones de la práctica virtual.</li><li>Mide los tiempos y recorridos presenciales con un procedimiento acordado.</li><li>Compara magnitudes con la misma unidad y documenta las diferencias de escala y operación.</li><li>Explica qué resultados se pueden trasladar y cuáles dependen de las simplificaciones del modelo.</li></ol><p class="op-nota">El puntaje didáctico del simulador no se transfiere como nota oficial ni como medida de aptitud operativa.</p></article>
+      </div>
+    </section>
+
+    <section class="op-seccion" id="reportes" aria-labelledby="op-reportes-titulo">
+      <div class="op-seccion-encabezado"><span class="op-numero">06</span><div><p class="op-kicker">Cierre trazable</p><h2 id="op-reportes-titulo">Prepara evidencias y reportes coherentes</h2></div></div>
+      <div class="op-dos">
+        <article class="op-panel"><h3>Evidencia verificable</h3><p>Adjunta a FT03 el informe, las tablas CSV, la bitácora y las fotografías autorizadas que correspondan a la sesión. Identifica qué documento es virtual y cuál proviene de mediciones presenciales.</p><p>Si la entrega incluye JSON del simulador, agrúpalo en un ZIP con un informe que explique caso, semilla, versiones y resultados. El formulario de evidencias indica formatos y límites admitidos.</p><p class="op-nota">Evita incluir datos personales innecesarios. Las evidencias se consultan con los permisos de la planificación.</p></article>
+        <article class="op-panel"><h3>Una sola fuente para la gestión</h3><p>La planificación, la ejecución y sus evidencias alimentan los reportes institucionales existentes. La simulación por sí sola no registra atención física ni consumo.</p><p>Revisa estados, responsables, documentos y diferencias entre lo previsto y lo realizado antes de cerrar el expediente. Los reportes se abren cuando se solicitan, según tus permisos.</p></article>
+      </div>
+      <div class="op-accesos" aria-labelledby="op-accesos-titulo">
+        <h3 id="op-accesos-titulo">Acciones disponibles para tu perfil</h3>
+        <div class="op-enlaces">{% for enlace in enlaces %}<a class="op-enlace" href="{{ enlace.url }}" target="_top"><span><strong>{{ enlace.titulo }}</strong><small>{{ enlace.descripcion }}</small></span><span aria-hidden="true">↗</span></a>{% empty %}<p class="op-vacio">No hay accesos operativos disponibles para tu perfil. El responsable de la unidad completa la documentación y la programación.</p>{% endfor %}</div>
+      </div>
+    </section>
+  </main>
+  <footer class="op-pie"><strong>Universidad Politécnica Estatal del Carchi</strong><span>Laboratorio de Logística, Transporte y Cadena de Suministro · Preparación, operación y evidencia</span></footer>
+</body>
+</html>

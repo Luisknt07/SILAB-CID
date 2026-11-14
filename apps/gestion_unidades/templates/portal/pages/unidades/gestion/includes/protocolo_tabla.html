@@ -1,0 +1,22 @@
+{% load redaccion %}
+<div class="guide-field guide-field--wide guide-editor-keep protocolo-tabla" data-campo="{{ campo.clave }}" data-protocolo-tabla="{{ campo.clave }}">
+  <label>{{ campo.etiqueta }}{% if campo.requerido %} <em>*</em>{% endif %}</label>
+  {% if dato.protocolo.propuestas %}<p class="protocolo-tabla__ayuda">Contenido propuesto según los registros de tu unidad. Revisa «Aplica / No aplica» y ajusta las medidas.</p>{% endif %}
+  <div data-protocolo-filas>{% for fila in dato.valor %}
+    <div class="protocolo-fila" data-protocolo-fila>
+      <header><span data-protocolo-origen>{{ fila.origen|default:'Contenido de la unidad' }}</span><button type="button" class="redaccion__quitar" data-protocolo-quitar aria-label="Quitar este registro">×</button></header>
+      <div class="protocolo-fila__campos">{% include 'portal/pages/unidades/gestion/includes/protocolo_celdas.html' %}</div>
+    </div>
+  {% endfor %}</div>
+  <p class="protocolo-tabla__vacio" data-protocolo-vacio{% if dato.valor %} hidden{% endif %}>No hay registros adicionales. Usa «Añadir registro» si necesitas incluir uno.</p>
+  <template data-protocolo-plantilla><div class="protocolo-fila" data-protocolo-fila>
+    <header><span data-protocolo-origen>Contenido de la unidad</span><button type="button" class="redaccion__quitar" data-protocolo-quitar aria-label="Quitar este registro">×</button></header>
+    <div class="protocolo-fila__campos">{% include 'portal/pages/unidades/gestion/includes/protocolo_celdas.html' with fila=None %}</div>
+  </div></template>
+  <div class="protocolo-tabla__acciones"><button type="button" class="guide-btn guide-btn--soft" data-protocolo-anadir>+ Añadir registro</button>
+    {% if dato.protocolo.propuestas %}<button type="button" class="guide-btn guide-btn--outline" data-protocolo-proponer>Añadir propuestas de los registros actuales</button>{% endif %}
+  </div>
+  {% with id_propuestas=campo.clave|add:'-propuestas' %}{{ dato.protocolo.propuestas|json_script:id_propuestas }}{% endwith %}
+  <datalist id="{{ campo.clave }}-frecuencia-opciones">{% for opcion in dato.protocolo.frecuencias %}<option value="{{ opcion }}">{% endfor %}</datalist>
+  {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+</div>

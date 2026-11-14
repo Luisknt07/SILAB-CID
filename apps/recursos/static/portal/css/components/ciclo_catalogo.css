@@ -1,0 +1,14 @@
+.ciclo-catalogo { max-width: 1000px; margin: 30px auto; padding: 16px; color: var(--institucion-texto, #18312a); }
+.ciclo-catalogo > nav { display:flex; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+.ciclo-catalogo > header { padding:24px; background:var(--institucion-primario, #006633); color:#fff; border-bottom:3px solid var(--institucion-acento, #ffce00); border-radius:12px; }
+.ciclo-catalogo > header :is(h1,p,small) { color:#fff; margin:8px 0; }
+.ciclo-catalogo > section { margin:18px 0; padding:24px; border:1px solid #dce5df; border-radius:12px; background:#fff; }
+.ciclo-catalogo h2 { font-size:20px; color:var(--institucion-primario, #006633); }
+.ciclo-catalogo label { display:grid; gap:6px; font-weight:600; }
+.ciclo-catalogo :is(input,select,textarea) { width:100%; padding:10px; border:1px solid #bacfc2; border-radius:6px; font:inherit; }
+.ciclo-catalogo textarea { max-height:160px; }
+.ciclo-catalogo button { margin-top:12px; padding:10px 16px; border:0; border-radius:6px; background:var(--institucion-primario, #006633); color:#fff; font:inherit; cursor:pointer; }
+.ciclo-catalogo button.is-danger { background:#a63432; }
+.ciclo-catalogo__pasos { display:flex; flex-wrap:wrap; gap:10px 24px; padding:0; list-style:none; }
+.ciclo-catalogo__pasos li { padding:8px; background:#eef5f0; border-radius:5px; font-size:12px; }
+.ciclo-catalogo__error, .ciclo-catalogo .errorlist { padding:12px; background:#fff0ed; color:#9b302a; }

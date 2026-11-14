@@ -1,0 +1,38 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Insumos y materiales" %}{% endblock %}
+{% block encabezado %}{% translate "Insumos y materiales" %}{% endblock %}
+{% block subtitulo %}{% translate "El inventario de insumos y materiales de la unidad: dónde se guardan, qué equipos los usan y si ya tienen stock" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Registrados" %}</dt><dd>{{ total }}</dd></div><div><dt>{% translate "Con stock" %}</dt><dd>{{ con_stock }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Insumos y materiales" %}{% endblock %}
+{% block contenido %}
+{% if referencias_inactivas %}<p class="aula-aviso">Vista previa de gestión: {{ referencias_inactivas }} referencias inactivas. No se incluyen en las existencias ni en las reservas.</p>{% endif %}
+{% if grupos|length > 1 %}
+<ul class="aula-mapa" aria-label="{% translate "Clases de insumos" %}">
+  {% for grupo in grupos %}<li><a class="aula-mapa__item" href="#clase-{{ grupo.clave }}">
+    <span class="aula-mapa__icono"><i class="fas fa-boxes" aria-hidden="true"></i></span>
+    <span class="aula-mapa__texto"><strong>{{ grupo.nombre }}</strong><small>{{ grupo.detalle|default:"" }}</small></span>
+    <span class="aula-mapa__cuenta">{{ grupo.insumos|length }}<small>{% translate "registro" %}{{ grupo.insumos|length|pluralize }}</small></span>
+  </a></li>{% endfor %}
+</ul>
+{% endif %}
+{% for grupo in grupos %}
+<section class="unit-report__section" id="clase-{{ grupo.clave }}">
+  <header><span>{{ grupo.nombre|upper }}</span><small>{{ grupo.insumos|length }} {% translate "registro" %}{{ grupo.insumos|length|pluralize }}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Insumo o material" %}</th><th>{% translate "Para qué se usa" %}</th><th>{% translate "Presentación" %}</th><th>{% translate "Dónde se guarda" %}</th><th>{% translate "Equipos que lo usan" %}</th><th>{% translate "En inventario" %}</th></tr></thead><tbody>
+    {% for insumo in grupo.insumos %}<tr>
+      <td><div class="aula-con-miniatura"><span class="aula-miniatura" aria-hidden="true">{% if insumo.imagen_publica_url %}<img src="{{ insumo.imagen_publica_url }}" alt="" loading="lazy">{% else %}<i class="{{ insumo.icono }}"></i>{% endif %}</span><span><strong>{{ insumo.nombre }}</strong><br><small>{{ insumo.codigo }}</small>{% include 'portal/pages/unidades/includes/editar.html' with clave='insumo' pk=insumo.pk titulo=insumo.nombre %}</span></div></td>
+      <td>{{ insumo.descripcion|default:"—"|truncatechars:160 }}{% include 'portal/pages/unidades/includes/medios_recurso.html' with recurso=insumo compacto=True %}</td>
+      <td>{{ insumo.presentacion|default:"—" }}</td>
+      <td>{{ insumo.ubicacion|default:"—" }}</td>
+      <td>{{ insumo.equipos|join:", "|default:"—" }}</td>
+      <td>{% if not insumo.activo %}<span class="aula-aviso">Referencia inactiva: no cuenta como existencia</span>{% elif insumo.stock_total %}<span class="aula-ok">{{ insumo.stock_total|floatformat:"-3" }} {{ insumo.unidad_medida|default:"" }}</span>{% else %}<span class="aula-aviso">{% translate "Por inventariar" %}</span>{% endif %}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<section class="unit-report__context"><span>{% translate "SIN REGISTROS" %}</span><h2>{% translate "La unidad todavía no registra insumos ni materiales" %}</h2></section>
+{% endfor %}
+{% translate "Nuevo insumo o material" as titulo_nuevo %}{% translate "Agregar un insumo o material" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='insumo' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

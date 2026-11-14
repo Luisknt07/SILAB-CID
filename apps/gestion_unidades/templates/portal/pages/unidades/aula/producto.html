@@ -1,0 +1,28 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{{ producto.nombre }}{% endblock %}
+{% block encabezado %}{{ producto.nombre }}{% endblock %}
+{% block subtitulo %}{% translate "Producto del catálogo institucional" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Código" %}</dt><dd>{{ producto.codigo }}</dd></div><div><dt>{% translate "Familia" %}</dt><dd>{{ producto.familia.nombre }}</dd></div>{% endblock %}
+{% block barra %}<div>{% if operar_url %}<a href="{{ operar_url }}" target="_top" title="{% translate "Abrir el módulo donde esto se opera" %}">{% translate "Operar en la consola" %}</a>{% endif %}{% if acciones_proceso %}{% for item in acciones_proceso %}<a class="accion-proceso{% if item.activa %} is-active{% endif %}" href="{{ item.url }}"{% if item.activa %} aria-current="page"{% endif %}{% if item.clave == 'ficha' %} title="{% translate "Abrir proceso técnico" %}"{% endif %}>{{ item.nombre }}</a>{% endfor %}{% else %}{% for item in acciones_producto %}<a class="accion-proceso{% if item.activa %} is-active{% endif %}" href="{{ item.url }}"{% if item.activa %} aria-current="page"{% endif %}>{{ item.nombre }}</a>{% endfor %}{% endif %}<a href="{{ catalogo_url }}">{% translate "Ver catálogo completo" %}</a>{% if datos_csv_url %}<a href="{{ datos_csv_url }}" download>{% translate "Datos (CSV)" %}</a>{% endif %}{% if cita %}<button class="aula-citar" type="button" data-cita="{{ cita|escape }}"><i class="fas fa-quote-right" aria-hidden="true"></i> {% translate "Citar" %}</button>{% endif %}<a href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="Ficha del producto · {{ producto.nombre }}">{% translate "Ver el documento" %}</a><a class="is-primary" href="{{ descargar_documento_url }}">{% translate "Descargar documento" %}</a></div>{% endblock %}
+{% block pie %}{% translate "Ficha de producto" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__context">
+  <span>PRODUCTO</span>
+  <h2>{{ producto.nombre }}</h2>
+  <p>{% if producto.descripcion %}{{ producto.descripcion }}{% else %}{% translate "Esta referencia forma parte de la taxonomía oficial de" %} {{ producto.familia.nombre }}.{% endif %}</p>
+</section>
+
+<section class="unit-report__summary" aria-label="{% translate "Datos del producto" %}">
+  <article><span>{% translate "Familia" %}</span><strong>{{ producto.familia.nombre }}</strong><small>{% translate "taxonomía institucional" %}</small></article>
+  <article><span>{% translate "Unidad de medida" %}</span><strong>{{ producto.unidad_medida }}</strong><small>{% translate "unidad de salida" %}</small></article>
+  <article><span>{% translate "Presentación" %}</span><strong>{{ producto.presentacion|default:"Por definir" }}</strong><small>{% translate "presentación comercial" %}</small></article>
+  <article><span>{% translate "Conservación" %}</span><strong>{{ producto.conservacion }}</strong><small>{% translate "condición declarada" %}</small></article>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "PROCESO TÉCNICO" %}</span></header>
+  {% if receta.origen == 'derivado' %}<p class="unit-report__notice">{% blocktranslate with base=receta.derivado_de.producto.nombre|lower %}Este producto tiene un proceso derivado de {{ base }}, por validar: sirve como punto de partida para ajustarlo, y la planta lo valida antes de producir.{% endblocktranslate %}</p>{% elif receta %}<p class="unit-report__notice">{% translate "Este producto tiene un proceso técnico publicado. La ficha del proceso concentra sus etapas, balance, capacidad y documentación relacionada." %}</p>{% else %}<p class="unit-report__notice">{% translate "La referencia ya pertenece al catálogo institucional. Su receta, balance, capacidad y documentación técnica se habilitarán cuando la unidad publique el proceso validado." %}</p>{% endif %}
+</section>
+{% endblock %}

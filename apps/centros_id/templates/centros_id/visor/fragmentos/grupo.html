@@ -1,0 +1,12 @@
+{% load i18n %}{% comment %}La ficha de un grupo de investigación que participa en el centro.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande" aria-hidden="true"><i class="fas fa-users"></i></span>
+  <div><span class="ficha__rol">{% translate "Grupo de investigación" %}{% if grupo.facultad %} · {{ grupo.facultad }}{% endif %}</span><h3>{{ grupo.nombre }}{% if grupo.sigla %} ({{ grupo.sigla }}){% endif %}</h3></div>
+</header>
+<div class="area__dialogo-cuerpo">
+  {% if grupo.descripcion %}<div class="area__texto">{{ grupo.descripcion|linebreaks }}</div>{% endif %}
+  {% if grupo.lineas.all or integrantes %}<div class="area__dialogo-listas">
+    {% if grupo.lineas.all %}<div><h4><i class="fas fa-compass" aria-hidden="true"></i> {% translate "Líneas" %}</h4><ul class="area__lista">{% for linea in grupo.lineas.all %}<li>{{ linea.nombre }}</li>{% endfor %}</ul></div>{% endif %}
+    {% if integrantes %}<div><h4><i class="fas fa-user-friends" aria-hidden="true"></i> {% translate "Integrantes en el centro" %}</h4><ul class="area__lista">{% for persona in integrantes %}<li>{{ persona.nombre }} <small class="cv-mudo">{{ persona.cargo|default:persona.get_rol_display }}</small></li>{% endfor %}</ul></div>{% endif %}
+  </div>{% endif %}
+  {% if grupo.enlace %}<div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ grupo.enlace }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt" aria-hidden="true"></i> {% translate "Página del grupo" %}</a></div>{% endif %}
+</div>

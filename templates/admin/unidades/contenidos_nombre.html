@@ -1,0 +1,6 @@
+{% load i18n %}{% comment %}El nombre se edita en la misma fila: se escribe y se pulsa Enter o «Guardar», que aparece al cambiarlo; Esc lo deshace.{% endcomment %}<form method="post" class="arbol-nombre{% if clase %} {{ clase }}{% endif %}" data-arbol-nombre>{% csrf_token %}
+  <input type="hidden" name="accion" value="{{ accion }}"><input type="hidden" name="volver" value="{{ volver }}">
+  {% if campo1 %}<input type="hidden" name="{{ campo1 }}" value="{{ valor1 }}">{% endif %}{% if campo2 %}<input type="hidden" name="{{ campo2 }}" value="{{ valor2 }}">{% endif %}{% if campo3 %}<input type="hidden" name="{{ campo3 }}" value="{{ valor3 }}">{% endif %}
+  <input type="text" name="nombre" value="{{ nombre }}" maxlength="{{ maximo|default:120 }}"{% if not vacio %} required{% endif %}{% if marcador %} placeholder="{{ marcador }}"{% endif %} aria-label="{{ etiqueta|default:_('Nombre') }}" title="{% translate 'Escriba el nuevo nombre y pulse Enter o «Guardar»' %}">
+  <button type="submit" class="arbol-nombre__guardar">{% translate "Guardar" %}</button>
+</form>

@@ -1,0 +1,112 @@
+{% load i18n idiomas %}
+{% comment %}
+Seguimiento del mantenimiento: semaforo por equipo, cumplimiento del plan mes a
+mes, vida util y bajas. Todo sale de los registros de la unidad.
+{% endcomment %}
+{% if panel_mantenimiento.sin_equipos %}
+<article class="unit-console__card mant-no-aplica">
+  <header><div><span>{% translate "SEGUIMIENTO" %}</span><h3>{% translate "Esta unidad todavía no tiene equipos registrados" %}</h3></div></header>
+  <p>{% translate "El plan de mantenimiento se arma sobre el inventario: mientras la unidad no registre equipos, no hay planes, órdenes ni vida útil que seguir, y el expediente lo consigna como «no aplica» en lugar de un incumplimiento." %}</p>
+  <p>{% translate "Registra los equipos en Recursos e inventario y el seguimiento aparece solo." %}</p>
+</article>
+{% else %}
+{% include 'portal/pages/unidades/gestion/includes/reparacion_seguimiento.html' %}
+<div class="unit-console__metrics unit-console__metrics--three mant-cifras">
+  <article><span>{% translate "Activos vigentes" %}</span><strong>{{ panel_mantenimiento.cifras.equipos }}</strong><small>{{ panel_mantenimiento.cifras.fuera_de_servicio }} {% translate "fuera de servicio" %}{% if panel_mantenimiento.cifras.bajas %} · {{ panel_mantenimiento.cifras.bajas }} {% translate "de baja" %}{% endif %}</small></article>
+  <article class="is-{% if panel_mantenimiento.cifras.cobertura >= 80 %}al_dia{% elif panel_mantenimiento.cifras.cobertura >= 50 %}atencion{% else %}critico{% endif %}"><span>{% translate "Cobertura de planes" %}</span><strong>{{ panel_mantenimiento.cifras.cobertura }} %</strong><small>{{ panel_mantenimiento.cifras.con_plan }} {% translate "de" %} {{ panel_mantenimiento.cifras.equipos }} {% translate "con plan vigente" %}{% if panel_mantenimiento.cifras.criticos_sin_plan %} · {{ panel_mantenimiento.cifras.criticos_sin_plan }} {% translate "críticos sin plan" %}{% endif %}</small></article>
+  <article class="is-{% if panel_mantenimiento.cifras.vencidos %}critico{% elif panel_mantenimiento.cifras.por_vencer %}atencion{% else %}al_dia{% endif %}"><span>{% translate "Mantenimientos pendientes" %}</span><strong>{{ panel_mantenimiento.cifras.vencidos }}</strong><small>{% translate "vencidos" %} · {{ panel_mantenimiento.cifras.por_vencer }} {% translate "vencen en 30 días" %}</small></article>
+  <article class="is-{% if panel_mantenimiento.cifras.incidencias %}atencion{% else %}al_dia{% endif %}"><span>{% translate "Incidencias abiertas" %}</span><strong>{{ panel_mantenimiento.cifras.incidencias }}</strong><small>{% translate "requieren seguimiento" %}</small></article>
+  <article{% if panel_mantenimiento.cifras.programados %} class="is-{% if panel_mantenimiento.cifras.cumplimiento >= 80 %}al_dia{% elif panel_mantenimiento.cifras.cumplimiento >= 50 %}atencion{% else %}critico{% endif %}"{% endif %}><span>{% translate "Cumplimiento del plan" %}</span><strong>{% if panel_mantenimiento.cifras.programados %}{{ panel_mantenimiento.cifras.cumplimiento }} %{% else %}{% translate "Sin programación" %}{% endif %}</strong><small>{{ panel_mantenimiento.cifras.completados }} {% translate "de" %} {{ panel_mantenimiento.cifras.programados }} {% translate "órdenes en 12 meses" %}</small></article>
+  <article><span>{% translate "Costo acumulado" %}</span><strong>{{ panel_mantenimiento.cifras.costo|floatformat:2 }}</strong><small>{% translate "USD en órdenes y repuestos" %}</small></article>
+</div>
+
+<div class="unit-console__split mant-graficos">
+  <article class="unit-console__card">
+    <header><div><span>{% translate "CUMPLIMIENTO" %}</span><h3>{% translate "Programado frente a ejecutado" %}</h3><p>{% translate "Órdenes de los últimos doce meses; la barra clara es lo programado y la oscura lo completado." %}</p></div></header>
+    <div class="mant-barras" role="img" aria-label="{% translate "Órdenes programadas y completadas por mes" %}">
+      {% for mes in panel_mantenimiento.series %}
+      <div class="mant-barras__mes" title="{{ mes.etiqueta }}: {{ mes.completados }} {% translate "de" %} {{ mes.programados }}{% if mes.costo %} · {{ mes.costo|floatformat:2 }} USD{% endif %}">
+        <div class="mant-barras__par">
+          <i class="mant-barras__programado" style="height: {% widthratio mes.programados panel_mantenimiento.maximo_serie 100 %}%"><b>{% if mes.programados %}{{ mes.programados }}{% endif %}</b></i>
+          <i class="mant-barras__completado" style="height: {% widthratio mes.completados panel_mantenimiento.maximo_serie 100 %}%"></i>
+        </div>
+        <span>{{ mes.etiqueta }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </article>
+  <article class="unit-console__card">
+    <header><div><span>{% translate "SEMÁFORO" %}</span><h3>{% translate "Estado de los equipos" %}</h3><p>{% translate "Cómo está hoy el parque de la unidad y cuánta vida útil le queda." %}</p></div></header>
+    <div class="mant-reparto">
+      {% for etiqueta, cuantos, tono in panel_mantenimiento.semaforo %}
+      <div class="mant-reparto__fila"><span>{{ etiqueta }}</span><i class="is-{{ tono }}" style="width: {% widthratio cuantos panel_mantenimiento.cifras.equipos 100 %}%"></i><b>{{ cuantos }}</b></div>
+      {% endfor %}
+      <h4>{% translate "Vida útil" %}</h4>
+      {% for etiqueta, cuantos, tono in panel_mantenimiento.vida_util %}
+      <div class="mant-reparto__fila"><span>{{ etiqueta }}</span><i class="is-{{ tono }}" style="width: {% widthratio cuantos panel_mantenimiento.cifras.equipos 100 %}%"></i><b>{{ cuantos }}</b></div>
+      {% endfor %}
+    </div>
+  </article>
+</div>
+
+<article class="unit-console__card unit-console__card--wide">
+  <header><div><span>{% translate "SEGUIMIENTO POR ÁREA, CATEGORÍA Y MODELO" %}</span><h3>{% translate "Qué le toca a cada equipo" %}</h3><p>{% translate "Abre el área, la categoría y el modelo para consultar sus unidades físicas, planes e incidencias. Cada activo se cuenta una vez; los modelos que requieren intervención aparecen primero dentro de su categoría." %}</p></div></header>
+  <div class="mant-areas">
+  {% for area in panel_mantenimiento.areas %}
+  <details class="mant-area">
+    <summary><strong>{{ area.nombre }}</strong>{% if not area.activa %}<small>{% translate "Área inactiva" %}</small>{% endif %}<span>{{ area.total }} {% translate "equipo(s)" %} · {{ area.categorias|length }} {% translate "categoría(s)" %}{% if area.intervencion %} · {{ area.intervencion }} {% translate "requieren intervención" %}{% endif %}{% if area.atencion %} · {{ area.atencion }} {% translate "requieren atención" %}{% endif %}{% if area.incidencias %} · {{ area.incidencias }} {% translate "incidencia(s)" %}{% endif %}</span></summary>
+    {% for categoria in area.categorias %}
+    <details class="mant-categoria">
+      <summary><strong>{{ categoria.nombre }}</strong><span>{{ categoria.total }} {% translate "equipo(s)" %}{% if categoria.intervencion %} · {{ categoria.intervencion }} {% translate "requieren intervención" %}{% endif %}{% if categoria.atencion %} · {{ categoria.atencion }} {% translate "requieren atención" %}{% endif %}</span></summary>
+      {% for modelo in categoria.modelos %}
+      <details class="mant-modelo" data-mantenimiento-modelo>
+        <summary>{% if modelo.tipo.imagen_publica_url %}<img src="{{ modelo.tipo.imagen_publica_url }}" alt="" loading="lazy">{% endif %}<strong>{{ modelo.tipo.nombre }}<small>{{ modelo.tipo.codigo }}{% if modelo.tipo.marca or modelo.tipo.modelo %} · {{ modelo.tipo.marca|default:"" }} {{ modelo.tipo.modelo|default:"" }}{% endif %}</small></strong><span>{{ modelo.total }} {% translate "unidad(es)" %}{% if modelo.intervencion %} · {{ modelo.intervencion }} {% translate "requieren intervención" %}{% endif %}{% if modelo.atencion %} · {{ modelo.atencion }} {% translate "requieren atención" %}{% endif %}{% if modelo.incidencias %} · {{ modelo.incidencias }} {% translate "incidencia(s)" %}{% endif %}</span></summary>
+      {% include 'portal/pages/unidades/gestion/includes/recursos_vinculados_modelo.html' with vinculos=modelo.vinculos %}
+      <div class="unit-console__table-wrap"><table class="unit-console__table mant-tabla">
+      <thead>
+        <tr>
+          <th>{% translate "Estado" %}</th>
+          <th>{% translate "Unidad física" %}</th>
+          <th>{% translate "Criticidad" %}</th>
+          <th>{% translate "Plan y frecuencia" %}</th>
+          <th>{% translate "Último" %}</th>
+          <th>{% translate "Próximo" %}</th>
+          <th>{% translate "Órdenes" %}</th>
+          <th>{% translate "Vida útil" %}</th>
+          <th>{% translate "Costo (USD)" %}</th>
+        </tr>
+      </thead>
+      <tbody>{% include 'portal/pages/unidades/gestion/includes/mantenimiento_filas.html' with categoria=modelo %}</tbody>
+      </table></div>
+      </details>
+      {% endfor %}
+    </details>
+    {% endfor %}
+  </details>
+  {% endfor %}
+  </div>
+</article>
+
+{% endif %}
+
+{% if panel_mantenimiento.bajas %}
+<article class="unit-console__card unit-console__card--wide">
+  <header><div><span>{% translate "CIERRE DEL CICLO" %}</span><h3>{% translate "Equipos dados de baja" %}</h3><p>{% translate "Qué pasó con cada activo retirado y qué lo reemplaza." %}</p></div></header>
+  <div class="unit-console__table-wrap">
+    <table class="unit-console__table">
+      <thead><tr><th>{% translate "Equipo" %}</th><th>{% translate "Fecha" %}</th><th>{% translate "Motivo" %}</th><th>{% translate "Acta o justificación" %}</th><th>{% translate "Reemplazado por" %}</th></tr></thead>
+      <tbody>
+        {% for fila in panel_mantenimiento.bajas %}
+        <tr>
+          <td class="mant-equipo">{% if fila.equipo.equipo.imagen_publica_url %}<img src="{{ fila.equipo.equipo.imagen_publica_url }}" alt="" loading="lazy">{% else %}<span class="unit-console__icono-equipo" aria-hidden="true"><i class="{{ fila.equipo.equipo.icono|default:'fas fa-cogs' }}"></i></span>{% endif %}<div><a class="mant-ficha" href="{% url 'ficha_equipo_unidad' unidad.slug fila.equipo.pk %}"><strong>{{ fila.equipo.equipo.nombre }}</strong></a><small>{{ fila.equipo.codigo_unidad }}</small></div></td>
+          <td>{{ fila.equipo.fecha_baja|date:"d/m/Y" }}</td>
+          <td>{{ fila.equipo.get_motivo_baja_display|default:"—" }}</td>
+          <td>{{ fila.equipo.observacion_baja|default:"—"|truncatechars:120 }}</td>
+          <td>{% if fila.equipo.reemplazado_por %}{{ fila.equipo.reemplazado_por.codigo_unidad }}{% else %}<span class="is-empty">{% translate "Sin reemplazo" %}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</article>
+{% endif %}

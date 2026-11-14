@@ -1,0 +1,135 @@
+{% load static i18n %}<!doctype html>
+{% comment %}
+«Conoce el centro», con la pieza de «Conoce la unidad» de Laboratorios: portada con la foto del centro, su nombre, su
+lema y sus cifras vivas; un índice que acompaña la lectura; quiénes somos un tema a la vez con sus fotos; hacia dónde va;
+sus funciones como centro de investigación y desarrollo, con lo que tiene registrado en cada una; cómo se organiza
+(primero sus divisiones o el grupo de áreas que el centro pone primero); los videos para entender el tema; sus datos y
+los accesos para trabajar con él.
+{% endcomment %}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Conoce el centro" %} · {{ centro.sigla|default:centro.nombre }}</title>
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  {% include 'centros_id/visor/_estilos.html' %}
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+</head>
+<body class="conoce ficha area cv" data-clave="presentacion" data-titulo="{{ seccion.titulo }}" data-pestana="{{ pestana.clave }}" data-ficha="{{ ficha_url }}">
+  <header class="conoce__portada{% if portada %} con-foto{% endif %}"{% if portada %} style="--conoce-foto: url('{{ portada }}')"{% endif %}>
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Conoce el centro" %}</span>
+      <h1>{{ centro.nombre }}</h1>
+      {% if centro.lema %}<p class="conoce__lema">{{ centro.lema }}</p>{% endif %}
+      <ul class="conoce__datos">
+        <li><i class="fas fa-layer-group" aria-hidden="true"></i>{{ centro.nombre_area }}</li>
+        {% if not centro.en_operacion or not centro.estado_validado and not centro.en_escenario %}<li><i class="fas fa-circle" aria-hidden="true"></i>{{ centro.estado_publico }}{% if fase %} · {% translate "Fase" %} {{ fase.numero }}{% endif %}</li>{% endif %}
+        {% if centro.ubicacion or centro.direccion %}<li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ centro.ubicacion|default:centro.direccion }}</li>{% endif %}
+        {% if centro.sigla %}<li><i class="fas fa-tag" aria-hidden="true"></i>{{ centro.sigla }}</li>{% endif %}
+      </ul>
+      <div class="conoce__portada-acciones">
+        {% if videos %}<a class="conoce__boton is-principal" href="#videos"><i class="fas fa-play" aria-hidden="true"></i> {% translate "Ver presentación" %}</a>{% endif %}
+        <a class="conoce__boton" href="#quienes">{% translate "Descubrir el centro" %} <i class="fas fa-arrow-down" aria-hidden="true"></i></a>
+        {% if completar %}<a class="conoce__boton" href="{{ completar }}" target="_top"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}
+      </div>
+    </div>
+  </header>
+
+  {% if cifras %}
+  <section class="conoce__cifras" aria-label="{% translate "El centro en cifras" %}">
+    {% for cifra in cifras %}<div data-aparecer><i class="{{ cifra.icono }}" aria-hidden="true"></i><strong data-contar="{{ cifra.valor }}">{{ cifra.valor }}</strong><span>{{ cifra.titulo }}</span></div>{% endfor %}
+  </section>
+  {% endif %}
+
+  <nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+    <a href="#quienes" data-indice="quienes">{% translate "Quiénes somos" %}</a>
+    {% if objetivos or centro.objetivo_general %}<a href="#rumbo" data-indice="rumbo">{% translate "Hacia dónde va" %}</a>{% endif %}
+    {% if funciones %}<a href="#funciones" data-indice="funciones">{% translate "Sus funciones" %}</a>{% endif %}
+    {% if grupos_areas %}<a href="#organiza" data-indice="organiza">{% translate "Cómo se organiza" %}</a>{% endif %}
+    {% if videos %}<a href="#videos" data-indice="videos">{% translate "Videos" %}</a>{% endif %}
+    {% if datos %}<a href="#datos" data-indice="datos">{% translate "Datos del centro" %}</a>{% endif %}
+  </nav>
+
+  <section class="conoce__seccion" id="quienes">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Quiénes somos" %}</span><h2>{% translate "El centro en pocas palabras" %}</h2></header>
+    <div class="conoce__pestanas{% if fotos %} con-fotos{% endif %}" data-aparecer>
+      <div class="conoce__pestanas-lista" role="tablist" aria-label="{% translate "Quiénes somos" %}">
+        {% for tema in temas %}<button type="button" role="tab" id="pestana-tema-{{ forloop.counter }}" aria-controls="panel-tema-{{ forloop.counter }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if not forloop.first %} tabindex="-1"{% endif %}><i class="{{ tema.icono }}" aria-hidden="true"></i><span>{{ tema.titulo }}</span></button>{% endfor %}
+      </div>
+      {% for tema in temas %}<article class="conoce__panel" role="tabpanel" id="panel-tema-{{ forloop.counter }}" aria-labelledby="pestana-tema-{{ forloop.counter }}"{% if not forloop.first %} hidden{% endif %}><i class="{{ tema.icono }}" aria-hidden="true"></i><div><h3>{{ tema.titulo }}</h3>{{ tema.texto|linebreaks }}{% if tema.enlaces %}<ul class="cv-enlaces-tema">{% for enlace in tema.enlaces %}<li><a href="{{ enlace.url }}"><b>{{ enlace.valor }}</b> {{ enlace.titulo }} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></li>{% endfor %}</ul>{% endif %}</div></article>{% endfor %}
+      {% if fotos %}<aside class="conoce__fotos">
+        <div class="conoce__fotos-rejilla is-{{ fotos|length }}">{% for foto in fotos %}<img src="{{ foto }}" alt="" loading="lazy">{% endfor %}</div>
+        <button type="button" data-abrir-imagen="0"><i class="fas fa-images" aria-hidden="true"></i> {% translate "Ver las fotos" %} <b>{{ galeria|length }}</b></button>
+      </aside>{% endif %}
+    </div>
+  </section>
+
+  {% if objetivos or centro.objetivo_general %}
+  <section class="conoce__seccion conoce__rumbo-seccion" id="rumbo">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Hacia dónde va" %}</span><h2>{% translate "Objetivos" %}</h2></header>
+    {% if centro.objetivo_general %}<div class="conoce__rumbo">
+      <article class="is-mision" data-aparecer><i class="fas fa-bullseye" aria-hidden="true"></i><h3>{% translate "Objetivo general" %}</h3><p>{{ centro.objetivo_general }}</p></article>
+      {% if destacado %}<article class="is-vision" data-aparecer><i class="fas fa-rocket" aria-hidden="true"></i><h3>{% translate "En marcha" %}</h3><p>{{ destacado.titulo }} · {{ destacado.estado_publico }}</p><p><a class="cv-enlace-area" href="{% url 'seccion_centro_id' centro.slug 'proyectos' %}?abrir={{ destacado.pk }}">{% translate "Ver el proyecto" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p></article>{% endif %}
+    </div>{% endif %}
+    {% if objetivos %}<ol class="conoce__objetivos">{% for objetivo in objetivos %}<li data-aparecer>{{ objetivo }}</li>{% endfor %}</ol>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if funciones %}
+  <section class="conoce__seccion" id="funciones">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Como centro de investigación y desarrollo" %}</span><h2>{% translate "Sus funciones" %}</h2></header>
+    <p class="ficha__areas" data-aparecer>{% blocktranslate with sigla=centro.sigla|default:centro.nombre %}Un centro de investigación y desarrollo sostiene una agenda científica y tecnológica e integra capacidades, talento y proyectos para producir conocimiento, innovación y transferencia. Así cumple el {{ sigla }} cada una de esas funciones, con lo que tiene registrado.{% endblocktranslate %}</p>
+    <div class="area__actividades">{% for funcion in funciones %}<a class="area__actividad cv-tarjeta-enlace" href="{{ funcion.url }}" data-aparecer>
+      <header><i class="{{ funcion.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{{ funcion.seccion }}</span></div></header>
+      <h3>{{ funcion.titulo }}</h3>
+      <p>{{ funcion.texto }}</p>
+      <footer>{% for evidencia in funcion.evidencias %}<span><strong>{{ evidencia }}</strong></span>{% empty %}<span>{% translate "Sin registros todavía: solo lo ve quien gestiona" %}</span>{% endfor %}</footer>
+    </a>{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if grupos_areas %}
+  <section class="conoce__seccion" id="organiza">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cómo se organiza" %}</span><h2>{% translate "Sus áreas de trabajo" %}</h2></header>
+    <p class="ficha__areas" data-aparecer>{% translate "Cada área es una capacidad propia del centro: hace, investiga y presta servicios con sus equipos y su gente. Entra a cualquiera para ver todo lo que hace." %}</p>
+    {% with principal=grupos_areas.0 %}
+    <h3 class="area__subtitulo cv-subtitulo">{{ principal.0 }}</h3>
+    <div class="area__tarjetas">{% for tarjeta in principal.1 %}{% include 'centros_id/visor/_area_tarjeta.html' %}{% endfor %}</div>
+    {% endwith %}
+    {% if grupos_areas|length > 1 %}
+    <h3 class="area__subtitulo cv-subtitulo">{% translate "Otras áreas del centro" %}</h3>
+    <div class="conoce__lineas">{% for tipo, tarjetas in grupos_areas|slice:"1:" %}{% for tarjeta in tarjetas %}<a class="cv-tarjeta-enlace" href="{% url 'componente_centro_id' centro.slug tarjeta.area.codigo %}"><article data-aparecer><i class="{{ tarjeta.area.icono }}" aria-hidden="true"></i><h3>{{ tarjeta.area.nombre_corto|default:tarjeta.area.nombre }}</h3><p>{{ tarjeta.area.resumen|truncatewords:16 }}</p><span class="ficha__rol">{{ tarjeta.area.get_tipo_display }}</span></article></a>{% endfor %}{% endfor %}</div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if videos %}
+  <section class="conoce__seccion" id="videos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para entender el tema" %}</span><h2>{% translate "Videos" %}</h2></header>
+    {% include 'centros_id/visor/_videos.html' %}
+  </section>
+  {% endif %}
+
+  {% if datos %}
+  <section class="conoce__seccion" id="datos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Datos del centro" %}</span><h2>{% translate "El centro en números" %}</h2></header>
+    <ul class="area__puntos cv-datos" data-aparecer>{% for valor, rotulo in datos %}<li><i class="fas fa-chart-bar" aria-hidden="true"></i><span><b>{{ valor }}</b><small>{{ rotulo }}</small></span></li>{% endfor %}</ul>
+    {% if centro.fuente %}<p class="ficha__nota"><i class="fas fa-book" aria-hidden="true"></i> {{ centro.fuente }}</p>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="conoce__cierre">
+    <div><h2>{% translate "¿Quieres trabajar con el centro?" %}</h2><p>{% translate "Conoce quién lo dirige, llega sin perderte o propón un reto." %}</p></div>
+    <div class="conoce__acciones">
+      <a href="{{ identidad_url }}"><i class="fas fa-id-card" aria-hidden="true"></i> {% translate "Identidad y contacto" %}</a>
+      <button type="button" data-accion="ubicacion" data-url="{{ ubicacion_url }}"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% translate "Cómo llegar" %}</button>
+      <a class="is-principal" href="{{ solicitar_url }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% translate "Proponer un reto" %}</a>
+    </div>
+  </section>
+  <footer class="cv-pie"><span><strong>{{ centro }}</strong>{% if centro.fuente %} · {{ centro.fuente }}{% endif %}</span><span>{% translate "Generado" %} {{ generado_en|date:"d/m/Y H:i" }}</span></footer>
+  {% if galeria %}{% include 'centros_id/visor/_visor.html' with imagenes=galeria %}{% endif %}
+  {% include 'centros_id/visor/_guiones.html' %}
+</body>
+</html>

@@ -1,0 +1,21 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Reporte institucional ·" %} {{ identidad_producto.nombre_corto }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .inst-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0; }
+    .inst-form label { display: grid; gap: 3px; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--institucion-texto, #1f3d2f); }
+    .inst-form input { padding: 6px 9px; border: 1px solid #c9d8cf; border-radius: 4px; font: inherit; font-size: 13px; }
+    .inst-form button { padding: 7px 14px; border: 0; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .inst-total td { font-weight: 800; background: var(--institucion-fondo, #f2f7f4); }
+    .inst-alerta { color: #a12c2c; font-weight: 700; }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+{% include 'portal/pages/unidades/gestion/includes/reporte_institucional_cuerpo.html' %}
+</body>
+</html>

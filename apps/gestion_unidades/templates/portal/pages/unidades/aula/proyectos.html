@@ -1,0 +1,51 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ titulo_seccion }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce ficha area">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{% if seccion %}{% translate "Sección" %} {{ seccion }} · {% endif %}{{ unidad.nombre }}</span>
+      <h1>{{ titulo_seccion }}</h1>
+      <ul class="conoce__datos"><li><i class="{{ icono }}" aria-hidden="true"></i>{% translate "Según las reservas aprobadas o realizadas en la unidad" %}</li></ul>
+    </div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "La actividad en cifras" %}">
+    <div data-aparecer><i class="{{ icono }}" aria-hidden="true"></i><strong data-contar="{{ actividades|length }}">{{ actividades|length }}</strong><span>{% translate "Actividades" %}</span></div>
+    <div data-aparecer><i class="fas fa-calendar-check" aria-hidden="true"></i><strong data-contar="{{ total_sesiones }}">{{ total_sesiones }}</strong><span>{% translate "Sesiones en la unidad" %}</span></div>
+    <div data-aparecer><i class="fas fa-clock" aria-hidden="true"></i><strong>{{ total_horas|floatformat:"-1" }}</strong><span>{% translate "Horas de uso" %}</span></div>
+  </section>
+
+  <section class="conoce__seccion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Qué se ha hecho aquí" %}</span><h2>{% translate "Actividades registradas" %}</h2></header>
+    {% if actividades %}
+    <div class="area__actividades">
+      {% for actividad in actividades %}<article class="area__actividad" data-aparecer>
+        <header><i class="{{ icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{{ actividad.tipo }}</span>{% if actividad.en_curso %}<span class="area__estado is-ok">{% translate "En curso" %}</span>{% endif %}</div></header>
+        <h3>{{ actividad.nombre }}</h3>
+        <ul class="ficha__medios">
+          {% if actividad.carrera %}<li><i class="fas fa-user-graduate" aria-hidden="true"></i>{{ actividad.carrera }}</li>{% endif %}
+          {% if actividad.responsable %}<li><i class="fas fa-user" aria-hidden="true"></i>{{ actividad.responsable }}</li>{% endif %}
+          <li><i class="fas fa-calendar-alt" aria-hidden="true"></i>{{ actividad.desde|date:"F Y"|capfirst }}{% if actividad.hasta|date:"mY" != actividad.desde|date:"mY" %} – {{ actividad.hasta|date:"F Y" }}{% endif %}</li>
+        </ul>
+        <footer><span><strong>{{ actividad.sesiones }}</strong> sesi{{ actividad.sesiones|pluralize:"ón,ones" }}</span><span><strong>{{ actividad.horas|floatformat:"-1" }}</strong> h</span></footer>
+      </article>{% endfor %}
+    </div>
+    <p class="ficha__nota">{% translate "La investigación científica la realizan los centros de I+D; aquí se registra lo que se hace en la unidad. El propósito que escribe cada solicitante no se publica." %}</p>
+    {% else %}
+    <p class="ficha__nota">{% translate "Todavía no hay actividades registradas en esta sección." %}</p>
+    {% endif %}
+  </section>
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+</body>
+</html>

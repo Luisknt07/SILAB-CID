@@ -1,0 +1,34 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Estudios y servicios con tarifa" %}{% endblock %}
+{% block encabezado %}{% translate "Estudios y servicios con tarifa" %}{% endblock %}
+{% block subtitulo %}{% translate "El dato abierto nunca se cobra: se cobra el trabajo nuevo que alguien encarga" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Servicios en catálogo" %}</dt><dd>{{ total_servicios }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Servicios" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "QUÉ SE COBRA Y QUÉ NO" %}</span></header>
+  <ul class="obs-oferta">
+    <li><i class="fas fa-lock-open" aria-hidden="true"></i><div><strong>{% translate "Gratis, siempre" %}</strong><p>{{ politica.abiertos }}</p></div></li>
+    <li><i class="fas fa-inbox" aria-hidden="true"></i><div><strong>{% translate "Gratis, por solicitud" %}</strong><p>{{ politica.por_solicitud }}</p></div></li>
+    <li><i class="fas fa-concierge-bell" aria-hidden="true"></i><div><strong>{% translate "Con tarifa aprobada por la universidad" %}</strong><p>{{ politica.servicios_pagados }}</p></div></li>
+  </ul>
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "SERVICIOS QUE SE PUEDEN ENCARGAR" %}</span></header>
+  <ul class="obs-oferta">
+    <li><i class="fas fa-search-plus" aria-hidden="true"></i><div><strong>{% translate "Estudio o diagnóstico a medida" %}</strong><p>{% translate "Un análisis nuevo para un gobierno local, un gremio o una empresa: preguntas propias, datos del observatorio y de otras fuentes, informe y presentación." %}</p></div></li>
+    <li><i class="fas fa-clipboard-list" aria-hidden="true"></i><div><strong>{% translate "Levantamiento de encuestas" %}</strong><p>{% translate "Diseño muestral, cuestionario, levantamiento con KoboToolbox, procesamiento y base anonimizada." %}</p></div></li>
+    <li><i class="fas fa-cogs" aria-hidden="true"></i><div><strong>{% translate "Procesamiento o tablero a la medida" %}</strong><p>{% translate "Cruces, proyecciones o un tablero propio armado con datos que crean información nueva." %}</p></div></li>
+    {% if capacitaciones %}<li><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i><div><strong>{% translate "Capacitaciones" %}</strong><p>{% for nombre, tipo, duracion, publico in capacitaciones %}{{ nombre }} ({{ duracion }}){% if not forloop.last %}; {% endif %}{% endfor %}.</p></div></li>{% endif %}
+  </ul>
+  {% for familia in familias %}
+  <h3 style="margin:12px 0 6px;font-size:14px">{{ familia.nombre }}</h3>
+  <ul class="aula-lista">{% for servicio in familia.servicios %}<li><strong>{{ servicio.nombre }}</strong>{% if servicio.tarifa_base %} · USD {{ servicio.tarifa_base|floatformat:2 }}{% endif %}</li>{% endfor %}</ul>
+  {% endfor %}
+  <p><a class="obs-boton" href="{% url 'solicitudes_observatorio' unidad.slug %}?tipo=analisis"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i> {% translate "Pedir una cotización" %}</a></p>
+  <p class="unit-report__notice">{% translate "Si el estudio lo contrata una entidad pública, su resultado se publica como dato abierto. Las tarifas son las aprobadas por la universidad; el observatorio no vende datos personales ni microdatos identificables." %}</p>
+</section>
+{% endblock %}

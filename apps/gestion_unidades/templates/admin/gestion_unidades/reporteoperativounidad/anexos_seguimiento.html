@@ -1,0 +1,14 @@
+<section class="citt-matriz__anexos" aria-label="Anexos y seguimiento">
+  <header><h3>Anexos y seguimiento</h3><p>Respaldos de las entregas principales. No suman obligaciones ni puntos independientes.</p></header>
+  <div class="citt-matriz-scroll" role="region" aria-label="Anexos de la unidad" tabindex="0">
+    <table class="citt-matriz citt-matriz--anexos">
+      <thead><tr><th>Documento de respaldo</th><th>Control del sistema</th><th>Avance</th><th>Consultar</th></tr></thead>
+      <tbody>{% for anexo in anexos %}{% with d=anexo.documento lectura=anexo.documento.resumen_interfaz %}<tr data-reporte-anexo data-avance-documento="{{ d.pk }}"{% if anexo.es_soporte_planificacion %} data-soporte-planificacion="{{ d.exigido.codigo }}"{% endif %}>
+        <th scope="row" class="citt-matriz__nombre"><span class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ d.nombre_documental }}</span></span><small>{{ d.etiqueta_corte }} · {% if anexo.es_soporte_planificacion %}Anexo de planificación{% else %}Respaldo sin aporte independiente{% endif %}</small></th>
+        <td>{% if anexo.es_soporte_planificacion %}<span class="documento-validacion is-{% if lectura.automatizacion.estado == 'bloqueado' or lectura.automatizacion.estado == 'revision' %}rojo{% elif d.estado == 'validado' %}verde{% else %}amarillo{% endif %}">{% if lectura.automatizacion.estado == 'bloqueado' or lectura.automatizacion.estado == 'revision' %}Con observaciones{% elif d.estado == 'validado' %}{% if lectura.automatizacion.vigente and lectura.automatizacion.aplicado %}Validado automáticamente{% else %}Revisado por la unidad{% endif %}{% elif d.recurso_id %}Por revisar{% else %}Pendiente{% endif %}</span>{% else %}{% include 'portal/pages/unidades/gestion/includes/control_automatico.html' with control=lectura.automatizacion integridad=lectura.integridad fuente_recepcion=lectura.fuente_recepcion %}{% endif %}</td>
+        <td class="citt-matriz__avance">{% include 'portal/pages/unidades/gestion/includes/avance_documental.html' with avance=lectura.avance nombre_documento=d.nombre_documental %}</td>
+        <td class="citt-matriz__evidencia">{% if d.recurso_id %}<a class="documento-accion is-pdf" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-titulo="Anexo · {{ d.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' d.recurso_id %}?download=1" aria-label="Abrir documento de {{ d.nombre_documental }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver anexo</a>{% else %}<span>Sin archivo</span>{% endif %}{% if anexo.es_soporte_planificacion %}<a data-evaluar-documento class="citt-matriz__seguimiento" href="{{ anexo.soporte_planificacion.url_director }}">Detalle</a>{% endif %}</td>
+      </tr>{% endwith %}{% endfor %}</tbody>
+    </table>
+  </div>
+</section>

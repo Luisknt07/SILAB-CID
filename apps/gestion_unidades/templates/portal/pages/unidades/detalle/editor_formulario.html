@@ -1,0 +1,39 @@
+{% load static i18n %}{% comment %}Editor de un formulario en el visualizador: página completa o fragmento para el cuadro de edición.
+Recibe antetitulo, titulo, tarjeta_titulo, tarjeta_ayuda, formulario, accion_url, volver_url, ocultos (pares nombre/valor),
+anchos (nombres de campos a todo el ancho), aviso, boton (texto del botón de guardar) y fragmento.{% endcomment %}{% if not fragmento %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ antetitulo }} · {{ titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipo_editar.css' %}?v=20261009-editor-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce editor">
+  <header class="editor__barra">
+    <div><span>{{ antetitulo }}</span><h1>{{ titulo }}</h1></div>
+    <a href="{{ volver_url }}" class="editor__volver"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Volver sin guardar" %}</a>
+  </header>
+{% endif %}
+  <form method="post" enctype="multipart/form-data" class="editor__cuerpo is-una-seccion" action="{{ accion_url }}" novalidate data-editor-ficha>
+    {% csrf_token %}
+    {% if formulario.activo %}<input type="hidden" name="registro-estado_presente" value="1">{% endif %}
+    {% for nombre, valor in ocultos %}<input type="hidden" name="{{ nombre }}" value="{{ valor }}">{% endfor %}
+    <div class="editor__secciones">
+      {% if formulario.errors %}<p class="editor__error" role="alert"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> {% translate "Revisa los campos marcados: no se guardó nada." %}</p>{% endif %}
+      <section class="editor__tarjeta">
+        <header><h2>{{ tarjeta_titulo }}</h2>{% if tarjeta_ayuda %}<p>{{ tarjeta_ayuda }}</p>{% endif %}</header>
+        {% if aviso %}<p class="editor__aviso"><i class="fas fa-info-circle" aria-hidden="true"></i> {{ aviso }}</p>{% endif %}
+        {% for error in formulario.non_field_errors %}<p class="editor__mensaje">{{ error }}</p>{% endfor %}
+        <div class="editor__campos">{% for campo in formulario %}{% if campo.name not in formulario.referencia_nombres|default:'' %}{% if campo.is_hidden %}{{ campo }}{% else %}<div class="editor__campo{% if campo.name in anchos or campo.field.widget.input_type == 'radio' %} is-ancho{% endif %}{% if campo.errors %} con-error{% endif %}">{% if campo.field.widget.input_type == 'checkbox' %}<label class="editor__casilla">{{ campo }} {{ campo.label }}</label>{% else %}<label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% endif %}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endif %}{% endif %}{% endfor %}</div>
+        {% include 'portal/pages/unidades/includes/editor_referencia_comercial.html' %}
+      </section>
+      <div class="editor__pie">{% if fragmento %}<button type="button" class="editor__cancelar" data-cerrar-edicion>{% translate "Cancelar" %}</button>{% else %}<a href="{{ volver_url }}">{% translate "Cancelar" %}</a>{% endif %}<button type="submit" class="editor__guardar"><i class="fas fa-save" aria-hidden="true"></i> {% if boton %}{{ boton }}{% else %}{% translate "Guardar los cambios" %}{% endif %}</button></div>
+    </div>
+  </form>
+{% if not fragmento %}</body>
+</html>{% endif %}

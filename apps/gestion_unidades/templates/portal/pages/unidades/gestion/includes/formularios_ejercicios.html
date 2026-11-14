@@ -1,0 +1,45 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="ejercicio_aula" data-reload-view="ejercicios" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="ejercicio_aula"><input type="hidden" name="registro_id">
+  <header><span>{% translate "AULA Y EJERCICIOS" %}</span><h3>{% translate "Ejercicio sobre un simulador" %}</h3><p>{% translate "El proceso y el simulador fijan las preguntas; la escala del primer estudiante y el paso hacen que cada uno resuelva un número distinto. Las respuestas se comparan con el motor de la planta." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" placeholder="{% translate "Balance de energía del queso fresco" %}" required></label>
+    <label>{% translate "Simulador" %}<select name="simulador">{% for codigo, nombre in simuladores_ejercicio %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Proceso" %}<select name="receta_id" required><option value="">{% translate "Selecciona" %}</option>{% for receta in recetas_para_ejercicio %}<option value="{{ receta.pk }}">{{ receta.nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Sesión" %}<select name="reserva_id"><option value="">{% translate "Ninguna" %}</option>{% for reserva in sesiones_para_ejercicio %}<option value="{{ reserva.pk }}">{{ reserva.codigo_reserva }} · {{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.receta.nombre }}</option>{% endfor %}</select><small>{% translate "Sus participantes son quienes reciben el ejercicio." %}</small></label>
+    <label class="is-wide">{% translate "Tema de la asignatura" %}<select name="tema_id"><option value="">{% translate "Ninguno" %}</option>{% for tema in temas_para_ejercicio %}<option value="{{ tema.pk }}">{{ tema.asignatura.nombre }} · {{ tema.orden }}. {{ tema.nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Consigna" %}<textarea name="consigna" rows="3" placeholder="{% translate "Qué tiene que hacer el estudiante y con qué criterio se lo califica" %}" required></textarea></label>
+    <label>{% translate "Escala del primero" %}<input type="number" name="factor_base" step="0.001" min="0.001" value="1" required><small>{% translate "En corridas base de la receta." %}</small></label>
+    <label>{% translate "Paso entre estudiantes" %}<input type="number" name="paso" step="0.001" min="0" value="0.5"><small>{% translate "Cero da a todos la misma escala." %}</small></label>
+    <label>{% translate "Tolerancia (%)" %}<input type="number" name="tolerancia_pct" step="0.01" min="0" max="50" value="2"></label>
+    <label>{% translate "Puntaje" %}<input type="number" name="puntaje" step="0.01" min="0.01" value="10"></label>
+    <label>{% translate "Entrega hasta" %}<input type="date" name="fecha_limite"></label>
+    <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_ejercicio %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select><small>{% translate "Solo un ejercicio abierto admite entregas." %}</small></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Datos del simulador iguales para todos" %}</legend>
+    <label>{% translate "Temperatura inicial (°C)" %}<input type="number" name="t_inicial" step="0.1" placeholder="4"></label>
+    <label>{% translate "Temperatura de proceso (°C)" %}<input type="number" name="t_proceso" step="0.1" placeholder="{% translate "la de la etapa" %}"></label>
+    <label>{% translate "Temperatura final (°C)" %}<input type="number" name="t_final" step="0.1" placeholder="4"></label>
+    <label>{% translate "Eficiencia del equipo (%)" %}<input type="number" name="eficiencia" step="1" placeholder="85"></label>
+    <label>{% translate "Potencia (kW)" %}<input type="number" name="potencia_kw" step="0.1" placeholder="0"></label>
+    <label>{% translate "Jornada (horas)" %}<input type="number" name="jornada" step="0.5" placeholder="8"></label>
+  </fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Cerrar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar ejercicio" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="asignar_ejercicio" data-reload-view="ejercicios" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="ejercicio_aula"><input type="hidden" name="registro_id"><input type="hidden" name="accion_ejercicio" value="asignar">
+  <header><span>{% translate "AULA Y EJERCICIOS" %}</span><h3>{% translate "Asignar a los estudiantes" %}</h3><p>{% translate "Cada participante de la sesión recibe su propia escala, en el orden de la lista: el primero la escala base, el siguiente la base más el paso, y así. Quien ya tenía la suya la conserva, y el ejercicio queda abierto a entregas." %}</p></header>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-users"></i> {% translate "Asignar" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="intento_ejercicio" data-reload-view="ejercicios" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="intento_ejercicio"><input type="hidden" name="registro_id">
+  <header><span>ENTREGA</span><h3>{% translate "Revisar la entrega" %}</h3><p>{% translate "La corrección automática ya comparó cada respuesta con el motor. Aquí se ajusta la nota cuando el procedimiento vale más que el número, y se le dice al estudiante por qué." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Puntaje" %}<input type="number" name="puntaje" step="0.01" min="0"><small>{% translate "Si se deja vacío, la nota automática queda como está." %}</small></label>
+    <label class="is-wide">{% translate "Comentario para el estudiante" %}<textarea name="comentario" rows="3" placeholder="{% translate "Qué estuvo bien y qué conviene revisar" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar revisión" %}</button></footer>
+</form>

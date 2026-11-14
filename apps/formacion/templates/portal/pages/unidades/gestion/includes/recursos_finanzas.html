@@ -1,0 +1,81 @@
+
+{% load i18n idiomas %}
+<div class="unit-console__report-actions">
+  <div><span>{% translate "LIBRO FINANCIERO ·" %} {{ resumen_financiero.inicio|date:"Y" }}</span><strong>{% translate "Separa cotizaciones, cobros reales y compras según la fuente del fondo." %}</strong></div>
+  {% if puede_operar_finanzas %}<div><button type="button" data-agenda-operation-open="finanzas"><i class="fas fa-plus"></i> {% translate "Registrar movimiento" %}</button></div>{% endif %}
+</div>
+<div class="unit-console__metrics">
+  <article><span>{% translate "Ingresos confirmados" %}</span><strong>${{ resumen_financiero.ingresos|floatformat:2 }}</strong><small>{% translate "dinero efectivamente registrado" %}</small></article>
+  <article><span>{% translate "Egresos confirmados" %}</span><strong>${{ resumen_financiero.egresos|floatformat:2 }}</strong><small>{% translate "compras y gastos documentados" %}</small></article>
+  <article><span>{% translate "Saldo registrado de autogestión" %}</span><strong>${{ resumen_financiero.saldo_autogestion|floatformat:2 }}</strong><small>{% translate "servicios y ventas menos egresos propios; no equivale a disponibilidad certificada" %}</small></article>
+  <article><span>{% translate "Por confirmar" %}</span><strong>${{ resumen_financiero.pendientes|floatformat:2 }}</strong><small>{% translate "no afecta todavía los saldos" %}</small></article>
+</div>
+<section class="unit-console__finance-analytics">
+  <article class="unit-console__card unit-console__flow-card">
+    <header><div><span>{% translate "FLUJO FINANCIERO" %}</span><h3>{% translate "Ingresos frente a costos" %}</h3><p>{% translate "Se calcula automáticamente desde movimientos confirmados en" %} {{ analitica_financiera.unidad_grafica }}.</p></div><nav><button type="button" class="is-active" data-finance-chart-target="mensual">{% translate "6 meses" %}</button><button type="button" data-finance-chart-target="acumulada">{% translate "Acumulado anual" %}</button></nav></header>
+    <div class="unit-console__flow-legend unit-console__flow-legend--finance"><span class="is-income">{% translate "Ingresos" %}</span><span class="is-expense">{% translate "Egresos y costos" %}</span></div>
+    {% for nombre, grafica in analitica_financiera.graficas.items %}
+    <div class="unit-console__flow-chart" data-finance-chart="{{ nombre }}"{% if nombre != 'mensual' %} hidden{% endif %}>
+      <svg class="unit-console__flow-svg" viewBox="0 0 820 224" role="img" aria-labelledby="financeChartTitle-{{ nombre }} financeChartDescription-{{ nombre }}" preserveAspectRatio="xMidYMid meet">
+        <title id="financeChartTitle-{{ nombre }}">{% translate "Ingresos y egresos" %} {{ nombre }}</title>
+        <desc id="financeChartDescription-{{ nombre }}">{% translate "Gráfica de líneas con marcadores calculada desde el libro financiero confirmado." %}</desc>
+        <g class="unit-console__flow-grid">{% for nivel in grafica.rejilla %}<line x1="52" y1="{{ nivel.y_svg }}" x2="802" y2="{{ nivel.y_svg }}"></line><text x="44" y="{{ nivel.y_svg }}">${{ nivel.valor|floatformat:"-2" }}</text>{% endfor %}</g>
+        <line class="unit-console__flow-axis" x1="52" y1="18" x2="52" y2="176"></line><line class="unit-console__flow-axis" x1="52" y1="176" x2="802" y2="176"></line>
+        {% if grafica.tiene_datos %}<polyline class="unit-console__flow-line is-income" points="{{ grafica.lineas.ingresos }}"></polyline><polyline class="unit-console__flow-line is-expense" points="{{ grafica.lineas.egresos }}"></polyline>{% endif %}
+        {% for punto in grafica.puntos %}<g class="unit-console__flow-point"><circle class="is-income" cx="{{ punto.x_svg }}" cy="{{ punto.y_ingresos_svg }}" r="4" tabindex="0"><title>{{ punto.rango }}: ${{ punto.ingresos }} {% translate "de ingresos" %}</title></circle><circle class="is-expense" cx="{{ punto.x_svg }}" cy="{{ punto.y_egresos_svg }}" r="4" tabindex="0"><title>{{ punto.rango }}: ${{ punto.egresos }} {% translate "de egresos" %}</title></circle><text class="unit-console__flow-x-label" x="{{ punto.x_svg }}" y="198">{{ punto.etiqueta }}</text></g>{% endfor %}
+        {% if not grafica.tiene_datos %}<text class="unit-console__flow-empty" x="427" y="100">{% translate "Sin movimientos confirmados en este período" %}</text>{% endif %}
+      </svg>
+      <div class="unit-console__flow-values" aria-label="{% translate "Valores del flujo financiero" %}">{% for punto in grafica.puntos %}<article><span>{{ punto.etiqueta }}</span><small><b class="is-income">${{ punto.ingresos }}</b><b class="is-expense">${{ punto.egresos }}</b></small></article>{% endfor %}</div>
+    </div>{% endfor %}
+  </article>
+</section>
+<div class="unit-console__finance-overview">
+  <article class="unit-console__card unit-console__finance-health">
+    <header><div><span>{% translate "AUTOSOSTENIBILIDAD" %}</span><h3>{% translate "Capacidad para reponer insumos" %}</h3></div><b>{{ resumen_financiero.sostenibilidad_porcentaje|floatformat:0 }}%</b></header>
+    <div class="unit-console__finance-gauge" style="--finance-value:{{ resumen_financiero.cobertura_reposicion_porcentaje|floatformat:0 }}%"><span></span></div>
+    <dl>
+      <div><dt>{% translate "Saldo registrado de fondos autogenerados" %}</dt><dd>${{ resumen_financiero.saldo_autogestion|floatformat:2 }}</dd></div>
+      <div><dt>{% translate "Compra sugerida de insumos" %}</dt><dd>${{ costo_reposicion_total|floatformat:2 }}</dd></div>
+      <div><dt>{% translate "Cobertura de la reposición" %}</dt><dd>{{ resumen_financiero.cobertura_reposicion_porcentaje|floatformat:1 }}%</dd></div>
+      <div><dt>{% translate "Servicios cotizados" %}</dt><dd>${{ resumen_financiero.cotizado_servicios|floatformat:2 }}</dd></div>
+      <div><dt>{% translate "Cobros de servicios registrados" %}</dt><dd>${{ resumen_financiero.ingresos_servicios|floatformat:2 }}</dd></div>
+      <div><dt>{% translate "Brecha estimada por documentar" %}</dt><dd>${{ resumen_financiero.brecha_cotizada|floatformat:2 }}</dd></div>
+    </dl>
+    <small>{% translate "La cotización orienta; el saldo suma movimientos confirmados. La disponibilidad certificada y la autorización de gasto corresponden al área competente, cualquiera que sea la fuente de fondos." %}</small>
+  </article>
+  <article class="unit-console__card">
+    <header><div><span>{% translate "ORIGEN PRESUPUESTARIO" %}</span><h3>{% translate "Fondos separados por fuente" %}</h3></div></header>
+    <div class="unit-console__fund-list">
+      {% for fuente in fuentes_financieras %}
+      <article>
+        <span><i class="fas fa-wallet"></i></span>
+        <div><strong>{{ fuente.nombre }}</strong><small>{% translate "Ingresos $" %}{{ fuente.ingresos|floatformat:2 }} {% translate "· Egresos $" %}{{ fuente.egresos|floatformat:2 }}</small><div class="unit-console__fund-bars" aria-label="{% translate "Comparación de ingresos y egresos" %}"><i class="is-income"><b style="--fund-value:{{ fuente.porcentaje_ingresos_css }}%"></b></i><i class="is-expense"><b style="--fund-value:{{ fuente.porcentaje_egresos_css }}%"></b></i></div></div>
+        <b{% if fuente.saldo < 0 %} class="is-negative"{% endif %}>${{ fuente.saldo|floatformat:2 }}</b>
+      </article>
+      {% endfor %}
+    </div>
+  </article>
+</div>
+<article class="unit-console__card unit-console__finance-ledger">
+  <header><div><span>TRAZABILIDAD</span><h3>{% translate "Movimientos recientes" %}</h3></div><small>{% translate "Los confirmados no se sobrescriben: cualquier corrección exige anulación y un nuevo registro." %}</small></header>
+  <div class="unit-console__finance-table-wrap">
+    <table>
+      <thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Movimiento" %}</th><th>{% translate "Concepto" %}</th><th>{% translate "Fuente" %}</th><th>{% translate "Vínculo" %}</th><th>{% translate "Responsable" %}</th><th>{% translate "Estado" %}</th><th>{% translate "Monto" %}</th><th></th></tr></thead>
+      <tbody>
+        {% for movimiento in movimientos_financieros %}
+        <tr class="is-{{ movimiento.estado }}">
+          <td>{{ movimiento.fecha_movimiento|date:"d/m/Y" }}</td>
+          <td><strong>{{ movimiento.numero_movimiento }}</strong><small>{{ movimiento.get_tipo_display|ui }} · {{ movimiento.get_categoria_display|ui }}</small></td>
+          <td>{{ movimiento.descripcion }}{% if movimiento.referencia %}<small>{{ movimiento.referencia }}</small>{% endif %}{% if movimiento.tipo == 'egreso' %}<small>{{ movimiento.get_procedimiento_solicitado_display|ui }}{% if movimiento.referencia_autorizacion %} · {{ movimiento.referencia_autorizacion }}{% endif %}</small>{% endif %}{% if movimiento.comprobante %}<a href="{{ movimiento.comprobante.url }}" target="_blank" rel="noopener">{% translate "Consultar comprobante" %}</a>{% endif %}</td>
+          <td>{{ movimiento.get_fuente_fondos_display|ui }}</td>
+          <td>{% if movimiento.equipo %}<strong>{{ movimiento.equipo.codigo_unidad }}</strong>{% endif %}{% if movimiento.mantenimiento %}<small>{{ movimiento.mantenimiento.codigo }}</small>{% endif %}{% if movimiento.reserva %}{{ movimiento.reserva.codigo_reserva }}{% endif %}{% if movimiento.movimiento_inventario %}<small>{% translate "Inventario #" %}{{ movimiento.movimiento_inventario_id }}</small>{% endif %}{% if not movimiento.equipo and not movimiento.mantenimiento and not movimiento.reserva and not movimiento.movimiento_inventario %}{% translate "Sin vínculo" %}{% endif %}</td>
+          <td>{{ movimiento.creado_por.get_full_name|default:movimiento.creado_por.username }}</td>
+          <td><b class="unit-console__finance-status is-{{ movimiento.estado }}">{{ movimiento.get_estado_display|ui }}</b></td>
+          <td class="is-amount{% if movimiento.tipo == 'egreso' %} is-expense{% endif %}">{% if movimiento.tipo == 'egreso' %}−{% else %}+{% endif %}${{ movimiento.monto|floatformat:2 }}</td>
+          <td>{% if puede_operar_finanzas %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="finanzas" data-field-registro_id="{{ movimiento.pk }}" data-field-tipo="{{ movimiento.tipo }}" data-field-categoria="{{ movimiento.categoria }}" data-field-fuente_fondos="{{ movimiento.fuente_fondos }}" data-field-estado="{{ movimiento.estado }}" data-field-fecha_movimiento="{{ movimiento.fecha_movimiento|date:'Y-m-d' }}" data-field-monto="{{ movimiento.monto }}" data-field-metodo="{{ movimiento.metodo }}" data-field-referencia="{{ movimiento.referencia }}" data-field-descripcion="{{ movimiento.descripcion }}" data-field-reserva_id="{{ movimiento.reserva_id|default:'' }}" data-field-movimiento_inventario_id="{{ movimiento.movimiento_inventario_id|default:'' }}" data-field-equipo_financiero_id="{{ movimiento.equipo_id|default:'' }}" data-field-mantenimiento_financiero_id="{{ movimiento.mantenimiento_id|default:'' }}" data-field-procedimiento_solicitado="{{ movimiento.procedimiento_solicitado }}" data-field-procedimiento_verificado="{{ movimiento.procedimiento_verificado|yesno:'true,false' }}" data-field-referencia_autorizacion="{{ movimiento.referencia_autorizacion }}" data-field-certificacion_presupuestaria="{{ movimiento.certificacion_presupuestaria }}" data-field-fundamento_procedimiento="{{ movimiento.fundamento_procedimiento }}" data-field-observaciones="{{ movimiento.observaciones }}" data-field-motivo_anulacion="{{ movimiento.motivo_anulacion }}" aria-label="Consultar {{ movimiento.numero_movimiento }}"><i class="fas fa-{% if movimiento.estado == 'pendiente' %}pen{% else %}eye{% endif %}"></i></button>{% endif %}</td>
+        </tr>
+        {% empty %}<tr><td colspan="9"><div class="unit-console__empty"><i class="fas fa-receipt"></i><strong>{% translate "Aún no hay movimientos financieros" %}</strong><span>{% translate "Registra el primer cobro o egreso documentado." %}</span></div></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</article>

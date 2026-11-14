@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if paginacion.pagina.paginator.num_pages > 1 %}
+<nav class="cv-form__acciones" aria-label="{% translate 'Páginas de resultados' %}">
+  {% if paginacion.anterior_url %}<a class="ficha__boton" href="{{ paginacion.anterior_url }}" rel="prev">{% translate "Anterior" %}</a>{% endif %}
+  <span>{% blocktranslate with actual=paginacion.pagina.number total=paginacion.pagina.paginator.num_pages %}Página {{ actual }} de {{ total }}{% endblocktranslate %}</span>
+  {% if paginacion.siguiente_url %}<a class="ficha__boton" href="{{ paginacion.siguiente_url }}" rel="next">{% translate "Siguiente" %}</a>{% endif %}
+</nav>
+{% endif %}

@@ -1,0 +1,66 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Formación y oportunidades: las convocatorias abiertas por tipo y las modalidades de formación del centro, con las
+tarjetas de actividad de Laboratorios.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Las puertas para sumarse al centro: temas de tesis, pasantías, estancias de investigación, convocatorias y fondos, vacantes, cursos y capacitaciones." %}</p>{% endblock %}
+{% block acciones %}<a class="conoce__boton is-principal" href="{{ solicitar_url }}?tipo=capacitacion"><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i> {% translate "Consultar formación a medida" %}</a>{% endblock %}
+
+{% block contenido %}
+{% if cursos_centro %}<section class="conoce__seccion area__primera" id="programas"><header class="conoce__titulo"><span class="conoce__antetitulo">{% translate 'Aprender haciendo' %}</span><h2>{% translate 'Cursos y talleres del centro' %}</h2></header>
+<div class="area__actividades">{% for curso in cursos_centro %}<article class="area__actividad" id="curso-{{ curso.convocatoria.pk }}"><span class="ficha__rol">{{ curso.horas }} h · {{ curso.modalidad }}</span><h3>{{ curso.nombre }}</h3><p>{{ curso.dirigido }}</p><ul class="area__lista"><li><strong>{% translate 'Fechas' %}:</strong> {{ curso.inicio|date:'d/m/Y' }} – {{ curso.fin|date:'d/m/Y' }}</li><li><strong>{% translate 'Lugar' %}:</strong> {{ curso.lugar }}</li><li><strong>{% translate 'Requisitos' %}:</strong> {{ curso.requisitos }}</li><li><strong>{% translate 'Trabajo final' %}:</strong> {{ curso.entregable }}</li></ul><details><summary>{% translate 'Ver programa' %}</summary><ol class="area__lista">{% for modulo in curso.programa %}<li>{{ modulo }}</li>{% endfor %}</ol></details><footer><span>{% translate 'Solicitudes hasta' %} {{ curso.convocatoria.cierre|date:'d/m/Y' }}</span><a class="area__enlace" href="{{ solicitar_url }}?tipo=capacitacion&amp;titulo={{ curso.nombre|urlencode }}&amp;area={{ curso.area }}">{% translate 'Solicitar participación' %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></footer></article>{% endfor %}</div><p class="ficha__nota">{% translate 'El centro revisa requisitos y disponibilidad y comunica la aceptación mediante la solicitud.' %}</p></section>{% endif %}
+{% if cursos_vinculados %}<section class="conoce__seccion area__primera"><header class="conoce__titulo"><h2>{% translate 'Cursos y ediciones de unidades vinculadas' %}</h2></header>
+<p>{% translate 'Consulta programa, requisitos, inscripción y aula en el curso de la unidad organizadora. La matrícula y sus condiciones se confirman allí.' %}</p>
+<div class="area__actividades">
+  {% for curso in cursos_vinculados %}
+  <article class="area__actividad">
+    <span class="ficha__rol">{{ curso.categoria }} · {% if curso.es_externo %}{% translate 'Plataforma externa' %}{% else %}{% translate 'En esta plataforma' %}{% endif %}</span>
+    <h3>{{ curso.nombre }}</h3>
+    <p>{{ curso.descripcion|truncatewords:35 }}</p>
+    <p>{{ curso.modalidad }}{% if curso.horas %} · {{ curso.horas }} h{% endif %}</p>
+    {% if curso.es_externo %}
+      <p><strong>{% translate 'Organiza' %}:</strong> {{ curso.organizador }}</p>
+      <p><strong>{{ curso.participacion }}:</strong> {{ curso.unidad }}</p>
+    {% else %}<p><strong>{% translate 'Unidad organizadora' %}:</strong> {{ curso.unidad }}</p>{% endif %}
+    <ul class="area__lista">
+      {% for edicion in curso.ediciones %}<li>{{ edicion.nombre }} · {{ edicion.estado }}{% if edicion.inicio %} · {{ edicion.inicio|date:'d/m/Y' }}{% if edicion.fin %} – {{ edicion.fin|date:'d/m/Y' }}{% endif %}{% endif %}{% if edicion.horario %} · {{ edicion.horario }}{% endif %}{% if edicion.lugar %} · {{ edicion.lugar }}{% endif %}{% if edicion.cupos is not None %} · {{ edicion.cupos }} {% translate 'cupos libres al consultar' %}{% endif %}</li>
+      {% empty %}<li>{% translate 'Sin edición activa' %}</li>{% endfor %}
+    </ul>
+    {% if curso.es_externo and curso.url_externa %}
+      <a class="area__enlace" href="{{ curso.url_externa }}" target="_blank" rel="noopener noreferrer">{% translate 'Acceder a la plataforma organizadora' %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>
+      <p class="ficha__nota">{% translate 'La inscripción y el desarrollo de la actividad se realizan en la plataforma externa.' %}</p>
+    {% endif %}
+    <a class="area__enlace" href="{{ curso.url }}">{% if curso.es_externo %}{% translate 'Ver información de la colaboración' %}{% else %}{% translate 'Ver programa y acceso al curso' %}{% endif %}</a>
+  </article>
+  {% endfor %}
+</div>
+<nav aria-label="{% translate 'Catálogos de formación de las unidades vinculadas' %}">
+  <p class="ficha__nota">{% translate 'Consulta el catálogo de cada unidad para ver toda su oferta de cursos y eventos.' %}</p>
+  <ul class="area__lista">
+    {% for unidad in c.oferta_vinculada.unidades %}{% if unidad.cursos_total %}
+      <li><strong>{{ unidad.nombre }}</strong> · <a href="{{ unidad.cursos_url }}">{% translate 'Ver catálogo' %} ({{ unidad.cursos_total }})</a></li>
+    {% endif %}{% endfor %}
+  </ul>
+</nav>
+</section>{% endif %}
+{% for tipo, lista in convocatorias.items %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Oportunidades abiertas" %}</span><h2>{{ tipo }}</h2></header>
+  <div class="area__actividades">{% for convocatoria in lista %}<article class="area__actividad" id="convocatoria-{{ convocatoria.pk }}" data-aparecer>
+    <header><i class="{{ convocatoria.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{% if convocatoria.componente %}{{ convocatoria.componente }}{% else %}{{ centro.sigla|default:centro.nombre }}{% endif %}</span></div></header>
+    <h3>{{ convocatoria.titulo }}</h3>
+    <p>{{ convocatoria.descripcion|linebreaksbr }}</p>
+    <footer>{% if convocatoria.cierre %}<span><i class="fas fa-hourglass-half" aria-hidden="true"></i> {% translate "Cierra el" %} <strong>{{ convocatoria.cierre|date:"d/m/Y" }}</strong></span>{% else %}<span><i class="fas fa-infinity" aria-hidden="true"></i> {% translate "Abierta" %}</span>{% endif %}{% if convocatoria.enlace %}<a class="area__enlace" href="{{ convocatoria.enlace }}" target="_blank" rel="noopener">{% translate "Postular" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% else %}<a class="area__enlace" href="{{ solicitar_url }}?tipo=capacitacion&amp;titulo={{ convocatoria.titulo|urlencode }}{% if convocatoria.componente %}&amp;area={{ convocatoria.componente.codigo }}{% endif %}">{% translate "Me interesa" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}</footer>
+  </article>{% endfor %}</div>
+</section>
+{% empty %}
+{% if not cursos_centro and not cursos_vinculados and not modalidades %}<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("No hay cursos ni convocatorias publicados actualmente.") enlace=completar %}</section>{% endif %}
+{% endfor %}
+
+{% if modalidades %}
+<section class="conoce__seccion" id="formacion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Aprender en el centro" %}</span><h2>{% translate "Formación en el centro" %}</h2></header>
+  <div class="area__actividades">{% for modalidad in modalidades %}<article class="area__actividad" data-aparecer><header><i class="{{ modalidad.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{% translate "Modalidad" %}</span></div></header><h3>{{ modalidad.nombre }}</h3><p>{{ modalidad.proposito }}</p>{% if modalidad.usuarios %}<ul class="ficha__medios"><li><i class="fas fa-users" aria-hidden="true"></i>{{ modalidad.usuarios }}</li></ul>{% endif %}</article>{% endfor %}</div>
+</section>
+{% endif %}
+{% endblock %}

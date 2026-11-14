@@ -1,0 +1,22 @@
+{% extends 'admin/base_site.html' %}
+{% load i18n %}
+{% block extrahead %}{{ block.super }}{{ media }}{% endblock %}
+{% block breadcrumbs %}<ul class="grp-horizontal-list"><li><a href="{% url 'admin:index' %}">{% translate 'Inicio' %}</a></li><li><a href="{{ volver_url }}">{% translate 'Portadas de Inicio' %}</a></li><li>{{ title }}</li></ul>{% endblock %}
+{% block content %}
+<section class="portal-editor grp-module">
+  <p>{% translate 'Guardar crea un borrador. La portada pública cambia solo al confirmar su publicación.' %}</p>
+  <p>{% translate 'Edita texto simple en ambos idiomas. Las imágenes, los indicadores y los destinos de los botones conservan su configuración actual.' %}</p>
+  <form method="post" novalidate>{% csrf_token %}{{ form.non_field_errors }}
+    {{ form.base_esperada }}{{ form.base_esperada.errors }}
+    <div class="portal-editor-field">{{ form.titulo.label_tag }}{{ form.titulo }}{{ form.titulo.errors }}</div>
+    <div class="portal-editor-languages">
+    {% for idioma, campos in form.grupos %}
+      <fieldset><legend>{% if idioma == 'es' %}{% translate 'Español' %}{% else %}{% translate 'Inglés' %}{% endif %}</legend>
+      {% for campo in campos %}<div class="portal-editor-field">{{ campo.label_tag }}{{ campo }}{{ campo.errors }}{% if campo.help_text %}<p class="help" id="{{ campo.auto_id }}_helptext">{{ campo.help_text }}</p>{% endif %}</div>{% endfor %}
+      </fieldset>
+    {% endfor %}
+    </div>
+    <div class="portal-editor-actions"><button type="submit" class="upec-button upec-button--secondary">{% translate 'Guardar borrador' %}</button><a href="{{ volver_url }}">{% translate 'Volver' %}</a></div>
+  </form>
+</section>
+{% endblock %}

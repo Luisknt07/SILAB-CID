@@ -1,0 +1,64 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% block entradilla %}<p class="cv-entradilla">{% translate "Consulta equipos, espacios y herramientas. Una ventana libre permite solicitar uso; el centro confirma requisitos, supervisión y horario." %}</p>{% endblock %}
+{% block contenido %}
+<section class="conoce__seccion area__primera">
+  <form class="cv-filtros" method="get"><label>{% translate "Buscar recurso" %}<input name="q" type="search" value="{{ busqueda }}"></label><button class="ficha__boton" type="submit">{% translate "Buscar" %}</button></form>
+</section>
+{% if recurso_seleccionado %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo"><h2>{{ recurso_seleccionado.nombre }}</h2></header>
+  {% if recurso_seleccionado.requisitos %}<div class="area__texto">{{ recurso_seleccionado.requisitos|linebreaks }}</div>{% endif %}
+  {% if recurso_seleccionado.accesibilidad %}<p>{{ recurso_seleccionado.accesibilidad }}</p>{% endif %}
+  {% if es_equipo %}{% if recurso_seleccionado.requiere_induccion or recurso_seleccionado.requiere_supervision or recurso_seleccionado.calibracion_requerida %}<ul class="area__lista">
+    {% if recurso_seleccionado.requiere_induccion %}<li>{% translate "Requiere inducción y habilitación vigente para operar este equipo." %}</li>{% endif %}
+    {% if recurso_seleccionado.requiere_supervision %}<li>{% translate "El uso requiere supervisión de personal del centro." %}</li>{% endif %}
+    {% if recurso_seleccionado.calibracion_requerida and recurso_seleccionado.calibracion_hasta %}<li>{% translate "Vigencia de calibración registrada hasta:" %} {{ recurso_seleccionado.calibracion_hasta|date:'d/m/Y' }}</li>{% endif %}
+  </ul>{% endif %}{% endif %}
+  {% if recurso_seleccionado.aforo %}<p>{% translate "Aforo autorizado:" %} {{ recurso_seleccionado.aforo }}</p>{% endif %}
+  <p class="ficha__nota">{% translate "Preparación y cierre por extremo:" %} {{ recurso_seleccionado.margen_minutos }} {% translate "minutos" %} · {{ zona_horaria }}</p>
+  {% if recurso_seleccionado.apto_reserva %}
+  <form class="cv-filtros" method="get">
+    <input type="hidden" name="{% if es_equipo %}equipo{% else %}zona{% endif %}" value="{{ recurso_seleccionado.pk }}">
+    {{ disponibilidad_form.as_p }}<button class="ficha__boton" type="submit">{% translate "Consultar ventanas" %}</button>
+  </form>
+  {% if ventanas is not None %}<ul class="area__lista">{% for ventana in ventanas %}<li>{{ ventana.inicio|date:'H:i' }} – {{ ventana.fin|date:'H:i' }}</li>{% empty %}<li>{% translate "Sin ventanas para solicitar en esa fecha." %}</li>{% endfor %}</ul>{% endif %}
+  <a class="ficha__boton" href="{{ solicitar_url }}?tipo=uso&amp;{% if es_equipo %}equipo{% else %}zona{% endif %}={{ recurso_seleccionado.pk }}">{% translate "Solicitar este recurso" %}</a>
+  {% else %}<p class="ficha__nota">{% translate "La reserva de este recurso todavía no está habilitada." %}</p>{% endif %}
+</section>
+{% endif %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo"><h2>{% translate "Equipos propios" %}</h2></header>
+  <div class="area__actividades">{% for equipo in equipos %}<article class="area__actividad">
+    <span class="ficha__rol">{{ equipo.componente }} · {{ equipo.get_estado_display }}</span><h3>{{ equipo.nombre }}</h3><p>{{ equipo.funcion }}</p>
+    <p>{% if equipo.es_activo_individual %}{{ equipo.codigo }}{% else %}{% translate "Familia de equipamiento" %} · {{ equipo.cantidad }}{% endif %}</p>
+    <button class="cv-enlace" type="button" data-modal="{% url 'fragmento_centro_id' centro.slug 'equipo' equipo.pk %}">{% translate "Ficha técnica" %}</button>
+    {% if equipo.apto_reserva %}<a class="area__enlace" href="?equipo={{ equipo.pk }}">{% translate "Consultar disponibilidad" %}</a>{% endif %}
+  </article>{% empty %}<p>{% translate "Sin equipos que coincidan con la consulta." %}</p>{% endfor %}</div>
+</section>
+<section class="conoce__seccion">
+  <header class="conoce__titulo"><h2>{% translate "Espacios propios" %}</h2></header>
+  <div class="area__actividades">{% for zona in zonas %}<article class="area__actividad"><h3>{{ zona.nombre }}</h3><p>{{ zona.codigo }} · {{ zona.nivel }} · {{ zona.get_estado_acceso_display }}</p><a class="area__enlace" href="?zona={{ zona.pk }}">{% translate "Condiciones y disponibilidad" %}</a></article>{% empty %}<p>{% translate "Sin espacios con acceso solicitable." %}</p>{% endfor %}</div>
+</section>
+{% if unidades_operativas %}<section class="conoce__seccion">
+  <header class="conoce__titulo"><h2>{% translate "Operaciones en unidades vinculadas" %}</h2></header>
+  <p>{% translate "La unidad propietaria confirma la reserva y gestiona la matrícula. Una solicitud al centro no sustituye esas operaciones." %}</p>
+  <ul class="area__lista">{% for unidad in unidades_operativas %}<li><strong>{{ unidad.nombre }}</strong> {% if unidad.agenda_url %}<a href="{{ unidad.agenda_url }}">{% translate "Agenda y reservas" %}</a> · {% endif %}<a href="{{ unidad.cursos_url }}">{% translate "Cursos y aula" %}</a></li>{% endfor %}</ul>
+</section>{% endif %}
+{% if herramientas %}<section class="conoce__seccion">
+  <header class="conoce__titulo"><h2>{% translate "Simulación y entornos virtuales" %}</h2></header>
+  {% for herramienta in herramientas %}<article class="ficha__bloque">
+    <h3>{{ herramienta.nombre }}</h3><p class="ficha__nota">{{ herramienta.get_tipo_display }} · {% translate "Versión" %} {{ herramienta.version }}</p>
+    <div class="area__texto">{{ herramienta.objetivo|linebreaks }}</div>
+    <details><summary>{% translate "Entradas, método y condiciones de uso" %}</summary>
+      <h4>{% translate "Entradas, unidades y rangos" %}</h4>{{ herramienta.entradas|linebreaks }}
+      <h4>{% translate "Método y fuentes" %}</h4>{{ herramienta.metodo|linebreaks }}
+      <h4>{% translate "Salidas" %}</h4>{{ herramienta.salidas|linebreaks }}
+      <h4>{% translate "Supuestos" %}</h4>{{ herramienta.supuestos|linebreaks }}
+      <h4>{% translate "Validación y limitaciones" %}</h4>{{ herramienta.limites|linebreaks }}
+    </details>
+    <a class="ficha__boton" href="{{ herramienta.enlace }}" target="_blank" rel="noopener">{% translate "Abrir herramienta" %}</a>
+  </article>{% endfor %}
+  <p class="ficha__nota">{% translate "Una simulación no confirma una reserva ni modifica equipos o informes oficiales." %}</p>
+</section>{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'admin/base_site.html' %}
+{% load i18n %}
+{% block extrahead %}{{ block.super }}{{ media }}{% endblock %}
+{% block breadcrumbs %}<ul class="grp-horizontal-list"><li><a href="{% url 'admin:index' %}">{% translate 'Inicio' %}</a></li><li><a href="{{ volver_url }}">{{ revision.titulo }}</a></li><li>{{ title }}</li></ul>{% endblock %}
+{% block content %}
+<section class="portal-editor grp-module">
+  <p>{% translate 'Publicar crea una versión nueva y conserva el contenido anterior. Revisa ambos idiomas y confirma.' %}</p>
+  {% if base_obsoleta %}<p role="alert">{% translate 'Este borrador tiene una base anterior. Crea una revisión nueva con los datos actuales.' %}</p>{% endif %}
+  <div class="portal-editor-languages">
+  {% for idioma, textos in grupos %}
+    <section><h2>{% if idioma == 'es' %}{% translate 'Español' %}{% else %}{% translate 'Inglés' %}{% endif %}</h2>
+    <dl>{% for etiqueta, texto in textos %}<dt>{{ etiqueta }}</dt><dd>{{ texto|default:'—' }}</dd>{% endfor %}</dl></section>
+  {% endfor %}
+  </div>
+  <p><a href="{{ preview_url }}">{% translate 'Vista previa' %}</a></p>
+  <form method="post">{% csrf_token %}{{ form.non_field_errors }}{{ form.base_esperada }}{{ form.base_esperada.errors }}
+    <p>{{ form.confirmar }} {{ form.confirmar.label_tag }} {{ form.confirmar.errors }}</p>
+    <div class="portal-editor-actions"><button type="submit" class="upec-button upec-button--secondary">{% translate 'Confirmar publicación' %}</button><a href="{{ volver_url }}">{% translate 'Volver' %}</a></div>
+  </form>
+</section>
+{% endblock %}

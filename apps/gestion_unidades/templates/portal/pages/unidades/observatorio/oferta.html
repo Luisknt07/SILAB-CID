@@ -1,0 +1,29 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Qué ofrece el observatorio" %}{% endblock %}
+{% block encabezado %}{% translate "Qué ofrece el observatorio" %}{% endblock %}
+{% block subtitulo %}{% translate "Un observatorio produce información para decidir: esto es lo que entrega, y lo que dejan a otras unidades" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Servicios" %}</dt><dd>{{ ofrece|length }}</dd></div><div><dt>{% translate "Capacitaciones" %}</dt><dd>{{ capacitaciones|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Oferta del observatorio" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "LO QUE OFRECE" %}</span></header>
+  <ul class="obs-oferta">{% for item in ofrece %}<li>
+    <i class="{{ item.icono }}" aria-hidden="true"></i>
+    <div><strong>{% if item.url %}<a href="{{ item.url }}">{{ item.titulo }}</a>{% else %}{{ item.titulo }}{% endif %}</strong><p>{{ item.texto }}</p></div>
+  </li>{% endfor %}</ul>
+</section>
+{% if capacitaciones %}
+<section class="unit-report__section">
+  <header><span>{% translate "CAPACITACIONES QUE PUEDE DICTAR" %}</span></header>
+  <p>{% for nombre, tipo, horas, para in capacitaciones %}{{ nombre }} ({{ horas }}){% if not forloop.last %}; {% endif %}{% endfor %}.</p>
+  <p><a class="obs-boton" href="{% url 'capacitaciones_observatorio' unidad.slug %}"><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i> {% translate "Para quién son y cómo se piden" %}</a></p>
+</section>
+{% endif %}
+<section class="unit-report__section">
+  <header><span>{% translate "LO QUE NO OFRECE" %}</span><small>{% translate "Y quién lo hace" %}</small></header>
+  <ul class="obs-oferta is-no">{% for titulo, texto in no_ofrece %}<li><i class="fas fa-times-circle" aria-hidden="true"></i><div><strong>{{ titulo }}</strong><p>{{ texto }}</p></div></li>{% endfor %}</ul>
+</section>
+{% endblock %}

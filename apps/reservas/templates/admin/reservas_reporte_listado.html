@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n idiomas marca %}
+{% block title %}{{ reporte_gestion.category_label }} · {{ identidad_producto.nombre_corto }} · {{ identidad_institucion.siglas }}{% endblock %}
+{% block extrahead %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}">
+<style>.unit-report { width:100%; margin:0; } .unit-report__table-wrap { overflow-x:auto; }</style>
+{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'admin:index' %}#reportes">{% translate "Reportes e indicadores" %}</a> &rsaquo; {{ title }}{% endblock %}
+{% block content %}
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{{ reporte_gestion.category_label }}</h1>
+        <small>{% translate "Reporte institucional de solicitudes" %}</small>
+        <p>{{ reporte_gestion.scope_label }}</p>
+      </div>
+      <dl><div><dt>{% translate "Período" %}</dt><dd>{{ reporte_gestion.start_date|date:"d/m/Y" }} – {{ reporte_gestion.end_date|date:"d/m/Y" }}</dd></div><div><dt>{% translate "Generado" %}</dt><dd>{{ reporte_gestion.generated_at|date:"d/m/Y H:i" }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones del reporte" %}">
+      <a href="{{ url_listado }}{% if consulta %}?{{ consulta }}{% endif %}">{% translate "← Volver al listado" %}</a>
+      <div>
+        <a href="?{% if consulta %}{{ consulta }}&amp;{% endif %}formato=pdf" data-ver-pdf data-pdf-titulo="{{ title }}">{% translate "Ver documento" %}</a>
+        <a class="is-primary" href="?{% if consulta %}{{ consulta }}&amp;{% endif %}formato=pdf" download>{% translate "Descargar PDF" %}</a>
+      </div>
+    </section>
+
+    <section class="unit-report__context">
+      <span>{% translate "ASÍ SE VA A DESCARGAR" %}</span>
+      <h2>{{ reporte_gestion.category_label }}</h2>
+      <p>{% translate "Esta pantalla es el documento: el PDF sale con este mismo encabezado, estos criterios y estas filas. Si falta o sobra algo, vuelve al listado, ajusta los filtros y regresa aquí antes de descargarlo." %}</p>
+    </section>
+
+    {% include 'portal/pages/unidades/gestion/includes/reporte_contenido.html' %}
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ reporte_gestion.scope_label }}</span></div><div><span>{% translate "Documento generado el" %} {{ reporte_gestion.generated_at|date:"d/m/Y H:i" }}</span></div></footer>
+  </main>
+{% endblock %}

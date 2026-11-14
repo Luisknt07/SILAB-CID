@@ -1,0 +1,4 @@
+{% load i18n %}
+{% if item.areas_catalogo_resumen %}<span>{{ item.areas_catalogo_resumen }}</span>{% endif %}
+{% if item.areas_catalogo_referencia_resumen %}<small data-catalogo-area-referencia><b>{% translate "Área de referencia" %}:</b> {{ item.areas_catalogo_referencia_resumen }}</small>{% endif %}
+{% if not item.areas_catalogo_resumen and not item.areas_catalogo_referencia_resumen %}<span class="recursos-tabla__tenue">{% translate "Sin área asociada" %}</span>{% endif %}

@@ -1,0 +1,69 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Asistencia ·" %} {{ visita.institucion }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .asistencia-form textarea { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 8px 10px; border: 1px solid #c9d8cf; border-radius: 4px; font: inherit; font-size: 13px; }
+    .asistencia-form label.is-bloque { display: block; margin: 12px 0; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--institucion-texto, #1f3d2f); }
+    .asistencia-form input[type="checkbox"] { width: 18px; height: 18px; }
+    .asistencia-form .unit-report__table { table-layout: fixed; }
+    .asistencia-form .unit-report__table th, .asistencia-form .unit-report__table td { overflow-wrap: anywhere; }
+    .asistencia-form .unit-report__table th:first-child { width: 7%; }
+    .asistencia-form .unit-report__table th:nth-child(2) { width: 22%; }
+    .asistencia-form .unit-report__table th:nth-child(3) { width: 14%; }
+    .asistencia-form .unit-report__table th:nth-child(4) { width: 12%; }
+    .asistencia-form .unit-report__table th:nth-child(5) { width: 14%; }
+    .asistencia-form .unit-report__table th:nth-child(6) { width: 19%; }
+    .asistencia-form .unit-report__table th:nth-child(7) { width: 12%; }
+    .asistencia-form .is-primario { padding: 10px 18px; border: 0; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .asistencia-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    @media print { .unit-report__toolbar, .asistencia-form .is-primario, .asistencia-form textarea { display: none; } }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{% translate "Lista de asistencia" %}</h1>
+        <small>{% translate "Visita de" %} {{ visita.institucion }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl><div><dt>{% translate "Fecha" %}</dt><dd>{{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }}</dd></div><div><dt>{% translate "Grupo" %}</dt><dd>{{ visita.personas }} {% translate "personas ·" %} {{ visita.guias_necesarios }} {% translate "guía" %}{{ visita.guias_necesarios|pluralize }}</dd></div><div><dt>{% translate "Estado" %}</dt><dd>{{ reserva.get_estado_display|ui }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver a visitas" %}</a>
+      <div>
+        <a href="{% url 'comprobante_reserva' reserva.pk %}">{% translate "Solicitud" %} {{ reserva.codigo_reserva }}</a>
+        {% include 'portal/components/acciones_documento.html' %}
+      </div>
+    </section>
+    {% if not documento_pdf %}<p class="unit-report__notice">{% translate "El PDF muestra los datos guardados. Guarda los cambios del formulario antes de descargarlo." %}</p>{% endif %}
+
+    {% if guardado %}<p class="unit-report__notice asistencia-ok">{% translate "Asistencia registrada." %}</p>{% endif %}
+
+    <section class="unit-report__context"><span>GRUPO</span><h2>{{ visita.institucion }} · {{ visita.get_proposito_display|ui }}</h2><p>{% translate "Responsable:" %} {{ visita.responsable.get_full_name|default:visita.responsable.username }}{% if visita.responsable.email %} · {{ visita.responsable.email }}{% endif %} {% translate "· Guía:" %} {% if visita.guia %}{{ visita.guia.get_full_name|default:visita.guia.username }}{% else %}{% translate "por asignar" %}{% endif %} {% translate "· Recorrido:" %} {{ visita.recorrido.all|join:", " }}{% if visita.rango_edades %} {% translate "· Edades:" %} {{ visita.rango_edades }}{% endif %}</p></section>
+
+    <form method="post" class="asistencia-form">
+      {% csrf_token %}
+      <section class="unit-report__section">
+        <header><span>ASISTENTES</span><small>{% translate "marca a quien ingresa; la visita se inicia con al menos un ingreso" %}</small></header>
+        <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Ingresa" %}</th><th>{% translate "Nombres completos" %}</th><th>{% translate "Cédula / documento" %}</th><th>{% translate "Rol" %}</th><th>{% translate "Celular" %}</th><th>{% translate "Correo" %}</th><th>{% translate "Ingreso" %}</th></tr></thead><tbody>
+          {% for asistente in asistentes %}<tr><td><input type="checkbox" name="presentes" value="{{ asistente.pk }}"{% if asistente.asistio %} checked{% endif %} aria-label="Ingresa {{ asistente.nombre }}"></td><td>{{ asistente.nombre }}</td><td>{{ asistente.documento|default:"—" }}</td><td>{{ asistente.get_rol_display|default:"—"|ui }}</td><td>{{ asistente.telefono|default:"—" }}</td><td>{{ asistente.correo|default:"—" }}</td><td>{% if asistente.ingreso_en %}{{ asistente.ingreso_en|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="7">{% translate "La lista llegó vacía: anota abajo a quienes ingresan." %}</td></tr>{% endfor %}
+        </tbody></table></div>
+        {% if not documento_pdf %}<label class="is-bloque">{% translate "Personas que ingresan y no están en la lista (una por línea: Nombre; documento)" %}<textarea name="nuevos" rows="4" placeholder="{% translate "Carla Ruiz; 0402345678" %}"></textarea></label>{% endif %}
+        {% if documento_pdf %}<p><strong>{% translate "Observaciones:" %}</strong> {{ visita.observaciones|default:"—"|linebreaksbr }}</p>{% else %}<label class="is-bloque">{% translate "Observaciones" %}<textarea name="observaciones" rows="3">{{ visita.observaciones }}</textarea></label>{% endif %}
+        <p><button type="submit" class="is-primario">{% translate "Guardar la asistencia" %}</button></p>
+      </section>
+    </form>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Lista de asistencia ·" %} {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

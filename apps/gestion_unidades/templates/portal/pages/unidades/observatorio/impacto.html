@@ -1,0 +1,33 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Uso e impacto de los datos" %}{% endblock %}
+{% block encabezado %}{% translate "Uso e impacto de los datos" %}{% endblock %}
+{% block subtitulo %}{% translate "Cuánto se usan los datos, qué se pidió y si el observatorio cumple su calendario" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Descargas" %}</dt><dd>{{ total_descargas }}</dd></div><div><dt>{% translate "Solicitudes" %}</dt><dd>{{ solicitudes }}</dd></div><div><dt>{% translate "Calendario" %}</dt><dd>{% if cumplimiento.porcentaje is not None %}{{ cumplimiento.porcentaje }} %{% else %}—{% endif %}</dd></div>{% endblock %}
+{% block pie %}{% translate "Uso e impacto" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "DESCARGAS DE DATOS" %}</span><small>{% translate "Se cuentan por día y formato, sin guardar quién descarga" %}</small></header>
+  {% if por_formato %}
+  <ul class="obs-barras">{% for formato, total in por_formato %}<li><span>{{ formato|upper }}</span><span class="obs-barras__pista"><span style="width: 100%"></span></span><strong>{{ total }}</strong><small></small></li>{% endfor %}</ul>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Mes" %}</th><th>{% translate "Descargas" %}</th></tr></thead><tbody>{% for mes, total in por_mes %}<tr><td>{{ mes }}</td><td>{{ total }}</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<p class="unit-report__notice">{% translate "Todavía no hay descargas registradas." %}</p>{% endif %}
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "SOLICITUDES Y CALENDARIO" %}</span></header>
+  <dl class="unit-report__fields">
+    <div><dt>{% translate "Solicitudes recibidas" %}</dt><dd>{{ solicitudes }}</dd></div>
+    <div><dt>{% translate "Atendidas" %}</dt><dd>{{ atendidas }}</dd></div>
+    <div><dt>{% translate "Publicaciones cumplidas" %}</dt><dd>{{ cumplimiento.cumplidas }} {% translate "de" %} {{ cumplimiento.vencidas }} ({{ cumplimiento.a_tiempo }} {% translate "a tiempo" %})</dd></div>
+  </dl>
+</section>
+{% if aliados_usuarios %}
+<section class="unit-report__section">
+  <header><span>{% translate "QUIÉN USA LOS DATOS" %}</span></header>
+  <ul class="aula-lista">{% for aliado in aliados_usuarios %}<li><strong>{{ aliado.nombre }}</strong>{% if aliado.aporte %}: {{ aliado.aporte }}{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+<p class="unit-report__notice">{% translate "El uso de los datos en planes de desarrollo, ordenanzas o informes se documenta con carpetas propias en esta sección." %}</p>
+{% endblock %}

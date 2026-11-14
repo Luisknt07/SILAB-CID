@@ -1,0 +1,63 @@
+{% load static i18n %}{% if not fragmento %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Editar" %} {{ espacio.nombre }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipo_editar.css' %}?v=20261009-editor-v2">
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce editor">
+  <header class="editor__barra">
+    <div><span>{% translate "Editar la página del área" %}</span><h1>{{ espacio.nombre }} <small>{{ espacio.codigo }}</small></h1></div>
+    <a href="{{ area_url }}" class="editor__volver"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Volver al área sin guardar" %}</a>
+  </header>
+{% endif %}
+  <form method="post" enctype="multipart/form-data" class="editor__cuerpo{% if solo %} is-una-seccion{% endif %}" action="{% url 'editar_area' unidad.slug espacio.codigo %}" novalidate data-editor-ficha>
+    {% csrf_token %}
+    <input type="hidden" name="seccion" value="{{ solo }}">
+    <input type="hidden" name="volver_a" value="{{ solo|default:'que-es' }}">
+    {% if not solo %}<nav class="editor__indice" aria-label="{% translate "Secciones" %}">
+      {% for clave, seccion in secciones.items %}<a href="#{{ clave }}"><i class="{{ seccion.1 }}" aria-hidden="true"></i> {{ seccion.0 }}</a>{% endfor %}
+      <button type="submit" class="editor__guardar"><i class="fas fa-save" aria-hidden="true"></i> {% translate "Guardar los cambios" %}</button>
+    </nav>{% endif %}
+    <div class="editor__secciones">
+      {% if form_datos.errors or form_ficha.errors or errores_videos %}<p class="editor__error" role="alert"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> {% translate "Revisa los campos marcados: no se guardó nada." %}</p>{% endif %}
+
+      {% if form_datos %}<section class="editor__tarjeta" id="datos">
+        <header><h2>{% translate "Datos del área" %}</h2><p>{% translate "Nombre, descripción, capacidad y foto de portada." %}</p></header>
+        <div class="editor__campos">{% for campo in form_datos %}<div class="editor__campo{% if campo.name in 'nombre descripcion_publica caracteristicas mobiliario_incluido' %} is-ancho{% endif %}{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if form_ficha %}<section class="editor__tarjeta" id="contenido">
+        <header><h2>{% translate "Contenido de la ficha" %}</h2><p>{% translate "Los textos que explican el área. Las listas van una línea por elemento." %}</p></header>
+        <div class="editor__campos">{% for campo in form_ficha %}<div class="editor__campo is-ancho{% if campo.errors %} con-error{% endif %}">{% if campo.name == 'publicada' %}<label class="editor__casilla">{{ campo }} {{ campo.label }}</label><small>{% translate "Sin publicar, solo la ve quien gestiona la unidad." %}</small>{% else %}<label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% endif %}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if not solo or solo == 'fotos' %}<section class="editor__tarjeta" id="fotos">
+        <header><h2>{% translate "Fotos del área" %}</h2><p>{% translate "Las fotos propias van primero en la galería; desmarca «Publicada» para ocultar una sin borrarla." %}</p></header>
+        {% if fotos %}<div class="editor__fotos">{% for foto in fotos %}<article>
+          {% if foto.imagen %}<img src="{{ foto.imagen.url }}" alt="">{% else %}<span aria-hidden="true"><i class="fas fa-image"></i></span>{% endif %}
+          <input name="titulo_foto_{{ foto.pk }}" value="{{ foto.titulo }}" maxlength="160" aria-label="{% translate "Qué muestra" %}">
+          <label class="editor__casilla"><input type="checkbox" name="publicada_foto_{{ foto.pk }}"{% if foto.publicado %} checked{% endif %}> {% translate "Publicada" %}</label>
+          <label class="editor__borrar"><input type="checkbox" name="borrar_foto_{{ foto.pk }}"> {% translate "Quitar" %}</label>
+        </article>{% endfor %}</div>{% endif %}
+        <h3>{% translate "Agregar fotos" %}</h3>
+        <div class="editor__fotos-nuevas">{% for nueva in fotos_nuevas %}<div class="editor__fila is-dos{% if nueva.errors %} con-error{% endif %}">{{ nueva.imagen }}{{ nueva.titulo }}{% if nueva.errors %}<small class="editor__mensaje">{% for campo in nueva %}{{ campo.errors|join:" " }}{% endfor %}</small>{% endif %}</div>{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if not solo or solo == 'videos' %}<section class="editor__tarjeta" id="videos">
+        <header><h2>{% translate "Videos del área" %}</h2><p>{% translate "Los que guardes aquí reemplazan a los de referencia en la página del área." %}</p></header>
+        {% if videos_de_referencia %}<p class="editor__aviso"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Precargados con los videos de referencia del área: al guardar quedan como propios." %}</p>{% endif %}
+        <div class="editor__campo is-ancho{% if errores_videos %} con-error{% endif %}"><label for="videos">{% translate "Un video por línea: enlace de YouTube | título | descripción" %}</label><textarea id="videos" name="videos" rows="5" data-editor-videos data-tercero="{% translate 'Descripción' %}">{{ texto_videos }}</textarea>{% for error in errores_videos %}<small class="editor__mensaje">{{ error }}</small>{% endfor %}</div>
+      </section>{% endif %}
+
+      <div class="editor__pie">{% if fragmento %}<button type="button" class="editor__cancelar" data-cerrar-edicion>{% translate "Cancelar" %}</button>{% else %}<a href="{{ area_url }}">{% translate "Cancelar" %}</a>{% endif %}<button type="submit" class="editor__guardar"><i class="fas fa-save" aria-hidden="true"></i> {% translate "Guardar los cambios" %}</button></div>
+    </div>
+  </form>
+{% if not fragmento %}<script src="{% static 'portal/js/components/editor_videos.js' %}?v=20261003-videos-v1" defer></script>
+</body>
+</html>{% endif %}

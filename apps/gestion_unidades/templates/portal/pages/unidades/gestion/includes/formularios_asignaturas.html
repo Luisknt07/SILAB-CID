@@ -1,0 +1,32 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="asignatura" data-reload-view="practicas" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="asignatura"><input type="hidden" name="registro_id">
+  <header><span>ASIGNATURAS</span><h3>{% translate "Asignatura del período" %}</h3><p>{% translate "El sílabo práctico: la asignatura, su carrera y semestre, quien la dicta y el período. Añade las prácticas que correspondan; cada una puede ocupar una o varias sesiones." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Código" %}<input name="codigo" maxlength="40" placeholder="{% translate "LAC-ASIG-TECLAC" %}" required></label>
+    <label>{% translate "Nombre" %}<input name="nombre" maxlength="180" required></label>
+    <label>{% translate "Carrera" %}<input name="carrera" maxlength="180"></label>
+    <label>{% translate "Semestre o nivel" %}<input name="semestre" maxlength="60"></label>
+    <label>{% translate "Docente" %}<input name="docente" maxlength="150" placeholder="{% translate "usuario institucional, correo o cédula" %}"><small>{% translate "Vacío: cualquier docente puede elegirla al programar." %}</small></label>
+    <label>{% translate "Estudiantes" %}<input type="number" name="estudiantes" min="0" step="1" value="0"></label>
+    <label>{% translate "Período" %}<select name="periodo_id"><option value="">{% translate "Cualquier período" %}</option>{% for periodo in periodos_para_asignaturas %}<option value="{{ periodo.pk }}">{{ periodo.codigo }}{% if periodo.nombre %} · {{ periodo.nombre }}{% endif %}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="2"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar asignatura" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="tema_asignatura" data-reload-view="practicas" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="tema_asignatura"><input type="hidden" name="registro_id">
+  <header><span>{% translate "SÍLABO" %}</span><h3>{% translate "Tema de la asignatura" %}</h3><p>{% translate "Tema de práctica: el proceso que se practica y los simuladores o ejercicios del aula. Puede repetirse en varias sesiones, según el horario de la asignatura. De aquí nacen el cronograma de la guía general y la guía prellenada de cada sesión." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Asignatura" %}<select name="asignatura_id" required><option value="">{% translate "Selecciona" %}</option>{% for asignatura in asignaturas_unidad %}{% if asignatura.activa %}<option value="{{ asignatura.pk }}">{{ asignatura.codigo }} · {{ asignatura.nombre }}</option>{% endif %}{% endfor %}</select></label>
+    <label>{% translate "Orden del tema" %}<input type="number" name="orden" min="1" step="1" value="1" required></label>
+    <label class="is-wide">{% translate "Tema" %}<input name="nombre" maxlength="240" required></label>
+    <label>{% translate "Proceso de la unidad" %}<select name="receta_id"><option value="">{% translate "Sin proceso" %}</option>{% for receta in recetas_para_temas %}<option value="{{ receta.pk }}">{{ receta.nombre }}</option>{% endfor %}</select><small>{% translate "La guía de la sesión nace con el procedimiento, la seguridad y los resultados del proceso." %}</small></label>
+    <label>{% translate "Simuladores y software" %}<select name="software_ids" multiple size="4">{% for programa in software_para_temas %}<option value="{{ programa.pk }}">{{ programa.nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Ejercicios del aula" %}<textarea name="ejercicios" rows="2" placeholder="{% translate "Balance de materia de la corrida; balance de línea con los tiempos del proceso…" %}"></textarea></label>
+    <label class="is-wide">{% translate "Resultado de aprendizaje" %}<textarea name="resultado_aprendizaje" rows="2"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Quitar tema" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar tema" %}</button></footer>
+</form>

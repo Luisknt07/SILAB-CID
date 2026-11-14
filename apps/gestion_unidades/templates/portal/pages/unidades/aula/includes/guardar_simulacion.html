@@ -1,0 +1,19 @@
+
+{% load i18n idiomas %}
+<section class="unit-report__section aula-guardar">
+  <header>
+    <span>{% if simulacion_abierta %}{% translate "ESTÁS EDITANDO UNA SIMULACIÓN GUARDADA" %}{% else %}{% translate "GUARDA ESTA SIMULACIÓN" %}{% endif %}</span>
+    <small>{% if simulacion_abierta %}«{{ simulacion_abierta.nombre }}{% translate "», guardada el" %} {{ simulacion_abierta.actualizada_en|date:"d/m/Y H:i" }}{% translate ". Guardar los cambios la reemplaza; guardarla aparte deja las dos." %}{% else %}{% translate "Se guardan las variables con que la corriste, así puedes volver a ella, cambiarla o descargarla." %}{% endif %}</small>
+  </header>
+  <form class="aula-form" method="post" action="{{ guardar_url }}">
+    {% csrf_token %}
+    <input type="hidden" name="simulador" value="{{ simulador }}">
+    {% if simulacion_abierta %}<input type="hidden" name="simulacion" value="{{ simulacion_abierta.pk }}">{% endif %}
+    {% for clave, valor in parametros_actuales.items %}<input type="hidden" name="{{ clave }}" value="{{ valor }}">{% endfor %}
+    <label class="aula-form__wide">{% translate "Nombre" %}<input type="text" name="nombre" maxlength="120" required value="{{ simulacion_abierta.nombre|default:'' }}" placeholder="{% translate "Corrida con más merma en el desuerado" %}"></label>
+    <label class="aula-form__wide">{% translate "Notas" %}<textarea name="notas" rows="2" maxlength="600" placeholder="{% translate "Para qué la hiciste y qué concluiste." %}">{{ simulacion_abierta.notas|default:'' }}</textarea></label>
+    <button type="submit">{% if simulacion_abierta %}{% translate "Guardar los cambios" %}{% else %}{% translate "Guardar esta simulación" %}{% endif %}</button>
+    {% if simulacion_abierta %}<button type="submit" name="accion" value="copia" class="is-suave">{% translate "Guardarla aparte" %}</button>
+    <a class="aula-reset" href="{{ reporte_url_abierta }}">{% translate "Ver el documento antes de descargarlo" %}</a>{% endif %}
+  </form>
+</section>

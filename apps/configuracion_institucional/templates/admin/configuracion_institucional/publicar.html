@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'configuracion_institucional/paleta_editor.css' %}?v=20260920-tonos-encima-v216">{% endblock %}
+{% block breadcrumbs %}<ul class="grp-horizontal-list"><li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li><li><a href="{{ volver_url }}">{% translate "Presentación institucional" %}</a></li><li>{% translate "Revisar y publicar" %}</li></ul>{% endblock %}
+{% block content %}
+<section class="institution-presentation-review grp-module">
+  <p>{% translate "Estos datos se mostrarán en el portal y los documentos nuevos. No cambian las siglas, los códigos, los permisos ni las credenciales del despliegue." %}</p>
+  <dl>{% for etiqueta, valor in datos_presentacion %}<div><dt>{{ etiqueta }}</dt><dd>{% if valor %}{{ valor }}{% else %}{% translate "Sin dato" %}{% endif %}</dd></div>{% endfor %}</dl>
+  {% if imagenes_propuestas %}<h2>{% translate "Imágenes propuestas" %}</h2><div style="display:flex;flex-wrap:wrap;gap:16px">{% for etiqueta, url in imagenes_propuestas %}<figure style="margin:0;max-width:100%"><figcaption>{{ etiqueta }}</figcaption><div style="background:#fff;padding:12px"><img src="{{ url }}" alt="{{ etiqueta }}" style="width:220px;max-width:100%;height:80px;object-fit:contain"></div><div style="background:#071525;padding:12px"><img src="{{ url }}" alt="{{ etiqueta }}" style="width:220px;max-width:100%;height:80px;object-fit:contain"></div></figure>{% endfor %}</div>{% endif %}
+  <h2>{% translate "Paleta institucional" %}</h2>
+  {% if paleta_propuesta %}<div class="institution-palette-preview">{% for clave, color in paleta_propuesta.items %}<span>{% if clave == "primario" or clave == "oscuro" or clave == "acento" or clave == "texto" or clave == "fondo" or clave == "linea_color" or clave == "capa_color" or clave == "titulo_color" or clave == "icono_color" or clave == "degradado_primario" or clave == "linea_degradado" or clave == "degradado_superficie" %}<i style="background:{{ color }}"></i>{% endif %} {{ clave }}: {{ color }}</span>{% endfor %}</div>{% else %}<p>{% translate "Se conserva el diseño original." %}</p>{% endif %}
+  <form method="post">{% csrf_token %}{{ form.non_field_errors }}{{ form.base_esperada }}<p>{{ form.confirmar.errors }}{{ form.confirmar }} {{ form.confirmar.label_tag }}</p><button type="submit">{% translate "Confirmar publicación" %}</button> <a href="{{ volver_url }}">{% translate "Volver" %}</a></form>
+</section>
+{% endblock %}

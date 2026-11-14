@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n %}
+{% block extrahead %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}">
+<style>
+.unit-report { width:100%; margin:0; box-sizing:border-box; }
+.unit-report__toolbar form { display:flex; flex-wrap:wrap; gap:10px; align-items:end; }
+.unit-report__toolbar label { display:grid; gap:4px; }
+.unit-report__table-wrap { overflow-x:auto; }
+.inst-total td { font-weight:800; background:var(--report-green-soft); }
+.inst-alerta { color:#a12c2c; font-weight:700; }
+</style>
+{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Inicio</a> › <a href="{% url 'admin:index' %}#reportes">Reportes e indicadores</a> › Reporte institucional</div>{% endblock %}
+{% block content_title %}{% endblock %}
+{% block content %}
+{% include 'portal/pages/unidades/gestion/includes/reporte_institucional_cuerpo.html' %}
+{% endblock %}

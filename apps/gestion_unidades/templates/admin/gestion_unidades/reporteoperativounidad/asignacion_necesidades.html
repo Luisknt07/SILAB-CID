@@ -1,0 +1,58 @@
+<section class="necesidades-centros__presupuesto" aria-labelledby="presupuesto-titulo">
+  <h2 id="presupuesto-titulo">Presupuesto y reparto entre unidades</h2>
+  <p>Compara las necesidades con el presupuesto disponible y el cumplimiento documentado. Cada alternativa conserva su justificación y sus fuentes para revisar la equidad del reparto.</p>
+  {% if dependencia_seleccionada %}
+    {% if presupuesto %}
+    <p><strong>Referencia disponible: USD {{ presupuesto.contenido.disponible|floatformat:2 }}</strong> · {{ presupuesto.contenido.referencia }}<br>
+      {% if presupuesto.contenido.porcentaje_maximo_unidad %}Máximo de referencia por unidad: {{ presupuesto.contenido.porcentaje_maximo_unidad }} % del presupuesto.{% else %}Sin máximo institucional por unidad configurado.{% endif %}
+      {% if comparacion.saldo_si_cubre_todo is not None %}<br>Saldo al cubrir todas las necesidades evaluadas: USD {{ comparacion.saldo_si_cubre_todo|floatformat:2 }}.{% endif %}</p>
+    {% else %}<p class="necesidades-centros__aviso">Presupuesto pendiente de configurar para esta dependencia y este año. Las necesidades siguen visibles; todavía no se puede archivar un reparto.</p>{% endif %}
+    {% if dependencia_seleccionada.activa %}
+    <details class="necesidades-centros__config"><summary>{% if presupuesto %}Registrar otra referencia presupuestaria{% else %}Configurar presupuesto disponible{% endif %}</summary>
+      <form method="post" class="necesidades-centros__form">{% csrf_token %}
+        <input type="hidden" name="accion" value="presupuesto"><input type="hidden" name="ejercicio" value="{{ ejercicio }}"><input type="hidden" name="dependencia" value="{{ dependencia_seleccionada.pk }}">
+        {% if remision %}<input type="hidden" name="remision" value="{{ remision.pk }}">{% endif %}
+        <label>Presupuesto disponible (USD)<input name="disponible" type="number" min="0" step="0.01" required value="{% if formulario.accion == 'presupuesto' %}{{ formulario.disponible }}{% elif presupuesto %}{{ presupuesto.contenido.disponible }}{% endif %}"></label>
+        <label>Fuente o aprobación del presupuesto<textarea name="referencia" rows="2" required placeholder="Resolución, oficio o referencia de la disponibilidad confirmada">{% if formulario.accion == 'presupuesto' %}{{ formulario.referencia }}{% elif presupuesto %}{{ presupuesto.contenido.referencia }}{% endif %}</textarea></label>
+        <label>Máximo por unidad (% del presupuesto, opcional)<input name="concentracion" type="number" min="0.01" max="100" step="0.01" value="{% if formulario.accion == 'presupuesto' %}{{ formulario.concentracion }}{% elif presupuesto %}{{ presupuesto.contenido.porcentaje_maximo_unidad|default:'' }}{% endif %}"></label>
+        <p>Deja el máximo vacío si la institución aún no ha fijado uno. Las revisiones conservan el antecedente; esta referencia no registra una transferencia ni un gasto.</p>
+        <button type="submit" class="button">Archivar referencia</button>
+      </form>
+    </details>
+    {% endif %}
+  {% else %}<p>Selecciona un Decanato o dependencia para configurar su presupuesto y comparar alternativas de reparto.</p>{% endif %}
+  {% if comparacion.unidades %}
+  <div class="necesidades-centros__tabla" tabindex="0" role="region" aria-label="Comparación de cumplimiento y necesidades">
+    <table><thead><tr><th>Unidad</th><th>Necesidades (USD)</th><th>Cumplimiento documentado al envío</th><th>Fecha de referencia</th></tr></thead><tbody>
+      {% for fila in comparacion.unidades %}<tr><td>{{ fila.nombre }}</td><td>{% if fila.solicitado is not None %}{{ fila.solicitado|floatformat:2 }}{% else %}Por completar o evaluar{% endif %}</td><td>{{ fila.criterio }}{% if fila.explicacion %}<small>{{ fila.explicacion }}</small>{% endif %}</td><td>{{ fila.corte|default:'Sin captura comparable' }}</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  {% endif %}
+  {% if remision and presupuesto and filas_propuesta and dependencia_seleccionada.activa %}
+  <details class="necesidades-centros__config"{% if formulario.accion == 'escenario' %} open{% endif %}><summary>Preparar un escenario de distribución</summary>
+    <form method="post" class="necesidades-centros__form">{% csrf_token %}
+      <input type="hidden" name="accion" value="escenario"><input type="hidden" name="ejercicio" value="{{ ejercicio }}"><input type="hidden" name="dependencia" value="{{ dependencia_seleccionada.pk }}"><input type="hidden" name="remision" value="{{ remision.pk }}"><input type="hidden" name="presupuesto_id" value="{{ presupuesto.pk }}">
+      <p>Indica las cantidades a cubrir en esta alternativa. Cero deja la necesidad pendiente. El sistema recalcula los importes de la copia remitida, revisa el cumplimiento actual y bloquea un total superior al presupuesto.</p>
+      <div class="necesidades-centros__tabla" tabindex="0" role="region" aria-label="Cantidades propuestas para el reparto">
+        <table><thead><tr><th>Unidad y área</th><th>Necesidad</th><th>Solicitado</th><th>Costo unitario (USD)</th><th>Programación</th><th>Cantidad propuesta</th></tr></thead><tbody>
+        {% for fila in filas_propuesta %}<tr><td>{{ fila.unidad }}<small>{{ fila.area }}</small></td><td>{{ fila.item }}{% if fila.grupo_fases %}<small>{{ fila.grupo_fases }} · fase {{ fila.fase_numero }} · {{ fila.resultado_fase }}</small>{% endif %}</td><td>{{ fila.cantidad }}</td><td>{{ fila.costo_unitario }}</td><td>{{ fila.mes }} · semestre {{ fila.semestre|default:'por confirmar' }}</td><td><label class="necesidades-centros__cantidad">Cubrir<input name="cantidad_{{ fila.clave }}" aria-label="Cantidad propuesta: {{ fila.unidad }} · {{ fila.item }}" type="number" min="0" max="{{ fila.cantidad }}" step="0.0001" value="{{ fila.cantidad_propuesta }}" required></label></td></tr>{% endfor %}
+        </tbody></table>
+      </div>
+      <label>Justificación del reparto<textarea name="distribucion" rows="3" required placeholder="Explica la cobertura entre unidades, la urgencia, las fases y los recursos que ya tienen disponibles.">{{ formulario.distribucion }}</textarea></label>
+      <label>Condiciones o excepciones que requieren revisión<textarea name="excepcion" rows="3" placeholder="Si se propone a una unidad con pendientes, se supera el máximo institucional o se deja sin cobertura una unidad con cumplimiento favorable, justifica la decisión y sus condiciones.">{{ formulario.excepcion }}</textarea></label>
+      <button type="submit" class="button">Calcular y archivar escenario</button>
+    </form>
+  </details>
+  {% elif not remision and dependencia_seleccionada %}<p class="necesidades-centros__nota">El reparto se prepara sobre una copia remitida, para conservar las mismas necesidades y precios de referencia.</p>{% endif %}
+  {% if escenario_datos %}
+  <section class="necesidades-centros__escenario" aria-label="Escenario archivado">
+    <header><h3>Escenario {{ escenario.pk }} · {{ escenario.registrado_en|date:'d/m/Y H:i' }}</h3><a class="button" href="{{ escenario_excel_url }}">Descargar reparto en Excel</a></header>
+    <p><strong>Propuesto: USD {{ escenario_datos.total|floatformat:2 }} · Saldo: USD {{ escenario_datos.saldo|floatformat:2 }}</strong><br>Presupuesto utilizado: USD {{ escenario_datos.marco.disponible|floatformat:2 }} · {{ escenario_datos.marco.referencia }}.</p>
+    <div class="necesidades-centros__tabla" tabindex="0" role="region" aria-label="Distribución del escenario archivado"><table><thead><tr><th>Unidad</th><th>Solicitado (USD)</th><th>Propuesto (USD)</th><th>% del presupuesto</th><th>% del reparto</th><th>Revisión al {{ escenario_datos.corte }}</th></tr></thead><tbody>{% for fila in escenario_datos.unidades %}<tr><td>{{ fila.nombre }}</td><td>{% if fila.solicitado is not None %}{{ fila.solicitado|floatformat:2 }}{% else %}Pendiente{% endif %}</td><td>{{ fila.propuesto|floatformat:2 }}</td><td>{{ fila.porcentaje_presupuesto }} %</td><td>{{ fila.porcentaje_reparto }} %</td><td>{{ fila.revision_actual.label|default:'Pendiente' }}</td></tr>{% endfor %}</tbody></table></div>
+    <p>{{ escenario_datos.distribucion }}</p>{% if escenario_datos.excepcion %}<p><strong>Condiciones para revisión:</strong> {{ escenario_datos.excepcion }}</p>{% endif %}
+    {% if escenario_datos.advertencias %}<ul>{% for aviso in escenario_datos.advertencias %}<li>{{ aviso }}</li>{% endfor %}</ul>{% endif %}
+    <p class="necesidades-centros__nota">{{ escenario_datos.alcance }}</p>
+    <details><summary>Antecedentes de distribución ({{ escenarios|length }})</summary><ul>{% for anterior in escenarios %}<li><a href="{{ actual_url }}&amp;remision={{ remision.pk }}&amp;escenario={{ anterior.pk }}">Escenario {{ anterior.pk }} · {{ anterior.registrado_en|date:'d/m/Y H:i' }}</a></li>{% endfor %}</ul><code>{{ escenario.sha256 }}</code></details>
+  </section>
+  {% endif %}
+</section>

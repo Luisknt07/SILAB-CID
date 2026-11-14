@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Adquisiciones · {{ unidad.nombre }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/components/ciclo_catalogo.css' %}">{% endblock %}
+{% block content %}<main class="ciclo-catalogo"><nav><a href="{% url 'gestion_unidad' unidad.slug %}?view=recursos">← Catálogo de la unidad</a></nav><header><h1>Solicitudes de adquisición</h1><p>{{ unidad.nombre }} · Las solicitudes no son existencias. Sólo una recepción habilita el recurso.</p></header>
+{% for entrada in entradas %}<section><h2>{{ entrada.nombre }}</h2><p>{{ entrada.solicitud.get_estado_display }} · {{ entrada.solicitud.documento.anio }}</p><a href="{{ entrada.url }}">Revisar solicitud y recepción →</a></section>{% empty %}<section><p>No hay solicitudes. Desde una referencia inactiva puedes solicitar su adquisición.</p></section>{% endfor %}</main>{% endblock %}

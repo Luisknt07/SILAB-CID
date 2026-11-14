@@ -1,0 +1,31 @@
+"criterio","puntos_maximos","evidencia","desempeno_completo"
+"A. Funciones y recorrido operativo","30","Demostración del catálogo las operaciones y el historial","• 10: crea y consulta productos con los campos requeridos y búsqueda o filtros útiles.
+• 10: registra una entrada y una salida válidas y calcula la existencia esperada.
+• 10: conserva un historial comprensible y permite demostrar el recorrido completo.
+Para cada criterio se asigna el total si funciona y se demuestra; aproximadamente la mitad
+si está parcialmente implementado con evidencia; cero si no existe o no puede comprobarse."
+"B. Datos y validaciones","25","Solicitudes válidas e inválidas y archivo de importación","• 5: códigos únicos y campos obligatorios comprobados en el servidor.
+• 5: cantidades positivas, formato decimal y unidades coherentes.
+• 10: una salida superior a la disponibilidad se rechaza sin modificar saldo ni historial.
+• 5: una importación o carga detecta duplicados y datos inválidos, comunica los errores y
+  explica si acepta filas válidas o rechaza el lote completo. No cambia datos silenciosamente.
+Se conceden puntos por funcionamiento comprobado, no por mostrar mensajes de validación
+que puedan evitarse enviando una solicitud directa."
+"C. Consultas, reportes e integración","15","Indicador exportación y consulta MCP contrastados","• 5: indicador bajo mínimo y consulta de movimientos coinciden con los datos y filtros.
+• 5: exportación utilizable, con encabezados y unidades comprensibles.
+• 5: consulta MCP reproducible que respeta el acceso de solo lectura y cuya respuesta
+  coincide con la herramienta. Se demuestra con el conector preparado, sin exigir crear
+  un servidor MCP completo ni contratar una API de pago. Si el modelo no está disponible,
+  se acepta el cliente de prueba de protocolo del kit con sus resultados, rotulados como
+  prueba sin conversación. Se evalúan conexión, datos y límites con los mismos criterios."
+"D. Uso de IA explicado y trazable","10","Tres instrucciones cambios decisiones y comprobaciones","• 5: documenta tres instrucciones, cambios y decisiones del estudiante.
+• 5: explica qué comprobó, qué corrigió y qué limitación conserva el resultado generado.
+La cantidad de código generado o el precio de la herramienta no otorgan puntos adicionales."
+"E. Pruebas y permisos","10","Resultados esperados obtenidos y rechazo de escritura del usuario de consulta","• 5: presenta resultados esperados y obtenidos de casos válidos, inválidos y de límite.
+• 5: demuestra que el usuario de consulta no puede modificar datos, incluso mediante
+  solicitud directa, y que el rechazo no produce cambios en la base de datos.
+La evaluación puede usar las pruebas guiadas de la plantilla y una demostración manual
+registrada; no exige diseñar una infraestructura avanzada de pruebas."
+"F. Guía y demostración","10","Guía reproducible y demostración de 5 a 8 minutos","• 5: otra persona puede seguir la guía para ejecutar y utilizar el prototipo de práctica.
+• 5: demuestra el recorrido, interpreta los resultados y comunica las limitaciones.
+No se requiere una grabación con producción audiovisual profesional."

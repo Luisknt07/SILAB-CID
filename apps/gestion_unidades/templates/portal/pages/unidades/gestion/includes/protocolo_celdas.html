@@ -1,0 +1,14 @@
+{% load redaccion %}
+{% for col, etiqueta, tipo_col, opciones in campo.columnas %}
+<label class="protocolo-celda{% if tipo_col == 'multilinea' %} protocolo-celda--amplia{% endif %}" data-protocolo-columna="{{ col }}"><span>{{ etiqueta }}</span>
+  {% if tipo_col == 'opcion' %}
+  <select class="guide-form__control" name="{{ campo.clave }}__{{ col }}" aria-label="{{ etiqueta }}"><option value="">Selecciona</option>{% for v, e in opciones %}<option value="{{ v }}"{% if fila|get_item:col == v %} selected{% endif %}>{{ e }}</option>{% endfor %}</select>
+  {% elif tipo_col == 'responsable' %}
+  <select class="guide-form__control" name="{{ campo.clave }}__{{ col }}" aria-label="{{ etiqueta }}"><option value="">Selecciona personal de la unidad</option>{% for nombre in dato.protocolo.responsables %}<option value="{{ nombre }}"{% if fila|get_item:col == nombre %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select>
+  {% elif tipo_col == 'multilinea' %}
+  <textarea class="guide-form__control" name="{{ campo.clave }}__{{ col }}" rows="3" aria-label="{{ etiqueta }}" placeholder="{{ dato.protocolo.ejemplos|get_item:col|default:etiqueta }}">{{ fila|get_item:col|default_if_none:'' }}</textarea>
+  {% else %}
+  <input class="guide-form__control" type="text" name="{{ campo.clave }}__{{ col }}" value="{{ fila|get_item:col|default_if_none:'' }}" aria-label="{{ etiqueta }}" placeholder="{{ dato.protocolo.ejemplos|get_item:col|default:etiqueta }}"{% if tipo_col == 'frecuencia' %} list="{{ campo.clave }}-frecuencia-opciones"{% endif %}>
+  {% endif %}
+</label>
+{% endfor %}

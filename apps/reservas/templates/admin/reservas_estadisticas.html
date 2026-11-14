@@ -1,0 +1,62 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n idiomas %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/admin/reservas.css' %}?v=20261009-local-v1">
+{% endblock %}
+
+{% block content %}
+<section class="upec-admin-card">
+    <h1 class="upec-admin-title">{{ titulo_estadisticas }}</h1>
+
+    <div class="upec-admin-chart">
+        <img src="data:image/png;base64,{{ grafico }}" alt="{% translate "Gráfica de reservas" %}">
+    </div>
+
+    <div class="upec-admin-actions">
+        <a href="{{ url_pdf }}" data-ver-pdf data-pdf-titulo="{{ titulo_estadisticas }}" class="button upec-admin-button">{% translate "Ver documento" %}</a>
+        <a href="{{ url_pdf }}" download
+           class="button upec-admin-button upec-admin-button--gold">{% translate "Descargar reporte PDF" %}</a>
+        <a href="{{ toggle_url }}" class="button upec-admin-button">
+            {% if por_laboratorio %}{% translate "Ver reservas por semana" %}{% else %}{% translate "Ver reservas por laboratorio" %}{% endif %}
+        </a>
+        <a href="{{ url_listado }}" class="button upec-admin-button upec-admin-button--dark">{% translate "Ver todas las reservas" %}</a>
+    </div>
+
+    {% if not por_laboratorio and years_list %}
+    <form method="get" class="upec-admin-filter">
+        <label for="year">{% translate "Filtrar por año:" %}</label>
+        <select name="year" id="year">
+            <option value="">{% translate "Todos" %}</option>
+            {% for y in years_list %}
+                <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="button upec-admin-button">{% translate "Filtrar" %}</button>
+        {% if request.GET.year %}<a href="{{ url_sin_anio }}" class="button upec-admin-button upec-admin-button--dark">{% translate "Quitar filtro" %}</a>{% endif %}
+        {% for k,v in request.GET.items %}{% if k != 'year' %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+    </form>
+    {% endif %}
+
+    <div class="upec-admin-chart">
+        <table class="upec-admin-table">
+            <thead><tr>
+                <th>{% if por_laboratorio %}{% translate "Laboratorio" %}{% else %}{% translate "Semana" %}{% endif %}</th>
+                <th>{% translate "Aprobadas" %}</th>
+                <th>{% translate "No aprobadas" %}</th>
+                <th>{% translate "Aprobación (%)" %}</th>
+            </tr></thead>
+            <tbody>
+                {% for label, aprobadas, no_aprobadas, porcentaje in filas %}
+                <tr>
+                    <td>{{ label }}</td>
+                    <td class="upec-admin-value--success">{{ aprobadas }}</td>
+                    <td class="upec-admin-value--danger">{{ no_aprobadas }}</td>
+                    <td class="upec-admin-value--strong">{{ porcentaje }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

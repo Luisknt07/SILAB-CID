@@ -1,0 +1,22 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Visores de otras instituciones" %}{% endblock %}
+{% block encabezado %}{% translate "Visores de otras instituciones" %}{% endblock %}
+{% block subtitulo %}{% translate "Tableros y mapas oficiales insertados aquí; la fuente de las cifras del observatorio siguen siendo sus propios datos" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Visores" %}</dt><dd>{{ visores|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Visores externos" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% regroup visores by linea as por_linea %}
+{% for grupo in por_linea %}
+<section class="unit-report__section">
+  <header><span>{% if grupo.grouper %}{{ grupo.grouper.titulo|upper }}{% else %}{% translate "GENERALES" %}{% endif %}</span></header>
+  <ul class="obs-oferta">{% for visor in grupo.list %}<li><i class="fas fa-external-link-square-alt" aria-hidden="true"></i><div><strong><a href="{% url 'visor_observatorio' unidad.slug visor.pk %}">{{ visor.titulo }}</a></strong><p>{{ visor.descripcion|default:"" }}</p><p><small>{{ visor.institucion|default:"" }}{% if visor.institucion %} · {% endif %}{{ visor.get_plataforma_display }}{% if visor.fecha_corte %} · {% translate "datos al" %} {{ visor.fecha_corte|date:"d/m/Y" }}{% endif %}{% if visor.url_datos %} · <a href="{{ visor.url_datos }}">{% translate "datos descargables" %}</a>{% else %} · {% translate "sin datos descargables" %}{% endif %}</small></p></div></li>{% endfor %}</ul>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "No hay visores de otras instituciones registrados." %}</p>
+{% endfor %}
+{% translate "Nuevo visor" as titulo_nuevo %}{% translate "Registrar un visor" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='visor_externo' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+<p class="unit-report__notice">{% translate "Un visor se registra solo si la institución permite insertarlo y es pertinente para el territorio. Los visores propios se crean con una cuenta institucional y se alimentan del CSV o la API del observatorio, nunca con datos personales: «Publicar en la web» de Power BI deja públicos todos los datos del informe." %}</p>
+{% endblock %}

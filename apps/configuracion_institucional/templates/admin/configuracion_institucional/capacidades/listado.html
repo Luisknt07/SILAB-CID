@@ -1,0 +1,8 @@
+{% extends 'admin/change_list.html' %}
+{% load i18n %}
+{% block object-tools-items %}
+{% if capacidades_puede_administrar %}
+{% for item in capacidades %}<li><a href="{{ item.url }}">{{ item.nombre }}: {% if item.habilitada %}{% translate 'habilitada' %}{% else %}{% translate 'suspendida' %}{% endif %}</a></li>{% endfor %}
+{% endif %}
+{{ block.super }}
+{% endblock %}

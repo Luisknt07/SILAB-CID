@@ -1,0 +1,15 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Producción y lotes" %}{% endblock %}
+{% block encabezado %}{% translate "Corridas y lotes" %}{% endblock %}
+{% block subtitulo %}{% translate "Actividad agregada de la planta, sin exponer registros operativos" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Corte" %}</dt><dd>{{ hoy|date:"d/m/Y" }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Corridas y lotes" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__context">
+  <span>{% translate "ACTIVIDAD DE LA PLANTA" %}</span>
+  <h2>{{ actividad.corridas_mes }} corrida{{ actividad.corridas_mes|pluralize }} cerrada{{ actividad.corridas_mes|pluralize }} {% translate "este mes ·" %} {{ actividad.lotes_vigentes }} lote{{ actividad.lotes_vigentes|pluralize }} vigente{{ actividad.lotes_vigentes|pluralize }}</h2>
+  <p>{% translate "Estas cifras muestran la actividad reciente. El detalle de órdenes, cantidades, ubicaciones y lotes se consulta con sesión y rol de la unidad desde «Gestionar laboratorio»." %}</p>
+</section>
+{% endblock %}

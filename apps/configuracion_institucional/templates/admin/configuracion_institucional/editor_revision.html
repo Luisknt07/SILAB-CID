@@ -1,0 +1,7 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+{% block object-tools-items %}
+{% if original and puede_crear_revision %}<li><a href="{{ crear_revision_url }}?fuente={{ original.pk }}">{% translate "Crear revisión desde estos datos" %}</a></li>{% endif %}
+{% if original and puede_publicar_revision %}<li><a href="{{ publicar_revision_url }}">{% translate "Revisar y publicar" %}</a></li>{% endif %}
+{{ block.super }}{% endblock %}
+{% block form_top %}<p>{{ aviso_historial }}</p>{% endblock %}

@@ -1,0 +1,140 @@
+{% load static i18n %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diseñar certificado · {{ curso.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/certificado_editor.css' %}?v=20261010-editor-composicion-v13">
+  {% include 'portal/components/paleta_institucional.html' %}
+  <script src="{% static 'portal/js/pages/unidades/certificado_editor.js' %}?v=20261018-ancho-100" defer></script>
+</head>
+<body class="cert-editor{% if embebido %} is-embebido{% endif %}">
+  <header class="cert-editor__cabecera">
+    {% if not embebido %}<a href="{{ curso_url }}">Volver al curso</a>{% endif %}
+    <div class="cert-editor__cabecera-texto"><h1>Diseñar certificado</h1><p>{{ curso.nombre }}</p><span>{{ unidad.nombre }}</span></div>
+  </header>
+  <main class="cert-editor__principal">
+    {% if guardado %}<div class="cert-editor__guardado" data-panel-task-saved="true" role="status">Diseño guardado. Se aplicará a los nuevos certificados; los emitidos conservan su diseño.</div>{% endif %}
+    <div class="cert-editor__columnas">
+      <form method="post" enctype="multipart/form-data" class="cert-editor__form" data-certificado-editor data-previa-url="{{ previa_url }}" data-foto-unidad="{% if unidad.imagen %}{{ unidad.imagen.url }}{% endif %}" data-foto-guardada="{% if formulario.foto_alusiva.value %}{{ formulario.foto_alusiva.value.url }}{% endif %}">
+        {% csrf_token %}<input type="hidden" name="vista_previa_token" value="" data-previa-token>
+        {% for campo in formulario.hidden_fields %}{{ campo }}{% endfor %}
+        <div class="cert-editor__controles">
+          <div class="cert-editor__intro"><h2>Personalizar</h2><p>Los cambios actualizan la vista previa.</p></div>
+          {% if formulario.non_field_errors %}<div class="cert-editor__errores" role="alert">{{ formulario.non_field_errors }}</div>{% endif %}
+          <details class="cert-editor__seccion" data-cert-seccion="modelo" open>
+              <summary><span class="cert-editor__numero">1</span><span><strong>Diseño y composición</strong><small data-modelo-actual>Modelos para comenzar</small></span></summary>
+            <div class="cert-editor__seccion-cuerpo">
+              <div data-diseno-nativo>{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.diseno %}</div>
+              <div class="cert-editor__galeria" aria-label="Modelos de certificado">
+                {% for valor, etiqueta in formulario.diseno.field.choices %}
+                  <button type="button" class="cert-editor__modelo" data-diseno="{{ valor }}" aria-pressed="false" title="{{ etiqueta }}">
+                    <span class="cert-editor__miniatura cert-editor__miniatura--pdf" aria-hidden="true"><small data-miniatura-estado>Cargando modelo…</small></span>
+                    <strong>{{ etiqueta }}</strong>
+                  </button>
+                {% endfor %}
+              </div>
+              <p class="cert-editor__grupo-titulo">Colores del diseño</p>
+              <div class="cert-editor__paletas" role="group" aria-label="Paletas de color">{% for paleta in formulario.paletas_editor %}<button type="button" data-paleta="{{ paleta.clave }}" data-primario="{{ paleta.primario }}" data-acento="{{ paleta.acento }}" aria-pressed="false"><span class="cert-editor__muestras" aria-hidden="true"><i style="background-color:{{ paleta.primario }}"></i><i style="background-color:{{ paleta.acento }}"></i></span>{{ paleta.nombre }}</button>{% endfor %}</div>
+              <div class="cert-editor__colores"><div class="cert-editor__color">{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.color_primario %}<input type="color" id="certificadoColorPrimarioPicker" data-color-picker="color_primario" value="{{ formulario.paleta_predeterminada.primario }}" aria-label="Elegir color primario"></div><div class="cert-editor__color">{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.color_acento %}<input type="color" id="certificadoColorAcentoPicker" data-color-picker="color_acento" value="{{ formulario.paleta_predeterminada.acento }}" aria-label="Elegir color de acento"></div></div>
+              <button type="button" class="cert-editor__color-auto" data-paleta-auto>Usar colores institucionales automáticos</button>
+              <p class="cert-editor__grupo-titulo">Colores del texto</p>
+              <div class="cert-editor__colores"><div class="cert-editor__color">{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.color_titulos %}<input type="color" data-color-picker="color_titulos" value="{{ formulario.paleta_predeterminada.primario }}" aria-label="Elegir color de títulos y nombres"></div><div class="cert-editor__color">{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.color_texto %}<input type="color" data-color-picker="color_texto" value="#263d33" aria-label="Elegir color del texto"></div></div>
+              <button type="button" class="cert-editor__color-auto" data-texto-colores-auto>Usar texto con contraste automático</button>
+              {% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.tipografia %}
+              {% if formulario.alineacion_contenido %}{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.alineacion_contenido %}{% endif %}
+            </div>
+          </details>
+          {% for seccion in formulario.secciones_editor %}{% if seccion.clave == 'fondo' %}
+            <details class="cert-editor__seccion" data-cert-seccion="fondo">
+              <summary><span class="cert-editor__numero">2</span><span><strong>Fondo y estilo visual</strong><small>Siluetas, franjas e imagen propia</small></span></summary>
+              <div class="cert-editor__seccion-cuerpo">{% for campo in seccion.campos %}{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' %}{% endfor %}<p class="cert-editor__ayuda">El contenido y las firmas permanecen sobre blanco. Personaliza los bordes con motivos tecnológicos, franjas o una imagen; los logos no cambian el fondo. PNG o JPEG, hasta 2 MB.</p></div>
+            </details>
+          {% endif %}{% endfor %}
+          {% for seccion in formulario.secciones_editor %}{% if seccion.clave == 'contexto' %}
+            <details class="cert-editor__seccion" data-cert-seccion="contexto">
+              <summary><span class="cert-editor__numero">3</span><span><strong>Institución, unidad y actividad</strong><small>Bloque principal, fechas y duración</small></span></summary>
+              <div class="cert-editor__seccion-cuerpo">
+              <div class="cert-editor__institucion cert-editor__institucion--principal">
+                <div class="cert-editor__institucion-cabecera"><strong>{{ institucion_certificado.siglas|default:'UPEC' }}</strong><span>Institución principal</span></div>
+                {% if institucion_certificado.logo_url %}<img src="{{ institucion_certificado.logo_url }}" alt="Logo de {{ institucion_certificado.nombre }}" class="cert-editor__logo-principal">{% endif %}
+                <p class="cert-editor__institucion-nombre">{{ institucion_certificado.nombre|default:'Universidad Politécnica Estatal del Carchi' }}</p>
+                <p class="cert-editor__unidad-principal">{{ unidad.nombre }}</p>
+                <dl class="cert-editor__adscripcion"><div data-principal-facultad{% if not formulario.mostrar_facultad.value or not formulario.facultad_nombre.value %} hidden{% endif %}><dt>Facultad</dt><dd data-principal-nombre="facultad">{{ formulario.facultad_nombre.value|default:'' }}</dd></div><div data-principal-carrera{% if not formulario.mostrar_carrera.value or not formulario.carrera_nombre.value %} hidden{% endif %}><dt>Carrera</dt><dd data-principal-nombre="carrera">{{ formulario.carrera_nombre.value|default:'' }}</dd></div></dl>
+                <small>La institución y la unidad forman el bloque principal. La facultad y la carrera se añaden sólo si las activas.</small>
+              </div>
+              {% for campo in seccion.campos %}{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' %}{% endfor %}<p class="cert-editor__ayuda">Si un grupo tiene fechas y horas propias, se utilizarán las del grupo.</p></div>
+            </details>
+          {% endif %}{% endfor %}
+          <details class="cert-editor__seccion" data-cert-seccion="textos">
+            <summary><span class="cert-editor__numero">4</span><span><strong>Contenido y competencias</strong><small>Composición del texto y tipo de certificado</small></span></summary>
+            <div class="cert-editor__seccion-cuerpo">
+              {% for seccion in formulario.secciones_editor %}{% if seccion.clave == 'contenido' %}{% for campo in seccion.campos %}<div{% if campo.name == 'competencias' %} data-contenido-competencias{% endif %}>{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' %}{% if campo.name == 'competencias' %}<span class="cert-editor__contador" data-competencias-contador></span>{% endif %}</div>{% endfor %}{% endif %}{% endfor %}
+              <p class="cert-editor__ayuda cert-editor__formato-ayuda" data-formato-ayuda></p>
+              <div class="cert-editor__campo"><label for="certificadoTextoRol">Editar texto para</label><select id="certificadoTextoRol" data-texto-rol><option value="aprobacion">Aprobación</option><option value="participacion">Participación</option><option value="asistencia">Asistencia</option><option value="ponente">Ponente</option><option value="organizador">Organizador</option></select></div>
+              {% for campo in formulario %}{% if campo.name|slice:":7" == 'titulo_' or campo.name|slice:":6" == 'texto_' %}<div data-texto-campo="{{ campo.name }}">{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' %}</div>{% endif %}{% endfor %}
+              <div class="cert-editor__campo"><label for="certificadoModeloTexto">Modelo de redacción</label><select id="certificadoModeloTexto" data-modelo-texto><option value="sugerido">Sugerido del curso</option><option value="academico">Académico</option><option value="tecnico">Formación técnica</option><option value="cientifico">Evento científico</option></select></div>
+              <button type="button" class="cert-editor__secundario" data-texto-sugerido>Aplicar modelo de texto</button>
+              <p class="cert-editor__ayuda">Se aplica únicamente al tipo de certificado que estás editando. Puedes personalizarlo después.</p>
+              <p class="cert-editor__ayuda">Cambiar de tipo conserva los textos que ya escribiste. Los roles de ponente y organizador se emiten desde la gestión de participantes.</p>
+              <details class="cert-editor__variables-ayuda"><summary>Variables que puedes insertar</summary><div class="cert-editor__variables"><code>{nombre}</code><code>{curso}</code><code>{horas}</code><code>{edicion}</code><code>{unidad}</code><code>{fecha}</code><code>{tipo}</code><code>{fecha_inicio}</code><code>{fecha_fin}</code><code>{categoria_evento}</code><code>{rol}</code><code>{periodo}</code><code>{emisor}</code><code>{organizadores}</code><code>{fecha_emision}</code></div></details>
+            </div>
+          </details>
+          {% for seccion in formulario.secciones_editor %}{% if seccion.clave == 'fotografia' %}
+            <details class="cert-editor__seccion" data-cert-seccion="fotografia">
+              <summary><span class="cert-editor__numero">5</span><span><strong>Fotografía del laboratorio</strong><small>Imagen alusiva para los modelos con foto</small></span></summary>
+              <div class="cert-editor__seccion-cuerpo">
+                {% for campo in seccion.campos %}{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' %}{% endfor %}
+                <figure class="cert-editor__foto-resumen" data-foto-resumen hidden><img data-foto-elegida alt="Fotografía que se utilizará en el certificado"><figcaption data-foto-origen></figcaption></figure>
+                <p class="cert-editor__ayuda">Puedes subir una foto PNG o JPEG de hasta 2 MB. La fotografía elegida se incorpora en los diseños que incluyen imagen.</p>
+              </div>
+            </details>
+          {% endif %}{% endfor %}
+          <details class="cert-editor__seccion" data-cert-seccion="logos">
+            <summary><span class="cert-editor__numero">6</span><span><strong>En colaboración con</strong><small>Entidades y logos secundarios</small></span></summary>
+            <div class="cert-editor__seccion-cuerpo">
+              {% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=formulario.disposicion_logos %}
+              <div data-instituciones>
+                {% for institucion in formulario.instituciones_editor %}
+                  <div class="cert-editor__institucion" data-institucion="{{ institucion.numero }}" data-logo-guardado="{% if institucion.imagen.value %}{{ institucion.imagen.value.url }}{% endif %}">
+                    <div class="cert-editor__institucion-cabecera"><strong data-institucion-titulo>Entidad colaboradora {{ institucion.numero }}</strong><button type="button" data-retirar-institucion aria-label="Retirar entidad colaboradora {{ institucion.numero }}">Retirar</button></div>
+                    {% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=institucion.nombre %}
+                    <figure class="cert-editor__logo-resumen" data-logo-resumen hidden><img data-logo-elegido alt="Logo de la entidad aliada"><figcaption>Vista sobre fondo de contraste; el PDF conserva la transparencia.</figcaption></figure>
+                    {% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=institucion.imagen %}
+                    {% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=institucion.contraste %}
+                    {% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=institucion.posicion %}
+                    <div class="cert-editor__retirar-logo">{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' with campo=institucion.quitar %}</div>
+                  </div>
+                {% endfor %}
+              </div>
+              <button type="button" class="cert-editor__secundario" data-agregar-institucion>Añadir entidad colaboradora</button>
+              <p class="cert-editor__ayuda" data-instituciones-limite>Hasta cuatro entidades colaboradoras en un bloque secundario, con cada nombre debajo de su logo. La institución y la unidad conservan su protagonismo; también puedes incluir colaboradores sólo por su nombre.</p>
+              <p class="cert-editor__ayuda">PNG transparente o JPEG, hasta 2 MB. Los logos de color conservan sus colores. Para un logo blanco transparente, elige contraste automático u oscuro en un modelo claro y revisa el resultado.</p>
+            </div>
+          </details>
+          {% for seccion in formulario.secciones_editor %}{% if seccion.clave == 'firmas' %}
+            <details class="cert-editor__seccion" data-cert-seccion="{{ seccion.clave }}">
+              <summary><span class="cert-editor__numero">{% if seccion.clave == 'logos' %}6{% else %}7{% endif %}</span><span><strong>{{ seccion.titulo }}</strong><small>{% if seccion.clave == 'logos' %}Hasta cuatro logos y su alineación{% else %}Hasta tres personas firmantes{% endif %}</small></span></summary>
+              <div class="cert-editor__seccion-cuerpo">{% if seccion.clave == 'logos' %}<p class="cert-editor__ayuda">Los cuatro espacios corresponden a colaboradores. La institución y la unidad permanecen en el bloque principal; estos logos no las sustituyen.</p><p class="cert-editor__ayuda">Usa PNG con fondo transparente para integrarlo al diseño. Los logos cargados conservan sus colores. En modelos oscuros, elige una variante clara con fondo transparente y comprueba el resultado en el PDF.</p>{% endif %}{% for campo in seccion.campos %}{% include 'portal/pages/unidades/aula/includes/certificado_campo.html' %}{% endfor %}<p class="cert-editor__ayuda">{% if seccion.clave == 'logos' %}Los logos de colaboradores se distribuyen en su bloque secundario; puedes elegir la alineación de cada uno.{% else %}Las firmas se incorporan como imágenes; no equivalen a una firma electrónica certificada.{% endif %} PNG o JPEG, hasta 2 MB por imagen.</p></div>
+            </details>
+          {% endif %}{% endfor %}
+          {% if verificacion_url_base %}<div class="cert-editor__verificacion"><strong>Verificación pública</strong><p>{{ verificacion_url_base }}</p>{% if verificacion_es_local %}<small>Esta dirección corresponde al entorno local. Configura SITE_URL con el dominio institucional antes de emitir certificados de producción.</small>{% endif %}</div>{% endif %}
+          <noscript><p class="cert-editor__errores">Activa JavaScript para previsualizar y guardar el diseño desde este editor.</p></noscript>
+        </div>
+        <div class="cert-editor__acciones"><button type="submit" class="is-principal" data-guardar-diseno aria-describedby="certificadoPreviaEstado" disabled>Guardar diseño</button></div>
+      </form>
+      <section class="cert-editor__previa" aria-labelledby="titulo-previa">
+        <header><h2 id="titulo-previa">Vista previa</h2><div class="cert-editor__muestra"><label for="certificadoMuestra">Ejemplo de</label><select id="certificadoMuestra" data-tipo-muestra><option value="aprobacion">Aprobación</option><option value="participacion">Participación</option><option value="asistencia">Asistencia</option><option value="ponente">Ponente</option><option value="organizador">Organizador</option></select></div><div class="cert-editor__herramientas" data-previa-herramientas><a data-descargar-previa aria-disabled="true" tabindex="-1" download="certificado-vista-previa.pdf">Descargar PDF</a></div></header>
+        <div class="cert-editor__estado" id="certificadoPreviaEstado" data-previa-estado role="status" aria-live="polite">Preparando la vista previa automática…</div>
+        <div class="cert-editor__errores" data-previa-errores role="alert" hidden><p data-previa-error-texto></p><button type="button" data-reintentar-previa>Reintentar</button></div>
+        <div class="cert-editor__vacio" data-previa-vacio><span aria-hidden="true">▤</span><strong>Preparando tu certificado</strong><p>Los cambios se mostrarán automáticamente mientras editas.</p></div>
+        <div class="cert-editor__pdf" role="document" aria-label="Vista previa PDF del certificado" data-previa-pdf hidden></div>
+      </section>
+    </div>
+  </main>
+{{ formulario.modelos_texto_editor|json_script:'certificadoModelosTexto' }}
+{{ formulario.catalogo_editor|json_script:'certificadoCatalogoAcademico' }}
+{{ formulario.paleta_predeterminada|json_script:'certificadoPaletaInstitucional' }}
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

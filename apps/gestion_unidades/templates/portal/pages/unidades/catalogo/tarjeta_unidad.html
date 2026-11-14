@@ -1,0 +1,48 @@
+{% load static i18n idiomas %}
+<article class="lab-unit-card lab-unit-card--{{ unidad.codigo_base }}" data-unit-card="{{ unidad.id }}" data-tipologia="{{ unidad.dependencia }}">
+  <div class="lab-unit-card__visual">
+    <a class="lab-unit-card__media" href="{{ unidad.get_absolute_url }}" aria-label="Abrir {{ unidad.nombre }}">
+      {% if unidad.imagen and unidad.imagen.name %}<img src="{{ unidad.imagen.url }}" alt="{{ unidad.nombre }}"{% if unidad.credito_imagen %} title="Foto: {{ unidad.credito_imagen }}"{% endif %}>{% else %}<img src="{% static 'img/default_project.jpg' %}" alt="Imagen referencial de {{ unidad.nombre }}">{% endif %}
+    </a>
+    <span class="lab-unit-card__type">
+      <i class="{{ unidad.tipologia.icono|default:'iconsminds-microscope' }}"></i>
+      {{ unidad.nombre_tipologia }}{% if unidad.nombre_corto %} · {{ unidad.nombre_corto }}{% endif %}
+    </span>
+    <button class="lab-unit-card__favorite" type="button" data-favorite-unit="{{ unidad.id }}" aria-label="Guardar {{ unidad.nombre }} en favoritos" aria-pressed="false"><i class="simple-icon-heart"></i></button>
+    <span class="lab-unit-card__emblem" aria-hidden="true">
+      <i class="{{ unidad.tipologia.icono|default:'iconsminds-microscope' }}"></i>
+    </span>
+  </div>
+  <div class="lab-unit-card__body">
+    <h3><a href="{{ unidad.get_absolute_url }}">{{ unidad.nombre }}</a></h3>
+    <p class="lab-unit-card__description">{{ unidad.descripcion_corta|default:unidad.descripcion|truncatewords:28 }}</p>
+    <dl class="lab-unit-card__facts">
+      {% if unidad.dependencia == 'plantas_piloto' %}
+      <div><dt><i class="simple-icon-tag"></i> {% translate "Línea" %}</dt><dd>{{ unidad.catalogo_etiqueta }}</dd></div>
+      <div><dt><i class="simple-icon-location-pin"></i> {% translate "Ubicación" %}</dt><dd>{{ unidad.ubicacion }}</dd></div>
+      <div><dt><i class="simple-icon-user"></i> {% translate "Responsable" %}</dt><dd>{{ unidad.catalogo_responsable }}</dd></div>
+      {% else %}
+      <div><dt><i class="simple-icon-graduation"></i> {% translate "Área" %}</dt><dd>{{ unidad.get_area_conocimiento_display|default:"Área institucional"|ui }}</dd></div>
+      <div><dt><i class="simple-icon-location-pin"></i> {% translate "Ubicación" %}</dt><dd>{{ unidad.ubicacion|default:"Por registrar" }}</dd></div>
+      <div><dt><i class="simple-icon-user"></i> {% translate "Responsable" %}</dt><dd>{% firstof unidad.administrador.get_full_name unidad.administrador.username "Por asignar" %}</dd></div>
+      {% endif %}
+      <div><dt><i class="simple-icon-eye"></i> {% translate "Visitas" %}</dt><dd>{{ unidad.visitas }}</dd></div>
+    </dl>
+    <div class="lab-unit-card__tags" aria-label="{% if unidad.dependencia == 'plantas_piloto' %}Familias principales{% else %}Áreas relacionadas{% endif %}">
+      {% if unidad.dependencia == 'plantas_piloto' %}
+      {% for familia in unidad.catalogo_familias_principales %}<span>{{ familia.nombre }}</span>{% empty %}<span>{% translate "Catálogo en preparación" %}</span>{% endfor %}
+      {% else %}
+      {% for categoria in unidad.categorias.all %}<span>{{ categoria.nombre }}</span>{% empty %}<span>{{ unidad.get_area_conocimiento_display|default:"Área institucional"|ui }}</span>{% endfor %}
+      {% endif %}
+    </div>
+    {% if unidad.dependencia == 'plantas_piloto' %}
+    <p class="lab-unit-card__counts"><i class="simple-icon-chart"></i> {% if unidad.catalogo_en_construccion %}<b>{% translate "En construcción" %}</b>{% else %}<b>{{ unidad.total_productos_catalogo }}</b> {% translate "productos ·" %} <b>{{ unidad.total_procesos_catalogo }}</b> {% translate "procesos ·" %} <b>{{ unidad.total_equipos_catalogo }}</b> equipos{% endif %}</p>
+    <p class="lab-unit-card__mode"><i class="simple-icon-layers"></i><b> {% translate "Modo:" %}</b> {{ unidad.get_modo_operacion_display|default:"Operación de planta piloto"|ui }} · {{ unidad.get_estado_catalogo_display|ui }}</p>
+    {% else %}
+    <p class="lab-unit-card__mode"><i class="simple-icon-layers"></i><b> {% translate "Modalidad:" %}</b> {% for tipo in unidad.tipos_laboratorio.all %}{{ tipo.nombre }}{% if not forloop.last %}, {% endif %}{% empty %}{% translate "Consulta y servicios" %}{% endfor %}</p>
+    {% endif %}
+    <footer>
+      <a class="lab-unit-card__cta" href="{{ unidad.get_absolute_url }}">{% translate "Conocer unidad" %} <i class="simple-icon-arrow-right"></i></a>
+    </footer>
+  </div>
+</article>

@@ -1,0 +1,1 @@
+{% if escritorio %}<picture class="institutional-logo{% if institucion.imagenes %} institutional-logo--uploaded{% endif %}"><source media="(max-width: 575.98px)" srcset="{{ movil }}"><img src="{{ escritorio }}" alt="{{ institucion.siglas }}" decoding="async" style="max-width:100%;object-fit:contain"></picture>{% else %}<strong>{{ institucion.siglas }}</strong>{% endif %}

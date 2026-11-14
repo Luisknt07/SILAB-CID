@@ -1,0 +1,8 @@
+<form class="entregas__retirar" method="post" action="{{ retirar_post_url }}">
+  {% csrf_token %}<input type="hidden" name="accion" value="retirar_archivo"><input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="anio" value="{{ documento.anio }}"><input type="hidden" name="corte" value="{{ corte }}"><input type="hidden" name="volver" value="{{ volver }}"><input type="hidden" name="version" value="{{ documento.version }}"><input type="hidden" name="huella" value="{{ documento.recurso.hash_sha256 }}">
+  {% if en_admin_archivos %}<input type="hidden" name="query" value="{{ query }}&amp;archivos={{ documento.pk }}#archivos-documento">{% endif %}
+  <h3>Archivo equivocado</h3><p>Retira esta carga para adjuntar el documento correcto. Su archivo y revisión anterior se conservan en el historial.</p>
+  <label>Motivo<input type="text" name="motivo" required maxlength="1200"></label>
+  <label class="entregas__confirmar"><input type="checkbox" required name="confirmar_retiro" value="1"> Confirmo retirar de esta entrega el archivo v{{ documento.version }}.</label>
+  <button class="grp-button" type="submit">Retirar archivo de la entrega</button>
+</form>

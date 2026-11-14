@@ -1,0 +1,21 @@
+.catalogo-institucional-panel{max-width:1100px;padding:20px;box-sizing:border-box;overflow-wrap:anywhere}
+.nivel-ruta{padding:12px;margin:12px 0;border:1px solid #ccdcd3;border-radius:6px;min-width:0}
+.nivel-ruta-paso{display:flex;gap:8px;align-items:center;margin:8px 0;min-width:0}
+.nivel-ruta-paso select{min-width:0;flex:1}.nivel-ruta-paso button{flex-shrink:0}
+.nivel-ruta-paso label{flex:1;min-width:0}
+.catalogo-institucional-panel p{line-height:1.5;margin:12px 0}
+.catalogo-institucional-panel input[type=text],.catalogo-institucional-panel select,.catalogo-json{width:100%;max-width:100%;box-sizing:border-box;min-height:38px}
+.catalogo-institucional-panel .catalogo-titulo{max-width:600px;margin-bottom:20px}
+.catalogo-titulo label,.catalogo-fila label{display:block;font-weight:600;margin-bottom:6px}
+.catalogo-editor fieldset{padding:16px;margin:16px 0;border:1px solid #ccdcd3;border-radius:8px;min-width:0}
+.catalogo-editor legend{font-weight:700;color:#174b3d;padding:0 6px}
+.catalogo-fila{display:grid;grid-template-columns:minmax(100px,1fr) minmax(160px,2fr) minmax(140px,1.5fr);gap:12px;padding:14px 0;border-bottom:1px solid #ccdcd3}
+.catalogo-fila>div{min-width:0}.catalogo-fila .catalogo-fila-acciones{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.catalogo-institucional-panel button{position:static;display:inline-flex;align-items:center;justify-content:center;width:auto;height:auto;min-height:40px;padding:9px 14px;border:1px solid #245c49;border-radius:6px;background:#245c49;color:#fff;text-indent:0;white-space:normal;box-sizing:border-box;max-width:100%}
+.catalogo-editor button[type=button]{background:#fff;color:#245c49;margin:10px 0}
+.catalogo-editor button[data-remove]{color:#8c302a;border-color:#c69994}.catalogo-editor button:disabled{opacity:.55}
+.catalogo-tipos{display:flex;flex-wrap:wrap;gap:14px}.catalogo-tipos label{display:flex;align-items:center;gap:6px}
+.catalogo-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:20px}
+.catalogo-resumen>div{padding:12px 0;border-bottom:1px solid #ccdcd3}.catalogo-resumen dt{font-weight:700}.catalogo-resumen dd{margin:4px 0 0}
+.catalogo-institucional-panel details{padding:12px 0}.catalogo-institucional-panel summary{cursor:pointer;font-weight:700}
+@media(max-width:767px){.catalogo-institucional-panel{padding:14px}.catalogo-fila{grid-template-columns:minmax(0,1fr)}}

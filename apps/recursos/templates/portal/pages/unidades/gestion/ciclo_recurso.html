@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Catálogo y adquisición · {{ nombre }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/components/ciclo_catalogo.css' %}">{% endblock %}
+{% block content %}<main class="ciclo-catalogo">
+<nav><a href="{{ vuelta }}">← Volver al catálogo</a><a href="{% url 'adquisiciones_unidad' unidad.slug %}">Solicitudes de la unidad</a></nav>
+<header><small>{{ unidad.nombre }}</small><h1>{{ nombre }}</h1><p>{{ codigo }} · {% if activo %}Existente en la unidad{% else %}Referencia inactiva: no forma parte del inventario real{% endif %}</p></header>
+{% if error %}<p class="ciclo-catalogo__error" role="alert">{{ error }}</p>{% endif %}
+{% if solicitud %}
+<section><h2>Seguimiento de adquisición</h2><ol class="ciclo-catalogo__pasos"><li>1. Solicitada</li><li>2. Aprobada por Dirección</li><li>3. Compra documentada</li><li>4. Recibida y habilitada</li></ol>
+<p><strong>{{ solicitud.get_estado_display }}</strong> · {{ solicitud.cantidad|floatformat:'-3' }} unidad(es) solicitadas</p>
+<p><a href="{% url 'redactar_documento_expediente' unidad.slug solicitud.documento_id %}">Revisar necesidad en el plan anual, su informe y Excel</a></p>
+{% if solicitud.referencia_compra %}<p>Documento de compra: {{ solicitud.referencia_compra }}</p>{% endif %}
+{% if solicitud.referencia_recepcion %}<p>Documento de recepción: {{ solicitud.referencia_recepcion }}</p>{% endif %}
+{% if solicitud.estado == 'solicitada' and puede_aprobar %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="aprobar"><p>La aprobación autoriza continuar la adquisición; el recurso permanecerá inactivo hasta recibirse.</p><button type="submit">Aprobar adquisición</button></form>{% endif %}
+{% if solicitud.estado == 'aprobada' and puede_comprar %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="comprar"><label>Orden, factura o respaldo de compra<input name="referencia" maxlength="200" required></label><button type="submit">Registrar compra</button></form>{% endif %}
+{% if solicitud.estado == 'comprada' and puede_gestionar %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="recibir"><label>Acta o documento de recepción<input name="referencia" maxlength="200" required></label><p>Confirma que el recurso ya existe en la unidad. Se habilitará su registro; los insumos ingresan al kardex y las licencias se registran con la cantidad aprobada.</p><button type="submit">Confirmar recepción y habilitar</button></form>{% endif %}
+{% if puede_aprobar and solicitud.estado == 'aprobada' or puede_aprobar and solicitud.estado == 'comprada' %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="revisar"><button type="submit">Devolver a revisión</button></form>{% endif %}</section>
+{% endif %}{% if puede_solicitar and puede_gestionar %}<section id="solicitar"><h2>Solicitar para compra</h2><p>La solicitud se añade al borrador del plan anual. El inventario real permanece sin cambios hasta la recepción.</p><form method="post">{% csrf_token %}<input type="hidden" name="accion" value="solicitar">{{ form.as_p }}<button type="submit">Añadir necesidad al plan anual</button></form></section>{% endif %}
+{% if puede_gestionar %}<section id="eliminar"><h2>Eliminar referencia</h2>{% if activo %}<p>Desactiva el recurso antes de eliminarlo. Si tiene historial o movimientos, se conserva inactivo.</p>{% else %}<p>Se permite eliminar una referencia sin historial. Los registros de préstamos, mantenimiento, reservas y movimientos se conservan.</p><form method="post">{% csrf_token %}<input type="hidden" name="accion" value="eliminar"><label>Escribe {{ codigo }} para confirmar<input name="confirmacion" required autocomplete="off"></label><button class="is-danger" type="submit">Eliminar referencia</button></form>{% endif %}</section>{% endif %}
+</main>{% endblock %}

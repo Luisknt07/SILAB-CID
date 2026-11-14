@@ -1,0 +1,32 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Cursos del centro" %}{% endblock %}
+{% block encabezado %}{% translate "Cursos del centro" %}{% endblock %}
+{% block subtitulo %}{% translate "Los cursos que ya ofrece el centro y los que debería dictar, uno por cada eje, con para quién y por qué" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Recomendados" %}</dt><dd>{{ recomendados|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Cursos del centro" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+<section class="unit-report__section">
+  <h2>{% translate "Cómo se pide, se dicta y se certifica un curso" %}</h2>
+  <ol class="centro-ciclo">
+    <li><strong>{% translate "Se pide" %}</strong><p>{% translate "Una carrera, un colegio, una asociación de productores o un grupo de estudiantes lo solicita desde la pestaña de reservas, con la fecha y el número de participantes." %}</p></li>
+    <li><strong>{% translate "Se acuerda" %}</strong><p>{% translate "La administración del centro confirma la fecha según el calendario productivo del eje: el ordeño, la cosecha o el tueste tienen su temporada." %}</p></li>
+    <li><strong>{% translate "Se dicta" %}</strong><p>{% translate "La parte teórica va en el aula virtual; la práctica, en el eje, con los animales y cultivos del centro." %}</p></li>
+    <li><strong>{% translate "Se evalúa" %}</strong><p>{% translate "Cada módulo cierra con una actividad calificada y la práctica se aprueba con asistencia." %}</p></li>
+    <li><strong>{% translate "Se certifica" %}</strong><p>{% translate "Quien aprueba recibe su certificado con código QR, verificable en la plataforma." %}</p></li>
+  </ol>
+</section>
+<section class="unit-report__section">
+  <h2>{% translate "Cursos recomendados por eje" %}</h2>
+  <ul class="centro-cursos">{% for item in recomendados %}<li class="{% if item.curso %}is-disponible{% endif %}">
+    <div class="centro-cursos__cabeza"><i class="{{ item.eje.icono|default:'fas fa-chalkboard-teacher' }}" aria-hidden="true"></i><div><strong>{{ item.titulo }}</strong><small>{% if item.eje %}<a href="{% url 'eje_centro' unidad.slug item.eje.codigo %}">{{ item.eje.titulo }}</a> · {% endif %}{{ item.horas }} {% translate "horas" %}</small></div></div>
+    <p>{{ item.por_que }}</p>
+    <p class="centro-cursos__para"><strong>{% translate "Para:" %}</strong> {{ item.para_quien }}</p>
+    {% if item.curso.publicado or item.curso and gestor %}<a class="centro-cursos__accion" href="{% url 'curso_unidad' unidad.slug item.curso.codigo %}"><i class="fas fa-graduation-cap" aria-hidden="true"></i> {% if item.curso.publicado %}{% translate "Ver el curso e inscribirse" %}{% else %}{% translate "Revisar el curso antes de publicarlo" %}{% endif %}</a>
+    {% elif item.curso %}<span class="centro-cursos__accion is-revision"><i class="fas fa-hourglass-half" aria-hidden="true"></i> {% translate "Curso armado: se publica cuando el centro lo revise" %}</span>
+    {% else %}<a class="centro-cursos__accion is-pedir" href="{{ reservar_url }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% translate "Pedirlo al centro" %}</a>{% endif %}
+  </li>{% endfor %}</ul>
+</section>
+{% endblock %}

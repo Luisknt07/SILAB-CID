@@ -1,0 +1,109 @@
+/* Encuadre común del portal: referencia «La UPEC en acción» de Quiénes somos.
+   El ancho exterior es independiente de la tipografía y del zoom elegido por la persona. */
+:root {
+  --upec-container-wide: 1780px;
+  --upec-container-content: 1780px;
+  --upec-container-workspace: 1780px;
+  --upec-page-gutter: clamp(32px, 8vw, 152px);
+  --upec-workspace-gutter: var(--upec-page-gutter);
+  --upec-content-width: min(var(--upec-container-wide), calc(100% - var(--upec-page-gutter)));
+  --upec-content-inset: max(calc(var(--upec-page-gutter) / 2), calc((100% - var(--upec-container-wide)) / 2));
+}
+@media (max-width: 767.98px) {
+  :root { --upec-page-gutter: 28px; }
+}
+
+/* Fondos a todo el ancho; navegación, texto y fichas comparten los bordes. */
+.home-top .home-contact-inner,
+.home-top .home-nav-inner,
+.upec-home .content-shell,
+.upec-home .hero-inner,
+.upec-home .cap-inner,
+.upec-home .impact-grid,
+.upec-home .footer-inner,
+.portal .institutional-hero__content,
+.portal .institutional-content,
+.page-normativa .portal-footer,
+.page-noticias .portal-footer,
+.portal .upec-about__hero-copy,
+.portal .services-hero__copy,
+.page-laboratorios .lab-catalog-tabs.institutional-local-nav,
+.page-laboratorios .lab-catalog-shell,
+.cid .cid-envoltura,
+#unitDetail .unit-detail__hero-inner,
+#unitDetail .unit-detail__module-nav,
+#unitDetail .unit-detail__workspace.project-detail-workspace {
+  box-sizing: border-box;
+  width: var(--upec-content-width) !important;
+  max-width: var(--upec-container-wide) !important;
+  min-width: 0;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Secciones que ya incorporan el margen en su relleno: no descontarlo dos veces. */
+.upec-home .connected-units,
+.upec-home .home-interactive-experiences,
+.page-quienes .innovation-showcase,
+.page-servicios .services-catalog,
+.page-servicios .services-route,
+.page-servicios .services-audiences {
+  padding-left: calc(var(--upec-page-gutter) / 2) !important;
+  padding-right: calc(var(--upec-page-gutter) / 2) !important;
+}
+.upec-home .connected-units__comparison,
+.upec-home .connected-units__heading,
+.upec-home .home-interactive-experiences .showcase-experiences,
+.upec-home .ecosystem-access-rail,
+.page-quienes .innovation-showcase .showcase-heading,
+.page-quienes .innovation-showcase .showcase-stage,
+.page-quienes .innovation-showcase .showcase-experiences,
+.page-quienes .innovation-showcase .showcase-footer,
+.page-servicios .services-catalog__grid,
+.page-servicios .services-route > ol,
+.page-servicios .services-audiences > div {
+  width: 100% !important;
+  max-width: var(--upec-container-wide) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.upec-home .home-industry-transfer .industry-ecosystem {
+  width: var(--upec-content-width) !important;
+  max-width: var(--upec-container-wide) !important;
+}
+
+/* Portadas de cursos: mantener el fondo amplio y alinear su contenido. */
+.curso-ficha.conoce { --conoce-lado: var(--upec-content-inset); }
+.aula-curso .aula-curso__cuerpo,
+.aula-curso .curso-edicion-acceso {
+  width: var(--upec-content-width);
+  max-width: var(--upec-container-wide);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (min-width: 768px) {
+  .upec-home .hero-brand-mark,
+  .upec-home .hero-slide-status,
+  .page-quienes .upec-about__hero-brand,
+  .page-servicios .services-hero__brand,
+  .portal .institutional-hero__brand {
+    right: var(--upec-content-inset) !important;
+  }
+}
+
+.aula-curso .aula-curso__cabecera {
+  padding-left: var(--upec-content-inset);
+  padding-right: var(--upec-content-inset);
+}
+
+/* El encabezado fijo aporta el único desplazamiento superior del portal. */
+body.has-institutional-header .portal .portal-layout { margin-top: 0 !important; }
+
+.portal .institutional-local-nav:not(.lab-catalog-tabs) {
+  top: var(--upec-header-height, 108px);
+  padding-left: calc(var(--upec-page-gutter) / 2);
+  padding-right: calc(var(--upec-page-gutter) / 2);
+}

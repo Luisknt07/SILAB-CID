@@ -1,0 +1,79 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Ahora en el centro: los proyectos en marcha, las noticias, los eventos, los resultados recientes y las convocatorias
+abiertas, con las piezas de Laboratorios. Un centro que aún no opera muestra además su hoja de ruta.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Lo que está en marcha hoy: proyectos activos, servicios en ejecución, resultados recientes, noticias, eventos y convocatorias. Sale de los registros del centro." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if fase and fases %}
+<section class="conoce__seccion" id="hoja-de-ruta">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{{ centro.estado_publico }}</span><h2>{% translate "Hoja de ruta de implementación" %}</h2></header>
+  <ol class="area__pasos">{% for f in fases %}<li class="area__paso" data-aparecer><span class="area__paso-numero">{{ f.numero }}</span><div class="area__paso-datos"><div class="area__novedad-etiquetas"><span class="ficha__rol">{{ f.get_estado_display }}</span></div><h3>{{ f.nombre }}</h3><ul class="ficha__medios area__paso-meta"><li><i class="fas fa-calendar" aria-hidden="true"></i>{{ f.horizonte }}</li></ul><p>{{ f.actividades }}</p></div></li>{% endfor %}</ol>
+  {% if presupuesto %}
+  <h3 class="area__subtitulo cv-subtitulo">{% translate "Presupuesto referencial" %}</h3>
+  <div class="area__tabla-envoltura"><table class="area__tabla"><thead><tr><th scope="col">{% translate "Concepto" %}</th><th scope="col">{% translate "Qué incluye" %}</th><th scope="col">{% translate "Monto" %}</th></tr></thead><tbody>
+    {% for partida in presupuesto %}<tr><td><strong>{{ partida.concepto }}</strong></td><td>{{ partida.contenido }}{% if partida.nota %}<small class="cv-mudo">{{ partida.nota }}</small>{% endif %}</td><td>{% if partida.monto %}USD {{ partida.monto|floatformat:"0g" }}{% else %}<span class="cv-mudo">{% translate "Por definir" %}</span>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if proyectos %}
+<section class="conoce__seccion" id="proyectos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En marcha" %}</span><h2>{% translate "Proyectos en curso" %}</h2></header>
+  <div class="area__actividades">{% for proyecto in proyectos %}{% include 'centros_id/visor/_proyecto.html' %}{% endfor %}</div>
+  <p class="ficha__nota"><a class="cv-enlace-area" href="{% url 'seccion_centro_id' centro.slug 'proyectos' %}">{% translate "Ver toda la cartera de proyectos" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("Ningún proyecto está en formulación o en ejecución.") enlace=completar %}</section>
+{% endif %}
+
+{% if novedades %}
+<section class="conoce__seccion" id="noticias">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo último" %}</span><h2>{% translate "Noticias del centro" %}</h2></header>
+  <div class="area__novedades">{% for novedad in novedades %}<article class="area__novedad{% if forloop.first %} is-destacada{% endif %}" data-aparecer>
+    {% if novedad.imagen %}<span class="area__novedad-foto"><img src="{{ novedad.imagen.url }}" alt="" loading="lazy"></span>{% endif %}
+    <div class="area__novedad-datos">
+      <div class="area__novedad-etiquetas"><span class="ficha__rol">{{ novedad.get_tipo_display }}</span><span class="ficha__rol cv-rol--suave">{{ novedad.fecha|date:"d/m/Y" }}</span></div>
+      <h3>{{ novedad.titulo }}</h3>
+      <p>{{ novedad.resumen }}</p>
+      {% if novedad.enlace %}<a class="area__enlace" href="{{ novedad.enlace }}" target="_blank" rel="noopener">{% translate "Leer más" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% endif %}
+    </div>
+  </article>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if eventos %}
+<section class="conoce__seccion" id="eventos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En agenda" %}</span><h2>{% translate "Eventos próximos" %}</h2></header>
+  <div class="area__actividades">{% for evento in eventos %}<article class="area__actividad" data-aparecer>
+    <header><i class="fas fa-calendar-alt" aria-hidden="true"></i><div><span class="ficha__rol">{{ evento.fecha|date:"d/m/Y" }}{% if evento.fecha_fin %} – {{ evento.fecha_fin|date:"d/m" }}{% endif %}</span></div></header>
+    <h3>{{ evento.titulo }}</h3>
+    <p>{{ evento.resumen|truncatewords:30 }}</p>
+    {% if evento.lugar %}<ul class="ficha__medios"><li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ evento.lugar }}</li></ul>{% endif %}
+    {% if evento.enlace %}<footer><a class="area__enlace" href="{{ evento.enlace }}" target="_blank" rel="noopener">{% translate "Más información" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a></footer>{% endif %}
+  </article>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if resultados %}
+<section class="conoce__seccion" id="resultados">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que produce" %}</span><h2>{% translate "Resultados recientes" %}</h2></header>
+  <div class="area__recursos">{% for resultado in resultados %}{% include 'centros_id/visor/_resultado.html' %}{% endfor %}</div>
+  <p class="ficha__nota"><a class="cv-enlace-area" href="{% url 'seccion_centro_id' centro.slug 'produccion' %}">{% translate "Ver toda la producción" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p>
+</section>
+{% endif %}
+
+{% if convocatorias %}
+<section class="conoce__seccion" id="convocatorias">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para sumarse" %}</span><h2>{% translate "Convocatorias abiertas" %}</h2></header>
+  <div class="area__actividades">{% for convocatoria in convocatorias %}<article class="area__actividad" data-aparecer>
+    <header><i class="{{ convocatoria.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{{ convocatoria.get_tipo_display }}</span>{% if convocatoria.componente %}<span class="ficha__rol cv-rol--suave">{{ convocatoria.componente }}</span>{% endif %}</div></header>
+    <h3>{{ convocatoria.titulo }}</h3>
+    <footer>{% if convocatoria.cierre %}<span><i class="fas fa-hourglass-half" aria-hidden="true"></i> {% translate "Cierra el" %} <strong>{{ convocatoria.cierre|date:"d/m/Y" }}</strong></span>{% else %}<span>{% translate "Abierta" %}</span>{% endif %}<a class="area__enlace" href="{% url 'seccion_centro_id' centro.slug 'oportunidades' %}#convocatoria-{{ convocatoria.pk }}">{% translate "Ver" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></footer>
+  </article>{% endfor %}</div>
+</section>
+{% endif %}
+{% if not novedades and not eventos and not resultados and not convocatorias %}<section class="conoce__seccion">{% include 'centros_id/visor/_vacio.html' with texto=_("No hay noticias, eventos, resultados ni convocatorias registrados.") enlace=completar %}</section>{% endif %}
+{% endblock %}

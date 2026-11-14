@@ -1,0 +1,191 @@
+{% extends "admin/base_site.html" %}
+{% load i18n grp_tags log idiomas %}
+
+{% block bodyclass %}{% translate "dashboard citt-admin-dashboard" %}{% endblock %}
+{% block content-class %}citt-admin-content{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="grp-horizontal-list"><li>{% translate "Centro de administración" %}</li></ul>
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+  <div class="citt-admin-console" id="cittAdminConsole">
+    <aside class="citt-admin-sidebar" aria-label="{% translate "Áreas administrativas" %}">
+      <header><h2>{% translate "Áreas de trabajo" %}</h2></header>
+
+      <nav class="citt-admin-nav" role="tablist" aria-orientation="vertical">
+        {% if not solo_gestion_unidades %}
+        <button type="button"
+                class="citt-admin-nav__item is-active"
+                data-admin-target="resumen"
+                data-admin-title="{% translate "Resumen administrativo" %}"
+                data-admin-description="Accesos principales y trazabilidad reciente de tu cuenta."
+                role="tab"
+                aria-selected="true">
+          {% include "admin/includes/category_icon.html" with icon="dashboard" %}
+          <span><strong>{% translate "Resumen administrativo" %}</strong><small>{{ app_list|length }} {% translate "áreas disponibles" %}</small></span>
+          <i aria-hidden="true">›</i>
+        </button>
+        {% endif %}
+
+        {% for app in app_list %}
+        <button type="button"
+                class="citt-admin-nav__item{% if solo_gestion_unidades and forloop.first %} is-active{% endif %}"
+                data-admin-target="{{ app.slug }}"
+                data-admin-title="{{ app.name }}"
+                data-admin-description="{{ app.description }}"
+                role="tab"
+                aria-selected="{% if solo_gestion_unidades and forloop.first %}true{% else %}false{% endif %}">
+          {% include "admin/includes/category_icon.html" with icon=app.icon %}
+          <span><strong>{{ app.name }}</strong><small>{% if app.rotulo_unidades %}{{ app.rotulo_unidades }}{% else %}{{ app.models|length }} herramienta{{ app.models|length|pluralize }}{% endif %}</small></span>
+          <i aria-hidden="true">›</i>
+        </button>
+        {% endfor %}
+      </nav>
+
+      <footer>
+        <span><i></i> {% translate "Sesión administrativa activa" %}</span>
+        <small>{% firstof user.get_full_name user.username %}</small>
+      </footer>
+    </aside>
+
+    <main class="citt-admin-viewer">
+      <header class="citt-admin-viewer__head">
+        <div>
+          <h2 id="cittAdminViewerTitle">{% if solo_gestion_unidades %}{{ app_list.0.name }}{% else %}{% translate "Resumen administrativo" %}{% endif %}</h2>
+          <p id="cittAdminViewerDescription">{% if solo_gestion_unidades %}{{ app_list.0.description }}{% else %}{% translate "Accesos principales y trazabilidad reciente de tu cuenta." %}{% endif %}</p>
+        </div>
+      </header>
+
+      <div class="citt-admin-viewport">
+        {% if not solo_gestion_unidades %}
+        <section class="citt-admin-view is-active" data-admin-view="resumen" role="tabpanel">
+          <div class="citt-admin-summary">
+            <article><span>{% translate "Áreas disponibles" %}</span><strong>{{ app_list|length }}</strong><small>{% translate "según tus permisos" %}</small></article>
+            <article><span>{% translate "Acceso" %}</span><strong>{% if user.is_superuser %}{% translate "Global" %}{% else %}{% translate "Limitado" %}{% endif %}</strong><small>{% translate "controlado por cuenta" %}</small></article>
+            <article><span>{% translate "Sesión" %}</span><strong>{% translate "Activa" %}</strong><small>{% firstof user.username "Usuario" %}</small></article>
+          </div>
+
+          <div class="citt-admin-dashboard-grid">
+            <article class="citt-admin-panel citt-admin-panel--areas">
+              <header><div><span class="citt-admin-eyebrow">{% translate "ACCESOS DIRECTOS" %}</span><h3>{% translate "Áreas de gestión" %}</h3></div></header>
+              <div class="citt-admin-area-grid">
+                {% for app in app_list %}
+                <div class="citt-admin-area-card"
+                     data-open-admin-view="{{ app.slug }}"
+                     role="button"
+                     tabindex="0"
+                     aria-label="Abrir {{ app.name }}">
+                  {% include "admin/includes/category_icon.html" with icon=app.icon %}
+                  <div class="citt-admin-area-card__copy"><strong>{{ app.name }}</strong><small>{{ app.description }}</small></div>
+                  <span class="citt-admin-area-card__count">{{ app.models|length }}</span>
+                </div>
+                {% empty %}<p>{% translate "No tienes módulos administrativos asignados." %}</p>{% endfor %}
+              </div>
+            </article>
+
+            <aside class="citt-admin-panel citt-admin-recent" aria-labelledby="recent-actions-title">
+              <header><div><span class="citt-admin-eyebrow">TRAZABILIDAD</span><h3 id="recent-actions-title">{% translate "Actividad reciente" %}</h3></div></header>
+              {% get_admin_log 10 as admin_log for_user user %}
+              {% if not admin_log %}
+                <p class="citt-admin-recent__empty">{% translate "Aún no has realizado cambios administrativos." %}</p>
+              {% else %}
+              <ol>
+                {% for entry in admin_log %}
+                <li>
+                  <span class="citt-admin-recent__dot"></span>
+                  <div>
+                    {% if entry.is_deletion %}<strong>{{ entry.object_repr }}</strong>{% else %}<a href="{{ entry.get_admin_url }}"><strong>{{ entry.object_repr }}</strong></a>{% endif %}
+                    <small>{{ entry.content_type.name|capfirst }}</small>
+                  </div>
+                </li>
+                {% endfor %}
+              </ol>
+              {% endif %}
+            </aside>
+          </div>
+        </section>
+        {% endif %}
+
+        {% for app in app_list %}
+        <section class="citt-admin-view{% if solo_gestion_unidades and forloop.first %} is-active{% endif %}" data-admin-view="{{ app.slug }}" role="tabpanel" {% if not solo_gestion_unidades or not forloop.first %}hidden{% endif %}>
+          <article class="citt-admin-category citt-admin-category--viewer">
+
+            {% if app.publicacion %}
+            <div class="citt-admin-publicacion">
+              {% for tipo in app.publicacion %}
+              <form method="post" action="{{ tipo.url }}" class="citt-admin-publicacion__fila">
+                {% csrf_token %}
+                <input type="hidden" name="volver" value="{{ app.slug }}">
+                <label class="citt-admin-interruptor">
+                  <input type="checkbox" name="activa" value="1" data-publicacion-tipo{% if tipo.activa %} checked{% endif %}>
+                  <span class="citt-admin-interruptor__pista" aria-hidden="true"></span>
+                  <span class="citt-admin-interruptor__texto"><strong>{{ tipo.nombre }}</strong> {% if tipo.activa %}{% translate "visible al público" %}{% else %}{% translate "retirado del público" %}{% endif %}</span>
+                </label>
+                <small>{% translate "Al retirarlo, su catálogo y sus fichas dejan de responder en el portal; los datos y esta área se conservan." %}</small>
+              </form>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if app.unidades is not None %}
+            <section class="citt-admin-subgrupo citt-admin-unidades">
+              <header class="citt-admin-subgrupo__titulo">
+                <h4>{% blocktranslate with tipo=app.unidad_singular|lower %}Por {{ tipo }}{% endblocktranslate %}</h4>
+                <p>{% translate "Entre por la unidad: su tablero reúne todo lo suyo, con cada lista ya filtrada. Reservas, prácticas, equipos, mantenimiento, insumos y trazabilidad son de cada unidad." %}</p>
+                <b>{{ app.unidades|length }}</b>
+              </header>
+              {% if app.lista_unidades %}<div class="citt-admin-subgrupo__acciones">
+                <a href="{{ app.lista_unidades.admin_url }}">{% translate "Lista completa" %}</a>
+                {% if app.lista_unidades.add_url %}<a href="{{ app.lista_unidades.add_url }}" class="is-primary">+ {% blocktranslate with tipo=app.unidad_singular|lower %}Crear {{ tipo }}{% endblocktranslate %}</a>{% endif %}
+              </div>{% endif %}
+              {% if app.unidades|length > 6 %}<div class="citt-admin-buscador"><input type="search" data-filtrar-unidades placeholder="{% translate 'Buscar por nombre' %}" aria-label="{% translate 'Buscar una unidad por nombre' %}"></div>{% endif %}
+              <div class="citt-admin-model-grid">
+                {% for unidad in app.unidades %}
+                <article class="citt-admin-unidad{% if not unidad.activa %} is-desactivada{% endif %}" data-unidad="{{ unidad.nombre|lower }}">
+                  <div class="citt-admin-model-card__icon" aria-hidden="true">{% include "admin/includes/category_icon.html" with icon=app.icon %}</div>
+                  <div class="citt-admin-model-card__copy">
+                    <strong><a href="{{ unidad.tablero }}">{{ unidad.nombre }}</a></strong>
+                    <span>{% if not unidad.activa %}<em class="citt-admin-desactivada">{% translate "Desactivada" %}</em> {% endif %}{% for total, rotulo in unidad.cifras %}{{ total }} {{ rotulo }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>
+                  </div>
+                  <div class="citt-admin-model-card__actions">
+                    <a href="{{ unidad.tablero }}" class="is-primary">{% translate "Tablero" %} <span aria-hidden="true">&rarr;</span></a>
+                    <a href="{{ unidad.contenidos }}" class="is-add">{% translate "Contenidos" %}</a>
+                    <a href="{{ unidad.ficha }}" class="is-add">{% translate "Ficha" %}</a>
+                  </div>
+                </article>
+                {% empty %}
+                <p class="citt-admin-vacio">{% translate "Todavía no hay unidades de este tipo: se crean con «Nuevo», aquí arriba." %}</p>
+                {% endfor %}
+              </div>
+            </section>
+            {% elif app.menu_reportes %}
+            {% include 'admin/includes/reportes_menu.html' with menu_reportes=app.menu_reportes %}
+            {% elif app.grupos %}
+            {% for grupo in app.grupos %}
+            <section class="citt-admin-subgrupo">
+              <header class="citt-admin-subgrupo__titulo">
+                <h4>{{ grupo.name }}</h4>
+                {% if grupo.description %}<p>{{ grupo.description }}</p>{% endif %}
+                <b>{{ grupo.models|length }}</b>
+              </header>
+              <div class="citt-admin-model-grid">
+                {% for model in grupo.models %}{% include "admin/includes/model_card.html" %}{% endfor %}
+              </div>
+            </section>
+            {% endfor %}
+            {% else %}
+            <div class="citt-admin-model-grid">
+              {% for model in app.models %}{% include "admin/includes/model_card.html" %}
+              {% empty %}<p>{% translate "No hay herramientas disponibles en esta categoría." %}</p>{% endfor %}
+            </div>
+            {% endif %}
+          </article>
+        </section>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Conoce la unidad" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce">
+{% if presentacion %}
+  {% if borrador %}<div class="conoce__borrador"><i class="fas fa-eye-slash" aria-hidden="true"></i> {% translate "Borrador: el público todavía no ve esta presentación." %} {% translate "Editar y publicar" as rotulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='quienes' titulo=rotulo rotulo=rotulo %}</div>{% endif %}
+
+  <header class="conoce__portada{% if foto_portada %} con-foto{% endif %}"{% if foto_portada %} style="--conoce-foto: url('{{ foto_portada }}')"{% endif %}>
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Conoce la unidad" %}</span>
+      <h1>{{ unidad.nombre }}</h1>
+      {% if presentacion.lema %}<p class="conoce__lema">{{ presentacion.lema }}</p>{% elif unidad.descripcion_corta %}<p class="conoce__lema">{{ unidad.descripcion_corta }}</p>{% endif %}
+      <ul class="conoce__datos">
+        <li><i class="fas fa-layer-group" aria-hidden="true"></i>{{ unidad.nombre_tipologia|ui }}</li>
+        {% if unidad.espacio_completo %}<li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ unidad.espacio_completo }}</li>{% endif %}
+        {% if unidad.fecha_inicio %}<li><i class="fas fa-calendar-alt" aria-hidden="true"></i>{% translate "Desde" %} {{ unidad.fecha_inicio.year }}</li>{% endif %}
+      </ul>
+      <div class="conoce__portada-acciones">
+        {% if presentacion.video_id %}<a class="conoce__boton is-principal" href="#video"><i class="fas fa-play" aria-hidden="true"></i> {% translate "Ver presentación" %}</a>{% endif %}
+        {% if indice %}<a class="conoce__boton" href="#{{ indice.0.0 }}">{% translate "Descubrir la unidad" %} <i class="fas fa-arrow-down" aria-hidden="true"></i></a>{% endif %}
+      </div>
+    </div>
+  </header>
+
+  {% if cifras %}
+  <section class="conoce__cifras" aria-label="{% translate "La unidad en cifras" %}">
+    {% for cifra in cifras %}<div data-aparecer><i class="fas {{ cifra.icono }}" aria-hidden="true"></i><strong data-contar="{{ cifra.valor }}">{{ cifra.valor }}</strong><span>{{ cifra.etiqueta }}</span></div>{% endfor %}
+  </section>
+  {% endif %}
+
+  {% if indice|length > 1 %}
+  <nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+    {% for ancla, titulo in indice %}<a href="#{{ ancla }}" data-indice="{{ ancla }}">{{ titulo }}</a>{% endfor %}
+  </nav>
+  {% endif %}
+
+  {% if pestanas %}
+  <section class="conoce__seccion" id="quienes">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Quiénes somos" %}</span><h2>{% translate "La unidad en pocas palabras" %}</h2>{% translate "Quiénes somos" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='quienes' titulo=titulo %}</header>
+    <div class="conoce__pestanas{% if fotos_interior %} con-fotos{% endif %}" data-aparecer>
+      <div class="conoce__pestanas-lista" role="tablist" aria-label="{% translate "Quiénes somos" %}">
+        {% for pestana in pestanas %}<button type="button" role="tab" id="pestana-{{ pestana.clave }}" aria-controls="panel-{{ pestana.clave }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if not forloop.first %} tabindex="-1"{% endif %}><i class="fas {{ pestana.icono }}" aria-hidden="true"></i><span>{{ pestana.titulo }}</span></button>{% endfor %}
+      </div>
+      {% for pestana in pestanas %}<article class="conoce__panel" role="tabpanel" id="panel-{{ pestana.clave }}" aria-labelledby="pestana-{{ pestana.clave }}"{% if not forloop.first %} hidden{% endif %}><i class="fas {{ pestana.icono }}" aria-hidden="true"></i><div><h3>{{ pestana.titulo }}</h3>{{ pestana.texto|linebreaks }}</div></article>{% endfor %}
+      {% if fotos_interior %}<aside class="conoce__fotos">
+        <div class="conoce__fotos-rejilla is-{{ fotos_interior|length }}">{% for foto in fotos_interior %}<img src="{{ foto }}" alt="" loading="lazy">{% endfor %}</div>
+        <button type="button" data-accion="galeria"><i class="fas fa-images" aria-hidden="true"></i> {% translate "Ver fotos y videos" %} <b>{{ total_medios }}</b></button>
+      </aside>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if presentacion.video_id %}
+  <section class="conoce__seccion conoce__video" id="video">
+    <div class="conoce__video-marco" data-aparecer>
+      <button type="button" class="conoce__reproducir" data-video="{{ presentacion.video_id }}" aria-label="{% translate "Reproducir el video de presentación" %}">
+        <img src="https://i.ytimg.com/vi/{{ presentacion.video_id }}/hqdefault.jpg" alt="" loading="lazy">
+        <span><i class="fas fa-play" aria-hidden="true"></i></span>
+      </button>
+    </div>
+    <div class="conoce__video-texto" data-aparecer>
+      <span class="conoce__antetitulo">{% translate "Presentación en video" %}</span>
+      <h2>{% translate "La unidad, contada por su equipo" %}</h2>
+      {% translate "Video de presentación" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='video' titulo=titulo %}
+      <p>{% translate "Un recorrido contado por quien la dirige: qué hace, cómo trabaja y qué puede encontrar aquí." %}</p>
+      {% if presentacion.video_presenta %}<p class="conoce__presenta"><i class="fas fa-user-tie" aria-hidden="true"></i>{{ presentacion.video_presenta }}</p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if presentacion.mision or presentacion.vision or objetivos %}
+  <section class="conoce__seccion conoce__rumbo-seccion" id="rumbo">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Hacia dónde va" %}</span><h2>{% translate "Misión, visión y objetivos" %}</h2>{% translate "Misión, visión y objetivos" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='rumbo' titulo=titulo %}</header>
+    {% if presentacion.mision or presentacion.vision %}<div class="conoce__rumbo">
+      {% if presentacion.mision %}<article class="is-mision" data-aparecer><i class="fas fa-bullseye" aria-hidden="true"></i><h3>{% translate "Misión" %}</h3>{{ presentacion.mision|linebreaks }}</article>{% endif %}
+      {% if presentacion.vision %}<article class="is-vision" data-aparecer><i class="fas fa-binoculars" aria-hidden="true"></i><h3>{% translate "Visión" %}</h3>{{ presentacion.vision|linebreaks }}</article>{% endif %}
+    </div>{% endif %}
+    {% if objetivos %}<ol class="conoce__objetivos">{% for objetivo in objetivos %}<li data-aparecer>{{ objetivo }}</li>{% endfor %}</ol>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if lineas_accion %}
+  <section class="conoce__seccion" id="lineas">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cómo trabaja" %}</span><h2>{% translate "Líneas de acción" %}</h2>{% translate "Nueva línea de acción" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='linea' pk='nuevo' titulo=titulo %}</header>
+    <div class="conoce__lineas">{% for linea in lineas_accion %}<article data-aparecer><i class="fas {{ linea.icono }}" aria-hidden="true"></i><h3>{{ linea.titulo }}</h3>{% if linea.descripcion %}<p>{{ linea.descripcion }}</p>{% endif %}{% include 'portal/pages/unidades/includes/editar.html' with clave='linea' pk=linea.pk titulo=linea.titulo %}</article>{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if presentacion.historia or hitos %}
+  <section class="conoce__seccion conoce__historia" id="historia">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "De dónde viene" %}</span><h2>{% translate "Historia" %}</h2>{% translate "Historia" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='historia' titulo=titulo %}{% translate "Nuevo hito" as titulo_hito %}{% translate "Agregar un hito" as rotulo_hito %}{% include 'portal/pages/unidades/includes/editar.html' with clave='hito' pk='nuevo' titulo=titulo_hito rotulo=rotulo_hito %}</header>
+    {% if presentacion.historia %}<div class="conoce__relato" data-aparecer>{{ presentacion.historia|linebreaks }}</div>{% endif %}
+    {% if hitos %}
+    <div class="tiempo" data-aparecer style="--tiempo-arriba: {{ linea_tiempo.niveles_arriba }}; --tiempo-abajo: {{ linea_tiempo.niveles_abajo }}; --tiempo-anios: {{ linea_tiempo.anios|length }}">
+      <div class="tiempo__pista">
+        <div class="tiempo__eje" aria-hidden="true">{% for anio in linea_tiempo.anios %}<span style="left: {{ anio.x_css }}; width: {{ anio.ancho_css }}">{{ anio.anio }}</span>{% endfor %}</div>
+        <ol class="tiempo__hitos">{% for item in linea_tiempo.hitos %}
+          <li class="tiempo__hito is-{{ item.lado }}{% if item.izquierda %} is-izquierda{% endif %}" style="--x: {{ item.x_css }}; --nivel: {{ item.nivel }}; --color: {{ item.color }}"{% if item.hito.descripcion or item.hito.enlace %} tabindex="0"{% endif %}>
+            <span class="tiempo__marca" title="{{ item.tipo_nombre }}"><i class="fas {{ item.icono }}" aria-hidden="true"></i></span>
+            <div class="tiempo__tarjeta"><time>{{ item.fecha }}</time><strong>{{ item.hito.titulo }}</strong><small>{{ item.tipo_nombre }}</small>{% if item.hito.descripcion or item.hito.enlace %}<div class="tiempo__detalle">{% if item.hito.descripcion %}<p>{{ item.hito.descripcion }}</p>{% endif %}{% if item.hito.enlace %}<a href="{{ item.hito.enlace }}" target="_blank" rel="noopener">{% translate "Ver respaldo" %} →</a>{% endif %}</div>{% endif %}</div>
+          </li>{% endfor %}
+        </ol>
+      </div>
+      <ul class="tiempo__leyenda" aria-label="{% translate "Tipos de hito" %}">{% for item in linea_tiempo.leyenda %}<li style="--color: {{ item.color }}"><i class="fas {{ item.icono }}" aria-hidden="true"></i> {{ item.nombre }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if beneficiarios or resultados %}
+  <section class="conoce__seccion conoce__impacto" id="impacto">
+    {% if beneficiarios %}<article data-aparecer><span class="conoce__antetitulo">{% translate "Para quién trabaja" %}</span><h2>{% translate "Usuarios o beneficiarios" %}</h2>{% translate "Beneficiarios y resultados" as titulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='impacto' titulo=titulo %}<ul class="conoce__etiquetas">{% for beneficiario in beneficiarios %}<li>{{ beneficiario }}</li>{% endfor %}</ul></article>{% endif %}
+    {% if resultados %}<article data-aparecer><span class="conoce__antetitulo">{% translate "Qué aporta" %}</span><h2>{% translate "Resultados o aportes" %}</h2><ul class="conoce__logros">{% for resultado in resultados %}<li><i class="fas fa-check-circle" aria-hidden="true"></i>{{ resultado }}</li>{% endfor %}</ul></article>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="conoce__cierre" data-cierre>
+    <div><h2>{% translate "¿Quiere conocerla en persona?" %}</h2><p>{% translate "Conozca a su equipo, llegue sin perderse o reserve un espacio para su práctica." %}</p></div>
+    <div class="conoce__acciones">
+      <button type="button" data-accion="equipo"><i class="fas fa-users" aria-hidden="true"></i> {% translate "Equipo técnico" %}</button>
+      <button type="button" data-accion="ubicacion" data-url="{{ ubicacion_url }}"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% translate "Cómo llegar" %}</button>
+      {% if acepta_reservas %}<button type="button" class="is-principal" data-accion="reservar"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Reservar" %}</button>{% endif %}
+    </div>
+  </section>
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+{% else %}
+  <section class="conoce__vacia">
+    <i class="fas fa-book-open" aria-hidden="true"></i>
+    <h1>{% translate "Conoce la unidad" %}</h1>
+    <p>{% translate "La unidad todavía no publica su presentación." %}</p>
+    {% if 'presentacion' in ediciones %}<p>{% translate "Se escribe aquí mismo: qué es, qué hace, su historia, misión, visión, objetivos, líneas de acción y el video en el que la presenta su responsable." %}</p>{% translate "Escribir la presentación" as rotulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='presentacion' pk='unidad' grupo='quienes' titulo=rotulo rotulo=rotulo %}{% endif %}
+  </section>
+{% endif %}
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

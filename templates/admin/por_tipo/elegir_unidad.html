@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% comment %}
+Puerta de un expediente por tipo: antes de listar filas se elige la unidad.
+Con cuarenta laboratorios, una lista combinada de sus equipos o insumos no
+dice de quien es cada fila; aqui cada unidad abre solo lo suyo.
+{% endcomment %}
+
+{% block bodyclass %}grp-change-list citt-elegir-unidad-page{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="grp-horizontal-list">
+    <li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li>
+    <li><a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a></li>
+    <li>{{ opts.verbose_name_plural|capfirst }}</li>
+  </ul>
+{% endblock %}
+
+{% block content_title %}<h1>{{ opts.verbose_name_plural|capfirst }}</h1>{% endblock %}
+
+{% block object-tools %}
+  {% if add_url %}
+  <ul class="grp-object-tools">
+    <li><a href="{{ add_url }}" class="grp-add-link grp-state-focus">{% blocktranslate with name=opts.verbose_name %}Añadir {{ name }}{% endblocktranslate %}</a></li>
+  </ul>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <section class="citt-elegir-unidad" data-elegir-unidad>
+    <header class="citt-elegir-unidad__cabecera">
+      <span class="citt-admin-eyebrow">{% translate "ELIGE LA UNIDAD" %}</span>
+      <p>{% blocktranslate with plural=opts.verbose_name_plural %}Cada unidad abre solo sus {{ plural }}; nada de las demás se mezcla.{% endblocktranslate %}</p>
+    </header>
+    <table class="grp-table citt-elegir-unidad__tabla">
+      <thead><tr><th>{% translate "Unidad" %}</th><th class="citt-elegir-unidad__numero">{% translate "Registros" %}</th><th></th></tr></thead>
+      <tbody>
+        {% for fila in unidades %}
+        <tr>
+          <th scope="row"><a href="{{ fila.url }}">{{ fila.unidad.nombre }}</a></th>
+          <td class="citt-elegir-unidad__numero">{{ fila.total }}</td>
+          <td class="citt-elegir-unidad__accion"><a href="{{ fila.url }}" class="grp-button">{% translate "Abrir" %} <span aria-hidden="true">&rarr;</span></a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">{% translate "Este tipo aún no tiene unidades registradas." %}</td></tr>
+        {% endfor %}
+        {% if sin_asignar %}
+        <tr class="citt-elegir-unidad__sin-asignar">
+          <th scope="row"><a href="{{ sin_asignar.url }}">{% translate "Sin unidad asignada" %}</a></th>
+          <td class="citt-elegir-unidad__numero">{{ sin_asignar.total }}</td>
+          <td class="citt-elegir-unidad__accion"><a href="{{ sin_asignar.url }}" class="grp-button">{% translate "Abrir" %} <span aria-hidden="true">&rarr;</span></a></td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+    <p class="citt-elegir-unidad__todas"><a href="?todas=1">{% blocktranslate count total=total %}Ver el único registro de todas las unidades junto{% plural %}Ver los {{ total }} registros de todas las unidades juntos{% endblocktranslate %}</a></p>
+  </section>
+{% endblock %}

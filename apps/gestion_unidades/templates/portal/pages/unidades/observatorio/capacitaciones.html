@@ -1,0 +1,41 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Cursos y capacitaciones" %}{% endblock %}
+{% block encabezado %}{% translate "Cursos y capacitaciones" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué enseña el observatorio con sus propios datos, para quién, cómo se pide y cómo se certifica" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Con inscripción" %}</dt><dd>{{ cursos|length }}</dd></div><div><dt>{% translate "A pedido" %}</dt><dd>{{ capacitaciones|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Cursos y capacitaciones del observatorio" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "CÓMO FUNCIONA" %}</span><small>{% translate "De la solicitud al certificado" %}</small></header>
+  <ol class="obs-oferta">{% for icono, titulo, texto in pasos %}<li><i class="{{ icono }}" aria-hidden="true"></i><div><strong>{{ forloop.counter }}. {{ titulo }}</strong><p>{{ texto }}</p></div></li>{% endfor %}</ol>
+  <p class="unit-report__notice"><strong>{% translate "Costo:" %}</strong> {{ tarifa }} <a href="{% url 'politica_observatorio' unidad.slug %}">{% translate "Política de datos y servicios" %}</a></p>
+</section>
+
+{% if cursos %}
+<section class="unit-report__section">
+  <header><span>{% translate "CON INSCRIPCIÓN EN LÍNEA" %}</span><small>{% translate "Cursos publicados en la plataforma" %}</small></header>
+  <ul class="obs-oferta">{% for curso in cursos %}<li><i class="fas fa-graduation-cap" aria-hidden="true"></i><div><strong><a href="{% url 'curso_unidad' unidad.slug curso.codigo %}">{{ curso.nombre }}</a></strong><p>{{ curso.get_clasificacion_display }} · {{ curso.resumen }}</p></div></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if capacitaciones %}
+<section class="unit-report__section">
+  <header><span>{% translate "LAS QUE PUEDE DICTAR A PEDIDO" %}</span><small>{% translate "Para un curso de una carrera, un GAD, un gremio o una empresa" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Capacitación" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Horas" %}</th><th>{% translate "Para quién" %}</th><th></th></tr></thead><tbody>
+    {% for nombre, tipo, horas, para in capacitaciones %}<tr><td><strong>{{ nombre }}</strong></td><td>{{ tipo }}</td><td>{{ horas }}</td><td>{{ para }}</td><td><a class="obs-boton" href="{% url 'solicitudes_observatorio' unidad.slug %}?tipo=capacitacion&amp;tema={{ nombre|urlencode }}">{% translate "Pedirla" %}</a></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "OTRAS FORMAS DE APRENDER CON EL OBSERVATORIO" %}</span></header>
+  <ul class="obs-oferta">
+    <li><i class="fas fa-user-plus" aria-hidden="true"></i><div><strong><a href="{% url 'participa_observatorio' unidad.slug %}">{% translate "Prácticas, tesis y encuestas" %}</a></strong><p>{% translate "Estudiantes que se forman levantando y procesando datos reales, con capacitación previa." %}</p></div></li>
+    <li><i class="fas fa-laptop-house" aria-hidden="true"></i><div><strong><a href="{% url 'equipos_observatorio' unidad.slug %}">{% translate "La sala de análisis" %}</a></strong><p>{% translate "Para clases y talleres con software estadístico y de mapas; se pide con una solicitud." %}</p></div></li>
+    <li><i class="fas fa-search" aria-hidden="true"></i><div><strong><a href="{% url 'estudios_observatorio' unidad.slug %}">{% translate "Temas de investigación abiertos" %}</a></strong><p>{% translate "Preguntas de cada eje temático listas para una tesis o un proyecto." %}</p></div></li>
+  </ul>
+</section>
+{% endblock %}

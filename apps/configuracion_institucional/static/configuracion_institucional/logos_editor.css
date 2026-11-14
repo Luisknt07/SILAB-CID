@@ -1,0 +1,19 @@
+.institution-logo-editor { max-width: 700px; min-width: 0; overflow-wrap: anywhere; }
+.institution-logo-editor input[type="file"] { max-width: 100%; box-sizing: border-box; }
+.institution-logo-previews { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.institution-logo-previews[hidden], .institution-logo-reset[hidden] { display: none !important; }
+.institution-logo-previews figure { flex: 1 1 180px; min-width: 0; max-width: 300px; margin: 0; }
+.institution-logo-previews figcaption { margin-bottom: 5px; font-weight: 600; }
+.institution-logo-surface { display: grid; place-items: center; height: 100px; padding: 10px; border: 1px solid #9aaea4; border-radius: 6px; box-sizing: border-box; }
+.institution-logo-surface--light { background: #fff; }
+.institution-logo-surface--dark { background: #071525; }
+.institution-logo-surface img { display: block; max-width: 100%; max-height: 78px; width: auto; height: auto; object-fit: contain; }
+.institution-logo-status { margin-top: 8px !important; line-height: 1.5; }
+.institution-logo-status.is-invalid { color: #9b1c1c; font-weight: 600; }
+.institution-logo-editor .institution-logo-reset { position: static; display: inline-flex; align-items: center; justify-content: center; width: auto; height: auto; min-height: 36px; max-width: 100%; text-indent: 0; white-space: normal; line-height: 1.4; margin-top: 5px; padding: 7px 12px; border: 1px solid var(--institucion-primario, #547b69); border-radius: 5px; background: #fff; color: var(--institucion-texto, #18312a); cursor: pointer; }
+.institution-logo-reset:focus-visible { outline: 2px solid var(--institucion-primario, #082b22); outline-offset: 2px; }
+@media (max-width: 767.98px) {
+  .grp-row.logo_claro > .field-box, .grp-row.logo_oscuro > .field-box, .grp-row.logo_movil_claro > .field-box, .grp-row.logo_movil_oscuro > .field-box, .grp-row.logo_secundario_subido > .field-box { display: block !important; }
+  .grp-row.logo_claro > .field-box > div, .grp-row.logo_oscuro > .field-box > div, .grp-row.logo_movil_claro > .field-box > div, .grp-row.logo_movil_oscuro > .field-box > div, .grp-row.logo_secundario_subido > .field-box > div { display: block !important; min-width: 0 !important; width: 100% !important; padding-right: 0 !important; box-sizing: border-box; }
+  .institution-logo-previews figure { max-width: 100%; }
+}

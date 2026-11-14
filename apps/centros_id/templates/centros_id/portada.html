@@ -1,0 +1,107 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n %}
+{% comment %}
+La portada de los Centros I+D: tarjetas comparables con acceso a la información de cada centro. Todo sale de los registros de los centros; lo que no existe no se muestra.
+{% endcomment %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="{% static 'centros_id/centros_id.css' %}?v=20261013-lateral-compacto-v5">
+{% endblock %}
+
+{% block portal_content %}
+<div class="institutional-page cid cid-inicio">
+  {# La franja entera son las fotos de los centros, que pasan solas; el texto va sobre un velo oscuro a la izquierda. #}
+  <section class="institutional-hero cid-portada" data-diapositivas>
+    <div class="cid-portada__fondo" aria-hidden="true">
+      {% for foto in diapositivas %}<img class="cid-portada__diapositiva{% if forloop.first %} is-activa{% endif %}" src="{{ foto.url }}" alt="" data-diapositiva="{{ forloop.counter0 }}"{% if not forloop.first %} loading="lazy"{% endif %} decoding="async">{% empty %}<img class="cid-portada__diapositiva is-activa" src="{% static 'img/generated/hero-centros-id-v2.png' %}" alt="">{% endfor %}
+    </div>
+    <div class="cid-envoltura cid-portada__grilla">
+      <div>
+        <ol class="cid-migas"><li><a href="{% url 'home' %}">{% translate "Inicio" %}</a></li><li>{% translate "Centros I+D" %}</li></ol>
+        <h1>{% translate "Centros de" %} <span>{% translate "Investigación y Desarrollo" %}</span></h1>
+        <p>{% translate "Investigación interdisciplinaria y servicios para el territorio. Conoce las áreas, carreras y capacidades que articula cada centro, explora su oferta y encuentra cómo trabajar con él." %}</p>
+        <div class="cid-portada__acciones">
+          <a class="cid-boton cid-boton--primario" href="#centros"><i class="fas fa-landmark" aria-hidden="true"></i> {% translate "Explorar los centros" %}</a>
+        </div>
+      </div>
+      {% if diapositivas %}
+      <div class="cid-portada__pie">
+        {% for foto in diapositivas %}<a class="cid-portada__leyenda" href="{% url 'centro_id' foto.centro.slug %}" data-leyenda="{{ forloop.counter0 }}"{% if not forloop.first %} hidden{% endif %}><i class="fas fa-landmark" aria-hidden="true"></i><span><small>{{ foto.centro.sigla|default:foto.centro.nombre_area }}{% if not foto.centro.en_operacion or not foto.centro.estado_validado and not foto.centro.en_escenario %} · {{ foto.centro.estado_publico }}{% endif %}</small><strong>{{ foto.centro.nombre }}</strong>{% if foto.texto %}<em>{{ foto.texto }}</em>{% endif %}</span><b>{% translate "Entrar al centro" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></b></a>{% endfor %}
+        {% if diapositivas|length > 1 %}<div class="cid-portada__puntos" aria-label="{% translate "Fotos de los centros" %}">{% for foto in diapositivas %}<button type="button" data-punto="{{ forloop.counter0 }}" aria-label="{{ foto.centro.nombre }}{% if foto.texto %} · {{ foto.texto }}{% endif %}"{% if forloop.first %} aria-current="true"{% endif %}></button>{% endfor %}</div>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  <script src="{% static 'centros_id/portada.js' %}?v=20261008-selector-vista" defer></script>
+
+  <div class="cid-envoltura">
+    {% if cifras %}
+    <div class="cid-cifras" aria-label="{% translate "Cifras de los Centros I+D" %}" style="--cifras: {{ cifras|length }}">
+      {% for cifra in cifras %}<div><i class="{{ cifra.icono }}" aria-hidden="true"></i><p><strong>{{ cifra.valor }}</strong><span>{{ cifra.titulo }}</span></p></div>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="cid-envoltura">
+    {% if todos %}
+    <div class="cid-vistas" role="group" aria-label="{% translate "Vista de los centros" %}" data-vistas-centros>
+      <span>{% translate "Vista:" %}</span>
+      <button type="button" data-vista-centros="grid" aria-controls="centros" aria-pressed="false" aria-label="{% translate "Vista en cuadrícula" %}" title="{% translate "Vista en cuadrícula" %}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+      <button class="active" type="button" data-vista-centros="list" aria-controls="centros" aria-pressed="true" aria-label="{% translate "Vista horizontal" %}" title="{% translate "Vista horizontal" %}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M8 5h13M8 12h13M8 19h13"/><path d="M3 5h.01M3 12h.01M3 19h.01" stroke-width="3"/></svg></button>
+    </div>
+    {% endif %}
+    <section id="centros" data-vista="list" class="cid-centros{% if todos|length > 1 %} cid-centros--varios{% endif %}" aria-label="{% translate "Centros I+D" %}">
+      {% for centro in centros %}
+      <article class="cid-centro" data-centro="{{ centro.slug }}">
+        <a class="cid-centro__foto" href="{% url 'centro_id' centro.slug %}" aria-label="{% translate "Entrar a" %} {{ centro.nombre }}">
+          {% if centro.portada %}<img src="{{ centro.portada }}" alt="" loading="lazy">{% else %}<span class="cid-centro__sinfoto"><i class="fas fa-landmark" aria-hidden="true"></i></span>{% endif %}
+          {% if not centro.en_operacion or not centro.estado_validado and not centro.en_escenario %}<span class="cid-chip is-{% if centro.estado_validado %}{{ centro.estado }}{% else %}pendiente{% endif %}"><i class="fas fa-circle" aria-hidden="true"></i> {{ centro.estado_publico }}</span>{% endif %}
+          {% if centro.fase_actual and not centro.en_operacion %}<span class="cid-centro__fase">{% translate "Fase" %} {{ centro.fase_actual.numero }} · {{ centro.fase_actual.nombre }}</span>{% endif %}
+        </a>
+        <div class="cid-centro__cuerpo">
+          <span class="cid-centro__area">{{ centro.nombre_area }}{% if centro.sigla %} · {{ centro.sigla }}{% endif %}</span>
+          <h2><a href="{% url 'centro_id' centro.slug %}">{{ centro.nombre }}</a></h2>
+          <p class="cid-centro__lema">{{ centro.lema|default:centro.proposito|truncatewords:36 }}</p>
+          {% if centro.lineas_tarjeta and not centro.areas_tarjeta %}<ul class="cid-centro__lineas">{% for linea in centro.lineas_tarjeta %}<li>{{ linea }}</li>{% endfor %}</ul>{% endif %}
+          {% if centro.areas_tarjeta %}
+          <div class="cid-centro__areas">
+            <small>{% translate "Áreas del centro" %}</small>
+            <div>{% for area in centro.areas_tarjeta %}<a class="cid-centro__etiqueta" href="{% url 'centro_id' centro.slug %}?area={{ area.codigo|urlencode }}" style="--color: {{ area.color }}" title="{{ area.nombre }}"><i class="{{ area.icono }}" aria-hidden="true"></i><span>{{ area.nombre_corto|default:area.nombre }}</span></a>{% endfor %}</div>
+          </div>
+          {% endif %}
+          {% if centro.carreras_tarjeta %}
+          <div class="cid-centro__carreras">
+            <small>{% translate "Carreras vinculadas" %}</small>
+            <p>{{ centro.carreras_tarjeta|slice:":3"|join:" · " }}{% if centro.otras_carreras %} · {% blocktranslate count total=centro.otras_carreras %}+{{ total }} carrera{% plural %}+{{ total }} carreras{% endblocktranslate %}{% endif %}</p>
+          </div>
+          {% endif %}
+          <div class="cid-centro__acciones">
+            <a class="cid-boton cid-boton--centro" href="{% url 'centro_id' centro.slug %}">{% translate "Entrar al centro" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          </div>
+        </div>
+        {% if centro.cifras_tarjeta %}
+        <aside class="cid-centro__cifras" aria-label="{% translate "Cifras de" %} {{ centro.sigla|default:centro.nombre }}">
+          {% for cifra in centro.cifras_tarjeta %}<div><i class="{{ cifra.icono }}" aria-hidden="true"></i><strong>{{ cifra.valor }}</strong><span>{{ cifra.titulo }}</span></div>{% endfor %}
+        </aside>
+        {% endif %}
+      </article>
+      {% empty %}
+      <p class="cid-vacio">{% translate "Los Centros I+D de la institución aparecerán aquí cuando se registren." %}</p>
+      {% endfor %}
+    </section>
+
+  </div>
+
+  <footer class="cid-valores">
+    <div class="cid-envoltura">
+      <span><i class="fas fa-brain" aria-hidden="true"></i>{% translate "Conocimiento que conecta personas y tecnología" %}</span>
+      <span><i class="fas fa-building" aria-hidden="true"></i>{% translate "Capacidades compartidas para investigar y validar" %}</span>
+      <span><i class="fas fa-leaf" aria-hidden="true"></i>{% translate "Innovación que impulsa el desarrollo sostenible" %}</span>
+      <span><i class="fas fa-award" aria-hidden="true"></i>{% translate "Compromiso con la educación y la sociedad" %}</span>
+      <strong>SOMOS UPEC</strong>
+    </div>
+  </footer>
+</div>
+{% endblock %}

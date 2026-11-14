@@ -1,0 +1,41 @@
+{% load i18n %}
+<div class="cidg-panel" data-cid-gestion-panel data-url="{{ gestion_url }}" data-panel="{{ panel }}" data-actual="{{ volver_url }}">
+  <aside class="cidg-menu">
+    <h3>{% translate 'Panel del centro' %}</h3>
+    <nav aria-label="{% translate 'Gestión del centro' %}">
+      {% for item in paneles %}<a href="{{ item.url }}" data-gestion-navegar{% if item.clave == panel %} aria-current="page"{% endif %}><i class="{{ item.icono }}" aria-hidden="true"></i><span>{{ item.titulo }}</span><i class="fas fa-chevron-right" aria-hidden="true"></i></a>{% endfor %}
+      <a href="{% url 'reportes_centros_id' %}?centro={{ centro.pk }}"><i class="fas fa-chart-bar" aria-hidden="true"></i><span>{% translate 'Reportes del centro' %}</span><i class="fas fa-chevron-right" aria-hidden="true"></i></a>
+    </nav>
+    <p><i class="fas fa-lock" aria-hidden="true"></i> {% translate 'Datos limitados a este centro' %}</p>
+  </aside>
+  <main class="cidg-principal" tabindex="-1">
+    <header class="cidg-encabezado"><div><h3>{{ panel_titulo }}</h3><p>{{ centro.sigla|default:centro.nombre }}</p></div><div class="cidg-actualizar"><small>{% translate 'Actualizado' %} {{ ahora|date:'H:i' }}</small><button type="button" class="cidg-boton cidg-boton--acento" data-gestion-actualizar><i class="fas fa-sync-alt" aria-hidden="true"></i> {% translate 'Actualizar' %}</button></div></header>
+    {% for message in messages %}<p class="cidg-mensaje" role="status">{{ message }}</p>{% endfor %}
+    {% if tipos %}<nav class="cidg-tipos" aria-label="{% translate 'Registros de esta sección' %}">{% for clave,titulo in tipos %}<a data-gestion-navegar href="{{ gestion_url }}?panel={{ panel }}&amp;tipo={{ clave }}"{% if tipo == clave %} aria-current="page"{% endif %}>{{ titulo }}</a>{% endfor %}</nav>{% endif %}
+    {% if formulario %}
+    <section class="cidg-tarjeta">
+      <header><div><h4>{{ editor_titulo }}</h4>{% if es_solicitud %}<p>{{ objeto.referencia }} · {{ objeto.usuario }} · {{ objeto.get_tipo_display }}</p>{% endif %}</div>{% if panel != 'configuracion' %}<a class="cidg-boton" data-gestion-navegar href="{{ volver_url }}">{% translate 'Volver a la lista' %}</a>{% endif %}</header>
+      {% if es_solicitud %}<div class="cidg-expediente"><p><strong>{% translate 'Necesidad' %}</strong> {{ objeto.problema|linebreaksbr }}</p><p><strong>{% translate 'Resultado esperado' %}</strong> {{ objeto.resultado_esperado }}</p>{% if objeto.inicio_preferido %}<p><strong>{% translate 'Horario solicitado' %}</strong> {{ objeto.inicio_preferido|date:'d/m/Y H:i' }} – {{ objeto.fin_preferido|date:'H:i' }}</p>{% endif %}{% if objeto.servicio %}<p><strong>{% translate 'Servicio' %}</strong> {{ objeto.servicio }}</p>{% endif %}</div>{% endif %}
+      <form class="cidg-formulario" method="post" action="{{ formulario_url }}" enctype="multipart/form-data" data-gestion-formulario>
+        {% csrf_token %}
+        {% if formulario.non_field_errors %}<div class="cidg-errores" role="alert">{{ formulario.non_field_errors }}</div>{% endif %}
+        <div class="cidg-campos">{% for campo in formulario %}{% if campo.is_hidden %}{{ campo }}{% else %}<div class="cidg-campo{% if campo.field.widget.input_type == 'checkbox' %} cidg-campo--casilla{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %}<span aria-label="{% translate 'Obligatorio' %}"> *</span>{% endif %}</label>{{ campo }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}{% if campo.errors %}<div class="cidg-errores" role="alert">{{ campo.errors }}</div>{% endif %}</div>{% endif %}{% endfor %}</div>
+        <footer><button type="submit" class="cidg-boton cidg-boton--primario"><i class="fas fa-save" aria-hidden="true"></i> {% translate 'Guardar cambios' %}</button>{% if panel == 'configuracion' %}<button type="submit" class="cidg-boton" name="accion" value="validar_identidad">{% translate 'Guardar y validar identidad' %}</button><button type="submit" class="cidg-boton" name="accion" value="validar_estado">{% translate 'Guardar y validar estado' %}</button>{% endif %}<span data-gestion-guardando hidden role="status">{% translate 'Guardando…' %}</span></footer>
+      </form>
+    </section>
+    {% if es_solicitud %}<section class="cidg-tarjeta"><header><h4>{% translate 'Historial de atención' %}</h4></header><ol class="cidg-historial">{% for registro in historial %}<li><strong>{{ registro.fecha|date:'d/m/Y H:i' }} · {{ registro.autor|default:'Centro' }}</strong><p>{{ registro.detalle|linebreaksbr }}</p></li>{% empty %}<li>{% translate 'Sin movimientos registrados.' %}</li>{% endfor %}</ol></section>{% endif %}
+    {% else %}
+      {% if panel == 'resumen' %}
+      <div class="cidg-indicadores">{% for tarjeta in tarjetas %}<a href="{{ tarjeta.url }}" data-gestion-navegar><small>{{ tarjeta.titulo }}</small><strong>{{ tarjeta.valor }}</strong><span>{% translate 'Ver registros' %} <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>{% endfor %}</div>
+      <div class="cidg-columnas"><section class="cidg-tarjeta"><header><h4>{% translate 'Solicitudes activas' %}</h4></header>{% include 'centros_id/gestion/filas.html' with registros=recibidas %}</section><section class="cidg-tarjeta"><header><h4>{% translate 'Hitos por atender en los próximos 7 días' %}</h4></header>{% include 'centros_id/gestion/filas.html' with registros=hitos %}</section></div>
+      {% endif %}
+      {% if panel == 'resumen' or panel == 'agenda' %}<section class="cidg-tarjeta"><header><div><h4>{% translate 'Agenda de los próximos 7 días' %}</h4><p>{% translate 'Reservas confirmadas y sesiones programadas.' %}</p></div></header><ul class="cidg-filas">{% for evento in agenda %}<li><a href="{{ evento.url }}" data-gestion-navegar><div><strong>{{ evento.titulo }}</strong><small>{{ evento.detalle }}</small></div><span>{{ evento.inicio|date:'d M · H:i' }} – {{ evento.fin|date:'H:i' }}</span><i class="fas fa-chevron-right" aria-hidden="true"></i></a></li>{% empty %}<li class="cidg-vacio">{% translate 'No hay reservas confirmadas ni sesiones en los próximos 7 días.' %}</li>{% endfor %}</ul></section>{% endif %}
+      {% if tipo %}<section class="cidg-tarjeta">
+        <header><div><h4>{{ lista_titulo }}</h4><p>{{ pagina.paginator.count }} {% translate 'registros' %}</p></div>{% if puede_crear %}<a class="cidg-boton cidg-boton--primario" data-gestion-navegar href="{{ nuevo_url }}"><i class="fas fa-plus" aria-hidden="true"></i> {% translate 'Nuevo registro' %}</a>{% endif %}</header>
+        <form class="cidg-filtros" method="get" action="{{ gestion_url }}" data-gestion-filtros><input type="hidden" name="panel" value="{{ panel }}"><input type="hidden" name="tipo" value="{{ tipo }}"><label>{% translate 'Buscar' %}<input name="q" value="{{ q }}" placeholder="{% translate 'Nombre, título o código' %}" maxlength="200"></label>{% if estados %}<label>{% translate 'Estado' %}<select name="estado"><option value="">{% translate 'Todos los estados' %}</option>{% for clave,titulo in estados %}<option value="{{ clave }}"{% if clave == estado_filtro %} selected{% endif %}>{{ titulo }}</option>{% endfor %}</select></label>{% endif %}<button class="cidg-boton" type="submit">{% translate 'Filtrar' %}</button></form>
+        {% include 'centros_id/gestion/filas.html' with registros=filas %}
+        <footer class="cidg-paginacion">{% if anterior_url %}<a data-gestion-navegar href="{{ anterior_url }}">{% translate 'Anterior' %}</a>{% endif %}<span>{{ pagina.number }} / {{ pagina.paginator.num_pages }}</span>{% if siguiente_url %}<a data-gestion-navegar href="{{ siguiente_url }}">{% translate 'Siguiente' %}</a>{% endif %}</footer>
+      </section>{% endif %}
+    {% endif %}
+  </main>
+</div>

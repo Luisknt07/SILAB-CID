@@ -1,0 +1,26 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Encuestas propias" %}{% endblock %}
+{% block encabezado %}{% translate "Encuestas propias" %}{% endblock %}
+{% block subtitulo %}{% translate "Lo que el observatorio levanta por su cuenta, con su metodología publicada" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Encuestas" %}</dt><dd>{{ encuestas|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Encuestas del observatorio" %}{% endblock %}
+{% block contenido %}
+{% for encuesta in encuestas %}
+<section class="unit-report__section" id="encuesta-{{ encuesta.pk }}">
+  <header><span>{{ encuesta.nombre|upper }}</span><small>{% if encuesta.etapa == 'diseno' %}{{ encuesta.get_etapa_display }}{% if encuesta.proximo_levantamiento %}: {{ encuesta.proximo_levantamiento }}{% endif %} · {% endif %}{{ encuesta.get_periodicidad_display }}{% if encuesta.ultimo_levantamiento %} · {% translate "último levantamiento" %} {{ encuesta.ultimo_levantamiento }}{% endif %}</small></header>
+  {% include 'portal/pages/unidades/includes/editar.html' with clave='encuesta_observatorio' pk=encuesta.pk titulo=encuesta.nombre %}
+  <dl class="unit-report__fields">
+    <div><dt>{% translate "Objetivo" %}</dt><dd>{{ encuesta.objetivo }}</dd></div>
+    <div><dt>{% translate "Población objetivo" %}</dt><dd>{{ encuesta.poblacion }}</dd></div>
+    {% if encuesta.muestra %}<div><dt>{% translate "Muestra" %}</dt><dd>{{ encuesta.muestra }}</dd></div>{% endif %}
+    {% if encuesta.instrumento %}<div><dt>{% translate "Cuestionario" %}</dt><dd><a href="{{ encuesta.instrumento }}" target="_blank" rel="noopener noreferrer">{% translate "Ver el instrumento" %}</a></dd></div>{% endif %}
+    <div><dt>{% translate "Protección de datos" %}</dt><dd>{{ encuesta.proteccion_datos }}</dd></div>
+  </dl>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "El observatorio todavía no registra encuestas propias." %}</p>
+{% endfor %}
+{% translate "Nueva encuesta" as titulo_nuevo %}{% translate "Agregar una encuesta" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='encuesta_observatorio' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

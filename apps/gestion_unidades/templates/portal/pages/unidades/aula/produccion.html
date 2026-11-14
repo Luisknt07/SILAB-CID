@@ -1,0 +1,25 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Producción y lotes" %}{% endblock %}
+{% block encabezado %}{% translate "Lo que produce la planta" %}{% endblock %}
+{% block subtitulo %}{% translate "Catálogo institucional de productos, agrupado por familia" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Productos" %}</dt><dd>{{ produccion.resumen.productos }}</dd></div><div><dt>{% translate "Procesos" %}</dt><dd>{{ produccion.resumen.procesos }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Producción y lotes" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__summary" aria-label="{% translate "Resumen de producción" %}">
+  <article><span>{% translate "Productos publicados" %}</span><strong>{{ produccion.resumen.productos }}</strong><small>{% translate "terminados, intermedios y subproductos" %}</small></article>
+  <article><span>{% translate "Procesos" %}</span><strong>{{ produccion.resumen.procesos }}</strong><small>{% translate "con su ficha en «Procesos y protocolos»" %}</small></article>
+</section>
+
+{% for linea in produccion.lineas %}
+<section class="unit-report__section">
+  <header><span>{{ linea.nombre|upper }}</span><small>{{ linea.productos|length }} producto{{ linea.productos|length|pluralize }}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Producto" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Presentación" %}</th><th>{% translate "Vida útil" %}</th><th>{% translate "Conservación" %}</th><th>{% translate "Precio" %}</th></tr></thead><tbody>
+    {% for producto in linea.productos %}<tr><td><a class="unit-report__table-link" href="{% url 'ficha_producto_publica' unidad.slug producto.pk %}"><strong>{{ producto.nombre }}</strong><span>{% translate "Ver ficha" %}</span></a>{% if producto.descripcion %}<small>{{ producto.descripcion|truncatechars:140 }}</small>{% endif %}</td><td>{{ producto.get_tipo_display|ui }}</td><td>{{ producto.presentacion|default:"—" }}</td><td>{% if producto.vida_util_dias %}{{ producto.vida_util_dias }} {% translate "día" %}{{ producto.vida_util_dias|pluralize }}{% else %}—{% endif %}</td><td>{% if producto.requiere_frio %}{% translate "Cadena de frío" %}{% else %}{% translate "Ambiente" %}{% endif %}</td><td>{% if producto.se_vende %}${{ producto.precio_venta|floatformat:2 }} / {{ producto.unidad_medida }}{% else %}—{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "La unidad todavía no publica productos." %}</p>
+{% endfor %}
+{% endblock %}

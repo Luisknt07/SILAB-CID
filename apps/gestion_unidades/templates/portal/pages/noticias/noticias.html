@@ -1,0 +1,68 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas marca %}
+
+{% block portal_content %}
+<div class="institutional-page">
+  <section class="institutional-hero">
+    <img src="{% static 'img/generated/hero-noticias-v2.png' %}" alt="{% translate "Comunicación de noticias científicas, innovación y resultados de investigación UPEC" %}">
+    <div class="institutional-hero__overlay"></div>
+    <div class="institutional-hero__circuit" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="institutional-hero__brand">
+      {% marca_institucional identidad_institucion 'oscuro' %}
+      <span>{{ identidad_producto.nombre_corto }}</span>
+    </div>
+    <div class="institutional-hero__content">
+      <span class="institutional-hero__eyebrow"><i class="simple-icon-feed"></i> {% translate "Ciencia en movimiento" %}</span>
+      <h1>{% translate "Noticias e" %} <strong>{% translate "innovación" %}</strong></h1>
+      <p>{% translate "Proyectos, resultados, eventos y oportunidades que movilizan la investigación y conectan a la comunidad UPEC con el territorio." %}</p>
+      <div class="institutional-hero__actions">
+        <a class="upec-button upec-button--primary" href="#destacadas">{% translate "Ver historias" %}</a>
+        <a class="upec-button upec-button--outline" href="#agenda">{% translate "Consultar agenda" %}</a>
+      </div>
+    </div>
+    <aside class="institutional-hero__badge"><i class="simple-icon-globe"></i><span><b>{% translate "Conocimiento abierto" %}</b>{% translate "Resultados, comunidad e impacto" %}</span></aside>
+  </section>
+
+  <nav class="institutional-local-nav" aria-label="{% translate "Contenido de Noticias" %}">
+    <a href="#destacadas"><i class="simple-icon-star"></i> {% translate "Destacadas" %}</a>
+    <a href="#agenda"><i class="simple-icon-calendar"></i> {% translate "Agenda científica" %}</a>
+    <a href="#convocatorias"><i class="simple-icon-trophy"></i> {% translate "Convocatorias" %}</a>
+  </nav>
+
+  <div class="institutional-content">
+    <div class="section-title" id="destacadas"><small>{% translate "En portada" %}</small><h2>{% translate "Historias de ciencia e innovación" %}</h2></div>
+    <div class="cards-3">
+      {% if novedades.destacadas %}
+      {% for novedad in novedades.destacadas %}<article class="news-card">
+        <img src="{% if novedad.imagen %}{{ novedad.imagen.url }}{% else %}{% static 'img/generated/hero-noticias-v2.png' %}{% endif %}" alt="{{ novedad.titulo }}">
+        <div class="news-body"><span class="tag">{{ novedad.get_categoria_display }} · {{ novedad.unidad.nombre_corto|default:novedad.unidad.nombre }}</span><h3>{{ novedad.titulo }}</h3><p>{{ novedad.resumen }}</p><small>{{ novedad.fecha_publicacion|date:"j \d\e F \d\e Y" }}</small><br><a href="{{ novedad.get_absolute_url }}">{% translate "Leer la nota →" %}</a></div>
+      </article>{% endfor %}
+      {% else %}
+      <article class="news-card">
+        <img src="{% static 'img/CULTIVO.jpg' %}" alt="{% translate "Cultivos de investigación" %}">
+        <div class="news-body"><span class="tag">{% translate "Investigación" %}</span><h3>{% translate "Innovación para una agricultura más sostenible" %}</h3><p>{% translate "Equipos multidisciplinarios estudian alternativas para mejorar productividad y resiliencia." %}</p><a href="{% url 'centros_id' %}">{% translate "Conocer Centros I+D →" %}</a></div>
+      </article>
+      <article class="news-card">
+        <img src="{% static 'img/innovacion.png' %}" alt="{% translate "Innovación tecnológica" %}">
+        <div class="news-body"><span class="tag">{% translate "Innovación" %}</span><h3>{% translate "Prototipos que conectan universidad y territorio" %}</h3><p>{% translate "Estudiantes e investigadores transforman retos locales en soluciones con potencial." %}</p><a href="{% url 'centros_id' %}">{% translate "Explorar innovación →" %}</a></div>
+      </article>
+      <article class="news-card">
+        <img src="{% static 'img/aulas_abiertas.png' %}" alt="{% translate "Formación abierta" %}">
+        <div class="news-body"><span class="tag">{% translate "Formación" %}</span><h3>{% translate "Nuevos espacios para aprender haciendo" %}</h3><p>{% translate "La infraestructura experimental fortalece la formación práctica y la colaboración." %}</p><a href="{% url 'laboratorios_unidades' %}">{% translate "Ver unidades →" %}</a></div>
+      </article>
+      {% endif %}
+    </div>
+
+    <div class="section-title" id="agenda"><small>{% translate "Agenda científica" %}</small><h2>{% translate "Próximas actividades" %}</h2></div>
+    <div class="cards-2">
+      {% if novedades.agenda or novedades.convocatorias %}
+      {% for evento in novedades.agenda %}<article class="document-card"><i class="simple-icon-calendar"></i><div><span class="tag">{{ evento.fecha_evento|date:"j \d\e F · H:i" }}</span><h3><a href="{{ evento.get_absolute_url }}">{{ evento.titulo }}</a></h3><p>{{ evento.resumen }}</p><p>{{ evento.unidad.nombre }}{% if evento.lugar %} · {{ evento.lugar }}{% endif %}</p></div></article>{% empty %}<article class="document-card"><i class="simple-icon-calendar"></i><div><h3>{% translate "Sin eventos próximos" %}</h3><p>{% translate "Las unidades publican aquí sus próximos eventos." %}</p></div></article>{% endfor %}
+      {% for convocatoria in novedades.convocatorias %}<article class="document-card"{% if forloop.first %} id="convocatorias"{% endif %}><i class="simple-icon-trophy"></i><div><span class="tag">{% translate "Convocatoria · cierra el" %} {{ convocatoria.cierre|date:"j \d\e F" }}</span><h3><a href="{{ convocatoria.get_absolute_url }}">{{ convocatoria.titulo }}</a></h3><p>{{ convocatoria.resumen }}</p><p>{{ convocatoria.unidad.nombre }}</p></div></article>{% empty %}<article class="document-card" id="convocatorias"><i class="simple-icon-trophy"></i><div><h3>{% translate "Sin convocatorias abiertas" %}</h3><p>{% translate "Las convocatorias vigentes de las unidades aparecen aquí hasta su cierre." %}</p></div></article>{% endfor %}
+      {% else %}
+      <article class="document-card"><i class="simple-icon-calendar"></i><div><span class="tag">{% translate "Seminario" %}</span><h3>{% translate "Encuentro de investigación aplicada" %}</h3><p>{% translate "Intercambio de experiencias, métodos y resultados entre grupos de investigación." %}</p></div></article>
+      <article class="document-card" id="convocatorias"><i class="simple-icon-trophy"></i><div><span class="tag">{% translate "Convocatoria" %}</span><h3>{% translate "Retos de innovación abierta" %}</h3><p>{% translate "Oportunidades para equipos que quieran desarrollar soluciones interdisciplinarias." %}</p></div></article>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

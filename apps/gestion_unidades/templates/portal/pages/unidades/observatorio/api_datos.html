@@ -1,0 +1,29 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Datos abiertos y API" %}{% endblock %}
+{% block encabezado %}{% translate "Datos abiertos y API" %}{% endblock %}
+{% block subtitulo %}{% translate "Cómo reutilizar los datos del observatorio en tus análisis, clases o aplicaciones" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Indicadores" %}</dt><dd>{{ indicadores|length }}</dd></div><div><dt>{% translate "Licencia" %}</dt><dd>{{ licencia.0 }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Datos abiertos" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "DESCARGAS" %}</span></header>
+  <div class="obs-descargas"><a href="{{ url_csv }}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Todas las series (CSV)" %}</a><a href="{{ url_json }}" target="_blank" rel="noopener"><i class="fas fa-code" aria-hidden="true"></i> {% translate "Indicadores y valores (JSON)" %}</a></div>
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "USO DESDE UN PROGRAMA" %}</span><small>{% translate "Sin clave ni registro: son datos abiertos" %}</small></header>
+  <code class="obs-codigo">import requests
+
+datos = requests.get("{{ url_json }}").json()
+for indicador in datos["indicadores"]:
+    print(indicador["nombre"], indicador["valores"][-1:])</code>
+  <p class="unit-report__notice">{% translate "El JSON trae la ficha de cada indicador (definición, fórmula, unidad, fuente y periodicidad) y sus valores por periodo y territorio." %}</p>
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "LICENCIA Y CITA" %}</span></header>
+  <p>{% blocktranslate with licencia=licencia.0 nombre=unidad.nombre %}Los datos agregados se publican con licencia {{ licencia }}: puedes copiarlos, transformarlos y usarlos con cualquier fin, citando la fuente así: «{{ nombre }}, Universidad Politécnica Estatal del Carchi».{% endblocktranslate %} <a href="{{ licencia.1 }}" target="_blank" rel="noopener noreferrer">{% translate "Leer la licencia" %}</a></p>
+  <p class="unit-report__notice">{% translate "Los microdatos de encuestas no se publican: se entregan anonimizados y por convenio desde «Solicitar datos o un análisis»." %}</p>
+</section>
+{% endblock %}

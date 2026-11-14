@@ -1,0 +1,12 @@
+{% load static %}<dialog class="entregas__modal" data-entrega-dialogo aria-label="Documento de la unidad">
+  <section>
+    <header><h2 data-entrega-titulo>Gestionar entrega</h2><button type="button" data-entrega-cerrar>Cerrar</button></header>
+    <div data-entrega-detalle></div>
+    <p role="status" data-entrega-mensaje aria-live="polite"></p>
+  </section>
+</dialog>
+<dialog class="entregas__modal entregas__modal--editor" data-editor-dialogo aria-label="Editor del documento" data-editor-estilo="{% static 'portal/css/components/panel_trabajo.css' %}?v=20261010-certificados-v7" data-editor-expediente="{% url 'gestion_expediente_unidad' unidad.slug %}">
+  <section><header><h2 data-editor-titulo>Editar documento</h2><button type="button" data-editor-cerrar>Cerrar y volver</button></header>
+    <p role="status" data-editor-mensaje aria-live="polite"></p><iframe data-editor-marco title="Editor del documento"></iframe>
+  </section>
+</dialog>

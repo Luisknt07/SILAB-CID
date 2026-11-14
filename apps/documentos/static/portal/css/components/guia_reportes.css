@@ -1,0 +1,72 @@
+/* La guía orienta; las entregas y los indicadores conservan una sola lista operativa. */
+.guia-reportes { --guia-primario:var(--institucion-primario,#006633); --guia-acento:var(--institucion-acento,#ffce00); --guia-tinta:#17243b; --guia-secundario:#586980; --guia-linea:#dfe6ef; min-width:0; margin:0 0 16px; color:var(--guia-tinta); }
+.guia-reportes *, .guia-reportes-detalle * { box-sizing:border-box; }
+.guia-reportes__cabecera { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 20px; margin-bottom:10px; }
+.reportes-dashboard .guia-reportes__cabecera h2 { margin:0; padding:0; border:0; background:transparent; color:#17243b; font-size:17px; line-height:1.35; }
+.guia-reportes__cabecera p { margin:4px 0 0; color:#586980; font-size:11px; line-height:1.45; }
+.guia-reportes__ayuda { max-width:46ch; color:#66758b; font-size:10.5px; line-height:1.45; }
+.guia-reportes__grupos { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.guia-reportes__grupo { display:flex; flex-direction:column; min-width:0; padding:13px; border:1px solid var(--guia-linea); border-top:3px solid var(--guia-acento); border-radius:8px; background:#fff; }
+.guia-reportes__grupo-cabecera { display:flex; align-items:center; gap:9px; min-width:0; }
+.guia-reportes__grupo-cabecera > div { min-width:0; }
+.guia-reportes__icono { display:grid; place-items:center; flex:0 0 30px; width:30px; height:34px; border:1px solid #e3e8ee; border-radius:7px; background:#fff; color:var(--guia-primario); font-size:16px; }
+.reportes-dashboard .guia-reportes__grupo h3 { margin:0; padding:0; border:0; background:transparent; color:#17243b; font-size:12px; line-height:1.35; }
+.guia-reportes__grupo-cabecera small { display:block; margin:3px 0 0; color:#66758b; font-size:9.5px; line-height:1.4; }
+.guia-reportes__grupo > p { margin:9px 0; color:var(--guia-secundario); font-size:11px; line-height:1.45; }
+.guia-reportes__conteo { display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; margin:0 0 10px; color:#586980; font-size:10px; }
+.guia-reportes__conteo b { color:#78580b; font-size:10px; font-weight:600; }
+.guia-reportes__grupo > .guia-reportes__proximo { padding:7px 9px; border-left:2px solid var(--guia-acento); background:#fbfcfe; font-size:10px; }
+.guia-reportes__accesos { display:flex; flex-wrap:wrap; gap:7px; margin-top:auto; }
+.guia-reportes__accion { display:inline-flex; align-items:center; justify-content:center; gap:6px; box-sizing:border-box; min-height:31px; max-width:100%; padding:6px 9px; border:1px solid #cbd8d0; border-radius:5px; background:#fff; color:var(--institucion-primario,#006633); font:600 10.5px/1.4 var(--institucion-fuente-cuerpo,Arial,sans-serif); text-align:center; text-decoration:none; overflow-wrap:anywhere; }
+.guia-reportes .guia-reportes__regla { padding-left:8px; border-left:2px solid #d9b42c; color:#355a43; font-size:11px!important; line-height:1.4; }
+.guia-reportes__accion.is-principal { background:var(--institucion-primario,#006633); border-color:var(--institucion-primario,#006633); color:#fff; }
+.guia-reportes__accion:hover { border-color:var(--institucion-primario,#006633); text-decoration:underline; }
+.guia-reportes__accion.is-principal:hover { color:#fff; }
+.reportes-dashboard .guia-reportes__grupo > .guia-reportes__explicar { align-self:flex-start; gap:5px; min-height:25px; margin-top:6px; padding:3px 0; color:#3b5368; font-size:10px; }
+.guia-reportes__accion:focus-visible, .guia-reportes__explicar:focus-visible { outline:2px solid var(--institucion-primario,#006633); outline-offset:3px; }
+
+/* El mismo contenido se conserva legible cuando el diálogo sale del panel. */
+.guia-reportes-detalle { min-width:0; color:#17243b; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__introduccion { margin:0 0 10px; font-size:13px; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__cuando { display:flex; align-items:center; gap:7px; color:#586980; font-size:12px; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__lista { display:grid; gap:12px; margin:14px 0 0; padding:0; list-style:none; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__lista > li { min-width:0; margin:0; }
+.guia-reportes-detalle__item { padding:14px; border:1px solid #dfe6ef; border-left:3px solid var(--institucion-acento,#ffce00); border-radius:8px; background:#fff; }
+.guia-reportes-detalle__item > header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:7px 12px; margin:0 0 8px; padding:0; border:0; background:transparent; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__item h3 { flex:1 1 230px; min-width:0; margin:0; padding:0; border:0; background:transparent; color:#17243b; font-size:14px; line-height:1.4; }
+.guia-reportes-detalle__etiqueta { display:inline-flex; max-width:100%; padding:3px 7px; border:1px solid #dfe6ef; border-radius:5px; background:#f5f7fa; color:#45576c; font-size:10px; line-height:1.4; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__item > p { margin:0 0 12px; color:#52637a; font-size:12px; }
+.guia-reportes-detalle__item dl { display:grid; gap:8px; margin:0; padding:0; }
+.guia-reportes-detalle__item dl > div { display:grid; grid-template-columns:135px minmax(0,1fr); gap:8px; min-width:0; }
+.guia-reportes-detalle__item dt { color:#283c54; font-size:11px; font-weight:650; line-height:1.5; }
+.guia-reportes-detalle__item dd { min-width:0; margin:0; color:#586980; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.guia-reportes-detalle__siguiente { margin-top:12px; padding:9px 10px; border:1px solid #e5eaf0; border-radius:6px; background:#f8fafc; }
+.guia-reportes-detalle__siguiente > span { display:block; color:#40576a; font-size:10px; font-weight:650; }
+.reporte-informacion-modal__contenido .guia-reportes-detalle__siguiente > p { margin:3px 0 0; color:#40576a; font-size:12px; }
+.guia-reportes-detalle__acciones { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.reporte-informacion-modal__contenido .guia-reportes__accion { color:var(--institucion-primario,#006633); font-size:11px; }
+
+/* Las consultas son una herramienta, no otra lista de entregas. */
+.reportes-dashboard .reportes-consultas { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:20px; padding:13px 15px; border:1px solid #dfe6ef; border-radius:8px; background:#fff; }
+.reportes-consultas > i { display:grid; place-items:center; width:32px; height:36px; flex:0 0 32px; color:var(--institucion-primario,#006633); font-size:19px; }
+.reportes-consultas > div { min-width:0; flex:1 1 260px; }
+.reportes-dashboard .reportes-consultas h2 { margin:0; padding:0; border:0; background:transparent; color:#17243b; font-size:15px; }
+.reportes-consultas p { margin:4px 0 0; color:#586980; font-size:11px; line-height:1.45; }
+.reportes-dashboard .reportes-consultas > button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:33px; margin:0; padding:7px 10px; border:1px solid #cbd8d0; border-radius:5px; background:#fff; color:var(--institucion-primario,#006633); font-size:11px; font-weight:600; }
+.reportes-consultas-lista { display:grid; gap:9px; list-style:none!important; padding:0!important; }
+.reporte-informacion-modal__contenido .reportes-consultas-lista > li { display:flex; flex-wrap:wrap; align-items:center; gap:10px; min-width:0; margin:0; padding:11px 12px; border:1px solid #dfe6ef; border-radius:7px; background:#fff; }
+.reportes-consultas-lista li > div { flex:1 1 220px; min-width:0; }
+.reportes-consultas-lista strong { display:block; color:#17243b; font-size:12px; line-height:1.4; }
+.reporte-informacion-modal__contenido .reportes-consultas-lista small { margin:4px 0 0; color:#586980; font-size:10px; }
+.reportes-consultas-lista a { white-space:normal; }
+.reportes-dashboard .explorador__anexos, .reportes-dashboard .explorador__metas { background:#fff; }
+.reportes-dashboard .explorador__anexos > .explorador__anexos-cabecera { display:flex; flex-wrap:wrap; align-items:center; gap:6px 9px; margin:0; padding:12px; list-style:none; cursor:default; }
+.reportes-dashboard .explorador__anexos-cabecera > strong { min-width:0; color:#283d33; }
+.reportes-dashboard .explorador__anexos-cabecera > small { color:#66758b; }
+.reportes-dashboard .explorador__metas > .explorador__metas-cabecera { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:0; padding:12px; cursor:default; }
+.reporte-informacion-modal__contenido .explorador__lista.is-metas { display:grid; gap:8px; padding:0; list-style:none; }
+.reporte-informacion-modal__contenido .explorador__meta { grid-template-columns:18px minmax(0,1fr) auto; margin:0; }
+.reporte-informacion-modal__contenido .explorador__meta > div { min-width:0; }
+@media(max-width:1100px) { .guia-reportes__grupos { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px) { .guia-reportes__cabecera { gap:6px; }.guia-reportes__ayuda { max-width:none; }.guia-reportes__grupos { gap:8px; }.guia-reportes__grupo { padding:10px; }.guia-reportes__grupo-cabecera { align-items:flex-start; gap:7px; }.guia-reportes__icono { width:24px; height:28px; flex-basis:24px; font-size:13px; }.reportes-dashboard .guia-reportes__grupo h3 { font-size:11px; }.guia-reportes__grupo > p { font-size:10.5px; }.guia-reportes__conteo { font-size:9.5px; }.guia-reportes__accesos .guia-reportes__accion { width:100%; font-size:10px; }.guia-reportes-detalle__item { padding:11px; }.guia-reportes-detalle__item dl > div { grid-template-columns:minmax(0,1fr); gap:2px; }.reportes-consultas > button { margin-left:44px; } }
+@media(max-width:380px) { .guia-reportes__grupos { grid-template-columns:minmax(0,1fr); }.reportes-consultas > button { width:100%; margin-left:0; } }

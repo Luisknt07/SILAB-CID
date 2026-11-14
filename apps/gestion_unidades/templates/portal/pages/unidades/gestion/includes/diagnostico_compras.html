@@ -1,0 +1,75 @@
+<div class="compra-diagnostico guide-editor-keep" data-diagnostico-compras>
+{% if respaldo_compras %}
+  {% include 'portal/pages/unidades/gestion/includes/sustento_compras.html' %}
+{% elif diagnostico_compras %}
+  <p class="compra-diagnostico__resumen"><strong>{{ diagnostico_compras.inventario.equipos_unicos }}</strong> equipos registrados en la unidad. <strong>{{ diagnostico_compras.sugerencias|length }}</strong> propuestas para revisar.{% if diagnostico_compras.fecha_corte %} Referencia: {{ diagnostico_compras.fecha_corte }}.{% endif %}</p>
+  {% if diagnostico_compras.fuentes.uso_recursos_pendiente %}<p class="compra-diagnostico__nota" role="status"><strong>{{ diagnostico_compras.fuentes.uso_recursos_pendiente|length }} registro{{ diagnostico_compras.fuentes.uso_recursos_pendiente|length|pluralize:'s' }} de cierre con recursos por verificar.</strong> Un cero de horas por equipo o área puede deberse a un cierre incompleto; los recursos solicitados no se presentan como utilizados. <a href="#diagnostico-cierres-recursos">Consultar los cierres pendientes</a>.</p>{% endif %}
+  {% if diagnostico_compras.fuentes.uso_equipos_ambito == 'global_por_activo' %}<p class="compra-diagnostico__nota">Las horas de cada equipo incluyen su uso acreditado en todas las unidades, también durante préstamos. Las áreas y los indicadores de esta unidad cuentan sólo las atenciones realizadas aquí.{% if request.user.is_staff and unidad.pk %} {% url 'admin:recursos_unidadequipo_transparencia' as transparencia_url %}{% if transparencia_url %}<a href="{{ transparencia_url }}?unidad={{ unidad.pk }}">Consultar uso y seguimiento de los equipos</a>.{% endif %}{% endif %}</p>{% endif %}
+  {% if diagnostico_compras.recursos_clases %}
+  <h3>Recursos registrados por clase</h3>
+  <p class="compra-diagnostico__nota">Consulta equipos, programas y licencias, materiales, insumos, reactivos y piezas por separado. Las cantidades conservan su unidad de medida. El CPC, la partida y el costo de lo solicitado se completan en «Compras y programación» y pasan al Excel.</p>
+  <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Clase</th><th>Registros</th><th>Detalle</th></tr></thead><tbody>
+    {% for grupo in diagnostico_compras.recursos_clases %}<tr><th scope="row">{{ grupo.nombre }}</th><td>{{ grupo.registros }}</td><td><a href="#inventario-clase-{{ grupo.clave }}">Consultar nombres, cantidades y estado</a>{% if grupo.clave == 'repuestos' %}<small>Referencias técnicas por modelo; no acreditan cantidades en bodega.</small>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% for grupo in diagnostico_compras.recursos_clases %}
+  <details class="compra-diagnostico__detalle" id="inventario-clase-{{ grupo.clave }}"><summary>{{ grupo.nombre }} · {{ grupo.registros }} registro{{ grupo.registros|pluralize:'s' }}</summary>
+    <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Nombre</th><th>Cantidad y unidad</th><th>Área</th><th>Condición y detalle</th></tr></thead><tbody>
+      {% for recurso in grupo.filas %}<tr><th scope="row">{{ recurso.nombre }}{% if recurso.codigo %}<small>Código: {{ recurso.codigo }}</small>{% endif %}</th><td>{{ recurso.cantidad }} {{ recurso.unidad_medida }}</td><td>{{ recurso.areas }}</td><td>{{ recurso.estado }}<small>{{ recurso.detalle }}</small></td></tr>{% empty %}<tr><td colspan="4">Sin registros de esta clase. Revisa el módulo de recursos si existe información pendiente de registrar.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </details>{% endfor %}
+  {% endif %}
+  <h3>Distribución de equipos físicos por área</h3>
+  {% if diagnostico_compras.fuentes.reparaciones %}
+  <details class="compra-diagnostico__detalle"><summary>Averías y decisiones técnicas pendientes · {{ diagnostico_compras.fuentes.reparaciones|length }}</summary>
+    <p class="compra-diagnostico__nota">Una avería se atiende en el año vigente. Revisa garantía, diagnóstico, capacidad del servicio de reparación y alternativas antes de planificar una reposición. Las necesidades anuales son previsiones; incorporarlas no sustituye la atención de la incidencia.</p>
+    <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Equipo</th><th>Prioridad y condición</th><th>Respaldo y seguimiento</th></tr></thead><tbody>
+    {% for caso in diagnostico_compras.fuentes.reparaciones %}<tr><th scope="row">{{ caso.nombre }}<small>{{ caso.codigo }} · Incidencia #{{ caso.id }}</small></th><td>{{ caso.prioridad }}{% if caso.detiene_operacion %}<small>Operación detenida</small>{% endif %}{% if caso.falla_temprana %}<small>Falla antes del fin de vida útil de referencia</small>{% endif %}{% if caso.garantia_vigente %}<small>Garantía vigente: confirmar cobertura</small>{% endif %}</td><td>{% if caso.recomendacion %}{{ caso.recomendacion.justificacion }}{% else %}Diagnóstico o decisión de adquisición pendiente; no implica reemplazar el equipo completo.{% endif %}<br><a href="{{ caso.gestion_url }}" target="_blank" rel="noopener">Gestionar diagnóstico y reparación</a></td></tr>{% endfor %}
+    </tbody></table></div>
+  </details>{% endif %}
+  <div class="compra-diagnostico__tabla-scroll" role="region" aria-label="Resumen del diagnóstico por áreas" tabindex="0">
+    <table class="compra-diagnostico__tabla"><thead><tr><th>Área</th><th>Equipos</th><th>Condición registrada</th><th>Propuestas</th></tr></thead>
+      <tbody>{% for area in diagnostico_compras.areas %}<tr>
+        <th scope="row">{{ area.nombre }}{% if not area.activa %}<small>Área inactiva</small>{% endif %}</th>
+        <td>{{ area.equipos_ids|length }}{% if area.equipos_compartidos %}<small>{{ area.equipos_compartidos }} compartido{{ area.equipos_compartidos|pluralize:"s" }}</small>{% endif %}</td>
+        <td>{% with area.estados_legibles|default:area.estados as estados %}{% for estado, cantidad in estados.items %}{{ estado|capfirst }}: {{ cantidad }}{% if not forloop.last %}; {% endif %}{% empty %}Sin equipos vinculados{% endfor %}{% endwith %}{% if area.referencias_sin_vinculo %}<small>{{ area.referencias_sin_vinculo|length }} referencia{{ area.referencias_sin_vinculo|length|pluralize:"s" }} por vincular al inventario</small>{% endif %}</td>
+        <td>{{ area.sugerencias|length }}</td>
+      </tr>{% empty %}<tr><td colspan="4">Sin áreas registradas en este diagnóstico.</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <p class="compra-diagnostico__nota">Un equipo compartido puede figurar en varias áreas; el total de la unidad lo cuenta una sola vez.</p>
+
+  <details class="compra-diagnostico__detalle"><summary>Consultar inventario por área y respaldo técnico</summary>
+    {% for area in diagnostico_compras.areas %}<section class="compra-diagnostico__area"><h4>{{ area.nombre }}</h4>
+      {% if area.equipos %}<div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Equipo</th><th>Estado registrado</th><th>Uso y respaldo técnico</th></tr></thead><tbody>
+      {% for equipo in area.equipos %}<tr><th scope="row">{{ equipo.codigo }} · {{ equipo.nombre }}{% if equipo.compartido %}<small>Equipo compartido</small>{% endif %}</th>
+        <td>{{ equipo.estado_label|default:equipo.estado }}{% if equipo.baja %}<small>Baja registrada: {{ equipo.baja }}</small>{% endif %}</td>
+        <td>{{ equipo.desgaste.horas_documentadas|floatformat:2 }} h documentadas.{% if equipo.desgaste.limite_horas %} Referencia: {{ equipo.desgaste.limite_horas }} h.{% endif %}{% if equipo.uso_pendiente %}<small><strong>{{ equipo.uso_pendiente|length }} cierre{{ equipo.uso_pendiente|length|pluralize:'s' }} con uso del activo pendiente de verificar.</strong> La ausencia de horas acreditadas no demuestra falta de uso físico.</small>{% endif %}<small>{{ equipo.incidencias|length }} incidencia{{ equipo.incidencias|length|pluralize:"s" }}; {{ equipo.mantenimientos|length }} registro{{ equipo.mantenimientos|length|pluralize:"s" }} de mantenimiento.</small></td>
+      </tr>{% endfor %}</tbody></table></div>{% else %}<p>Sin equipos vinculados al área.</p>{% endif %}
+      {% if area.insumos %}<div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Insumo</th><th>Existencias</th><th>Estado registrado</th></tr></thead><tbody>{% for insumo in area.insumos %}<tr><th scope="row">{{ insumo.codigo }} · {{ insumo.nombre }}</th><td>{{ insumo.stock }} {{ insumo.unidad_medida }}</td><td>{{ insumo.estado|capfirst }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+      {% if area.referencias_sin_vinculo %}<p class="compra-diagnostico__nota">Referencias de la ficha que requieren confirmar su vínculo con el inventario:</p><ul>{% for referencia in area.referencias_sin_vinculo %}<li>{{ referencia.nombre }}{% if referencia.cantidad_referencial %} · Cantidad de referencia: {{ referencia.cantidad_referencial }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+    </section>{% endfor %}
+    <p class="compra-diagnostico__nota">Las horas documentadas y las referencias de la ficha ayudan a revisar la condición técnica; por sí solas no determinan una compra.</p>
+  </details>
+
+  <details class="compra-diagnostico__detalle"><summary>Consultar el uso de los dos últimos semestres cerrados</summary>
+    <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Semestre</th><th>Atenciones</th><th>Horas efectivas</th><th>Utilización de la unidad</th></tr></thead><tbody>
+      {% for uso in diagnostico_compras.uso_semestres %}<tr><th scope="row">{{ uso.nombre }}</th><td>{{ uso.atenciones }}</td><td>{{ uso.horas_efectivas|floatformat:2 }}</td><td>{% if uso.pendiente %}Por comprobar{% else %}{{ uso.utilizacion|floatformat:1 }} %{% endif %}</td></tr>{% empty %}<tr><td colspan="4">Sin antecedentes de uso disponibles en este diagnóstico.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Área</th><th>Semestre</th><th>Atenciones identificadas</th><th>Horas registradas</th></tr></thead><tbody>
+      {% for area in diagnostico_compras.areas %}{% for uso in area.uso_semestres %}<tr><th scope="row">{{ area.nombre }}</th><td>{{ uso.periodo }}</td><td>{{ uso.sesiones }}</td><td>{{ uso.horas|floatformat:2 }}</td></tr>{% endfor %}{% endfor %}
+    </tbody></table></div>
+    {% for uso in diagnostico_compras.uso_semestres %}{% if uso.alertas %}<p><strong>{{ uso.nombre }}:</strong> {% for alerta in uso.alertas %}{{ alerta }}{% if not forloop.last %} {% endif %}{% endfor %}</p>{% endif %}{% endfor %}
+  </details>
+  {% if diagnostico_compras.fuentes.uso_recursos_pendiente %}
+  <details class="compra-diagnostico__detalle" id="diagnostico-cierres-recursos"><summary>Consultar cierres con recursos pendientes de verificar</summary>
+    <p class="compra-diagnostico__nota">El horario y la asistencia pueden estar registrados aunque falte identificar los equipos o espacios realmente utilizados. Completa el cierre para atribuir su uso al recurso correcto.</p>
+    <div class="compra-diagnostico__tabla-scroll"><table class="compra-diagnostico__tabla"><thead><tr><th>Reserva y fecha</th><th>Recurso</th><th>Dato por verificar</th></tr></thead><tbody>{% for cierre in diagnostico_compras.fuentes.uso_recursos_pendiente %}<tr><th scope="row">#{{ cierre.reserva }}<small>{{ cierre.fecha }}</small></th><td>{{ cierre.recurso|capfirst }}</td><td>{% for motivo in cierre.motivos %}{{ motivo }}{% if not forloop.last %}; {% endif %}{% endfor %}</td></tr>{% endfor %}</tbody></table></div>
+  </details>
+  {% endif %}
+{% elif autos %}
+  <p class="compra-diagnostico__resumen">Consulta los datos conservados en el diagnóstico de la unidad.</p>
+  {% for auto in autos %}{% if auto.titulo == 'Inventario, condición y uso por área' %}
+    {% include 'portal/pages/unidades/gestion/includes/diagnostico_compras_bloque.html' %}
+  {% else %}<details class="compra-diagnostico__detalle"><summary>{{ auto.titulo|default:'Alcance del diagnóstico' }}</summary>{% include 'portal/pages/unidades/gestion/includes/diagnostico_compras_bloque.html' %}</details>{% endif %}{% endfor %}
+{% else %}<p class="compra-diagnostico__nota">El diagnóstico se mostrará con los registros disponibles de la unidad.</p>{% endif %}
+</div>

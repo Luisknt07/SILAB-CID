@@ -1,0 +1,12 @@
+.plazo-documento { margin: 5px 0; display: flex; flex-wrap: wrap; gap: 4px; text-align: left; }
+.plazo-documento .plazo-documento__fecha {
+  display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; row-gap: 2px; padding: 5px 8px; border-radius: 6px;
+  border: 1px solid #c9d8cf; border-left: 4px solid var(--institucion-boton-principal, #2b6339);
+  background: #f0f6f2; color: #183b29; line-height: 1.4;
+}
+.plazo-documento .plazo-documento__etiqueta { font-size: 12px; font-weight: 600; color: inherit; }
+.plazo-documento .plazo-documento__valor { font-size: 14px; font-weight: 700; color: inherit; overflow-wrap: anywhere; }
+.plazo-documento .plazo-documento__fecha--vencido { border-color: #ebc7c4; border-left-color: #a12f28; background: #fff2f0; color: #8c2722; }
+.plazo-documento .plazo-documento__fecha--sin { border-color: #e7d7b2; border-left-color: #936a19; background: #fff8e7; color: #75500d; }
+.plazo-documento .plazo-documento__fecha--abierto { border-color: #d9c578; border-left-color: var(--institucion-boton-acento, #f7d447); background: #fff8dc; color: #594509; }
+.plazo-documento .plazo-documento__zona { flex-basis: 100%; margin: 0; font-size: 11px; color: #52615a; font-weight: 400; }

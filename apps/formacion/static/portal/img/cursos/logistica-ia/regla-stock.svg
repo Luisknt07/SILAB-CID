@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="titulo descripcion"><title id="titulo">Comprueba el saldo con un ejemplo</title><desc id="descripcion">Producto de prueba independiente · Todas las cantidades en la misma unidad</desc>
+<rect x="0" y="0" width="1200" height="144" rx="0" fill="#122d2a"/>
+<text x="42" y="38" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#ffda50">APLICACIONES LOGÍSTICAS CON IA</text>
+<text x="42" y="85" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">Comprueba el saldo con un ejemplo</text>
+<text x="42" y="131" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#c9ded6">Producto de prueba independiente · Todas las cantidades en la misma unidad</text>
+<rect x="60" y="180" width="1080" height="140" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="60" y="180" width="8" height="140" rx="3" fill="#24623c"/>
+<circle cx="100" cy="220" r="21" fill="#24623c"/>
+<text x="91" y="226" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">1</text>
+<text x="135" y="225" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#24623c">Entrada 10</text>
+<text x="84" y="289" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Saldo: 10.00 | Historial: 1 movimiento</text>
+<rect x="60" y="340" width="1080" height="140" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="60" y="340" width="8" height="140" rx="3" fill="#087c87"/>
+<circle cx="100" cy="380" r="21" fill="#087c87"/>
+<text x="91" y="386" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">2</text>
+<text x="135" y="385" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#087c87">Salida 3</text>
+<text x="84" y="449" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Saldo: 7.00 | Historial: 2 movimientos</text>
+<rect x="60" y="500" width="1080" height="140" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="60" y="500" width="8" height="140" rx="3" fill="#b84e55"/>
+<circle cx="100" cy="540" r="21" fill="#b84e55"/>
+<text x="91" y="546" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">3</text>
+<text x="135" y="545" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#b84e55">Intento salida 8</text>
+<text x="84" y="609" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">RECHAZADA | Saldo: 7.00 | Historial: 2 movimientos</text>
+<line x1="40" y1="704" x2="1160" y2="704" stroke="#d4e1db" stroke-width="2" stroke-linecap="round"/>
+<text x="42" y="739" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#4c6662">Una operación rechazada conserva la existencia y no agrega un movimiento.</text>
+</svg>

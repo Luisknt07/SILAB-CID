@@ -1,0 +1,69 @@
+{% load i18n %}
+<div class="explorador__acciones expediente__acciones">
+    {% comment %}Quien solo recibe el informe de la dependencia lee: no entrega ni valida.
+    Sin esto vería botones que el expediente le va a rechazar.{% endcomment %}
+    {% if solo_lectura %}
+    <small class="explorador__cerrado"><i class="fas fa-folder-open" aria-hidden="true"></i> {% translate "La unidad entrega, el sistema comprueba y Dirección atiende las excepciones." %}</small>
+    {% elif not documento.pk %}
+    <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}"><input type="hidden" name="accion" value="preparar">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<button type="submit">{% translate "Preparar expediente para trabajar" %}</button></form>
+    {% else %}
+    {% comment %}Archivar no cierra nada: quien administra la unidad valida lo suyo y la
+    Dirección lo evalúa después. Lo enviado es inmutable: solo la Dirección lo
+    devuelve observado, y entonces reaparecen las acciones.{% endcomment %}
+    {% if documento.aprobacion_en_linea_disponible and documento.estado != 'validado' %}
+    <p>Prepara el documento y envíalo a Dirección para su aprobación en la plataforma.</p>
+    {% if not documento.exigido.redactable %}<form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}"><input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="accion" value="generar"><button type="submit">{% if documento.verificacion_qr %}Actualizar documento{% else %}Preparar documento{% endif %}</button></form>{% endif %}
+    {% if documento.verificacion_qr %}<form method="post" action="{% url 'enviar_documento_qr' unidad.slug documento.pk %}">{% csrf_token %}<input type="hidden" name="token" value="{{ documento.verificacion_qr }}"><input type="hidden" name="version" value="{{ documento.version }}"><button type="submit" class="is-primario">Enviar a Dirección</button></form>{% endif %}
+    {% if documento.exigido.redactable %}<a href="{% url 'redactar_documento_expediente' unidad.slug documento.pk %}" data-entrega-editor data-editor-titulo="{{ documento.nombre_documental }}">Preparar y enviar</a>{% endif %}
+    {% else %}
+    {% if documento.recurso and documento.estado != 'validado' and documento.estado != 'no_aplica' and not documento.firma_pendiente %}
+    <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="expediente__decision">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="accion" value="validar"><p>Ya hay un documento cargado. Puedes enviarlo o reemplazarlo con el archivo correcto.</p>{% include 'portal/pages/unidades/gestion/includes/correspondencia_documental.html' with d=documento %}<button type="submit">{% translate "Enviar archivo ya cargado" %}</button></form>
+    {% endif %}
+    {% if documento.estado != 'validado' %}
+    {% if documento.exigido.generable and not documento.exigido.redactable and not documento.exigido.cargable %}
+    <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="accion" value="generar"><button type="submit">{% if documento.recurso %}{% translate "Regenerar" %}{% else %}{% translate "Generar" %}{% endif %}</button></form>
+    {% endif %}
+    {% if documento.exigido.cargable %}
+    <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" enctype="multipart/form-data" class="expediente__carga">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="accion" value="cargar"><input type="hidden" name="enviar" value="1">
+      <label>{% if documento.exigido.requiere_firma %}{% translate "PDF firmado" %}{% else %}{% translate "Archivo" %}{% endif %}<input type="file" name="archivo" required{% if documento.exigido.requiere_firma %} accept="application/pdf"{% endif %}></label>
+      {% include 'portal/pages/unidades/gestion/includes/correspondencia_documental.html' with d=documento %}
+      <p>Al confirmar, el archivo se carga y se envía a Dirección. Se comprobarán los requisitos de la entrega antes de enviarlo.</p>
+      <button type="submit" class="is-primario">{% translate "Cargar y enviar a Dirección" %}</button>
+    </form>
+    {% endif %}
+    {% else %}
+    <small class="explorador__cerrado"><i class="fas fa-lock" aria-hidden="true"></i> {% translate "Enviado: no se modifica. Solo la Dirección puede devolverlo observado." %}</small>
+    {% endif %}
+    {% endif %}
+    {% comment %}Vencido el plazo la entrega no se cierra: el responsable la solicita con su
+    motivo, la Dirección la habilita y lo que llegue se recibe marcado como tardío. Lo que
+    cuenta es contar con el documento; la tardanza se castiga en el cumplimiento, no
+    dejando el expediente incompleto.{% endcomment %}
+    {% if documento.estado != 'validado' and documento.correccion_abierta %}
+    <small class="explorador__espera">Corrección abierta por Dirección: corrige y reenvía antes de la fecha indicada.</small>
+    {% endif %}
+    {% if documento.estado != 'validado' and documento.vencido or documento.estado != 'validado' and documento.correccion_hasta and not documento.correccion_abierta %}
+    {% if documento.correccion_abierta %}
+    {% elif documento.ultimatum_activo and not documento.correccion_hasta %}
+    <small class="explorador__espera">Ultimátum vigente: completa y envía la entrega antes de la fecha indicada.</small>
+    {% elif not documento.ultimatum_hasta and not documento.prorroga_activa and not documento.correccion_hasta %}
+    <small class="explorador__espera">Plazo institucional vencido. Corresponde a la Dirección establecer el ultimátum colectivo.</small>
+    {% elif documento.prorroga_activa and not documento.correccion_hasta %}
+    <small class="explorador__espera"><i class="fas fa-unlock" aria-hidden="true"></i> {% blocktranslate with fecha=documento.tardanza_habilitada_en|date:"d/m/Y" %}Entrega fuera de plazo habilitada el {{ fecha }}: la fecha y la condición de entrega tardía quedan registradas. El ajuste por plazo se aplica al resultado del cierre cuando corresponda.{% endblocktranslate %}</small>
+    {% elif documento.solicitud_reapertura_pendiente %}
+    <small class="explorador__espera"><i class="fas fa-hourglass-half" aria-hidden="true"></i> {% blocktranslate with fecha=documento.tardanza_pedida_en|date:"d/m/Y" %}Solicitud enviada el {{ fecha }}: espera que la Dirección habilite la entrega fuera de plazo.{% endblocktranslate %}</small>
+
+    {% else %}
+    <details class="expediente__no-aplica"><summary>{% translate "Solicitar entrega fuera de plazo" %}</summary>
+      <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="accion" value="solicitar_tardia">
+        <label>{% translate "Por qué no se entregó dentro del plazo" %}<input type="text" name="motivo" required maxlength="300" placeholder="{% translate "p. ej. el período se cerró antes de la firma del decanato" %}"></label>
+        <button type="submit" class="is-secundario">{% translate "Enviar solicitud a la Dirección" %}</button>
+      </form>
+    </details>
+    {% endif %}
+    {% endif %}
+    {% comment %}La Dirección da por recibido lo que la unidad archivó y no alcanzó a validar:
+    el control de calidad necesita el documento, no la ceremonia.{% endcomment %}
+
+    {% endif %}
+  </div>

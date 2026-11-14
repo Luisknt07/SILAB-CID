@@ -1,0 +1,70 @@
+/* Importar fuentes desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@300;400;500&display=swap');
+
+/* Variables de colores */
+:root {
+  --color-verde: #123d31; /* Verde institucional */
+  --color-amarillo: #e7b938; /* Dorado institucional */
+  --color-rojo: #e90909; /* Rojo */
+  --color-blanco: #ffffff; /* Blanco */
+  --color-gris-hover: #495057; /* Gris oscuro para hover */
+  --heading-font-family: 'Montserrat', sans-serif;
+  --content-font-family: 'Poppins', sans-serif;
+}
+
+/* Encabezados (h1, h2, h3, etc.) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font-family);
+  font-weight: 700; /* Negrita */
+}
+
+/* Texto general (párrafos, enlaces, etc.) */
+body, p, a, span, div {
+  font-family: var(--content-font-family);
+  font-weight: 400; /* Regular */
+}
+
+/* Botones de agregar */
+button.addlink, .addlink {
+    background-color: var(--color-verde) !important;
+    color: var(--color-blanco) !important;
+    border-color: var(--color-verde) !important;
+}
+
+button.addlink:hover, .addlink:hover {
+    background-color: var(--color-gris-hover) !important;
+    color: var(--color-blanco) !important;
+}
+
+/* Botones de borrar */
+button.deletelink, .deletelink {
+    background-color: var(--color-rojo) !important;
+    color: var(--color-blanco) !important;
+    border-color: var(--color-rojo) !important;
+}
+
+button.deletelink:hover, .deletelink:hover {
+    background-color: var(--color-gris-hover) !important;
+    color: var(--color-blanco) !important;
+}
+
+/* Botones de guardar */
+button.default, .default {
+    background-color: var(--color-amarillo) !important;
+    color: var(--color-verde) !important;
+    border-color: var(--color-amarillo) !important;
+}
+
+button.default:hover, .default:hover {
+    background-color: var(--color-gris-hover) !important;
+    color: var(--color-blanco) !important;
+}
+
+/* Otros ajustes */
+button, .button {
+    border-radius: 5px !important; /* Bordes redondeados */
+    padding: 5px 10px !important;
+    font-weight: bold !important;
+    font-family: var(--content-font-family);
+    font-weight: 500; /* Seminegrita */
+}

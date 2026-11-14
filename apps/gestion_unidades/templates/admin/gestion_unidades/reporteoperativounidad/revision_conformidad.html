@@ -1,0 +1,91 @@
+{% load i18n %}{% with d=revision.documento lectura=revision %}
+<section id="evaluacion" class="citt-revision citt-conformidad" data-revision-titulo="{% if revision.permanente %}Consultar vigencia{% else %}Conformidad documental{% endif %}">
+  <header>
+    <div><small>{% if revision.permanente %}DOCUMENTO PERMANENTE{% else %}CONFORMIDAD DOCUMENTAL{% endif %} · v{{ d.version }}</small><h2 class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ d.nombre_documental }}</span></h2><p>{{ d.unidad.nombre }}{% if not revision.permanente %} · {{ d.etiqueta_corte }}{% endif %}</p></div>
+    {% if not en_expediente %}<a href="?{{ query }}">Volver a las unidades</a>{% endif %}
+  </header>
+
+  {% if revision.permanente %}
+    {% if d.exigido.codigo == 'PROTOCOLO-BIOSEGURIDAD' %}<p>El protocolo requiere una aprobación técnica inicial de su alcance, riesgos y medidas de prevención. Se conserva mientras siga vigente; vuelve a revisarse si cambian el documento, los riesgos o las condiciones de operación.</p>
+    {% else %}<p>La resolución es un documento permanente: se aprueba una sola vez y se reutiliza en los períodos siguientes mientras siga vigente. No recibe calificación numérica.</p>{% endif %}
+  {% else %}<p>La conformidad documental comprueba que la planificación está completa, respaldada y corresponde al archivo entregado. El cumplimiento de las metas se verifica con los resultados y evidencias del cierre.</p>{% endif %}
+
+  <div class="citt-conformidad__estado{% if revision.permanente and revision.aprobacion.vigente or not revision.permanente and lectura.conformidad.estado == 'conforme' %} is-vigente{% elif not lectura.conformidad.etapa_actual.pendiente_unidad and revision.permanente and d.estado == 'observado' or revision.aprobacion.revocada or not lectura.conformidad.etapa_actual.pendiente_unidad and lectura.conformidad.estado == 'corregir' %} is-observado{% endif %}" role="status">
+    {% if revision.permanente and revision.aprobacion.vigente %}
+      <strong>Vigente · aprobación conservada</strong><p>No necesitas aprobar este archivo otra vez. Puedes consultar su vigencia o solicitar correcciones si existe un cambio que deba revisarse.</p>
+    {% elif not revision.permanente %}
+      {% include 'portal/pages/unidades/gestion/includes/resultado_documental.html' with nombre_documento=d.nombre_documental sin_priorizacion=True %}
+      {% if lectura.conformidad.estado == 'conforme' %}<p>Esta versión ya cuenta con conformidad. Una nueva revisión es opcional mientras se conserve el archivo. Este resultado no acredita la ejecución de las metas.</p>{% elif not lectura.conformidad.etapa_actual.pendiente_unidad %}<p>Consulta el archivo y los hallazgos del sistema antes de confirmar su conformidad. Los antecedentes históricos no sustituyen esta comprobación.</p>{% endif %}
+      {% if lectura.conformidad.explicacion %}<p>{{ lectura.conformidad.explicacion }}</p>{% endif %}
+    {% elif d.estado == 'observado' or revision.aprobacion.revocada %}
+      <strong>Observado</strong><p>La unidad debe atender las observaciones y presentar el archivo vigente para su revisión.</p>
+    {% elif revision.permanente %}<strong>Pendiente de aprobación</strong><p>Comprueba la autoridad, el alcance y la vigencia del documento antes de aceptarlo.</p>
+    {% endif %}
+    {% if revision.aprobacion.fecha %}<small>Aprobación registrada: {{ revision.aprobacion.fecha|date:'d/m/Y H:i' }}{% if revision.aprobacion.actor_nombre %} · {{ revision.aprobacion.actor_nombre }}{% endif %} · versión {{ revision.aprobacion.version }}.</small>{% endif %}
+    {% if revision.aprobacion.comentario %}<p>{{ revision.aprobacion.comentario }}</p>{% endif %}
+    {% if revision.aprobacion.aviso %}<p>{{ revision.aprobacion.aviso }}</p>{% endif %}
+  </div>
+
+  <div class="citt-conformidad__archivo">
+    {% if d.recurso_id %}<a class="documento-accion {% if d.estado == 'validado' %}is-pdf{% else %}is-borrador{% endif %}" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-vigente="true" data-pdf-titulo="{{ d.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' d.recurso_id %}?download=1">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% if d.estado == 'validado' %}Ver enviado{% else %}Ver preparado{% endif %} · v{{ d.version }}</a>
+    {% else %}<p class="citt-revision__aviso">Falta el documento. La unidad debe cargar el archivo antes de solicitar su aprobación.</p>{% endif %}
+    {% if not revision.permanente %}<div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Plazos de la entrega" aria-haspopup="dialog">Consultar fechas</button><template data-reporte-informacion-contenido>{% include 'portal/pages/unidades/gestion/includes/plazo_documento.html' with documento=d %}</template></div>{% endif %}
+  </div>
+
+  {% if revision.priorizacion_inversion %}{% include 'portal/pages/unidades/gestion/includes/priorizacion_compras.html' with priorizacion=revision.priorizacion_inversion compacto=False %}{% endif %}
+
+  <section class="citt-conformidad__control" aria-label="Resultado del control automático">
+    <h3>Comprobaciones del sistema</h3>
+    {% if revision.control %}
+      {% include 'portal/pages/unidades/gestion/includes/control_automatico.html' with control=revision.control integridad=d.integridad_documental %}
+      {% if revision.control.hallazgos %}<ul>{% for hallazgo in revision.control.hallazgos|slice:':3' %}<li>{{ hallazgo.mensaje }}</li>{% endfor %}</ul>{% if revision.control.hallazgos|length > 3 %}<small>Abre las comprobaciones para consultar todos los hallazgos.</small>{% endif %}{% endif %}
+    {% else %}<p>Sin control automático registrado. La aprobación requiere comprobar el archivo y sus requisitos.</p>{% endif %}
+    {% if revision.faltantes %}<p><strong>{{ revision.faltantes|length }} apartados pendientes en el editor.</strong> La unidad debe completarlos antes de confirmar la conformidad.</p>{% endif %}
+  </section>
+
+  {% if user.is_superuser and d.recurso_id %}
+    {% if not revision.aprobacion.vigente and not revision.conforme %}{% if revision.permanente or revision.recibible or revision.evaluable %}
+    <form method="post"{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %} class="citt-conformidad__formulario">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="{% if revision.permanente %}aprobar_permanente{% else %}confirmar_conformidad{% endif %}">
+      <input type="hidden" name="documento" value="{{ d.pk }}"><input type="hidden" name="version" value="{{ d.version }}"><input type="hidden" name="huella" value="{{ d.recurso.hash_sha256 }}">
+      <input type="hidden" name="query" value="{{ query }}&amp;revisar={{ d.pk }}#evaluacion">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}
+      {% if not revision.control.resumen.correspondencia_automatica %}
+      <div class="expediente__correspondencia">
+        <input type="hidden" name="correspondencia_unidad_id" value="{{ d.unidad_id }}"><input type="hidden" name="correspondencia_documento_id" value="{{ d.pk }}"><input type="hidden" name="correspondencia_codigo" value="{{ d.exigido.codigo }}">
+        <input type="hidden" name="correspondencia_anio" value="{{ d.anio }}"><input type="hidden" name="correspondencia_corte" value="{{ d.corte }}"><input type="hidden" name="correspondencia_mes" value="{{ d.mes|default_if_none:'' }}"><input type="hidden" name="correspondencia_version" value="{{ d.version }}">
+        <label class="citt-revision__confirmacion"><input type="checkbox" name="correspondencia_confirmada" value="1" required> {% if revision.permanente %}He abierto el archivo y comprobado su correspondencia con la unidad, su autoridad, alcance y vigencia.{% else %}He abierto el archivo y comprobado que corresponde a este documento, unidad, período y versión.{% endif %}</label>
+      </div>
+      {% endif %}
+      <label>Comentario de Dirección (opcional)<textarea name="comentario" maxlength="1200" rows="2"></textarea></label>
+      <p>{% if revision.permanente %}La aprobación quedará vinculada a esta versión y archivo. Se conservará para los períodos siguientes mientras mantenga su vigencia.{% else %}Al confirmar se registra la conformidad documental de esta entrega; el avance de sus metas se medirá por separado.{% endif %}</p>
+      <div class="citt-revision__guardar"><button type="submit" name="confirmado" value="1" class="grp-button grp-default">{% if revision.permanente %}Aprobar una vez{% else %}Confirmar conformidad documental{% endif %}</button></div>
+    </form>
+    {% endif %}{% endif %}
+    <section class="citt-revision__correccion" data-reporte-informacion>
+      <button type="button" data-reporte-informacion-abrir data-modal-titulo="Solicitar corrección · {{ d.nombre_documental }}" aria-haspopup="dialog">Solicitar corrección</button>
+      <template data-reporte-informacion-contenido><p>Indica qué debe corregirse y fija la fecha límite para presentar el documento actualizado.</p>{% include 'admin/gestion_unidades/reporteoperativounidad/devolver_correccion.html' with d=d %}</template>
+    </section>
+  {% endif %}
+
+  {% if revision.historial %}<div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Historial del documento" aria-haspopup="dialog">Consultar historial</button><template data-reporte-informacion-contenido>
+    <p>Las evaluaciones anteriores se conservan como antecedente. Los documentos permanentes se consultan por su aprobación y vigencia actual.</p>
+    {% for registro in revision.historial %}<article><strong>{{ registro.creado_en|date:'d/m/Y H:i' }} · {{ registro.usuario }}</strong>{% if registro.datos_nuevos.version_documento %}<small>Versión {{ registro.datos_nuevos.version_documento }}</small>{% endif %}<p>{{ registro.datos_nuevos.observacion }}</p></article>{% endfor %}
+  </template></div>{% endif %}
+<style>
+  .citt-conformidad > header > div { min-width: 0; }
+  .citt-conformidad__estado { margin: 14px 0; padding: 12px 14px; border: 1px solid #e6ce83; border-left: 4px solid #b98c14; border-radius: 7px; background: #fffdf5; color: #514422; }
+  .citt-conformidad__estado.is-vigente { border-color: #bed7c7; border-left-color: var(--institucion-primario, #2b6339); background: #fff; color: var(--institucion-primario-tinta, #20522e); }
+  .citt-conformidad__estado.is-observado { border-color: #e8c0c5; border-left-color: #a83444; background: #fff; color: #8b2938; }
+  .citt-conformidad__estado p { margin: 5px 0; color: #344b40; }
+  .citt-conformidad__estado small { display: block; color: #52685d; }
+  .citt-conformidad__archivo { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .citt-conformidad__control { margin: 16px 0; padding: 12px 0; border-block: 1px solid #dce6df; }
+  .citt-conformidad__control h3 { margin: 0 0 8px; font-size: 15px; }
+  .citt-conformidad__control ul { margin: 8px 0; padding-left: 20px; }
+  .citt-conformidad__formulario { margin: 16px 0; }
+  .citt-conformidad .expediente__correspondencia label { display: flex; align-items: flex-start; gap: 8px; }
+  .citt-conformidad .expediente__correspondencia input[type=checkbox] { width: auto; }
+</style>
+</section>
+{% endwith %}

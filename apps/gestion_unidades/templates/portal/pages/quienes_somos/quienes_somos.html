@@ -1,0 +1,17 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static %}
+
+{% block portal_content %}
+      <div class="upec-about">
+        {% include 'portal/pages/quienes_somos/secciones/portada.html' %}
+        {% include 'portal/pages/quienes_somos/secciones/proposito.html' %}
+        {% include 'portal/components/unidades_conectadas.html' %}
+        {% include 'portal/pages/quienes_somos/secciones/pilares_sistema.html' %}
+        {% include 'portal/pages/quienes_somos/secciones/historia.html' %}
+        {% include 'portal/components/ecosistema_industrial.html' with industry_hidden_source=True %}
+        {% include 'portal/pages/quienes_somos/secciones/innovacion.html' %}
+        {% include 'portal/pages/quienes_somos/secciones/equipo_institucional.html' %}
+        {% include 'portal/pages/quienes_somos/secciones/multimedia.html' %}
+        {% include 'portal/pages/quienes_somos/secciones/contacto.html' %}
+      </div>
+{% endblock %}

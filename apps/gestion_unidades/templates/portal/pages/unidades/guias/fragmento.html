@@ -1,0 +1,14 @@
+
+{% load i18n idiomas %}
+{% comment %}
+Guía de práctica sin la plantilla del portal: la embeben el expediente del
+solicitante y el panel del laboratorio para leerla sin abrir otra pantalla.
+{% endcomment %}
+<div class="guide-embed">
+  <div class="guide-embed__state guide-embed__state--{{ guia.estado_publicacion }}">
+    <strong>{{ guia.get_estado_publicacion_display|ui }}</strong>
+    <span>{% translate "Versión" %} {{ guia.numero_version }} · {{ unidad.nombre }}</span>
+    {% if guia.observaciones_revision %}<em>{{ guia.observaciones_revision }}</em>{% endif %}
+  </div>
+  {% include 'portal/pages/unidades/guias/includes/documento.html' with modo='lectura' %}
+</div>

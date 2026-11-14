@@ -1,0 +1,21 @@
+{% load i18n %}
+{% if vinculos.software or vinculos.consumibles %}
+<details class="recursos-vinculados" data-recursos-vinculados>
+  <summary>{% translate "Software, materiales e insumos vinculados" %} <span>{{ vinculos.software|length }} {% translate "programa(s)" %} · {{ vinculos.consumibles|length }} {% translate "material(es) e insumo(s)" %}</span></summary>
+  <div class="recursos-vinculados__contenido">
+    {% if vinculos.software %}<section><h5>{% translate "Software instalado o habilitado" %}</h5><ul>
+      {% for item in vinculos.software %}<li{% if not item.recurso.activo %} class="is-inactivo"{% endif %}>
+        <img class="recursos-vinculados__imagen" src="{{ item.recurso.logo_publico_url }}" alt="{{ item.recurso.nombre }}" loading="lazy" width="48" height="48">
+        <div><a data-management-load href="{{ item.url }}">{{ item.recurso.nombre }}{% if item.recurso.version %} {{ item.recurso.version }}{% endif %}</a>{% if not item.recurso.activo %}<b>{% translate "Inactivo" %}</b>{% endif %}<small>{% translate "En" %}: {{ item.codigos|join:", " }} · {{ item.recurso.get_uso_en_equipo_display }}{% if item.recurso.activo %} · {{ item.recurso.licencias_disponibles }}/{{ item.recurso.licencias_totales }} {% translate "licencias en la unidad" %}{% else %} · {% translate "Referencia fuera del inventario real" %}{% endif %}</small></div>
+      </li>{% endfor %}
+    </ul></section>{% endif %}
+    {% if vinculos.consumibles %}<section><h5>{% translate "Materiales e insumos compatibles" %}</h5><ul>
+      {% for item in vinculos.consumibles %}<li{% if not item.recurso.activo %} class="is-inactivo"{% endif %}>
+        {% if item.recurso.imagen_publica_url %}<img class="recursos-vinculados__imagen" src="{{ item.recurso.imagen_publica_url }}" alt="{{ item.recurso.nombre }}" loading="lazy" width="48" height="48">{% else %}<span class="recursos-vinculados__imagen" aria-hidden="true"><i class="{{ item.recurso.icono }}"></i></span>{% endif %}
+        <div><a data-management-load href="{{ item.url }}">{{ item.recurso.nombre }}{% if item.recurso.variante %} · {{ item.recurso.variante }}{% endif %}</a>{% if not item.recurso.activo %}<b>{% translate "Inactivo" %}</b>{% endif %}<small>{{ item.recurso.get_clasificacion_display }} · {% if item.recurso.activo %}{{ item.recurso.stock_total|floatformat:"-3" }} {{ item.recurso.unidad_medida }} {% translate "en inventario de la unidad" %}{% else %}{% translate "Referencia fuera del inventario real" %}{% endif %}</small></div>
+      </li>{% endfor %}
+    </ul></section>{% endif %}
+    <p>{% translate "Los vínculos identifican instalación o compatibilidad. Las licencias y existencias pertenecen al catálogo de la unidad y no se suman por equipo; su uso y consumo se conservan en los registros de operación." %}</p>
+  </div>
+</details>
+{% endif %}

@@ -1,0 +1,2 @@
+# Dependencias base del prototipo docente probado.
+Django==5.2.17

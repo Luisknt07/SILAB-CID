@@ -1,0 +1,728 @@
+{% load static l10n i18n idiomas marca %}
+{% comment %}Capa visual del asistente; conserva el formulario y los identificadores existentes.{% endcomment %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reservation_wizard.css' %}?v=20261109-modales-areas-agenda-v14">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/visitas.css' %}?v=20261110-solo-materiales-v13">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reservas_institucional.css' %}?v=20261110-casillas-paneles-v11">
+<script defer src="{% static 'portal/js/pages/unidades/guias/guia_editor.js' %}?v=20260916-idiomas-v141"></script>
+<script defer src="{% static 'portal/js/pages/unidades/reservas/visita_grupo.js' %}?v=20261110-solo-materiales-v13"></script>
+<script defer src="{% static 'portal/js/pages/unidades/reservas/visita_modal.js' %}?v=20261110-solo-materiales-v13"></script>
+<script defer src="{% static 'portal/js/pages/unidades/reservas/reservation_wizard.js' %}?v=20261110-solo-materiales-v16"></script>
+
+{# Lo que esta unidad quiere que se escriba al pedirle algo. #}
+{{ ejemplos_solicitud_reserva|json_script:"ejemplosSolicitudReserva" }}
+<div id="rutasReservaUnidad" hidden
+     data-resource-description="{{ textos_rutas_reserva.recursos }}"
+     data-service-description="{{ textos_rutas_reserva.servicios }}"
+     data-visit-available="{{ oferta_visitas.acepta|yesno:'true,false' }}"
+     data-visit-description="{{ oferta_visitas.texto|truncatechars:220 }}"
+     data-unit-image="{% if unidad.imagen %}{{ unidad.imagen.url }}{% endif %}"></div>
+<div class="modal fade reservation-modal" id="equiposReservaModal" tabindex="-1" role="dialog" data-bibliography-format-url="{% url 'formatear_bibliografia_guia' %}" data-figure-upload-url="{% url 'subir_figura_guia' %}" data-guide-pdf-preview-url="{% url 'vista_previa_pdf_guia' %}" aria-labelledby="equiposReservaModalLabel" aria-hidden="true" data-reservation-build="20260917-imagenes-v150" data-tariff-segment="{{ segmento_tarifario_reserva }}" data-reservation-user-type="{{ tipo_usuario_reserva }}" data-can-author-guides="{{ puede_crear_guias_reserva|yesno:'true,false' }}" data-reservation-admin="{{ request.user.is_staff|yesno:'true,false' }}" data-trabajo-singular="{{ palabras_trabajo_reserva.singular }}" data-trabajo-plural="{{ palabras_trabajo_reserva.plural }}" data-trabajo-genero="{{ palabras_trabajo_reserva.genero }}" data-hora-apertura="{{ ventana_atencion_reserva.apertura }}" data-hora-cierre="{{ ventana_atencion_reserva.cierre }}" data-reservas-equipos="{{ configuracion_operativa.reservas_equipos|yesno:'true,false' }}" data-reservas-espacios="{{ configuracion_operativa.reservas_espacios|yesno:'true,false' }}" data-reservas-software="{{ software_reserva|yesno:'true,false' }}" data-solicitudes-servicio="{{ configuracion_operativa.solicitudes_servicio|yesno:'true,false' }}" data-profile-complete="{{ perfil_reserva_completo|yesno:'true,false' }}" data-requester-career="{% if perfil_reserva %}{{ perfil_reserva.get_carrera_display_custom|escape }}{% endif %}" data-requester-level="{% if perfil_reserva and perfil_reserva.nivel_academico %}{{ perfil_reserva.get_nivel_academico_display|escape }}{% endif %}" data-guide-institution-name="{{ identidad_institucion.nombre }}" data-guide-institution-code="{{ identidad_institucion.siglas }}" data-guide-logo-url="{% url_marca_institucional identidad_institucion 'oscuro' %}" data-participant-search-url="{% url 'buscar_usuarios_reserva' %}" data-service-quote-url="{% url 'cotizar_servicios_reserva' %}" data-service-schedule-url="{% url 'proponer_entrega_servicio' %}" data-reference-space-hour="{{ configuracion_operativa.tarifa_referencial_hora_espacio|floatformat:'2u' }}" data-reference-equipment-hour="{{ configuracion_operativa.tarifa_referencial_hora_equipo|floatformat:'2u' }}" data-reference-software-hour="{{ configuracion_operativa.tarifa_referencial_hora_software|floatformat:'2u' }}" data-reference-support-hour="{{ configuracion_operativa.tarifa_referencial_hora_acompanamiento|floatformat:'2u' }}" data-institutional-resource-contribution="100" data-tax-applies="{{ configuracion_operativa.aplicar_iva|yesno:'true,false' }}" data-tax-rate="{{ configuracion_operativa.porcentaje_iva|floatformat:'2u' }}" data-resource-illustration-url="{% static 'portal/img/reservas/reservar-recursos-v1.webp' %}" data-service-illustration-url="{% static 'portal/img/reservas/encargar-servicio-v1.webp' %}" data-space-resource-image-url="{% static 'img/generated/home-hero/hero-fabricacion-avanzada.png' %}" data-equipment-resource-image-url="{% static 'img/catalogo/fablab/equipos/impresora-3d-fdm.png' %}" data-software-resource-image-url="{% static 'img/generated/platforms/software-analytics.png' %}" data-resource-tutorial-url="{% firstof tutorial_recursos_url configuracion_operativa.tutorial_recursos_url 'https://www.youtube.com/watch?v=Vcxz9ss2MAs' %}" data-service-tutorial-url="{% firstof tutorial_servicios_url configuracion_operativa.tutorial_servicios_url 'https://www.youtube.com/watch?v=wWa1sYdW1BU' %}" data-resource-tutorial-configured="{% if tutorial_recursos_url or configuracion_operativa.tutorial_recursos_url %}true{% else %}false{% endif %}" data-service-tutorial-configured="{% if tutorial_servicios_url or configuracion_operativa.tutorial_servicios_url %}true{% else %}false{% endif %}">
+  {{ acceso_reserva|json_script:"accesoReserva" }}
+  {{ asignaturas_docente|json_script:"asignaturasDocente" }}
+  <div class="modal-dialog modal-xl reservation-modal__dialog" role="document">
+    <div class="modal-content reservation-shell">
+      <header class="reservation-header">
+        <span class="reservation-header__tech" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <div class="reservation-header__icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="reservation-header__copy">
+          <h2 id="equiposReservaModalLabel">{% translate "Reservas y servicios" %}</h2>
+          <p id="modalTitle">{{ unidad.nombre }}</p>
+        </div>
+        <button type="button" class="reservation-close" data-dismiss="modal" aria-label="{% translate "Cerrar" %}"><i class="fas fa-times"></i></button>
+      </header>
+
+      <div class="reservation-progress" aria-label="{% translate "Etapas de la solicitud" %}">
+        <div><b>01</b><span><strong>{% translate "Recursos" %}</strong><small>{% translate "Elige equipos o espacios" %}</small></span></div>
+        <div><b>02</b><span><strong>{% translate "Actividad" %}</strong><small>{% translate "Describe el propósito" %}</small></span></div>
+        <div><b>03</b><span><strong>{% translate "Disponibilidad" %}</strong><small>{% translate "Selecciona fecha y hora" %}</small></span></div>
+        <div><b>04</b><span><strong>{% translate "Confirmación" %}</strong><small>{% translate "Revisa y envía" %}</small></span></div>
+      </div>
+
+      <div class="modal-body reservation-body">
+        <div id="reservaFormSection">
+          {% if user.is_authenticated and aviso_pertenencia_reserva %}<p class="alert alert-info" role="status">{{ aviso_pertenencia_reserva }}</p>{% endif %}
+          {% if not user.is_authenticated %}
+          <div class="reservation-notice reservation-notice--warning">
+            <i class="fas fa-user-lock"></i>
+            <div><strong>{% translate "Recursos, servicios y visitas internas requieren iniciar sesión" %}</strong><span>{% translate "Las visitas externas pueden solicitarse sin cuenta, indicando los datos del responsable." %}</span></div>
+            <a href="{% url 'login' %}?next={{ request.path|urlencode }}">{% translate "Iniciar sesión" %}</a>
+          </div>
+          {% endif %}
+
+          <section class="reservation-card reservation-resources" id="unidadesEquipoCard">
+            <div class="reservation-section-heading">
+              <div><span class="reservation-eyebrow">{% translate "Recursos del laboratorio" %}</span><h3>{% translate "¿Qué necesitas reservar?" %}</h3><p>{% translate "Selecciona únicamente los recursos necesarios para la actividad." %}</p></div>
+              <span class="reservation-count"><b id="totalUnidades">0</b> {% translate "unidades disponibles" %}</span>
+            </div>
+
+            <p class="reservation-filters__hint"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "Los equipos corresponden al área que marcaste. Marca un equipo para ver su software instalado y sus insumos compatibles; «Ver ficha» muestra la información completa." %}</p>
+
+            <div class="reservation-equipment-list" id="unidadesTableBody" aria-live="polite"></div>
+            <details class="reservation-equipment-unavailable" id="equiposNoDisponibles" hidden>
+              <summary><i class="fas fa-tools" aria-hidden="true"></i> <span data-unavailable-summary>{% translate "Equipos no disponibles" %}</span></summary>
+              <ul data-unavailable-list></ul>
+            </details>
+
+            <div class="reservation-selection hublab-is-hidden" id="seleccionUnidadesResumen">
+              <i class="fas fa-check-circle"></i><div><strong><span id="contadorSeleccionadas">0</span> {% translate "recursos seleccionados" %}</strong><div id="listaUnidadesSeleccionadas"></div></div>
+            </div>
+            <div id="estadisticasEquipos" class="reservation-availability" hidden aria-hidden="true"><span>{% translate "Disponibilidad por equipo" %}</span><div id="resumenEquiposContainer" class="row"></div></div>
+            <div id="equiposPublicosData" hidden aria-hidden="true">
+              {% for unidad_equipo in unidades_laboratorio %}
+              <span data-equipment-unit="{{ unidad_equipo.pk }}"
+                    data-equipment-model-id="{{ unidad_equipo.equipo_id }}"
+                    data-equipment-space-ids="{{ unidad_equipo.espacios_asociados_ids_csv }}"
+                    data-equipment-name="{{ unidad_equipo.equipo.nombre|default:''|escape }}"
+                    data-equipment-code="{{ unidad_equipo.equipo.codigo|default:''|escape }}"
+                    data-equipment-description="{{ unidad_equipo.equipo.descripcion|default:''|striptags|escape }}"
+                    data-equipment-characteristics="{% firstof unidad_equipo.equipo.caracteristicas_publicas unidad_equipo.equipo.caracteristicas '' %}"
+                    data-equipment-use="{{ unidad_equipo.equipo.uso_publico|default:'' }}"
+                    data-equipment-instructions="{{ unidad_equipo.equipo.instrucciones_publicas|default:''|striptags|escape }}"
+                    data-equipment-brand="{{ unidad_equipo.equipo.marca|default:''|escape }}"
+                    data-equipment-model="{{ unidad_equipo.equipo.modelo|default:''|escape }}"
+                    data-equipment-image="{{ unidad_equipo.equipo.imagen_publica_url }}"
+                    data-equipment-manual="{% if unidad_equipo.equipo.manual_operacion %}{{ unidad_equipo.equipo.manual_operacion.url }}{% endif %}"></span>
+              {% endfor %}
+            </div>
+          </section>
+
+          <form id="reservaForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% include 'portal/pages/unidades/detalle/modales/visita_campos.html' %}
+            <input type="hidden" id="equipoId" name="equipo_id" value="">
+            <input type="hidden" id="proyectoId" name="unidad_id" value="{{ unidad.id }}">
+            <input type="hidden" id="consumiblesSeleccionados" name="consumibles_seleccionados" value="[]">
+            <input type="hidden" id="participantesSeleccionados" name="participantes_seleccionados" value="[]">
+            <input type="hidden" id="indicacionesArchivos" name="indicaciones_archivos" value="[]">
+            <input type="hidden" id="incluyeEspacioReserva" name="incluye_espacio" value="false">
+            <input type="hidden" id="solicitoEspacioReserva" name="solicito_espacio" value="false">
+            <input type="hidden" id="solicitoEquipoReserva" name="solicito_equipo" value="false">
+            <input type="hidden" id="solicitoSoftwareReserva" name="solicito_software" value="false">
+            <input type="hidden" id="tituloSolicitud" name="titulo_solicitud" value="">
+            <input type="hidden" id="solicitanteNombre" name="solicitante_nombre" value="{% if user.is_authenticated %}{{ user.get_full_name }}{% endif %}">
+            <input type="hidden" id="solicitanteEmail" name="solicitante_email" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
+            <input type="hidden" id="solicitanteTelefono" name="solicitante_telefono" value="{% if user.is_authenticated and user.profile.telefono %}{{ user.profile.telefono }}{% endif %}">
+            <input type="hidden" id="institucion" name="institucion" value="{% if user.is_authenticated and user.profile.institucion %}{{ user.profile.institucion }}{% else %}{{ identidad_institucion.nombre }}{% endif %}">
+
+            <section class="reservation-card reservation-services" id="serviciosReservaCatalogo" data-catalog-count="{{ servicios_reserva|length }}">
+              <div class="reservation-section-heading">
+                <div>
+                  <span class="reservation-eyebrow">{% translate "Servicios del laboratorio" %}</span>
+                  <h3>{% translate "Selecciona la capacidad técnica" %}</h3>
+                  <p>{% translate "El laboratorista recibirá el servicio elegido, los materiales relacionados y los archivos para su revisión." %}</p>
+                </div>
+              </div>
+              {% for familia in servicios_por_familia %}
+              <section class="reservation-service-family">
+                <h4 class="reservation-service-family__title"><i class="fas fa-layer-group" aria-hidden="true"></i> {{ familia.nombre }} <small>{{ familia.servicios|length }} {% translate "opción" %}{{ familia.servicios|length|pluralize:"es" }} {% translate "· elige la que mejor se ajusta a tu necesidad" %}</small></h4>
+              <div class="reservation-services__grid">
+                {% for servicio in familia.servicios %}
+                <article class="reservation-service" data-tipo-servicio="{{ servicio.tipo_servicio }}" data-consumible-ids="{{ servicio.consumibles_ids_csv }}" data-requires-files="{{ servicio.requiere_archivos|yesno:'true,false' }}" data-requires-quote="{{ servicio.requiere_cotizacion|yesno:'true,false' }}" data-formats="{{ servicio.formatos_archivo }}" data-allows-model-ready="{{ servicio.permite_modelo_listo|yesno:'true,false' }}" data-allows-assisted="{{ servicio.permite_diseno_asistido|yesno:'true,false' }}" data-allows-complete="{{ servicio.permite_diseno_completo|yesno:'true,false' }}">
+                  <label class="reservation-service__select">
+                    <input type="checkbox" name="servicios_solicitados" value="{{ servicio.pk }}">
+                    <span class="reservation-service__media">
+                      {% if servicio.imagen_referencial %}
+                      <img src="{{ servicio.imagen_referencial.url }}" alt="Imagen referencial de {{ servicio.nombre }}" loading="lazy">
+                      {% elif servicio.imagen_catalogo %}
+                      {% static servicio.imagen_catalogo as servicio_imagen_catalogo_url %}
+                      <img src="{{ servicio_imagen_catalogo_url }}" alt="Imagen referencial de {{ servicio.nombre }}" loading="lazy">
+                      {% else %}
+                      <span class="reservation-service__media-fallback"><i class="fas fa-tools" aria-hidden="true"></i><small>{% translate "Imagen por publicar" %}</small></span>
+                      {% endif %}
+                    </span>
+                    <span class="reservation-service__content">
+                      <span class="reservation-service__topline"><b>{{ servicio.get_tipo_servicio_display|ui }}</b><small>{{ servicio.code }}</small></span>
+                      <strong>{{ servicio.nombre }}</strong>
+                      <small>{{ servicio.descripcion|default:"Servicio sujeto a revisión técnica." }}</small>
+                      {% if servicio.receta %}<em><b>{% translate "Proceso:" %}</b> {{ servicio.receta.nombre_publico }} {% translate "· cada lote es una corrida base de" %} {{ servicio.receta.cantidad_base|floatformat:"-3" }} {{ servicio.receta.unidad_base }}{% translate "; los materiales de abajo son los del proceso por lote" %}{% if servicio.materia_prima_cliente %} {% translate "y puedes traer tu materia prima (deja sin marcar la de la corrida base)" %}{% endif %}.</em>{% endif %}
+                      <span class="reservation-service__facts">
+                        {% if servicio.resultado_entregado %}<span><b>{% translate "Recibirás" %}</b>{{ servicio.resultado_entregado }}</span>{% endif %}
+                        {% if servicio.cuando_elegirlo %}<span><b>{% translate "Elígelo cuando" %}</b>{{ servicio.cuando_elegirlo }}</span>{% endif %}
+                        {% if servicio.tiempo_estimado_texto %}<span><b>{% translate "Tiempo referencial" %}</b>{{ servicio.tiempo_estimado_texto }}</span>{% endif %}
+                      </span>
+                      {% if servicio.consumibles_planificados %}
+                      <span class="reservation-service__materials">
+                        <b>{% translate "Materiales del servicio" %}</b>
+                        {% for item in servicio.consumibles_planificados %}<span>{{ item.nombre }}{% if item.detalle %} ({{ item.detalle }}){% endif %} · {% if item.por_calcular %}{% translate "cantidad por validar" %}{% else %}{{ item.cantidad|floatformat:"-3" }} {{ item.unidad }} {% translate "por pieza" %}{% endif %}{% if item.obligatorio %} {% translate "· necesario" %}{% endif %}</span>{% endfor %}
+                      </span>
+                      {% else %}<span class="reservation-service__materials"><b>{% translate "Materiales del servicio" %}</b><span>{% translate "No requiere insumos vinculados en el catálogo." %}</span></span>{% endif %}
+                      {% if servicio.requisitos_usuario %}<em><b>{% translate "Antes de solicitar:" %}</b> {{ servicio.requisitos_usuario }}</em>{% endif %}
+                      {% if servicio.requiere_archivos %}<em><b>{% translate "Archivos admitidos:" %}</b> {{ servicio.formatos_archivo }}</em>{% endif %}
+                    </span>
+                  </label>
+                  <template data-service-material-template>
+                    {% for item in servicio.consumibles_planificados %}
+                    <div class="reservation-service-material{% if item.obligatorio %} is-required{% endif %}{% if item.stock <= 0 %} is-unavailable{% endif %}" data-material-id="{{ item.id }}" data-name="{{ item.nombre }}" data-unit="{{ item.unidad }}" data-suggested="{{ item.cantidad|floatformat:'-3' }}" data-stock="{% if mostrar_existencias_reserva %}{{ item.stock|floatformat:'-3' }}{% endif %}" data-price="{% if mostrar_existencias_reserva %}{{ item.precio_unitario|floatformat:'-4' }}{% endif %}" data-equipment-ids="{{ item.equipos_ids_csv }}" data-equipment-names="{{ item.equipos_nombres }}">
+                      <label class="reservation-consumable__select"><input type="checkbox" class="reservation-service-material__check" {% if item.obligatorio %}checked disabled{% elif item.stock <= 0 %}disabled{% endif %}><span>{% translate "Seleccionar" %} {{ item.nombre }}</span></label>
+                      {% if item.imagen %}<span class="reservation-consumable__media"><img src="{{ item.imagen }}" alt="{{ item.nombre }}" loading="lazy"></span>{% else %}<span class="reservation-consumable__media is-empty"><i class="fas fa-box-open" aria-hidden="true"></i></span>{% endif %}
+                      <div class="reservation-consumable__identity">
+                        <span class="reservation-consumable__kind">{{ item.clasificacion }}</span>
+                        <h4>{{ item.nombre }}</h4>
+                        <div class="reservation-consumable__variants">{% if item.variante %}<span><b>{% translate "Variante" %}</b>{{ item.variante }}</span>{% endif %}{% if item.color %}<span><b>{% translate "Color" %}</b>{{ item.color }}</span>{% endif %}</div>
+                        <div class="reservation-service-material__meta">{% if item.obligatorio %}<span>{% translate "Necesario para el servicio" %}</span>{% endif %}{% if mostrar_existencias_reserva and item.precio_unitario %}<span>${{ item.precio_unitario|floatformat:2 }} por {{ item.unidad }}</span>{% endif %}{% if item.equipos_nombres %}<span>{{ item.equipos_nombres }}</span>{% endif %}</div>
+                      </div>
+                      <div class="reservation-consumable__stock"><strong>{% if item.stock <= 0 %}{% translate "Agotado" %}{% elif mostrar_existencias_reserva %}{{ item.stock|floatformat:"-3" }} <small>{{ item.unidad }}</small>{% else %}{% translate "Disponible" %}{% endif %}</strong><span>{% if item.stock > 0 %}{% translate "en existencia" %}{% else %}{% translate "sin existencia" %}{% endif %}</span></div>
+                      <div class="reservation-service-material__quantity"><span>{% translate "Cantidad por" %} {{ palabras_trabajo_reserva.singular }} ({{ item.unidad }}){% if mostrar_existencias_reserva and item.stock > 0 %} {% translate "· disponible" %} {{ item.stock|floatformat:"-3" }}{% endif %}</span><input type="number" class="reservation-service-material__input" min="0" step="0.001" placeholder="Ej. {{ item.cantidad|floatformat:'-3'|default:'85' }}"{% if not item.obligatorio %} disabled{% endif %}><output class="reservation-quantity-total" data-quantity-total>{% translate "Total: escribe la cantidad" %}</output><small>{% if item.por_calcular %}{% translate "El catálogo no tiene una cantidad de referencia: calcúlala con tu laminador." %}{% else %}{% translate "Referencia del catálogo:" %} {{ item.cantidad|floatformat:"-3" }} {{ item.unidad }} por {{ palabras_trabajo_reserva.singular }}.{% endif %}{% if item.instrucciones %} {{ item.instrucciones }}{% endif %}</small></div>
+                      <em class="reservation-service-material__note" data-material-note hidden></em>
+                    </div>
+                    {% endfor %}
+                  </template>
+                </article>
+                {% endfor %}
+              </div>
+              </section>
+              {% empty %}
+              <p class="rw-empty-note">{% translate "Esta unidad aún no ha publicado un catálogo de servicios técnicos." %}</p>
+              {% endfor %}
+            </section>
+
+            <section class="reservation-card reservation-service-scope" id="alcanceServicioReserva">
+              <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Alcance del trabajo" %}</span><h3>{% translate "¿Cómo participarás en el servicio?" %}</h3><p>{% translate "La modalidad modifica el trabajo del laboratorio y el valor estimado." %}</p></div></div>
+              <div class="reservation-purpose-labels reservation-service-modes">
+                <label data-service-mode="modelo_listo"><input type="radio" name="modalidad_servicio" value="modelo_listo"><span><i class="fas fa-file-import"></i><strong data-mode-title>{% translate "Entrego el trabajo listo" %}</strong><small data-mode-hint>{% translate "Entrego lo que hay que trabajar; el laboratorio lo revisa y lo ejecuta." %}</small></span></label>
+                <label data-service-mode="diseno_asistido"><input type="radio" name="modalidad_servicio" value="diseno_asistido"><span><i class="fas fa-user-edit"></i><strong data-mode-title>{% translate "Trabajo con acompañamiento" %}</strong><small data-mode-hint>{% translate "Trabajaré en la instalación, con espacio, equipos o software reservados y apoyo del laboratorista." %}</small></span></label>
+                <label data-service-mode="diseno_completo"><input type="radio" name="modalidad_servicio" value="diseno_completo"><span><i class="fas fa-drafting-compass"></i><strong data-mode-title>{% translate "El laboratorio lo hace todo" %}</strong><small data-mode-hint>{% translate "El equipo técnico se hace cargo del trabajo desde el requerimiento." %}</small></span></label>
+              </div>
+
+              <section class="reservation-card reservation-technical-files is-inline-service" id="archivosTecnicosReserva" aria-live="polite">
+                <div class="reservation-section-heading reservation-upload-heading">
+                  <div>
+                    <span class="reservation-eyebrow">{% translate "Documentación del servicio" %}</span>
+                    <h3>{% translate "Archivos adjuntos" %} <span id="archivosTecnicosTipo">{% translate "(opcional)" %}</span></h3>
+                    <p id="archivosTecnicosAyuda">{% translate "Puedes adjuntar modelos, planos o referencias para orientar la revisión técnica." %}</p>
+                  </div>
+                </div>
+                <label class="reservation-upload" id="zonaCargaArchivos" for="archivosTecnicos" tabindex="0">
+                  <span class="reservation-upload__icon"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i></span>
+                  <span class="reservation-upload__copy"><strong>{% translate "Arrastra tus archivos aquí" %}</strong><small>o</small></span>
+                  <span class="reservation-upload__button">{% translate "Seleccionar archivos" %}</span>
+                  <span class="reservation-upload__formats">{% translate "Formatos permitidos: STL, 3MF, OBJ, STEP/STP, DXF/DWG, PDF, SVG, PNG/JPG y ZIP. Máximo 5 archivos de 25 MB." %}</span>
+                  <input type="file" id="archivosTecnicos" name="archivos_tecnicos" accept=".pdf,.stl,.obj,.3mf,.step,.stp,.dxf,.dwg,.svg,.png,.jpg,.jpeg,.webp,.zip" multiple>
+                </label>
+                <div class="reservation-upload__requirement" id="archivosTecnicosRequisito">{% translate "Selecciona una modalidad para confirmar si los archivos son obligatorios u opcionales." %}</div>
+                <div class="reservation-upload__status" id="archivosTecnicosEstado" data-state="empty" aria-live="polite" hidden></div>
+                <section class="reservation-uploaded" id="archivosTecnicosAdjuntos" hidden>
+                  <header><i class="fas fa-paperclip" aria-hidden="true"></i><strong>{% translate "Documentos adjuntos (" %}<span id="archivosTecnicosCantidad">0</span>)</strong></header>
+                  <div class="reservation-upload__list" id="archivosTecnicosLista"></div>
+                </section>
+                <div class="reservation-upload__progress" id="archivosTecnicosProgreso" hidden aria-live="polite">
+                  <div><span><i class="fas fa-check-circle" aria-hidden="true"></i> <b id="archivosTecnicosProgresoTexto">{% translate "Archivos preparados" %}</b></span><strong id="archivosTecnicosPorcentaje">0%</strong></div>
+                  <span class="reservation-upload__progress-track"><span id="archivosTecnicosProgresoBarra"></span></span>
+                </div>
+              </section>
+            </section>
+
+            <section class="reservation-card reservation-service-work" id="trabajoServicioReserva" hidden>
+              <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Detalles del trabajo" %}</span><h3 data-service-work-title>{% translate "¿Qué necesitas que haga el laboratorio?" %}</h3><p data-service-work-hint>{% translate "Indica la cantidad, el equipo y los materiales; con eso el sistema estima las horas de trabajo, los materiales y la fecha de entrega." %}</p></div></div>
+              <div class="reservation-service-work__grid">
+                <label class="reservation-service-work__pieces"><span>{% translate "Número de" %} {{ palabras_trabajo_reserva.plural }}</span><input type="number" class="form-control" id="cantidadPiezasServicio" name="cantidad_piezas" min="1" max="10000" step="1" value="1"></label>
+                <label class="reservation-service-work__detail"><span>{% translate "Dimensiones, acabado u otras precisiones" %}</span><textarea class="form-control" id="detalleTrabajoServicio" name="detalle_trabajo" rows="2" maxlength="2000" placeholder="{% translate "Ej.: 2 carcasas de 80 × 40 × 20 mm, relleno 20 %, color rojo" %}"></textarea></label>
+              </div>
+              <div class="reservation-service-work__equipment" data-service-equipment hidden>
+                <strong>{% translate "Equipo en el que se fabricará" %}</strong>
+                <div class="reservation-purpose-labels reservation-service-equipment" data-service-equipment-options></div>
+              </div>
+              <div class="reservation-service-work__materials">
+                <div class="reservation-service-work__materials-head"><strong>{% translate "Materiales para este trabajo" %}</strong><small>{% translate "Marca los que usarás y ajusta la cantidad total; la sugerida se calcula por" %} {{ palabras_trabajo_reserva.singular }}{% translate ". Los materiales se cobran según el consumo real." %}</small></div>
+                <div class="reservation-service-material-list" data-service-materials-list></div>
+                <p class="rw-empty-note" data-service-materials-empty>{% translate "Selecciona un servicio para ver sus materiales." %}</p>
+              </div>
+              <input type="hidden" name="materiales_seleccionados" id="materialesSeleccionadosServicio" value="[]">
+              <input type="hidden" name="equipo_servicio" id="equipoServicio" value="">
+            </section>
+
+            <section class="reservation-card reservation-service-schedule" id="entregaServicioReserva" hidden>
+              <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Programación" %}</span><h3>{% translate "¿Con qué urgencia lo necesitas?" %}</h3><p>{% translate "El sistema propone día y hora según la cola de servicios de la unidad y las horas de máquina estimadas para tus piezas." %}</p></div></div>
+              <div class="reservation-purpose-labels reservation-service-urgency">
+                <label data-service-urgency="normal" class="is-selected"><input type="radio" name="urgencia_servicio" value="normal" checked><span><i class="fas fa-clock"></i><strong>{% translate "Atención normal" %}</strong><small>{% translate "Entra en la cola de trabajo; la fecha depende de las solicitudes pendientes." %}</small></span></label>
+                <label data-service-urgency="urgente"><input type="radio" name="urgencia_servicio" value="urgente"><span><i class="fas fa-bolt"></i><strong>{% translate "Urgente" %}</strong><small>{% translate "1 a 2 días laborables. Solo para quien ha cumplido sus reservas anteriores." %}</small></span></label>
+              </div>
+              <div class="reservation-service-schedule__actions"><button type="button" class="reservation-button reservation-button--secondary" id="proponerEntregaServicio"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Proponer fecha y hora" %}</button><button type="button" class="reservation-button reservation-button--secondary" id="elegirOtraFechaServicio">{% translate "Elegir otra fecha en el calendario" %}</button></div>
+              <div class="reservation-service-schedule__proposal" data-delivery-proposal aria-live="polite"><p>{% translate "Elige el servicio y la modalidad; luego pide una propuesta de fecha." %}</p></div>
+              <input type="hidden" name="fecha_entrega_prevista" id="fechaEntregaPrevista" value="">
+            </section>
+
+            <section class="reservation-card reservation-service-quote" id="cotizacionServicioReserva">
+              <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Valor estimado" %}</span><h3>{% translate "Cuánto costará este trabajo" %}</h3><p>{% translate "Solo pagas los materiales consumidos. La UPEC asume espacios, mobiliario, equipos, software, diseño y acompañamiento del personal. La estimación se actualiza con las piezas y materiales; el cierre determina el valor según el consumo real." %}</p></div></div>
+              <div class="reservation-quote" id="resultadoCotizacionServicio"><p>{% translate "Elige el servicio y la modalidad para ver el valor estimado." %}</p></div>
+            </section>
+
+            <section class="reservation-card reservation-service-payment" id="pagoServicioSeccion" hidden>
+              <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Valor y forma de pago" %}</span><h3>{% translate "Confirma el valor estimado y cómo pagarás" %}</h3><p>{% translate "Este valor es una estimación: el definitivo se determina con el peso real de los materiales utilizados y la revisión técnica del laboratorio." %}</p></div></div>
+              <div class="reservation-quote reservation-quote--recap" data-quote-recap><p>{% translate "El valor estimado se calcula en el paso anterior, junto a los materiales del trabajo." %}</p></div>
+              <div class="reservation-payment" id="pagoServicioReserva" hidden>
+                <label><span>{% translate "Método de pago *" %}</span><select class="form-control" id="metodoPagoServicio" name="metodo_pago"><option value="">{% translate "Selecciona una opción" %}</option><option value="por_definir">{% translate "Definir tras la revisión técnica" %}</option><option value="transferencia">{% translate "Transferencia o depósito" %}</option><option value="ventanilla">{% translate "Pago físico en ventanilla universitaria" %}</option><option value="tarjeta">{% translate "Tarjeta en punto de pago" %}</option></select></label>
+                <label class="reservation-quote-accept"><input type="checkbox" id="aceptarCotizacionServicio" name="cotizacion_aceptada" value="true" required><span>{% translate "Acepto este valor preliminar y comprendo que puede ajustarse después de la revisión técnica." %}</span></label>
+              </div>
+            </section>
+
+            <section class="reservation-card reservation-software" id="softwareReservaCatalogo" data-catalog-count="{{ software_reserva|length }}">
+              <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Software y licencias" %}</span><h3>{% translate "Licencias que se usan desde el navegador" %}</h3><p>{% translate "El software instalado en una máquina del laboratorio se pide junto a ella: al marcarlo se incluye ese equipo y su espacio físico. Las licencias que se abren en el navegador se piden solas, sin ocupar un puesto." %}</p></div></div>
+              <div class="reservation-software__grid">
+                {% for software in software_reserva %}
+                <label class="reservation-software-item is-collapsed{% if software.licencias_disponibles <= 0 %} is-unavailable{% endif %}" data-resource-kind="{{ software.tipo_recurso }}" data-access-type="{{ software.tipo_acceso }}" data-equipment-ids="{{ software.equipos_instalados_ids_csv }}" data-software-usage="{{ software.uso_en_equipo }}" data-software-access="{{ software.get_tipo_acceso_display }}" data-software-licenses="{{ software.licencias_disponibles }} de {{ software.licencias_totales }}">
+                  <input type="checkbox" name="software_solicitado" value="{{ software.pk }}" {% if software.licencias_disponibles <= 0 %}disabled{% endif %} aria-label="Usar {{ software.nombre }}">
+                  <span class="reservation-software-item__logo"><img src="{{ software.logo_publico_url }}" alt="" loading="lazy"></span>
+                  <span class="reservation-software-item__content"><strong>{{ software.nombre }}{% if software.version %} <small>{{ software.version }}</small>{% endif %}</strong></span>
+                  <span class="reservation-item-toggle" role="button" tabindex="0" data-item-toggle aria-expanded="false"><i class="fas fa-chevron-down" aria-hidden="true"></i> {% translate "Detalles" %}</span>
+                  <span class="reservation-software-item__details" data-item-details hidden>
+                    <ul>
+                      <li><b>{% translate "Versión instalada" %}</b><span>{{ software.version|default:"no indicada" }}</span></li>
+                      <li><b>{% translate "Para qué se utiliza" %}</b><span>{{ software.descripcion|default:"Sin descripción adicional." }}</span></li>
+                      <li><b>{% translate "Instalado en" %}</b><span>{% if software.equipos_instalados_resumen %}{{ software.equipos_instalados_resumen }}{% else %}{% translate "sin equipo asignado" %}{% endif %}</span></li>
+                      <li><b>{% translate "Tipo y acceso" %}</b><span>{{ software.get_tipo_recurso_display|ui }} · {{ software.get_tipo_acceso_display|ui }} · {{ software.licencias_disponibles }} de {{ software.licencias_totales }} {% if software.tipo_recurso == 'licencia' %}licencias{% else %}puestos{% endif %} disponibles</span></li>
+                      {% if software.instrucciones_acceso %}<li><b>{% translate "Condiciones" %}</b><span>{{ software.instrucciones_acceso }}</span></li>{% endif %}
+                      <li><b>{% translate "Uso" %}</b><span>{% if software.uso_en_equipo == 'obligatorio' %}{% translate "propio del equipo; se incluye siempre que se reserva el equipo" %}{% else %}{% translate "opcional; márcalo solo si lo necesitas" %}{% endif %}</span></li>
+                    </ul>
+                  </span>
+                </label>
+                {% empty %}<p class="rw-empty-note">{% translate "Esta unidad aún no ha publicado software reservable." %}</p>{% endfor %}
+              </div>
+            </section>
+
+            <section class="reservation-card reservation-spaces" id="espaciosReservaCatalogo" data-catalog-count="{{ espacios_reserva|length }}" data-space-count="{{ espacios_reserva|length }}">
+              <div class="reservation-section-heading">
+                <div>
+                  <span class="reservation-eyebrow">{% translate "Áreas y estaciones de trabajo" %}</span>
+                  <h3>{% translate "Elige dónde trabajarás" %}</h3>
+                  <p>{% translate "Selecciona el área según la actividad y el aforo. Después elige equipos o software; la disponibilidad se confirma en el calendario." %}</p>
+                </div>
+              </div>
+
+              {# Contenido inerte: el visor solo carga al abrir su modal. #}
+              <div class="reservation-orientation" data-space-orientation>
+                <div class="reservation-orientation__bar" aria-label="{% translate "Orientación visual del laboratorio" %}">
+                  <span class="reservation-orientation__label"><i class="fas fa-map-marked-alt" aria-hidden="true"></i> {% translate "¿No conoces el laboratorio?" %}</span>
+                  <button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacionPlano"><i class="fas fa-map" aria-hidden="true"></i> <span>{% translate "Plano de áreas" %}</span></button>
+                  <button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacionVideo"><i class="fab fa-youtube" aria-hidden="true"></i> <span>{% translate "Recorrido en video" %}</span></button>
+                  <button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacion360"><i class="fas fa-street-view" aria-hidden="true"></i> <span>{% translate "Vista 360°" %}</span></button>
+                </div>
+                <template id="orientacionPlano">
+                  <figure class="reservation-orientation__image">
+                    <img src="{% if unidad.plano_espacios %}{{ unidad.plano_espacios.url }}{% else %}{% static 'img/reservas/plano-fablab-demostrativo.svg' %}{% endif %}" alt="Distribución de las áreas de {{ unidad.nombre }}" loading="lazy">
+                  </figure>
+                  <p>{% if unidad.plano_espacios %}{% translate "Plano publicado por la unidad." %}{% else %}{% translate "Plano demostrativo; el administrador de la unidad puede reemplazarlo." %}{% endif %}</p>
+                </template>
+                <template id="orientacionVideo">
+                  <div class="reservation-orientation__frame"><iframe data-src="{% firstof unidad.recorrido_espacios_youtube_embed_url 'https://www.youtube-nocookie.com/embed/Vcxz9ss2MAs?rel=0&modestbranding=1' %}" title="Recorrido en video por {{ unidad.nombre }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+                  <p>{% if unidad.recorrido_espacios_youtube_url %}{% translate "Recorrido publicado por la unidad." %}{% else %}{% translate "Video demostrativo temporal; el administrador puede reemplazarlo." %}{% endif %}</p>
+                </template>
+                <template id="orientacion360">
+                  <div class="reservation-orientation__frame"><iframe data-src="{% if unidad.recorrido_360_public_url %}{{ unidad.recorrido_360_public_url }}{% else %}{% static 'img/360/lacteos1/index.html' %}{% endif %}" title="Recorrido 360 de {{ unidad.nombre }}" loading="lazy" allowfullscreen></iframe></div>
+                  <p>{% if unidad.recorrido_360_ruta %}{% translate "Vista interactiva publicada por la unidad." %}{% else %}{% translate "Vista 360 de demostración tomada del portal institucional." %}{% endif %}</p>
+                </template>
+              </div>
+
+              {% if espacios_reserva|length > 1 %}
+              <fieldset class="reservation-space-scope" id="alcanceEspacioReserva">
+                <legend>{% translate "¿Qué parte de la unidad necesitas ocupar? *" %}</legend>
+                <p>{% translate "Esta decisión permite compartir el laboratorio sin cruzar áreas, equipos ni capacidades." %}</p>
+                <div>
+                  <label><input type="radio" name="alcance_espacio" value="areas" checked><span><i class="fas fa-border-all"></i><strong>{% translate "Una o varias áreas" %}</strong><small>{% translate "Selecciona abajo solo las zonas que realmente utilizarás. En usos no docentes podrán compartirse hasta completar su capacidad." %}</small></span></label>
+                  <label><input type="radio" name="alcance_espacio" value="unidad_completa"><span><i class="fas fa-expand-arrows-alt"></i><strong>{% translate "Unidad completa" %}</strong><small>{% translate "Bloquea todo uso físico simultáneo del laboratorio durante el horario seleccionado" %}{% if unidad.capacidad_personas %} {% translate "· capacidad general" %} {{ unidad.capacidad_personas }} personas{% endif %}.</small></span></label>
+                </div>
+              </fieldset>
+              {% elif espacios_reserva|length == 1 %}
+              <input type="hidden" name="alcance_espacio" value="areas">
+              <aside class="reservation-space-single-note"><i class="fas fa-check-circle" aria-hidden="true"></i><div><strong>{% translate "Esta unidad funciona con un único espacio reservable" %}</strong><span>{% translate "Se seleccionará automáticamente. La capacidad y la compatibilidad se comprobarán al elegir el horario." %}</span></div></aside>
+              {% else %}
+              <input type="hidden" name="alcance_espacio" value="espacio_unico">
+              <aside class="reservation-space-single-note"><i class="fas fa-building" aria-hidden="true"></i><div><strong>{% translate "Espacio único del laboratorio" %}</strong><span>{% translate "La unidad todavía no divide su disponibilidad por áreas; se aplicará la capacidad general sin exigir una selección adicional." %}</span></div></aside>
+              {% endif %}
+              <div class="reservation-spaces__grid">
+                {% url_marca_institucional identidad_institucion 'claro' as marcaAreasReserva %}
+                {% for espacio in espacios_reserva %}
+                <article class="reservation-space-item{% if not espacio.activo or not espacio.reservable %} is-unavailable{% endif %}" aria-labelledby="nombreEspacio{{ espacio.pk }}" data-equipment-ids="{{ espacio.equipos_asociados_ids_csv }}" data-space-policy="{{ espacio.politica_reserva }}" data-requires-technical-resource="{{ espacio.requiere_recurso_tecnico|yesno:'true,false' }}">
+                  <input type="checkbox" id="reservaEspacio{{ espacio.pk }}" aria-labelledby="nombreEspacio{{ espacio.pk }}" name="espacios_solicitados" value="{{ espacio.pk }}" {% if espacios_reserva|length == 1 and espacio.activo and espacio.reservable %}checked{% endif %} {% if not espacio.activo or not espacio.reservable %}disabled{% endif %}>
+                  {% if espacio.imagen_reserva_url %}
+                    <button type="button" class="reservation-space-item__media reservation-space-item__media--photo" data-space-detail aria-haspopup="dialog" aria-controls="fichaRecursoReserva" aria-label="{% translate 'Ver área' %}: {{ espacio.nombre }}"><img src="{{ espacio.imagen_reserva_url }}" alt="{{ espacio.nombre }}" loading="lazy">{% if not espacio.imagen %}<span class="reservation-space-item__photo-label">{% translate "Imagen referencial" %}</span>{% endif %}</button>
+                  {% else %}
+                    <span class="reservation-space-item__media reservation-space-item__media--institutional" aria-hidden="true">
+                      <span class="reservation-area-cover__brand">
+                        {% if marcaAreasReserva %}<img src="{{ marcaAreasReserva }}" alt="" loading="lazy">{% else %}<span>{{ identidad_institucion.siglas|default:"UPEC" }}</span>{% endif %}
+                        <span>{% translate "Área" %} {{ forloop.counter|stringformat:"02d" }}</span>
+                      </span>
+                      <span class="reservation-area-cover__identity"><span>{{ espacio.codigo }}</span><i class="fas {{ espacio.icono_reserva|default:'fa-th-large' }}"></i></span>
+                    </span>
+                  {% endif %}
+                  <div class="reservation-space-item__content">
+                    <div class="reservation-space-item__identity"><strong class="reservation-space-item__title" id="nombreEspacio{{ espacio.pk }}">{{ espacio.nombre }}</strong>{% if espacio.capacidad %}<span class="reservation-space-item__capacity"><i class="fas fa-users" aria-hidden="true"></i> {{ espacio.capacidad }} <span>{% translate "personas" %}</span></span>{% endif %}</div>
+                    {% if espacio.descripcion_publica %}<p class="reservation-space-item__description">{{ espacio.descripcion_publica|truncatechars:125 }}</p>{% endif %}
+                    {% if espacio.politica_reserva == 'tecnico' %}<span class="reservation-space-item__resource-rule"><i class="fas fa-link" aria-hidden="true"></i> {% translate "Requiere equipo o software" %}</span>{% elif espacio.politica_reserva == 'mixto' %}<span class="reservation-space-item__resource-rule"><i class="fas fa-random" aria-hidden="true"></i> {% translate "Recursos técnicos opcionales" %}</span>{% else %}<span class="reservation-space-item__resource-rule"><i class="fas fa-chair" aria-hidden="true"></i> {% translate "Espacio de uso general" %}</span>{% endif %}
+                    <span class="reservation-space-item__plan-warning"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "Para elegir esta área, vuelve al inicio y marca Equipos o Software." %}</span>
+                    {% if espacios_reserva|length == 1 %}<span class="reservation-space-item__badge"><i class="fas fa-check" aria-hidden="true"></i> {% translate "Selección automática" %}</span>{% endif %}
+                  </div>
+                  <footer class="reservation-space-item__actions">
+                    <button type="button" data-space-detail aria-haspopup="dialog" aria-controls="fichaRecursoReserva"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "Ver área" %}</button>
+                  </footer>
+                  <template data-space-detail-content>
+                    <div class="reservation-area-detail">
+                      <div>
+                        {% if espacio.descripcion_publica %}<p>{{ espacio.descripcion_publica }}</p>{% endif %}
+                        <dl class="reservation-sheet__facts">
+                          <div><dt>{% translate "Tipo de espacio" %}</dt><dd>{{ espacio.get_tipo_display }}</dd></div>
+                          {% if espacio.capacidad %}<div><dt>{% translate "Capacidad" %}</dt><dd>{{ espacio.capacidad }} {% translate "personas" %}</dd></div>{% endif %}
+                          {% if espacio.ubicacion %}<div><dt>{% translate "Ubicación" %}</dt><dd>{{ espacio.ubicacion }}</dd></div>{% endif %}
+                          {% if espacio.mobiliario_incluido %}<div><dt>{% translate "Incluye" %}</dt><dd>{% translate "Mobiliario del espacio" %}</dd></div>{% endif %}
+                          <div><dt>{% translate "Código" %}</dt><dd>{{ espacio.codigo }}</dd></div>
+                        </dl>
+                        {% if espacio.instrucciones_uso %}<h4>{% translate "Indicaciones de uso" %}</h4><p>{{ espacio.instrucciones_uso|linebreaksbr }}</p>{% endif %}
+                      </div>
+                      {% if espacio.imagen_reserva_url %}<figure><img src="{{ espacio.imagen_reserva_url }}" alt="{{ espacio.nombre }}" loading="lazy">{% if not espacio.imagen %}<figcaption>{% translate "Imagen referencial" %}</figcaption>{% endif %}</figure>{% endif %}
+                    </div>
+                    <div data-space-equipment-summary></div>
+                  </template>
+                </article>
+                {% empty %}
+                <div class="rw-empty-note reservation-space-fallback"><strong>{% translate "Sin áreas adicionales que seleccionar" %}</strong><span>{% translate "Continuarás con el espacio único de esta unidad y el sistema controlará su capacidad general." %}</span></div>
+                {% endfor %}
+              </div>
+            </section>
+
+            <section class="reservation-card reservation-consumables" id="consumiblesReservaCatalogo" aria-labelledby="consumiblesReservaTitulo" data-catalog-count="{{ consumibles_reserva|length }}" data-module-enabled="{{ configuracion_operativa.consumibles|yesno:'true,false' }}">
+              <div class="reservation-section-heading">
+                <div>
+                  <span class="reservation-eyebrow">{% translate "Inventario del laboratorio" %}</span>
+                  <h3 id="consumiblesReservaTitulo">{% translate "Insumos y materiales del laboratorio" %}</h3>
+                  <p>{% translate "Marca solo lo que necesitas, dentro de la tarjeta de su equipo o en este catálogo. Si no marcas nada, la reserva se registra sin insumos; si marcas alguno, se solicita al laboratorio y se cobra según el consumo real." %}</p>
+                </div>
+              </div>
+              <input type="hidden" name="provision_consumibles" id="provisionConsumibles" value="ninguno">
+              <input type="hidden" name="piezas_por_sesion" id="piezasPorSesionTotal" value="1">
+              <input type="hidden" name="detalle_trabajo_recursos" id="detalleTrabajoRecursos" value="">
+              <label class="reservation-work-units" id="piezasPorSesionCampo">
+                <span>¿{{ palabras_trabajo_reserva.cuantos|capfirst }} {{ palabras_trabajo_reserva.plural }} {% translate "harás con los materiales de este catálogo?" %}</span>
+                <input type="number" class="form-control" id="piezasPorSesionReserva" min="1" max="10000" step="1" value="1">
+                <small>{% translate "Los materiales ligados a un equipo llevan" %} {{ palabras_trabajo_reserva.los }} {{ palabras_trabajo_reserva.plural }} {% translate "de su propia tarjeta; esta cuenta es para los que eliges aquí abajo." %}</small>
+              </label>
+              <template id="plantillaTrabajoEquipo">
+                <div class="reservation-work-units reservation-work-units--equipment" data-equipment-work>
+                  <label class="reservation-work-units__pieces">
+                    <span>¿{{ palabras_trabajo_reserva.cuantos|capfirst }} {{ palabras_trabajo_reserva.plural }} {% translate "harás en este equipo?" %}</span>
+                    <input type="number" class="form-control" min="1" max="10000" step="1" value="1" data-equipment-pieces>
+                    <small>{% translate "Cada material de esta tarjeta se pide por" %} {{ palabras_trabajo_reserva.singular }} {% translate "y el sistema calcula el total." %}</small>
+                  </label>
+                  <label class="reservation-work-units__detail">
+                    <span>{% translate "¿Cómo lo necesitas? Dimensiones, acabado u otras precisiones" %}</span>
+                    <input type="text" class="form-control" maxlength="240" data-equipment-detail placeholder="{% translate "Ej.: 2 carcasas de 80 × 40 × 20 mm, relleno 20 %, color azul" %}">
+                  </label>
+                </div>
+              </template>
+
+              <div class="reservation-consumable-catalog is-readonly" id="catalogoConsumiblesOpciones">
+                <div class="reservation-consumable-catalog__heading">
+                  <div><strong>{% translate "Inventario publicado por" %} {{ unidad.nombre }}</strong><span>{{ consumibles_reserva|length }} {% translate "artículo" %}{{ consumibles_reserva|length|pluralize }} registrado{{ consumibles_reserva|length|pluralize }}</span></div>
+                  <p>{% translate "Selecciona solo lo necesario. La cantidad final queda sujeta a aprobación." %}</p>
+                </div>
+                <div class="reservation-consumable-compatibility" data-consumable-compatibility hidden role="status" aria-live="polite"></div>
+                <div class="reservation-inventory-groups">
+                {% for grupo in catalogo_inventario_reserva %}
+                  <section class="reservation-inventory-type reservation-inventory-type--{{ grupo.codigo }}" data-inventory-type="{{ grupo.codigo }}">
+                    <header class="reservation-inventory-type__heading"><span>{{ grupo.nombre }}</span></header>
+                    {% for familia in grupo.familias %}
+                    <section class="reservation-inventory-family" data-inventory-family="{{ familia.nombre }}">
+                      <header class="reservation-inventory-family__heading"><h4>{{ familia.nombre }}</h4><span>{{ familia.total }} variante{{ familia.total|pluralize }}</span></header>
+                      <div class="reservation-consumable-list">
+                    {% for consumible in familia.items %}
+                    <div class="reservation-consumable is-collapsed{% if consumible.stock_total <= 0 %} is-unavailable{% endif %}" data-consumible-id="{{ consumible.id }}" data-service-ids="{{ consumible.servicios_ids_csv }}" data-compatible-equipment-ids="{{ consumible.equipos_compatibles_ids_csv }}">
+                      <div class="reservation-consumable__head">
+                        <label class="reservation-consumable__select"><input type="checkbox" class="reservation-consumable__check" data-consumible-id="{{ consumible.id }}" disabled><span>{% translate "Seleccionar" %}</span></label>
+                        {% if consumible.imagen %}
+                        <button type="button" class="reservation-consumable__media" data-material-image="{{ consumible.imagen.url }}" data-material-name="{{ consumible.nombre }}" aria-label="Ampliar imagen de {{ consumible.nombre }}"><img src="{{ consumible.imagen.url }}" alt="{{ consumible.nombre }}" loading="lazy"><i class="fas fa-search-plus" aria-hidden="true"></i></button>
+                        {% elif consumible.imagen_catalogo %}
+                        {% static consumible.imagen_catalogo as imagen_catalogo_url %}
+                        <button type="button" class="reservation-consumable__media" data-material-image="{{ imagen_catalogo_url }}" data-material-name="{{ consumible.nombre }}" aria-label="Ampliar imagen de {{ consumible.nombre }}"><img src="{{ imagen_catalogo_url }}" alt="{{ consumible.nombre }}" loading="lazy"><i class="fas fa-search-plus" aria-hidden="true"></i></button>
+                        {% else %}<span class="reservation-consumable__media is-empty"><i class="fas fa-box-open" aria-hidden="true"></i></span>{% endif %}
+                        <div class="reservation-consumable__identity">
+                          <span class="reservation-consumable__kind">{{ consumible.get_clasificacion_display|ui }}</span>
+                          <h4>{{ consumible.nombre }}</h4>
+                          <div class="reservation-consumable__variants">{% if consumible.variante %}<span><b>{% translate "Variante" %}</b>{{ consumible.variante }}</span>{% endif %}{% if consumible.color %}<span><b>{% translate "Color" %}</b>{{ consumible.color }}</span>{% endif %}</div>
+                        </div>
+                        <div class="reservation-consumable__stock"><strong>{% if consumible.stock_total <= 0 %}{% translate "Agotado" %}{% elif mostrar_existencias_reserva %}{{ consumible.stock_total|floatformat:"-3" }} <small>{{ consumible.unidad_medida|default:"unidades" }}</small>{% else %}{% translate "Disponible" %}{% endif %}</strong><span>{% if consumible.stock_total > 0 %}{% translate "en existencia" %}{% else %}{% translate "sin existencia" %}{% endif %}</span></div>
+                        <span class="reservation-item-toggle" role="button" tabindex="0" data-item-toggle aria-expanded="false"><i class="fas fa-chevron-down" aria-hidden="true"></i> {% translate "Detalles" %}</span>
+                      </div>
+                      <div class="reservation-consumable__details" data-item-details hidden>
+                        <p>{{ consumible.descripcion|default:"Sin descripción adicional." }}</p>
+                        {% if consumible.especificacion_tecnica %}<p><b>{% translate "Características técnicas:" %}</b> {{ consumible.especificacion_tecnica }}</p>{% endif %}
+                        <dl>
+                          {% if consumible.marca %}<div><dt>{% translate "Marca" %}</dt><dd>{{ consumible.marca }}</dd></div>{% endif %}
+                          {% if consumible.presentacion %}<div><dt>{% translate "Presentación" %}</dt><dd>{{ consumible.presentacion }}{% if consumible.cantidad_por_presentacion %} ({{ consumible.cantidad_por_presentacion|floatformat:"-3" }} {{ consumible.unidad_medida|default:"unidades" }} {% translate "por presentación)" %}{% endif %}</dd></div>{% endif %}
+                          <div><dt>{% translate "Existencia" %}</dt><dd>{% if consumible.stock_total <= 0 %}{% translate "Agotado" %}{% elif mostrar_existencias_reserva %}{{ consumible.stock_total|floatformat:"-3" }} {{ consumible.unidad_medida|default:"unidades" }}{% else %}{% translate "Disponible" %}{% endif %}</dd></div>
+                          {% if consumible.lote %}<div><dt>{% translate "Lote en uso" %}</dt><dd>{{ consumible.lote }}</dd></div>{% endif %}
+                          {% if consumible.fecha_vencimiento %}<div><dt>{% translate "Vence" %}</dt><dd>{{ consumible.fecha_vencimiento|date:"d/m/Y" }}</dd></div>{% endif %}
+                          <div><dt>{% translate "Compatible con" %}</dt><dd data-consumable-compatible-names>{% if consumible.equipos_compatibles_ids_csv %}{% translate "Equipos indicados por la unidad" %}{% else %}{% translate "Uso general en la unidad" %}{% endif %}</dd></div>
+                          <div><dt>{% translate "Código de inventario" %}</dt><dd>{{ consumible.codigo }}</dd></div>
+                        </dl>
+                        {% if consumible.instrucciones_solicitud %}<p class="reservation-consumable__guidance"><i class="fas fa-info-circle"></i>{{ consumible.instrucciones_solicitud }}</p>{% else %}<p class="reservation-consumable__guidance"><i class="fas fa-info-circle"></i>{% translate "La cantidad final queda sujeta a revisión técnica." %}</p>{% endif %}
+                        {% if consumible.ficha_tecnica %}<a href="{{ consumible.ficha_tecnica.url }}" data-ver-pdf data-pdf-titulo="Ficha técnica · {{ consumible.nombre }}" data-pdf-descarga="{{ consumible.ficha_tecnica.url }}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver ficha técnica" %}</a>{% endif %}
+                      </div>
+                      <div class="reservation-consumable__request">
+                        <label><span data-quantity-label data-unit="{{ consumible.unidad_medida|default:'unidades' }}" data-stock="{% if mostrar_existencias_reserva %}{{ consumible.stock_total|floatformat:'-3' }}{% endif %}">{% translate "Cantidad (" %}{{ consumible.unidad_medida|default:"unidades" }}){% if mostrar_existencias_reserva %} {% translate "· disponible" %} {{ consumible.stock_total|floatformat:"-3" }}{% endif %}</span><input class="form-control reservation-consumable__quantity" type="number" min="0"{% if mostrar_existencias_reserva %} max="{{ consumible.stock_total|unlocalize }}"{% endif %} step="0.001" value="" placeholder="{% translate "Ej. 85" %}" data-consumible-id="{{ consumible.id }}" data-consumible-nombre="{{ consumible.nombre }}" data-unidad-medida="{{ consumible.unidad_medida|default:'unidades' }}" data-precio-unitario="{{ consumible.precio_unitario|default_if_none:''|unlocalize }}" data-detalle="{% if consumible.variante %}{{ consumible.variante }}{% endif %}{% if consumible.color %} · {{ consumible.color }}{% endif %}{% if consumible.presentacion %} · {{ consumible.presentacion }}{% if consumible.cantidad_por_presentacion %} de {{ consumible.cantidad_por_presentacion|floatformat:"-3" }} {{ consumible.unidad_medida|default:"unidades" }}{% endif %}{% endif %}{% if consumible.especificacion_tecnica %} · {{ consumible.especificacion_tecnica }}{% endif %}" data-stock-available="{% if consumible.stock_total > 0 %}true{% else %}false{% endif %}{% translate "\" disabled>" %}<small>{% translate "Obligatoria: escribe la cantidad que consume" %} {{ palabras_trabajo_reserva.un }} {{ palabras_trabajo_reserva.singular }}{% translate "; el sistema calcula el total." %}</small></label>
+                        <output class="reservation-quantity-total" data-quantity-total>{% translate "Total: escribe la cantidad" %}</output>
+                        <p class="reservation-consumable__stock-note" data-stock-note hidden role="alert"></p>
+                      </div>
+                    </div>
+                    {% endfor %}
+                      </div>
+                    </section>
+                    {% endfor %}
+                  </section>
+                {% empty %}<p class="rw-empty-note">{% translate "No hay insumos ni materiales publicados para esta unidad; la reserva se registra sin insumos y cualquier necesidad se coordina en la revisión técnica." %}</p>{% endfor %}
+                </div>
+                <div class="reservation-material-viewer" id="visorMaterialReserva" hidden role="dialog" aria-modal="true" aria-labelledby="visorMaterialTitulo"><button type="button" class="reservation-material-viewer__close" data-material-viewer-close aria-label="{% translate "Cerrar imagen" %}"><i class="fas fa-times"></i></button><figure><img id="visorMaterialImagen" src="" alt=""><figcaption id="visorMaterialTitulo"></figcaption></figure></div>
+              </div>
+              <section class="reservation-card reservation-scope-notice" id="avisoAlcanceRecursos" hidden aria-live="polite">
+                <div class="reservation-section-heading">
+                  <div>
+                    <span class="reservation-eyebrow">{% translate "Antes de continuar" %}</span>
+                    <h3>{% translate "Esto es lo que vas a solicitar" %}</h3>
+                    <p data-scope-hint></p>
+                  </div>
+                </div>
+                <ul class="reservation-scope-notice__list" data-scope-list></ul>
+                <label class="reservation-scope-notice__confirm">
+                  <input type="checkbox" id="confirmarAlcanceRecursos" data-scope-confirm>
+                  <span data-scope-confirm-text>{% translate "Confirmo que esto es todo lo que necesito." %}</span>
+                </label>
+              </section>
+
+              <section class="reservation-resource-cost" id="costoReferencialRecursos" aria-live="polite">
+                <header><div><small>{% translate "Estimación transparente" %}</small><strong>{% translate "Valor de la reserva y aporte UPEC" %}</strong></div><span>{% translate "Referencia, no factura" %}</span></header>
+                <p class="reservation-session-scope__note" data-session-estimate></p>
+                <div id="resultadoCostoReferencialRecursos"><p>{% translate "Selecciona recursos, horario e insumos para ver el desglose." %}</p></div>
+              </section>
+            </section>
+
+            <div class="reservation-form-grid">
+              <section class="reservation-card reservation-activity">
+                <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Actividad" %}</span><h3>{% translate "Datos de la solicitud" %}</h3></div></div>
+                <div class="reservation-requester">
+                  <span class="reservation-requester__avatar"><i class="fas fa-user"></i></span>
+                  <div><strong>{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}{% translate "Usuario no autenticado" %}{% endif %}</strong><small>{% if user.is_authenticated %}{{ user.email }}{% else %}{% translate "Inicia sesión para continuar" %}{% endif %}</small></div>
+                  <span>{% if user.is_authenticated and user.profile.institucion %}{{ user.profile.institucion }}{% else %}UPEC{% endif %}</span>
+                </div>
+              <div class="reservation-fields">
+                  <div class="reservation-field-wide reservation-primary-user{% if user.is_authenticated and not perfil_reserva_completo %} is-incomplete{% endif %}" id="solicitantePrincipal">
+                    <span class="reservation-requester__avatar"><i class="fas fa-user-check"></i></span>
+                    <div>
+                      <small>{% translate "Solicitante principal · datos tomados de Mi perfil" %}</small>
+                      <strong>{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}{% translate "Inicia sesión" %}{% endif %}</strong>
+                      {% if user.is_authenticated %}
+                        <span>{{ perfil_reserva.get_tipo_usuario_display|default:"Tipo sin registrar"|ui }} · {{ perfil_reserva.get_facultad_display|default:"Facultad sin registrar"|ui }}</span>
+                        <span>{{ perfil_reserva.get_carrera_display_custom }}{% if perfil_reserva.nivel_academico %} · {{ perfil_reserva.get_nivel_academico_display|ui }}{% endif %} · {{ perfil_reserva.institucion|default:"Institución sin registrar" }}</span>
+                        {% if perfil_reserva_faltantes %}<em>{% translate "Falta completar:" %} {{ perfil_reserva_faltantes|join:", " }}. <a href="{% url 'profile' %}" target="_blank">{% translate "Completar perfil" %}</a></em>{% else %}<em class="is-valid">{% translate "Datos completos para reportes institucionales." %}</em>{% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="reservation-field-wide reservation-participants" id="participantesReserva">
+                    <div class="reservation-participants__heading reservation-block-heading">
+                      <div>
+                        <strong><i class="fas fa-users" aria-hidden="true"></i> {% translate "Estudiantes o participantes que asistirán" %}</strong>
+                        <small>{% translate "Busca y añade personas con cuenta y perfil institucional completo. Sus datos y el número de participantes se completan automáticamente." %}</small>
+                      </div>
+                      <span id="contadorParticipantesReserva">{% translate "0 participantes secundarios" %}</span>
+                    </div>
+                    <p class="reservation-participants__notice"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "Para una actividad docente semanal o de todo el período debes agregar al menos un estudiante antes de configurar el calendario." %}</p>
+                    <label><span>{% translate "Buscar por nombre, usuario o correo" %}</span><span class="reservation-participants__search-control"><span aria-hidden="true"><i class="fas fa-search"></i></span><input type="search" class="form-control" id="buscarParticipanteReserva" autocomplete="off" placeholder="{% translate "Ej. estudiante.fablab o nombre del estudiante" %}"></span></label>
+                    <div class="reservation-participants__results" id="resultadosParticipantesReserva" hidden></div>
+                    <div class="reservation-participants__selected" id="seleccionParticipantesReserva"><p>{% translate "Solo asistirá el solicitante principal." %}</p></div>
+                  </div>
+                  <section class="reservation-field-wide reservation-service-purpose" id="finalidadServicioReserva" hidden>
+                    <div data-intent-slot="servicio"></div>
+                    <p class="reservation-service-purpose__note"><i class="fas fa-user-check" aria-hidden="true"></i> {% translate "Tú eres la persona responsable de esta solicitud; no se registran participantes. El laboratorio asigna al técnico que atenderá el trabajo." %}</p>
+                  </section>
+                  <fieldset class="reservation-field-wide reservation-purpose" id="propositoReserva">
+                    <legend class="reservation-block-heading"><i class="fas fa-th-large" aria-hidden="true"></i> {% translate "Propósito institucional de la solicitud *" %}</legend>
+                    <p class="reservation-purpose__help">{% translate "Esta clasificación permite medir el uso académico, investigativo y social de los laboratorios. No depende de si reservas recursos o encargas un servicio." %}</p>
+                    <div class="reservation-purpose-labels">
+                      <label><input type="radio" name="proposito_codigo" value="docencia_practica" required><span><i class="fas fa-chalkboard-teacher"></i><b>{% translate "Docencia y práctica curricular" %}</b><small>{% translate "Asignaturas, prácticas, simulaciones y formación de competencias." %}</small></span></label>
+                      <label><input type="radio" name="proposito_codigo" value="investigacion_innovacion"><span><i class="fas fa-microscope"></i><b>{% translate "Investigación e innovación" %}</b><small>{% translate "Investigación formativa, proyectos, desarrollo experimental o prototipado." %}</small></span></label>
+                      <label><input type="radio" name="proposito_codigo" value="vinculacion"><span><i class="fas fa-users"></i><b>{% translate "Vinculación con la sociedad" %}</b><small>{% translate "Programas, proyectos, transferencia y atención a comunidades." %}</small></span></label>
+                      <label><input type="radio" name="proposito_codigo" value="capacitacion"><span><i class="fas fa-graduation-cap"></i><b>{% translate "Capacitación y educación continua" %}</b><small>{% translate "Cursos, talleres, inducciones y actualización técnica." %}</small></span></label>
+                      <label><input type="radio" name="proposito_codigo" value="servicio_cientifico_tecnologico"><span><i class="fas fa-tools"></i><b>{% translate "Servicio científico-tecnológico" %}</b><small>{% translate "Ensayo, análisis, fabricación o asistencia técnica autorizada." %}</small></span></label>
+                      <label><input type="radio" name="proposito_codigo" value="titulacion"><span><i class="fas fa-book"></i><b>{% translate "Trabajo de titulación" %}</b><small>{% translate "Actividades vinculadas a un trabajo de titulación registrado." %}</small></span></label>
+                      <label><input type="radio" name="proposito_codigo" value="otro"><span><i class="fas fa-ellipsis-h"></i><b>{% translate "Otro propósito" %}</b><small>{% translate "Úsalo solo cuando ninguna categoría institucional corresponda." %}</small></span></label>
+                    </div>
+                  </fieldset>
+                  <section class="reservation-field-wide reservation-purpose-context" id="contextoActividadReserva" hidden aria-labelledby="contextoActividadTitulo">
+                    <div class="reservation-purpose-context__heading">
+                      <div><small>{% translate "Contexto para indicadores" %}</small><strong id="contextoActividadTitulo">{% translate "Completa la clasificación de la actividad" %}</strong><p>{% translate "El perfil identifica a quien solicita; aquí registramos para quién y dentro de qué actividad se utilizará el laboratorio." %}</p></div>
+                      <span><i class="fas fa-chart-bar"></i> {% translate "Datos trazables" %}</span>
+                    </div>
+                    <div class="reservation-purpose-context__grid">
+                      {% if catalogo_procesos_reserva %}
+                      <section class="reservation-context-field reservation-context-field--wide reservation-process" id="procesoReservaCampo" hidden data-selection-url-template="{% url 'seleccion_por_proceso' unidad.slug 0 %}">
+                        <label><span>{% translate "¿Qué producto y proceso vas a realizar? *" %}</span><select class="form-control" id="procesoReserva"><option value="">{% translate "Selecciona una familia y un producto" %}</option><option value="ninguno">{% translate "Uso de recursos sin un producto definido" %}</option>{% for familia in catalogo_procesos_reserva %}<optgroup label="{{ familia.nombre }}">{% for producto in familia.productos %}{% if producto.procesos %}{% for proceso in producto.procesos %}<option value="receta-{{ proceso.id }}" data-family="{{ familia.id }}" data-product-id="{{ producto.id }}" data-recipe-id="{{ proceso.id }}" data-base="{{ proceso.cantidad_base }}" data-unidad-base="{{ proceso.unidad_base }}" data-rinde="{{ proceso.rinde }}" data-unidad-producto="{{ proceso.unidad_producto }}" data-producto="{{ producto.nombre }}" data-etapas="{{ proceso.etapas }}">{{ proceso.nombre }} {% translate "· proceso técnico de" %} {{ proceso.etapas }} etapas</option>{% endfor %}{% else %}<option value="producto-{{ producto.id }}" data-family="{{ familia.id }}" data-product-id="{{ producto.id }}" data-producto="{{ producto.nombre }}">{{ producto.nombre }} {% translate "· proceso por configurar" %}</option>{% endif %}{% endfor %}</optgroup>{% endfor %}</select><small>{% translate "El catálogo incluye todas las familias y productos institucionales. Cuando existe una receta validada, la planta propone automáticamente áreas, equipos, software e insumos; en los demás productos podrás solicitar los recursos manualmente." %}</small></label>
+                        <input type="hidden" name="receta_id" id="recetaReservaId" value="">
+                        <input type="hidden" name="producto_id" id="productoReservaId" value="">
+                        <label data-process-scale hidden><span>{% translate "Materia prima que procesarás *" %}</span><input class="form-control" type="number" id="materiaPrimaProceso" min="0.001" step="0.001"><small data-process-scale-hint></small></label>
+                        <input type="hidden" name="factor_proceso" id="factorProceso" value="">
+                        <div class="reservation-process__summary" data-process-summary hidden aria-live="polite"></div>
+                      </section>
+                      {% endif %}
+                      <label class="reservation-context-field"><span>{% translate "Tipo de actividad *" %}</span><select class="form-control" id="subtipoActividad" name="subtipo_actividad"><option value="">{% translate "Selecciona una opción" %}</option></select></label>
+                      <fieldset class="reservation-context-beneficiary"><legend>{% translate "¿Para quién se realiza? *" %}</legend><div class="reservation-context-beneficiary__labels">
+                        <label><input type="radio" name="alcance_beneficiario" value="perfil_solicitante" checked><span>{% translate "Mi carrera o dependencia" %}</span></label>
+                        <label><input type="radio" name="alcance_beneficiario" value="otra_carrera"><span>{% translate "Otra carrera UPEC" %}</span></label>
+                        <label><input type="radio" name="alcance_beneficiario" value="dependencia_upec"><span>{% translate "Otra dependencia UPEC" %}</span></label>
+                        <label><input type="radio" name="alcance_beneficiario" value="proyecto_centro"><span>{% translate "Proyecto, grupo o centro" %}</span></label>
+                        <label><input type="radio" name="alcance_beneficiario" value="externo"><span>{% translate "Institución o comunidad externa" %}</span></label>
+                      </div></fieldset>
+                      <label class="reservation-context-field" id="carreraBeneficiariaCampo" hidden><span>{% translate "Carrera beneficiaria *" %}</span><select class="form-control" name="carrera_beneficiaria"><option value="">{% translate "Selecciona la carrera" %}</option>{% for carrera in carreras_reserva %}<option value="{{ carrera.codigo }}" data-facultad="{{ carrera.facultad }}">{{ carrera.nombre }}</option>{% endfor %}</select></label>
+                      <label class="reservation-context-field" id="entidadBeneficiariaCampo" hidden><span id="entidadBeneficiariaEtiqueta">{% translate "Entidad beneficiaria *" %}</span><input class="form-control" type="text" name="entidad_beneficiaria" maxlength="220" placeholder="{% translate "Nombre oficial de la dependencia, proyecto o institución" %}"></label>
+                      <fieldset class="reservation-activity-link reservation-context-field--wide" id="vinculacionActividadCampo" hidden>
+                        <legend>{% translate "¿Esta actividad requiere una guía de práctica?" %}</legend>
+                        <p>{% translate "Elige una sola opción. La guía es un documento académico y no es obligatoria para todos los usos del laboratorio." %}</p>
+                        <div class="reservation-activity-link__options">
+                          <label data-activity-link="independiente"><input type="radio" name="vinculacion_actividad" value="independiente"><span><i class="fas fa-clock"></i><b>{% translate "No utilizaré guía" %}</b><small>{% translate "La actividad no necesita un documento académico de práctica." %}</small></span></label>
+                          <label data-activity-link="catalogo"><input type="radio" name="vinculacion_actividad" value="catalogo"><span><i class="fas fa-list-alt"></i><b>{% translate "Sí, vincularé una guía aprobada" %}</b><small>{% translate "Selecciona una versión institucional vigente; no se copiará ni podrá editarse." %}</small></span></label>
+                          <label data-activity-link="clonada"><input type="radio" name="vinculacion_actividad" value="clonada"><span><i class="fas fa-copy"></i><b>{% translate "Clonar y adaptar una guía" %}</b><small>{% translate "Parte de una versión aprobada y crea tu propio borrador editable." %}</small></span></label>
+                          <label data-activity-link="manual"><input type="radio" name="vinculacion_actividad" value="manual"><span><i class="fas fa-file-alt"></i><b>{% translate "Sí, crearé una guía al final" %}</b><small>{% translate "Primero selecciona horario, equipos e insumos; completarás el FT04 en el paso 4." %}</small></span></label>
+                        </div>
+                        <div class="reservation-activity-link__notice" id="vinculacionActividadAviso"><i class="fas fa-info-circle"></i><span>{% translate "Esta respuesta evita obligarte a inventar una asignatura o proyecto y mantiene correctos los indicadores." %}</span></div>
+                      </fieldset>
+                      <label class="reservation-context-field reservation-context-field--wide" id="actividadCatalogoCampo" hidden><span>{% translate "Busca la actividad publicada *" %}</span><select class="form-control" id="actividadCatalogo" name="actividad_catalogo"><option value="">{% translate "Selecciona una actividad del catálogo" %}</option>{% for actividad in actividades_reserva %}<option value="{{ actividad.pk }}" data-purpose="{{ actividad.proposito_codigo }}" data-subtype="{{ actividad.subtipo_actividad }}" data-subtype-label="{{ actividad.get_subtipo_actividad_display }}" data-name="{{ actividad.nombre }}" data-code="{{ actividad.codigo }}" data-period="{{ actividad.periodo_academico }}" data-period-id="{{ actividad.periodo_id|default:'' }}" data-responsible="{{ actividad.responsable }}" data-faculty="{{ actividad.get_facultad_display }}" data-career="{{ actividad.get_carrera_display }}" data-family="{{ actividad.familia_guia_id|default:'' }}" data-subject="{{ actividad.asignatura_guia }}" data-has-guides="{% if actividad.guias_visibles %}true{% else %}false{% endif %}">{% if actividad.codigo %}{{ actividad.codigo }} · {% endif %}{{ actividad.nombre }}</option>{% endfor %}</select><small id="actividadCatalogoAyuda">{% translate "Las coincidencias con la unidad, el proceso y la asignatura aparecen primero." %}</small></label>
+                      {{ guias_clonables_reserva|json_script:"guiasClonablesReservaData" }}
+                      <article class="reservation-activity-preview reservation-context-field--wide" id="actividadCatalogoDetalle" hidden aria-live="polite">
+                        <div><i class="fas fa-check-circle"></i><span><small>{% translate "Actividad seleccionada" %}</small><strong id="actividadCatalogoNombre"></strong></span></div>
+                        <dl><div><dt>{% translate "Tipo" %}</dt><dd id="actividadCatalogoTipo">{% translate "Por definir" %}</dd></div><div><dt>{% translate "Código" %}</dt><dd id="actividadCatalogoCodigo">{% translate "Sin código" %}</dd></div><div><dt>{% translate "Período" %}</dt><dd id="actividadCatalogoPeriodo">{% translate "Según fecha" %}</dd></div><div><dt>{% translate "Responsable" %}</dt><dd id="actividadCatalogoResponsable">{% translate "Por asignar" %}</dd></div><div><dt>{% translate "Unidad académica" %}</dt><dd id="actividadCatalogoUnidad">{% translate "Institucional" %}</dd></div></dl>
+                        <div class="reservation-activity-guides" id="actividadCatalogoGuias">
+                          {% for actividad in actividades_reserva %}
+                          <div data-activity-guides="{{ actividad.pk }}" hidden>
+                            <strong><i class="fas fa-book-open"></i> {% translate "Guías disponibles para participantes" %}</strong>
+                            {% for guia in actividad.guias_visibles %}
+                            <a href="{% url 'ver_guia_actividad' guia.pk %}" target="_blank" rel="noopener"><i class="fas fa-file-alt"></i><span>{{ guia.titulo }}</span><small>{% translate "Ver HTML" %}</small></a>
+                            {% empty %}
+                            <small>{% translate "Esta actividad todavía no tiene guías publicadas o asignadas a tu cuenta." %}</small>
+                            {% endfor %}
+                          </div>
+                          {% endfor %}
+                        </div>
+                        <p><i class="fas fa-lock"></i> {% translate "Estos datos provienen del catálogo administrado por la UPEC y quedarán vinculados a tu reserva." %}</p>
+                      </article>
+                      <label class="reservation-context-field reservation-context-field--wide" id="referenciaActividadCampo" hidden><span id="referenciaActividadEtiqueta">{% translate "Nombre corto de la actividad o guía *" %}</span><input class="form-control" type="text" id="referenciaActividad" name="referencia_actividad" maxlength="120" placeholder="{% translate "Ej. Práctica CAD · modelado 3D" %}"><small id="referenciaActividadAyuda">{% translate "Máximo 30 caracteres. Este será el nombre visible en Recursos y prácticas." %}</small></label>
+                      <input type="hidden" name="codigo_referencia_actividad" value="">
+                      <label class="reservation-context-field reservation-context-period" id="periodoAcademicoCampo"><span>{% translate "Período de la reserva" %} <small>{% translate "(automático)" %}</small></span><input class="form-control" type="text" name="periodo_academico" maxlength="40" placeholder="{% translate "Se asignará al elegir la fecha" %}" readonly><input type="hidden" name="periodo_id"><input type="hidden" name="version_calendario_id"><small id="periodoAcademicoAyuda">{% translate "El sistema lo identificará mediante la fecha y el calendario institucional." %}</small></label>
+                      {{ periodos_calendario_reserva|json_script:"periodosAcademicosReservaData" }}
+                      {{ horarios_operacion_reserva|json_script:"horariosOperacionReservaData" }}
+                      {{ tipos_usuario_por_periodo|json_script:"tiposUsuarioPeriodoReservaData" }}
+                      <input type="hidden" name="responsable_actividad" value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}">
+                      <section class="reservation-activity-guide-upload reservation-context-field--wide" id="guiasActividadCampo" hidden>
+                        <div class="reservation-activity-guide-upload__heading"><div><small>{% translate "Documento previo opcional" %}</small><strong>{% translate "Adjuntar una guía PDF anterior" %} <em id="guiaActividadObligatoriedad">{% translate "(opcional)" %}</em></strong><p id="guiaActividadAyuda">{% translate "Solo utilízalo como respaldo. La nueva guía se completará y versionará dentro del sistema." %}</p></div><i class="fas fa-file-pdf"></i></div>
+                        <input type="file" id="guiasActividadInput" name="guias_actividad" accept="application/pdf,.pdf" multiple hidden>
+                        <input type="hidden" id="permisosDescargaGuias" name="permisos_descarga_guias" value="[]">
+                        <label class="reservation-activity-guide-upload__drop" for="guiasActividadInput" tabindex="0"><i class="fas fa-cloud-upload-alt"></i><span><strong>{% translate "Arrastra los PDF aquí o selecciónalos" %}</strong><small>{% translate "Puedes agregar archivos en varias selecciones. Hasta 10 PDF de 20 MB cada uno." %}</small></span><b id="guiasActividadAccion">{% translate "Seleccionar guías" %}</b></label>
+                        <div class="reservation-activity-guide-upload__list" id="guiasActividadLista" hidden></div>
+                        <p class="reservation-activity-link__notice">{% translate "La vista previa del PDF se abre sobre este panel. Al cerrarla, puedes continuar con la reserva." %}</p>
+                        <label class="reservation-activity-guide-upload__publish"><input type="checkbox" name="solicitar_publicacion_guias" value="1"><span><strong>{% translate "Solicitar publicación en Recursos y prácticas" %}</strong><small>{% translate "La UPEC revisará los documentos antes de mostrarlos a toda la comunidad. Sin esta opción solo los verán el solicitante y los participantes." %}</small></span></label>
+                      </section>
+                      <fieldset class="reservation-context-programming" id="origenProgramacionCampo">
+                        <legend>{% translate "¿Esta práctica estaba prevista en la planificación de la asignatura? *" %}</legend>
+                        <p class="reservation-context-programming__intro">{% translate "Elige según cómo nació esta práctica, no según la fecha en que haces la reserva." %}</p>
+                        <div class="reservation-context-programming__options">
+                          <label>
+                            <input type="radio" name="origen_programacion" value="programada">
+                            <span>
+                              <i class="fas fa-calendar-check"></i>
+                              <b>{% translate "Sí, estaba planificada" %}</b>
+                              <small>{% translate "Aparece en el sílabo, microcurrículo, planificación docente o cronograma del período." %}</small>
+                              <em>{% translate "Se reportará como práctica planificada." %}</em>
+                            </span>
+                          </label>
+                          <label>
+                            <input type="radio" name="origen_programacion" value="adicional">
+                            <span>
+                              <i class="fas fa-calendar-plus"></i>
+                              <b>{% translate "No, se agregó después" %}</b>
+                              <small>{% translate "Es una recuperación, refuerzo, demostración o práctica surgida durante el período." %}</small>
+                              <em>{% translate "Se reportará como actividad adicional." %}</em>
+                            </span>
+                          </label>
+                        </div>
+                        <div class="reservation-context-programming__impact">
+                          <i class="fas fa-chart-bar"></i>
+                          <span><strong>{% translate "¿Para qué sirve?" %}</strong> {% translate "Solo clasifica indicadores y reportes académicos. No cambia la disponibilidad, el costo, la prioridad ni la aprobación de la reserva." %}</span>
+                        </div>
+                      </fieldset>
+                      <label class="reservation-context-field reservation-context-field--wide" id="detalleOtroPropositoCampo" hidden><span>{% translate "Explica el propósito *" %}</span><textarea class="form-control" name="detalle_otro_proposito" rows="2" minlength="10" placeholder="{% translate "Describe por qué la actividad no corresponde a las categorías anteriores" %}"></textarea></label>
+                    </div>
+                    <div class="reservation-purpose-context__note"><i class="fas fa-info-circle"></i><span>{% translate "La carrera beneficiaria puede ser distinta de la carrera registrada en el perfil del solicitante. Esta separación evita indicadores institucionales incorrectos." %}</span></div>
+                  </section>
+                  <div class="reservation-field-wide reservation-auto-title" id="tituloAutomaticoReserva"><small>{% translate "Nombre inteligente de tu solicitud" %}</small><strong id="tituloSolicitudVista">{% translate "Se completará con tu selección" %}</strong></div>
+                  <input type="hidden" id="descripcionProyecto" name="descripcion_proyecto" value="">
+                  <input type="hidden" id="requisitosEspeciales" name="requisitos_especiales" value="Sin requisitos adicionales">
+                  <div class="reservation-field-wide reservation-support-note" id="apoyoLaboratorioNota">
+                    <span><i class="fas fa-hands-helping" aria-hidden="true"></i></span>
+                    <div><strong>{% translate "Apoyo del laboratorio incluido" %}</strong><p>{% translate "La orientación previa, la inducción de seguridad, la preparación del puesto y el soporte técnico durante la actividad forman parte de la prestación del servicio de la unidad: no necesitas solicitarlos. Cualquier condición particular (accesibilidad, software por instalar, seguimiento posterior) se coordina con el laboratorista en la revisión técnica." %}</p></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="reservation-card reservation-schedule">
+                <div class="reservation-section-heading"><div><span class="reservation-eyebrow">{% translate "Disponibilidad" %}</span><h3>{% translate "Fecha y horario" %}</h3></div></div>
+                <div class="reservation-calendar-planner">
+                <fieldset class="reservation-frequency" id="frecuenciaReservaCampo">
+                  <legend>{% translate "1. Define la duración de la reserva" %}</legend>
+                  <div>
+                    <label class="is-selected"><input type="radio" name="frecuencia_reserva" value="unica" checked><span><i class="fas fa-calendar-day"></i><b>{% translate "Una sola sesión" %}</b><small>{% translate "Reserva un día y bloques horarios concretos." %}</small></span></label>
+                    <label><input type="radio" name="frecuencia_reserva" value="semanal_rango"><span><i class="fas fa-sync-alt"></i><b>{% translate "Semanal hasta una fecha" %}</b><small>{% translate "La primera fecha se elige en la agenda y se repite cada semana hasta la fecha final." %}</small></span></label>
+                    <label><input type="radio" name="frecuencia_reserva" value="semanal_periodo"><span><i class="fas fa-calendar-week"></i><b>{% translate "Todo el período académico" %}</b><small>{% translate "Reserva el mismo día y horario durante todas las semanas de clase habilitadas." %}</small></span></label>
+                  </div>
+                  <div class="reservation-frequency__range" id="rangoFrecuenciaReserva" hidden>
+                    <label><span>{% translate "Fecha final de la serie" %}</span><input class="form-control" type="date" id="fechaFinRecurrencia" name="fecha_fin_recurrencia"><small>{% translate "La fecha inicial será la elegida abajo. Se creará una sesión semanal y se omitirán semanas no habilitadas." %}</small></label>
+                  </div>
+                  <p id="frecuenciaReservaAyuda"><i class="fas fa-info-circle"></i> {% translate "Puedes reservar una sola sesión o repetirla semanalmente, con o sin guía; cada fecha se validará por separado." %}</p>
+                </fieldset>
+                <div class="cal-box" aria-label="{% translate "Agenda integrada de disponibilidad" %}">
+                  <div class="month">
+                    <div class="bar hublab-calendar-bar"><button class="reservation-icon-button" id="prevMonth" type="button" data-ui-click="cambiarMes" data-ui-arg0="-1" title="{% translate "Mes anterior" %}"><i class="fas fa-chevron-left"></i></button><strong id="monthTitle" class="hublab-month-title"></strong><button class="reservation-icon-button" id="nextMonth" type="button" data-ui-click="cambiarMes" data-ui-arg0="1" title="{% translate "Mes siguiente" %}"><i class="fas fa-chevron-right"></i></button></div>
+                    <div class="grid" id="dow"><div class="dow">D</div><div class="dow">L</div><div class="dow">M</div><div class="dow">M</div><div class="dow">J</div><div class="dow">V</div><div class="dow">S</div></div>
+                    <div class="grid" id="monthGrid"></div>
+                  </div>
+                </div>
+                <input type="hidden" id="fechaInicio" name="fecha_inicio" required><input type="hidden" id="fechaFin" name="fecha_fin" required><input type="hidden" id="horasSeleccionadas" name="horas_seleccionadas">
+                <div class="reservation-schedule-plan" id="cronogramaReserva" hidden data-fechas-url="{% url 'fechas_programacion' %}" data-unidad="{{ unidad.slug }}">
+                  <div class="reservation-schedule-plan__heading"><div><strong>{% translate "Qué harás en cada sesión" %}</strong><small>{% translate "La primera sesión toma el proceso del paso anterior; en las demás indica la práctica, el proceso y la materia prima. Cada sesión nace con lo que su proceso exige y podrás completarla después desde «Mis sesiones programadas»." %}</small></div><span class="reservation-schedule-plan__status" data-schedule-status>{% translate "Elige el primer día en la agenda para ver las sesiones." %}</span></div>
+                  <div class="reservation-schedule-plan__rows" data-schedule-rows></div>
+                  <input type="hidden" name="cronograma" id="cronogramaSesiones" value="">
+                </div>
+                </div>
+              </section>
+            </div>
+
+            <section class="reservation-card reservation-responsibles" id="responsablesReservaCatalogo" data-catalog-count="{{ responsables_reserva|length }}">
+              <p class="reservation-responsibles__note"><i class="fas fa-user-check" aria-hidden="true"></i><span><strong>{% translate "Acompañamiento técnico." %}</strong> {% translate "No eliges a nadie: al aprobar la solicitud, el laboratorio asigna a la persona responsable" %}{% if responsables_reserva %} entre {{ responsables_reserva|length }} habilitada{{ responsables_reserva|length|pluralize }}{% endif %}.</span></p>
+            </section>
+
+            <section class="reservation-terms">
+              <label><input type="checkbox" id="aceptarTerminos" name="aceptar_terminos" required><span>{% translate "Acepto el reglamento y las condiciones de uso de la unidad." %}</span></label>
+              <p><i class="fas fa-info-circle"></i> {% translate "La solicitud será revisada por el responsable. La disponibilidad mostrada no equivale a aprobación." %}</p>
+            </section>
+          </form>
+
+          <div id="resumenReservaPreview" class="reservation-preview">
+            <div><span class="reservation-eyebrow">{% translate "Confirmación" %}</span><h3>{% translate "Revisa antes de enviar" %}</h3><div id="resumenReservaContenido"></div></div>
+            <div><button type="button" class="reservation-button reservation-button--secondary" data-ui-click="ocultarResumenReserva">{% translate "Editar" %}</button><button type="button" class="reservation-button reservation-button--primary" id="btnConfirmarEnvioReserva" data-ui-click="confirmarEnvioReserva">{% translate "Confirmar y enviar" %}</button></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer reservation-footer">
+        <button type="button" class="reservation-button reservation-button--ghost" data-dismiss="modal">{% translate "Cancelar" %}</button>
+        <button type="button" class="reservation-button reservation-button--secondary" data-ui-click="mostrarResumenReserva"><i class="fas fa-eye"></i> {% translate "Revisar solicitud" %}</button>
+        <button type="button" class="reservation-button reservation-button--primary" id="btnEnviarReserva" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-ui-click="procesarEnvioReserva" {% if not user.is_authenticated %}disabled{% endif %}><i class="fas fa-paper-plane"></i> {% translate "Enviar solicitud" %}</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div class="reservation-tutorial-viewer" id="visorTutorialReserva" hidden role="dialog" aria-modal="true" aria-labelledby="visorTutorialTitulo">
+  <div class="reservation-tutorial-viewer__dialog">
+    <header><div><span class="reservation-eyebrow">{% translate "Guía audiovisual de la solicitud" %}</span><h3 id="visorTutorialTitulo">{% translate "Cómo completar la solicitud" %}</h3><p id="visorTutorialDescripcion">{% translate "Revisa cada etapa antes de comenzar." %}</p></div><button type="button" class="reservation-tutorial-viewer__close" data-tutorial-viewer-close aria-label="{% translate "Cerrar videotutorial" %}"><i class="fas fa-times"></i></button></header>
+    <div class="reservation-tutorial-viewer__media"><iframe id="visorTutorialIframe" title="{% translate "Guía audiovisual de la solicitud" %}" src="about:blank" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+  </div>
+</div>
+
+<template id="guiaDocumentoPlantilla">{% include 'portal/pages/unidades/guias/includes/documento.html' with modo='asistente' %}</template>
+<script src="{% static 'portal/js/pages/unidades/reservas/modal_reserva_equipos.js' %}?v=20261110-escala-compartida-v16"></script>

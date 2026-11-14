@@ -1,0 +1,45 @@
+{% extends "admin/change_list.html" %}
+{% load static i18n idiomas %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/admin/reservas.css' %}?v=20261009-local-v1">
+{% endblock %}
+
+{% block content_title %}
+<section class="upec-admin-card">
+    <h1 class="upec-admin-title">{% translate "Movimientos de inventario" %}</h1>
+    <p class="upec-inventory-intro">{% translate "Registra una entrada o salida sin salir de esta vista." %}</p>
+
+    <form method="post" class="upec-inventory-form">
+        {% csrf_token %}
+        <input type="hidden" name="registrar_movimiento" value="1">
+
+        <div class="upec-inventory-field">
+            <label for="id_consumible">{% translate "Insumo o material" %}</label>{{ quick_inventory_form.consumible }}
+            {% if quick_inventory_form.consumible.errors %}<div class="upec-form-error">{{ quick_inventory_form.consumible.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="upec-inventory-field">
+            <label for="id_tipo">{% translate "Tipo" %}</label>{{ quick_inventory_form.tipo }}
+            {% if quick_inventory_form.tipo.errors %}<div class="upec-form-error">{{ quick_inventory_form.tipo.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="upec-inventory-field">
+            <label for="id_cantidad">{% translate "Cantidad" %}</label>{{ quick_inventory_form.cantidad }}
+            {% if quick_inventory_form.cantidad.errors %}<div class="upec-form-error">{{ quick_inventory_form.cantidad.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="upec-inventory-field">
+            <label for="id_fecha">{% translate "Fecha" %}</label>{{ quick_inventory_form.fecha }}
+            {% if quick_inventory_form.fecha.errors %}<div class="upec-form-error">{{ quick_inventory_form.fecha.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="upec-inventory-field upec-inventory-field--wide">
+            <label for="id_nota">{% translate "Nota" %}</label>{{ quick_inventory_form.nota }}
+            {% if quick_inventory_form.nota.errors %}<div class="upec-form-error">{{ quick_inventory_form.nota.errors|striptags }}</div>{% endif %}
+        </div>
+        <div class="upec-inventory-submit">
+            <button type="submit" class="default upec-admin-button upec-admin-button--gold">{% translate "Registrar movimiento" %}</button>
+            <span class="upec-inventory-help">{% translate "El stock se actualiza al guardar." %}</span>
+        </div>
+        {% if quick_inventory_form.non_field_errors %}<div class="upec-form-error upec-form-error--wide">{{ quick_inventory_form.non_field_errors|striptags }}</div>{% endif %}
+    </form>
+</section>
+{{ block.super }}
+{% endblock %}

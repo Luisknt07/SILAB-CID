@@ -1,0 +1,393 @@
+.home-top {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 2200;
+  color: var(--upec-color-surface);
+  box-shadow: var(--upec-shadow-header);
+}
+
+.home-contact {
+  min-height: 32px;
+  background: linear-gradient(90deg, var(--upec-color-green-900), var(--upec-color-green-700));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: var(--upec-text-xs);
+}
+
+.home-contact-inner,
+.home-nav-inner {
+  width: min(var(--upec-container-wide), calc(100% - var(--upec-page-gutter)));
+  margin: 0 auto;
+}
+
+.home-contact-inner {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--upec-space-md);
+}
+
+.contact-list,
+.social-list,
+.home-menu {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-list,
+.social-list {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.contact-list li,
+.social-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: rgba(255, 255, 255, 0.88);
+  white-space: nowrap;
+}
+
+.home-contact-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Sesion al extremo derecho de la barra superior, separada de contacto, redes
+   e idiomas, para dejar la barra de titulo a la marca y la navegacion. */
+.home-session {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+  white-space: nowrap;
+}
+
+.home-session__user {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: #fff !important;
+  font-weight: var(--upec-font-weight-bold);
+  text-decoration: none !important;
+}
+
+.home-session__user i { color: rgba(255, 255, 255, 0.82); }
+
+/* El nombre completo sigue disponible en el perfil sin expandir la barra. */
+.home-session, .home-session__user { min-width: 0; }
+.home-session__user span { min-width: 0; max-width: clamp(110px, 11vw, 180px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-session__user i, .home-session__logout { flex-shrink: 0; }
+
+
+.home-session__logout { margin: 0; }
+
+.home-session__logout button {
+  padding: 0;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  font-weight: var(--upec-font-weight-bold);
+  cursor: pointer;
+}
+
+.home-session__logout button:hover,
+.home-session__user:hover { text-decoration: underline !important; }
+
+.home-contact .language-switch {
+  padding: 1px;
+  border-radius: 5px;
+}
+
+.home-contact .language-switch button {
+  min-width: 26px;
+  min-height: 22px;
+  padding: 1px 4px;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+@media (max-width: 1679.98px) {
+  .home-contact .contact-list li:last-child { display: none; }
+}
+
+.home-nav {
+  min-height: 64px;
+  background: rgba(var(--institucion-oscuro-rgb, 5, 17, 26), 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 0;
+  transition: background-color 280ms ease, box-shadow 280ms ease;
+}
+
+.home-top.is-scrolled .home-nav {
+  background: rgba(var(--institucion-oscuro-rgb, 5, 17, 26), 0.76);
+  box-shadow: 0 12px 30px rgba(var(--institucion-primario-rgb, 0, 20, 15), 0.18);
+}
+
+.home-nav-inner {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.1vw, 2.8rem);
+}
+
+.brand-block {
+  min-width: 0;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.62rem;
+  color: var(--upec-color-surface) !important;
+  text-decoration: none !important;
+}
+
+.brand-block .institutional-logo { display: block; flex: 0 0 auto; }
+
+.brand-block img {
+  display: block;
+  width: clamp(112px, 8vw, 148px);
+  max-height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.24));
+}
+
+.brand-divider {
+  width: 1px;
+  height: 32px;
+  flex: 0 0 1px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.brand-title {
+  max-width: none;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--upec-color-surface);
+  font-family: var(--upec-font-family-heading);
+  font-size: 12px;
+  font-weight: var(--upec-font-weight-bold);
+  line-height: 1.22;
+}
+
+.home-menu {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.45rem, 1vw, 1.1rem);
+}
+
+.home-menu > li {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-menu a {
+  position: relative;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  padding: 0.48rem 0.12rem;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: clamp(0.66rem, 0.72vw, 0.78rem);
+  font-weight: var(--upec-font-weight-regular);
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.home-menu a i {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.95rem;
+}
+
+.home-menu a.active i,
+.home-menu a:hover i {
+  color: var(--upec-color-gold-500);
+}
+
+.home-menu .nav-labs a {
+  width: min-content;
+  min-width: 164px;
+  white-space: normal;
+}
+
+.home-menu a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0.22rem;
+  left: 0;
+  height: 2px;
+  border-radius: var(--upec-radius-pill);
+  background: var(--upec-color-gold-500);
+  transform: scaleX(0);
+  transition: transform var(--upec-transition);
+}
+
+.home-menu a:hover::after,
+.home-menu a.active::after {
+  transform: scaleX(1);
+}
+
+.nav-tools {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.reservation-notifications { position: relative; }
+.reservation-notifications__trigger {
+  position: relative; width: 40px; height: 40px; display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,.22); border-radius: 50%; color: #fff;
+  background: rgba(255,255,255,.08); cursor: pointer;
+}
+.reservation-notifications__trigger b {
+  position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px;
+  padding: 0 4px; display: grid; place-items: center; border: 2px solid var(--institucion-oscuro, #071923);
+  border-radius: 999px; color: var(--institucion-texto, #173b2c); background: var(--upec-color-gold-500);
+  font-size: 10px; line-height: 1;
+}
+.reservation-notifications__menu {
+  position: absolute; top: calc(100% + 12px); right: 0; width: min(390px, calc(100vw - 28px));
+  overflow: hidden; border: 1px solid var(--institucion-primario-suave, #d7e1db); border-top: 3px solid var(--upec-color-gold-500);
+  border-radius: 10px; color: var(--institucion-texto, #163a2b); background: #fff; box-shadow: 0 20px 50px rgba(var(--institucion-primario-rgb, 1, 23, 17), .28);
+}
+.reservation-notifications__menu > header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid var(--institucion-primario-suave, #e5ece8); background: #f6f9f7;
+}
+.reservation-notifications__menu header span { display: block; color: var(--institucion-acento-tinta, #987219); font-size: 9px; font-weight: 800; letter-spacing: .11em; }
+.reservation-notifications__menu header strong { font-size: 15px; }
+.reservation-notifications__menu header button { border: 0; color: var(--institucion-primario-tinta, #2f7854); background: transparent; font-size: 11px; font-weight: 700; cursor: pointer; }
+.reservation-notifications__menu > div { max-height: 380px; overflow: auto; }
+.reservation-notifications__menu a {
+  display: flex; gap: 11px; padding: 13px 16px; color: var(--institucion-texto, #233d34) !important;
+  border-bottom: 1px solid var(--institucion-primario-suave, #edf2ef); text-decoration: none !important;
+}
+.reservation-notifications__menu a.is-unread { background: var(--institucion-primario-suave, #edf6f0); box-shadow: inset 3px 0 var(--institucion-primario, #2f7854); }
+.reservation-notifications__menu a > i { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 30px; border-radius: 7px; color: var(--institucion-icono, var(--institucion-primario-tinta, #2f7854)); background: var(--institucion-primario-suave, #e5f0e9); }
+.reservation-notifications__menu a span { min-width: 0; }
+.reservation-notifications__menu a strong, .reservation-notifications__menu a small, .reservation-notifications__menu a time { display: block; }
+.reservation-notifications__menu a strong { font-size: 12px; }
+.reservation-notifications__menu a small { margin-top: 3px; color: #667770; font-size: 10px; line-height: 1.35; }
+.reservation-notifications__menu a time { margin-top: 4px; color: #8b9893; font-size: 9px; }
+.reservation-notifications__menu p { margin: 0; padding: 24px 16px; color: #6d7d76; text-align: center; font-size: 12px; }
+
+.mobile-toggle {
+  width: 38px;
+  height: 38px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  color: var(--upec-color-surface);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.has-institutional-header > main {
+  margin: var(--upec-header-height, 97px) 0 0 !important;
+}
+
+@media (max-width: 1279.98px) {
+  .home-top .home-contact { display: block; }
+  .home-contact .contact-list { display: none; }
+  .home-nav,
+  .home-nav-inner { min-height: 64px; }
+  .home-menu {
+    position: fixed;
+    top: var(--upec-header-height, 97px);
+    right: 0;
+    left: 0;
+    display: none;
+    padding: 1rem 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(var(--institucion-primario-rgb, 4, 20, 16), 0.98);
+    flex-direction: column;
+    align-items: flex-start;
+    max-height: calc(100dvh - var(--upec-header-height, 97px));
+    overflow-y: auto;
+  }
+  .home-top.menu-open .home-menu { display: flex; }
+  .mobile-toggle { display: inline-flex; }
+  body.has-institutional-header > main { margin: var(--upec-header-height, 97px) 0 0 !important; }
+}
+
+/* El escritorio con poco espacio útil conserva navegación y lectura compactas.
+   Se mide el viewport CSS; el zoom y el escalado del sistema siguen disponibles. */
+@media (min-width: 768px) and (max-width: 2047px), (min-width: 768px) and (max-height: 820px) {
+  :root { --upec-header-height: 83px; }
+  .home-contact, .home-contact-inner { min-height: 28px; }
+  .home-nav, .home-nav-inner { min-height: 54px; }
+  .home-nav-inner { gap: 16px; }
+  .brand-block { min-width: 0; gap: 10px; }
+  .brand-block img { width: 112px; max-height: 34px; }
+  .brand-divider { height: 28px; }
+  .brand-title { max-width: none; font-size: 11px; }
+  .contact-list, .social-list { gap: .7rem; }
+  .home-contact-actions { gap: .7rem; }
+  .home-session { gap: .6rem; padding-left: .7rem; }
+  .home-menu { gap: .6rem; }
+  .home-menu .nav-labs a { min-width: 200px; }
+}
+
+@media (max-width: 767.98px) {
+  .home-nav,
+  .home-nav-inner { min-height: 56px; }
+  :root { --upec-header-height: 89px; }
+  .home-menu { top: var(--upec-header-height, 89px); padding: 1rem 14px; }
+  .home-contact-inner { width: calc(100% - 28px); }
+  .home-contact-actions { width: 100%; justify-content: space-between; gap: 0.5rem; }
+  .home-contact .social-list li:not(:last-child) { display: none; }
+  .home-session { gap: 0.6rem; padding-left: 0.6rem; }
+  .home-nav-inner { width: calc(100% - 28px); }
+  .brand-block { min-width: 0; flex: 1; }
+  .brand-block img { width: 104px; max-height: 38px; }
+  .brand-divider,
+  .brand-title { display: none; }
+  body.has-institutional-header > main { margin: var(--upec-header-height, 89px) 0 0 !important; }
+  .reservation-notifications__menu { position: fixed; top: calc(var(--upec-header-height, 89px) + 2px); right: 14px; }
+}
+
+/* Uploaded compact marks retain a bounded height in floating hero badges. */
+.hero-brand-mark .institutional-logo--uploaded img,
+.footer-brand .institutional-logo--uploaded img,
+.institutional-hero__brand .institutional-logo--uploaded img,
+.upec-about__hero-brand .institutional-logo--uploaded img { max-height:72px; }
+@media (max-width:575.98px) {
+  .hero-brand-mark .institutional-logo--uploaded img,
+  .footer-brand .institutional-logo--uploaded img,
+  .institutional-hero__brand .institutional-logo--uploaded img,
+  .upec-about__hero-brand .institutional-logo--uploaded img { width:auto !important; max-width:155px !important; max-height:52px; }
+}
+
+/* Los nombres largos conservan espacio para cerrar sesión en el encabezado móvil. */
+@media(max-width:767.98px){
+ .home-contact-actions,.home-session,.home-session__user{min-width:0;}
+ .home-session{flex-shrink:1;}
+ .home-session__user{flex-shrink:1;}
+ .home-session__user span{min-width:0;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+ .home-session__logout{flex-shrink:0;}
+}
+
+/* La navegación secundaria sigue el alto real de la cabecera compartida. */
+.institutional-local-nav { top: var(--upec-header-height, 97px); }

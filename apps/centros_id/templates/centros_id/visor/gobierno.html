@@ -1,0 +1,57 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Gobierno y gestión, con las piezas de Laboratorios: las instancias que lo gobiernan, quién lo dirige, el plan, los
+informes y las actas, lo que mide y los riesgos que controla.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Quién dirige, quién opera, quién evalúa y quién transfiere; con qué documentos rinde cuentas, qué mide y qué riesgos controla." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if gobierno %}
+<section class="conoce__seccion" id="modelo">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cómo se gobierna" %}</span><h2>{% translate "Modelo de gobierno" %}</h2></header>
+  <div class="area__actividades">{% for organo in gobierno %}<article class="area__actividad" data-aparecer><header><i class="{{ organo.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{{ organo.rol }}</span></div></header><h3>{{ organo.nombre }}</h3><p>{{ organo.responsabilidad }}</p>{% if organo.lista_funciones %}<ul class="area__lista">{% for funcion, descripcion in organo.lista_funciones %}<li><strong>{{ funcion }}</strong>{% if descripcion %} · {{ descripcion }}{% endif %}</li>{% endfor %}</ul>{% endif %}</article>{% endfor %}</div>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El modelo de gobierno no está registrado.") enlace=completar %}</section>
+{% endif %}
+
+{% if director or comite %}
+<section class="conoce__seccion" id="direccion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Quién lo dirige" %}</span><h2>{% translate "Dirección y comité técnico-científico" %}</h2></header>
+  <div class="ficha__equipo">{% if director %}{% include 'centros_id/visor/_persona.html' with persona=director %}{% endif %}{% for persona in comite %}{% include 'centros_id/visor/_persona.html' %}{% endfor %}</div>
+  <p class="ficha__nota"><a class="cv-enlace-area" href="{% url 'seccion_centro_id' centro.slug 'direccion' %}">{% translate "Ver el equipo del centro" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p>
+</section>
+{% endif %}
+
+{% if plan or informes or actas %}
+<section class="conoce__seccion" id="documentos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Rendición de cuentas" %}</span><h2>{% translate "Plan, informes y actas" %}</h2></header>
+  <div class="area__recursos">
+    {% if plan %}{% include 'centros_id/visor/_documento.html' with documento=plan %}{% endif %}
+    {% for documento in informes %}{% include 'centros_id/visor/_documento.html' %}{% endfor %}
+    {% for documento in actas %}{% include 'centros_id/visor/_documento.html' %}{% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="conoce__seccion">{% include 'centros_id/visor/_vacio.html' with texto=_("No hay plan de desarrollo, informes anuales ni actas publicadas.") enlace=completar %}</section>
+{% endif %}
+
+{% if indicadores %}
+<section class="conoce__seccion" id="indicadores">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Con qué rinde cuentas" %}</span><h2>{% translate "Lo que mide" %}</h2></header>
+  <p class="ficha__areas">{% if por_medir %}{% translate "El centro rinde cuentas con estos indicadores. Los que aún no tienen valor solo los ve quien gestiona; se publican al registrar su primera medición." %}{% else %}{% translate "Los conteos se calculan con los registros institucionales publicados y la fecha de consulta. Cero significa que no hay registros; una medición manual ausente sigue pendiente." %}{% endif %}</p>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Indicador" %}</th><th scope="col">{% translate "Cómo se mide" %}</th><th scope="col">{% translate "Valor" %}</th><th scope="col">{% translate "Medición" %}</th></tr></thead><tbody>
+    {% for categoria, filas in indicadores.items %}<tr class="cv-fila-grupo"><th colspan="4" scope="rowgroup">{{ categoria }}</th></tr>{% for indicador in filas %}<tr><td><strong>{{ indicador.nombre }}</strong></td><td>{{ indicador.medicion|default:"—" }}</td><td>{% if indicador.valor is not None %}<strong>{{ indicador.valor|floatformat:"-2" }}</strong>{% else %}<span class="area__estado is-uso">{% translate "por medir" %}</span>{% endif %}</td><td>{% if indicador.actualizado %}{% if indicador.calculado %}{% translate "Consulta calculada" %} · {% endif %}{{ indicador.actualizado|date:"d/m/Y" }}{% else %}—{% endif %}</td></tr>{% endfor %}{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+
+{% if riesgos %}
+<section class="conoce__seccion" id="riesgos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que controla" %}</span><h2>{% translate "Riesgos y cómo se mitigan" %}</h2></header>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Riesgo" %}</th><th scope="col">{% translate "Posible efecto" %}</th><th scope="col">{% translate "Mitigación" %}</th></tr></thead><tbody>
+    {% for categoria, filas in riesgos.items %}<tr class="cv-fila-grupo"><th colspan="3" scope="rowgroup">{{ categoria }}</th></tr>{% for riesgo in filas %}<tr><td><strong>{{ riesgo.riesgo }}</strong></td><td>{{ riesgo.efecto }}</td><td>{{ riesgo.mitigacion }}</td></tr>{% endfor %}{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

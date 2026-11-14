@@ -1,0 +1,174 @@
+/* Medidas y jerarquía comunes a las agendas de la unidad. */
+:is(#misReservasModal, [data-management-agenda]) {
+  --agenda-green: var(--institucion-primario, #2b633c);
+  --agenda-gold: var(--institucion-acento, #f8d443);
+  --agenda-ink: #22372e;
+  --agenda-muted: #61726b;
+  --agenda-line: #d8e3dd;
+  --agenda-soft: #f6f9f7;
+  color: var(--agenda-ink);
+}
+:is(#misReservasModal, [data-management-agenda]) [hidden] { display: none !important; }
+:is(#misReservasModal, [data-management-agenda]) .upec-agenda-views {
+  display: inline-flex; flex: 0 0 auto; gap: 2px; padding: 3px;
+  border: 1px solid var(--agenda-line); border-radius: 6px; background: #eef3ef;
+}
+:is(#misReservasModal, [data-management-agenda]) .upec-agenda-views button {
+  width: auto; min-width: 48px; min-height: 32px; padding: 5px 10px; border: 0;
+  border-radius: 4px; background: transparent; color: var(--agenda-green);
+  font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+:is(#misReservasModal, [data-management-agenda]) .upec-agenda-views button.is-active { color: #fff; background: var(--agenda-green); }
+:is(#misReservasModal, [data-management-agenda]) :is(button, a):focus-visible { outline: 3px solid var(--agenda-gold); outline-offset: 2px; }
+:is(#misReservasModal, [data-management-agenda]) .upec-agenda-more {
+  position: absolute; z-index: 12; right: 6px; width: auto; height: 25px; padding: 2px 8px;
+  border: 1px solid var(--agenda-green); border-radius: 4px; background: #fff;
+  color: var(--agenda-green); font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+/* Mis reservas: la misma lectura del asistente, con sus solicitudes y expediente. */
+#misReservasModal .reservation-history-body { padding: 14px; overflow: auto; }
+#misReservasModal .reservation-history-profile { padding: 12px 16px; margin-bottom: 14px; }
+#misReservasModal .reservation-history-profile strong { font-size: 16px; }
+#misReservasModal .reservation-history-profile small { font-size: 12px; }
+#misReservasModal .reservation-history-toolbar label > span { font-size: 12px; }
+#misReservasModal .reservation-history-toolbar :is(input, select) { font-size: 14px; }
+#misReservasModal .reservation-history-footer { font-size: 13px; }
+#misReservasModal .my-reservations-calendar {
+  grid-template-columns: clamp(320px, 25vw, 420px) minmax(0, 1fr);
+  height: min(780px, calc(100dvh - 300px)); min-height: 360px;
+  border: 1px solid var(--agenda-line); border-radius: 12px; background: var(--agenda-soft);
+}
+#misReservasModal .my-reservations-calendar__sidebar { min-width: 0; grid-template-rows: auto minmax(180px, 1fr); overflow: auto; border-color: var(--agenda-line); background: #fff; }
+#misReservasModal .my-reservations-month { padding: 14px; }
+#misReservasModal .my-reservations-panel-heading { gap: 8px; padding-bottom: 10px; }
+#misReservasModal .my-reservations-panel-heading > span { font-size: 12px; letter-spacing: .05em; }
+#misReservasModal .my-reservations-panel-heading small { font-size: 11px; line-height: 1.3; }
+#misReservasModal .my-reservations-panel-heading button { border: 0; border-radius: 4px; padding: 4px 7px; background: #eef3ef; color: var(--agenda-green); font-size: 12px; cursor: pointer; }
+#misReservasModal .my-reservations-month__nav { gap: 8px; margin-bottom: 10px; }
+#misReservasModal .my-reservations-month__nav strong { font-size: 15px; }
+#misReservasModal :is(.my-reservations-month__nav, .my-reservations-week__toolbar) button:not([data-my-agenda-mode]) {
+  width: auto; min-width: 36px; height: 36px; padding: 6px 9px; border-radius: 6px; font-size: 13px;
+}
+#misReservasModal .my-reservations-month__weekdays { font-size: 12px; margin-bottom: 6px; }
+#misReservasModal .my-reservations-month__days { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+#misReservasModal .my-reservations-month__days > :is(button, span) { min-width: 0; width: 100%; height: 44px; }
+#misReservasModal .my-reservations-month__days > button b { font-size: 14px; }
+#misReservasModal .my-reservations-month__days > button small { font-size: 10px; }
+#misReservasModal .my-reservations-list { min-height: 0; background: #fff; }
+#misReservasModal .my-reservations-list > .my-reservations-panel-heading { padding: 12px 14px; background: var(--agenda-green); color: #fff; }
+#misReservasModal .my-reservations-list > .my-reservations-panel-heading :is(span, small) { color: #fff; }
+#misReservasModal .my-reservations-list__items { padding: 10px; gap: 8px; }
+#misReservasModal .my-reservations-list__item { padding: 10px; border: 1px solid var(--agenda-line); border-radius: 7px; }
+#misReservasModal .my-reservations-list__item strong { font-size: 13px; line-height: 1.4; }
+#misReservasModal .my-reservations-list__code { font-size: 11px; }
+#misReservasModal .my-reservations-list__when { font-size: 12px; line-height: 1.4; }
+#misReservasModal .my-reservations-list__item .reservation-history-status { font-size: 11px; }
+#misReservasModal .my-reservations-week__toolbar { display: flex; align-items: center; min-height: 66px; padding: 10px 12px; gap: 10px; flex-wrap: wrap; background: var(--agenda-soft); border-top: 0; }
+#misReservasModal .my-reservations-week__toolbar > div:nth-child(2) { flex: 1; }
+#misReservasModal .my-reservations-week__toolbar > div:nth-child(2) span { font-size: 11px; }
+#misReservasModal .my-reservations-week__toolbar > div:nth-child(2) strong { font-size: 15px; white-space: normal; }
+#misReservasModal .my-reservations-week__actions { align-items: center; flex-wrap: wrap; }
+#misReservasModal .my-reservations-legend { padding: 8px 12px; justify-content: flex-start; gap: 8px 14px; font-size: 11px; }
+#misReservasModal .my-reservations-week__days { flex: 0 0 auto; overflow: hidden; }
+#misReservasModal .my-reservations-week__heading-viewport { flex: 0 0 auto; width: 100%; min-width: 0; overflow: hidden; }
+#misReservasModal .my-reservations-week__corner { font-size: 12px; }
+#misReservasModal .my-reservations-week__days button { height: 78px; padding: 7px; }
+#misReservasModal .my-reservations-week__days button span { font-size: 13px; }
+#misReservasModal .my-reservations-week__days button strong { font-size: 22px; }
+#misReservasModal .my-reservations-week__days button small { font-size: 12px; }
+#misReservasModal .my-reservations-week__days button.is-special-day span::after { font-size: 10px; }
+#misReservasModal .my-reservations-week__stage { min-width: 0; }
+#misReservasModal .my-reservations-week__times { width: 64px; }
+#misReservasModal .my-reservations-week__times span { padding-top: 7px; right: 10px; font-size: 12px; transform: none; }
+#misReservasModal .my-reservations-week__columns { left: 64px; }
+#misReservasModal .my-reservations-week__day-column { background: #fff; }
+#misReservasModal .my-reservations-week__day-column.is-selected { background: #fbfdfb; }
+#misReservasModal .my-reservations-event { box-sizing: border-box; padding: 8px 9px; border-radius: 6px; box-shadow: none; gap: 5px; color: var(--agenda-ink); }
+#misReservasModal .my-reservations-event > span { font-size: 12px; line-height: 1.3; }
+#misReservasModal .my-reservations-event > strong { margin: 0; font-size: 13px; line-height: 1.35; -webkit-line-clamp: 3; }
+#misReservasModal .my-reservations-event > small { font-size: 12px; line-height: 1.3; }
+#misReservasModal .has-overflow .my-reservations-event { padding-bottom: 30px; }
+#misReservasModal .has-overflow .my-reservations-event > strong { -webkit-line-clamp: 2; }
+
+/* Reservas y agenda: cabecera, mes y panel del día con el mismo espacio útil. */
+.unit-console [data-management-agenda] { grid-template-columns: clamp(320px, 25vw, 420px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.unit-console .upec-agenda-sidebar { display: grid; gap: 12px; min-width: 0; }
+.unit-console [data-management-agenda] .unit-console__month { min-width: 0; border: 1px solid var(--agenda-line); border-radius: 10px; box-shadow: none; }
+.unit-console [data-management-agenda] .unit-console__month-toolbar { min-height: 66px; padding: 12px; }
+.unit-console [data-management-agenda] .unit-console__month-toolbar h3 { font-size: 16px; }
+.unit-console [data-management-agenda] .unit-console__month-toolbar > div > span { font-size: 12px; color: #97721c; }
+.unit-console [data-management-agenda] .unit-console__month-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 0 12px 12px; }
+.unit-console [data-management-agenda] .unit-console__month-weekdays { padding: 6px 12px; }
+.unit-console [data-management-agenda] .unit-console__month-day { min-width: 0; height: 44px; padding: 5px; font-size: 14px; }
+.unit-console [data-management-agenda] .unit-console__month-day b { min-width: 16px; height: 16px; font-size: 10px; }
+.unit-console .upec-agenda-day-panel { min-width: 0; overflow: hidden; border: 1px solid var(--agenda-line); border-radius: 10px; background: #fff; }
+.unit-console .upec-agenda-day-panel > header { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 13px; color: #fff; background: var(--agenda-green); }
+.unit-console .upec-agenda-day-panel > header span { display: block; color: var(--agenda-gold); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.unit-console .upec-agenda-day-panel > header strong { display: block; margin-top: 4px; font-size: 14px; }
+.unit-console .upec-agenda-day-panel > header b { display: grid; min-width: 28px; height: 28px; border-radius: 50%; background: var(--agenda-gold); color: var(--agenda-ink); place-items: center; }
+.unit-console [data-agenda-day-list] { display: grid; gap: 8px; max-height: 420px; overflow: auto; padding: 12px; }
+.unit-console [data-agenda-day-list] > p { padding: 18px 8px; font-size: 13px; color: var(--agenda-muted); text-align: center; }
+.unit-console .upec-agenda-day-item { display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 10px; border: 1px solid var(--agenda-line); border-left: 3px solid var(--agenda-green); border-radius: 6px; color: var(--agenda-ink); background: #fff; text-align: left; cursor: pointer; }
+.unit-console .upec-agenda-day-item :is(time, span) { color: var(--agenda-muted); font-size: 12px; }
+.unit-console .upec-agenda-day-item strong { font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.unit-console .upec-agenda-day-item .unit-console__calendar-event-who em { display: none; }
+.unit-console [data-management-agenda] .unit-console__calendar-card { min-width: 0; border: 1px solid var(--agenda-line); border-radius: 10px; box-shadow: none; overflow: hidden; }
+.unit-console [data-management-agenda] .unit-console__calendar-toolbar { min-height: 66px; padding: 10px 12px; gap: 10px; background: var(--agenda-soft); }
+.unit-console [data-management-agenda] .unit-console__calendar-toolbar h3 { font-size: 15px; }
+.unit-console [data-management-agenda] .unit-console__calendar-toolbar nav { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.unit-console [data-management-agenda] .unit-console__calendar-toolbar nav a { height: 36px; min-width: 36px; font-size: 13px; }
+.unit-console [data-management-agenda] .unit-console__calendar-scroll { max-height: min(72dvh, 800px); scrollbar-width: thin; }
+.unit-console [data-management-agenda] .unit-console__calendar { grid-template-columns: 64px repeat(var(--management-days, 5), minmax(180px, 1fr)); min-width: calc(64px + var(--management-days, 5) * 180px); }
+.unit-console [data-management-agenda] :is(.unit-console__calendar-corner, .unit-console__calendar-day) { box-sizing: border-box; min-height: 78px; background: var(--agenda-soft); border-color: var(--agenda-line); }
+.unit-console [data-management-agenda] .unit-console__calendar-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.unit-console [data-management-agenda] .unit-console__calendar-day span { font-size: 13px; }
+.unit-console [data-management-agenda] .unit-console__calendar-day strong { font-size: 22px; }
+.unit-console [data-management-agenda] .unit-console__calendar-day small { font-size: 12px; }
+.unit-console [data-management-agenda] .unit-console__calendar-day.is-today { background: var(--agenda-green); }
+.unit-console [data-management-agenda] .unit-console__calendar-day.is-today :is(span, strong, small) { color: #fff; }
+.unit-console [data-management-agenda] .unit-console__calendar-day.is-selected { box-shadow: inset 0 -3px var(--agenda-gold); }
+.unit-console [data-management-agenda] .unit-console__calendar-times { min-height: var(--agenda-total); }
+.unit-console [data-management-agenda] .unit-console__calendar-times span { box-sizing: border-box; min-height: 0; font-size: 12px; }
+.unit-console [data-management-agenda] .unit-console__calendar-column { display: block; min-width: 0; min-height: var(--agenda-total); background: #fff; }
+.unit-console [data-management-agenda] .unit-console__calendar-column.is-selected-day { background: #fbfdfb; }
+.unit-console [data-management-agenda] .unit-console__calendar-slots { position: absolute; inset: 0; }
+.unit-console [data-management-agenda] .unit-console__calendar-slot { box-sizing: border-box; min-height: 0; padding: 4px; background: transparent; border-bottom-color: var(--agenda-line); }
+.unit-console [data-management-agenda] .unit-console__calendar-free { min-height: 0; width: 100%; font-size: 11px; line-height: 1.3; white-space: nowrap; overflow-wrap: normal; word-break: normal; color: #496858; background: #f8fbf9; }
+.unit-console [data-management-agenda] .unit-console__calendar-slot.has-activity .unit-console__calendar-free { width: 80px; }
+.unit-console [data-management-agenda] .unit-console__calendar-slot.is-disabled .unit-console__calendar-free { color: #87958e; background: #f1f3f2; }
+.unit-console [data-management-agenda] .unit-console__calendar-slot.is-blocked .unit-console__calendar-free { color: #896923; background: #fff7e8; }
+.unit-console [data-management-agenda] .unit-console__calendar-slot.is-block-selected .unit-console__calendar-free { color: var(--agenda-ink); border-color: var(--agenda-green); background: #fff1bd; }
+.unit-console [data-management-agenda] .unit-console__calendar-bands { position: absolute; top: 0; bottom: 0; right: 0; left: 88px; background: none; pointer-events: none; }
+.unit-console [data-management-agenda] .unit-console__calendar-bands > * { pointer-events: auto; }
+.unit-console [data-management-agenda] .unit-console__calendar-event { box-sizing: border-box; min-height: 0; padding: 8px 9px; gap: 3px; border-radius: 6px; box-shadow: none; color: var(--agenda-ink); }
+.unit-console [data-management-agenda] .unit-console__calendar-event time { font-size: 12px; font-weight: 700; line-height: 1.3; }
+.unit-console [data-management-agenda] .unit-console__calendar-event strong { display: -webkit-box; margin: 0; overflow: hidden; font-size: 13px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.unit-console [data-management-agenda] .unit-console__calendar-event-who { display: block; overflow: hidden; font-size: 12px; line-height: 1.3; white-space: nowrap; text-overflow: ellipsis; }
+.unit-console [data-management-agenda] .unit-console__calendar-event-who em { display: none; }
+.unit-console [data-management-agenda] .unit-console__calendar-event-meta { margin-top: auto; }
+.unit-console [data-management-agenda] .unit-console__calendar-event-meta > span { display: none; }
+.unit-console [data-management-agenda] .unit-console__calendar-event-meta b { padding: 0; background: none; font-size: 12px; }
+.unit-console [data-management-agenda] .has-overflow .unit-console__calendar-event { padding-bottom: 30px; }
+.unit-console [data-management-agenda] .unit-console__calendar-block { box-sizing: border-box; font-size: 12px; line-height: 1.4; }
+
+@media (max-width: 1100px) {
+  #misReservasModal .my-reservations-calendar, .unit-console [data-management-agenda] { grid-template-columns: minmax(0, 1fr); height: auto; }
+  #misReservasModal .my-reservations-calendar__sidebar, .unit-console .upec-agenda-sidebar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; align-items: start; border-right: 0; }
+  #misReservasModal .my-reservations-calendar__sidebar { overflow: visible; }
+  #misReservasModal .my-reservations-week { min-height: 420px; }
+  #misReservasModal .my-reservations-week__viewport { max-height: 58dvh; }
+  #misReservasModal .my-reservations-list__items { max-height: 350px; }
+}
+@media (max-width: 699px) {
+  #misReservasModal .reservation-history-body { padding: 8px; }
+  #misReservasModal .my-reservations-calendar { display: flex; flex-direction: column; min-height: 0; }
+  #misReservasModal .my-reservations-calendar__sidebar, .unit-console .upec-agenda-sidebar { grid-template-columns: minmax(0, 1fr); }
+  #misReservasModal .my-reservations-calendar__sidebar { order: 2; }
+  #misReservasModal .my-reservations-week { order: 1; }
+  #misReservasModal .my-reservations-week__actions { width: 100%; justify-content: flex-end; }
+  #misReservasModal .my-reservations-week__toolbar > div:nth-child(2) strong { font-size: 14px; }
+  .unit-console [data-management-agenda] .unit-console__calendar-card { grid-row: 1; }
+  .unit-console [data-management-agenda] .unit-console__calendar-toolbar { flex-direction: column; align-items: stretch; }
+  .unit-console [data-management-agenda] .unit-console__calendar-toolbar nav { justify-content: flex-end; }
+}

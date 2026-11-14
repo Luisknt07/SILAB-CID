@@ -1,0 +1,71 @@
+{% if dato.version_pac == 1 %}{% include 'portal/pages/unidades/gestion/includes/pac_legado.html' %}{% else %}
+<div class="guide-field guide-field--wide guide-editor-keep pac-editor pac-editor--abierto{% if dato.matriz_detalle_version == 1 %} pac-editor--clasificado{% endif %}" data-campo="compras" data-tabla="compras" data-pac-editor>
+  <header class="pac-editor__cabecera">
+    <div><h3>Necesidades y programación de compras</h3><p>Revisa las compras por clase. Cada necesidad muestra sus datos, el contraste con lo existente y la programación completa.</p></div>
+    <div class="pac-editor__total"><span>Total previsto (USD)</span><output data-pac-total-general>{% if dato.compras_resumen_version == 1 and dato.pac_total is not None %}{{ dato.pac_total|floatformat:2 }}{% elif dato.filas_pac and dato.pac_total is not None %}{{ dato.pac_total|floatformat:2 }}{% else %}—{% endif %}</output></div>
+  </header>
+  <p class="pac-editor__orientacion">{% if dato.compras_resumen_version == 1 %}El reporte y el Excel presentan <strong>Equipos, Software, Materiales e Insumos</strong>, con un resumen de sus importes y el total solicitado. Los repuestos se agrupan en Materiales y los reactivos en Insumos, conservando su tipo. Cada compra se presenta en su área; el inventario existente sólo respalda el diagnóstico.{% elif dato.matriz_detalle_version == 1 %}Cada fila identifica la clase y <strong>sólo el nombre del bien o servicio</strong>. Separa sus características en «Especificaciones y sustento». Consulta CPC, grupo, partida, PAC/NO PAC y fuente en «Clasificación para la matriz universitaria».{% else %}En «Detalle y sustento» {% if dato.clases_bien_version == 1 %}selecciona si necesitas equipos, software, materiales, insumos o reactivos, {% endif %}explica por qué hace falta la compra y selecciona los equipos que se reemplazarán, si corresponde. La clasificación administrativa es opcional y puede completarse después.{% endif %}</p>
+  {% if dato.compras_resumen_version == 1 %}
+  <div class="pac-resumen" data-pac-resumen aria-live="polite">
+    <h4>Resumen de compras solicitadas</h4>
+    <p>Importes de las necesidades que se van a adquirir, separados del inventario actual.</p>
+    <div class="pac-resumen__desplazamiento"><table aria-label="Resumen de compras por clase">
+      <thead><tr><th>Clase</th><th>Necesidades</th><th>1.er semestre (USD)</th><th>2.º semestre (USD)</th><th>Total (USD)</th></tr></thead>
+      <tbody>{% for clase_compra in dato.resumen_compras.clases_editor %}<tr data-pac-resumen-clase="{{ clase_compra.clave }}"{% if clase_compra.clave == "servicios" or clase_compra.clave == "por_clasificar" %}{% if not clase_compra.numero_necesidades %} hidden{% endif %}{% endif %}><th>{{ clase_compra.nombre }}</th><td data-pac-resumen-numero>{{ clase_compra.numero_necesidades }}</td><td data-pac-resumen-s1>{% if clase_compra.semestre_1 is not None %}{{ clase_compra.semestre_1|floatformat:2 }}{% else %}Por completar{% endif %}</td><td data-pac-resumen-s2>{% if clase_compra.semestre_2 is not None %}{{ clase_compra.semestre_2|floatformat:2 }}{% else %}Por completar{% endif %}</td><td data-pac-resumen-total>{% if clase_compra.total is not None %}{{ clase_compra.total|floatformat:2 }}{% else %}Por completar{% endif %}</td></tr>{% endfor %}
+</tbody>
+      <tfoot><tr><th>Total solicitado</th><td data-pac-resumen-numero>{{ dato.resumen_compras.numero_necesidades }}</td><td data-pac-resumen-s1>{{ dato.resumen_compras.semestre_1|floatformat:2 }}</td><td data-pac-resumen-s2>{{ dato.resumen_compras.semestre_2|floatformat:2 }}</td><td data-pac-resumen-total>{% if dato.resumen_compras.total_general is not None %}{{ dato.resumen_compras.total_general|floatformat:2 }}{% else %}Por completar{% endif %}</td></tr></tfoot>
+    </table></div>
+    <small data-pac-resumen-programacion{% if not dato.resumen_compras.meses_pendientes %} hidden{% endif %}>Hay necesidades sin mes definido. Sus importes aún no están asignados a un semestre.</small>
+  </div>
+  {% endif %}
+  <section class="pac-editor__administracion-comun" aria-label="Datos comunes del plan"><h4>Datos comunes del plan</h4>
+    <label class="pac-campo"><span>Centro de costo agrupador</span><input class="guide-form__control" type="text" name="centro_costo" value="{{ dato.centro_costo|default:'' }}" maxlength="300"{% if dato.centro_costo_automatico %} readonly{% endif %} placeholder="Nombre confirmado para la matriz universitaria"><small>{% if dato.centro_costo_automatico %}Se toma del Decanato o dependencia al que está adscrita la unidad.{% else %}El Decanato o dependencia confirma su centro de costo. Se registra una sola vez para todas las necesidades.{% endif %}</small></label>
+  </section>
+  <datalist id="pac-fuentes-referencia">{% for codigo_fuente, nombre_fuente in dato.fuentes_pac %}<option value="{{ codigo_fuente }}">{{ nombre_fuente }}</option>{% endfor %}</datalist>
+  {% if dato.inversion_gestion_version == 1 %}<datalist id="pac-proyectos-fases">{% for proyecto_fases in dato.grupos_fases %}<option value="{{ proyecto_fases }}"></option>{% endfor %}</datalist>{% endif %}
+  {% if dato.contraste_pac %}
+    {{ dato.contraste_pac|json_script:'pacComprasContraste' }}
+    <p class="pac-editor__ruta-areas">Las funciones y procesos de todas las áreas se revisan en <a href="#seccion-diagnostico_compras">Sustento por áreas</a>. Aquí se contrasta cada compra con los recursos relacionados.</p>
+  {% endif %}
+  {% if sugerencias_compra %}
+  <section class="redaccion__sugerencias-compras pac-sugerencias" data-sugerencias-compras="compras" aria-label="Propuestas por área">
+    <h4>Propuestas por área <span>{{ sugerencias_compra|length }}</span></h4>
+    <p>Revisa el diagnóstico registrado e incorpora las necesidades que correspondan al año planificado.</p>
+    <ul tabindex="0" aria-label="Necesidades detectadas">{% for propuesta in sugerencias_compra %}<li data-sugerencia-compra-tarjeta>
+      <div>{% if propuesta.area_nombre %}<small class="pac-sugerencias__area">{{ propuesta.area_nombre }}</small>{% endif %}{% if propuesta.requiere_atencion %}<span class="redaccion__sugerencia-atencion">Requiere atención</span>{% endif %}<strong>{% if propuesta.item %}{{ propuesta.item }}{% else %}{{ propuesta.titulo }}{% endif %}</strong>{% if propuesta.codigo_equipo %}<small>{{ propuesta.codigo_equipo }}</small>{% endif %}{% if propuesta.referencia is not None %}<small>Valor del activo: USD {{ propuesta.referencia|floatformat:2 }}. Confirma el valor previsto de la compra.</small>{% endif %}<p>{{ propuesta.motivo }}</p></div>
+      <div class="redaccion__sugerencia-acciones">{% if propuesta.url_equipo %}<a href="{{ propuesta.url_equipo }}" target="_blank" rel="noopener">Consultar ficha</a>{% endif %}<button type="button" data-sugerencia-compra="{{ forloop.counter0 }}"{% if documento.estado == 'validado' %} disabled{% endif %}><span data-sugerencia-compra-etiqueta>Incorporar al plan</span></button></div>
+    </li>{% endfor %}</ul>
+    <p class="redaccion__sugerencias-estado" data-sugerencias-compras-estado role="status" aria-live="polite">{% if documento.estado == 'validado' %}Documento enviado: las propuestas se consultan aquí y se incorporan cuando la entrega esté abierta para edición.{% endif %}</p>
+  </section>
+  {% endif %}
+  {% if dato.compras_resumen_version == 1 %}
+  <div class="pac-editor__pestanas" role="tablist" aria-label="Clase de compra">
+    <button type="button" role="tab" aria-selected="true" tabindex="0" id="pac-tab-todas" aria-controls="pac-compras-panel" data-pac-tab-clase="">Todas <span data-pac-tab-numero>{{ dato.filas_pac|length }}</span></button>
+    <button type="button" role="tab" aria-selected="false" tabindex="-1" id="pac-tab-equipos" aria-controls="pac-compras-panel" data-pac-tab-clase="equipos">Equipos <span data-pac-tab-numero></span></button>
+    <button type="button" role="tab" aria-selected="false" tabindex="-1" id="pac-tab-software" aria-controls="pac-compras-panel" data-pac-tab-clase="software">Software <span data-pac-tab-numero></span></button>
+    <button type="button" role="tab" aria-selected="false" tabindex="-1" id="pac-tab-materiales" aria-controls="pac-compras-panel" data-pac-tab-clase="materiales">Materiales y repuestos <span data-pac-tab-numero></span></button>
+    <button type="button" role="tab" aria-selected="false" tabindex="-1" id="pac-tab-insumos" aria-controls="pac-compras-panel" data-pac-tab-clase="insumos">Insumos y reactivos <span data-pac-tab-numero></span></button>
+    <button type="button" role="tab" aria-selected="false" tabindex="-1" id="pac-tab-servicios" aria-controls="pac-compras-panel" data-pac-tab-clase="servicios">Servicios de soporte <span data-pac-tab-numero></span></button>
+    <button type="button" role="tab" aria-selected="false" tabindex="-1" id="pac-tab-por_clasificar" aria-controls="pac-compras-panel" data-pac-tab-clase="por_clasificar" hidden>Por clasificar <span data-pac-tab-numero></span></button>
+  </div>
+  <div class="pac-editor__filtros">
+    <input type="hidden" data-pac-filtro-clase value="">
+    <label>Área de destino<select class="guide-form__control" data-pac-filtro-area><option value="">Todas las áreas</option>{% for area_id, area_nombre in dato.opciones_areas %}<option value="{{ area_id }}">{{ area_nombre }}</option>{% endfor %}</select></label>
+    <p data-pac-filtro-estado role="status">Los filtros facilitan la revisión; el resumen y las descargas incluyen todas las compras.</p>
+  </div>
+  {% endif %}
+  <p class="pac-editor__desplazar">Todos los apartados de cada compra están visibles. Cambia de pestaña o filtra el área para reducir la lista.</p>
+  <div class="pac-editor__desplazamiento"{% if dato.compras_resumen_version == 1 %} id="pac-compras-panel" data-pac-panel-clases role="tabpanel" aria-labelledby="pac-tab-todas"{% else %} role="region" aria-label="Compras y programación"{% endif %} tabindex="0">
+  <table class="pac-editor__tabla" aria-label="Necesidades del plan anual de compras">
+    <thead><tr><th>Compras solicitadas · datos, contraste y programación</th></tr></thead>
+    <tbody>
+      {% for fila_pac in dato.filas_pac %}<tr><td>{% include 'portal/pages/unidades/gestion/includes/pac_necesidad.html' %}</td></tr>{% endfor %}
+      <tr data-fila-plantilla><td>{% include 'portal/pages/unidades/gestion/includes/pac_necesidad.html' with fila_pac=None %}</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="pac-editor__vacio" data-pac-vacio{% if dato.filas_pac %} hidden{% endif %}>Todavía no hay necesidades registradas. Añade un bien o servicio, incorpora una propuesta o justifica que la unidad no requiere adquisiciones.</p>
+  <button type="button" class="guide-btn guide-btn--soft redaccion__anadir" data-anadir-fila>+ Añadir necesidad</button>
+  {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+</div>
+{% endif %}

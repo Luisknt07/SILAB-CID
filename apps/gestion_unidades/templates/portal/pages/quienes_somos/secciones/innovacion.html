@@ -1,0 +1,19 @@
+{% load static i18n idiomas marca %}
+        <section class="innovation-ecosystem" aria-labelledby="innovation-title">
+          <div class="innovation-heading"><span class="upec-about__eyebrow">{% translate "Innovación que conecta" %}</span><h2 id="innovation-title">{% translate "Ecosistema de innovación" %}</h2><p>{% translate "Así se articulan las capacidades científicas, tecnológicas y académicas para generar conocimiento, innovación y valor para la sociedad." %}</p></div>
+          <div class="innovation-map">
+            <svg class="innovation-links" viewBox="0 0 1400 620" preserveAspectRatio="none" aria-hidden="true">
+              <defs><marker id="innovation-arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z"></path></marker></defs>
+              <path d="M405 150 H510 Q560 150 585 205"></path><path d="M995 150 H890 Q840 150 815 205"></path>
+              <path d="M405 470 H510 Q560 470 585 415"></path><path d="M995 470 H890 Q840 470 815 415"></path>
+              <path class="innovation-loop" d="M405 120 H260 Q210 120 210 175 V445 Q210 500 265 500 H405" marker-end="url(#innovation-arrow)"></path>
+              <path class="innovation-loop" d="M995 120 H1140 Q1190 120 1190 175 V445 Q1190 500 1135 500 H995" marker-end="url(#innovation-arrow)"></path>
+            </svg>
+            <article class="innovation-node node-centers"><div class="innovation-icon"><i class="simple-icon-chemistry"></i></div><div><h3>{% translate "Centros I+D" %}</h3><span></span><ul><li>{% translate "Investigación aplicada" %}</li><li>{% translate "Innovación" %}</li><li>{% translate "Transferencia" %}</li></ul></div></article>
+            <article class="innovation-node node-society"><div class="innovation-icon"><i class="simple-icon-people"></i></div><div><h3>{% translate "Sociedad y sector productivo" %}</h3><span></span><ul><li>{% translate "Empresas" %}</li><li>{% translate "Instituciones" %}</li><li>{% translate "Comunidades" %}</li></ul></div></article>
+            <div class="innovation-core"><span class="core-orbit orbit-one"></span><span class="core-orbit orbit-two"></span><div>{% marca_secundaria identidad_institucion %}<b>UPEC</b><small>{% translate "Conocimiento que conecta" %}</small></div></div>
+            <article class="innovation-node node-labs"><div class="innovation-icon"><i class="iconsminds-microscope"></i></div><div><h3>{% translate "Laboratorios y unidades" %}</h3><span></span><ul><li>{% translate "Experimentación" %}</li><li>{% translate "Equipamiento" %}</li><li>{% translate "Docencia práctica" %}</li></ul></div></article>
+            <article class="innovation-node node-projects"><div class="innovation-icon"><i class="simple-icon-briefcase"></i></div><div><h3>{% translate "Proyectos, servicios y formación" %}</h3><span></span><ul><li>{% translate "Proyectos" %}</li><li>{% translate "Servicios tecnológicos" %}</li><li>{% translate "Capacitación" %}</li></ul></div></article>
+          </div>
+          <div class="innovation-message"><i class="simple-icon-bulb"></i><p>{% translate "El ecosistema conecta" %} <strong>{% translate "infraestructura, talento, investigación, innovación y transferencia" %}</strong> {% translate "para impulsar soluciones con impacto regional." %}</p><span aria-hidden="true"></span></div>
+        </section>

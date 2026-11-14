@@ -1,0 +1,24 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}La producción científica por año, con los recursos de Laboratorios; cada resultado abre su ficha.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Lo que el centro produce y publica: artículos, datos, software, métodos, tesis e informes, por año y asociados a su proyecto, sus autores y el área que los generó." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if hay_resultados %}
+<section class="conoce__seccion" id="filtro">
+  {% include 'centros_id/visor/_filtros_resultados.html' %}
+</section>
+{% for anio, lista in resultados.items %}
+<section class="conoce__seccion cv-seccion--seguida">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% blocktranslate count total=lista|length %}{{ total }} resultado{% plural %}{{ total }} resultados{% endblocktranslate %}</span><h2>{{ anio }}</h2></header>
+  <div class="area__recursos">{% for resultado in lista %}{% include 'centros_id/visor/_resultado.html' %}{% endfor %}</div>
+</section>
+{% empty %}
+<section class="conoce__seccion"><p class="ficha__nota"><i class="fas fa-search" aria-hidden="true"></i> {% translate "Ningún resultado coincide con el filtro." %}</p></section>
+{% endfor %}
+{% include 'centros_id/visor/_paginacion.html' %}
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no publica resultados de investigación.") enlace=completar %}</section>
+{% endif %}
+{% endblock %}

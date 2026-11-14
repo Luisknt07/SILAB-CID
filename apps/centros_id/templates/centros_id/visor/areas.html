@@ -1,0 +1,66 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Áreas del centro, con la pieza de «Áreas y equipos» de Laboratorios: las capacidades propias agrupadas por su tipo
+y en el orden del centro (primero las que el centro destaca), y el edificio que las aloja: dónde está cada una en el
+plano, sus espacios por nivel, el recorrido 360° y las imágenes del edificio. Cada área abre su página con todo lo que
+hace.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Las capacidades propias del centro y el edificio que las aloja. Cada área hace, investiga y presta servicios con sus equipos y su gente; entra a cualquiera para ver todo lo que hace." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if grupos_areas %}
+<nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+  {% for tipo, tarjetas in grupos_areas %}<a href="#grupo-{{ forloop.counter }}" data-indice="grupo-{{ forloop.counter }}">{{ tipo }}</a>{% endfor %}
+  {% if planos %}<a href="#plano" data-indice="plano">{% translate "Dónde está cada área" %}</a>{% endif %}
+  {% if zonas_por_nivel %}<a href="#espacios" data-indice="espacios">{% translate "Espacios" %}</a>{% endif %}
+  {% if recorrido %}<a href="#recorrido" data-indice="recorrido">{% translate "Recorrido 360°" %}</a>{% endif %}
+  {% if galeria %}<a href="#imagenes" data-indice="imagenes">{% translate "El edificio en imágenes" %}</a>{% endif %}
+</nav>
+{% for tipo, tarjetas in grupos_areas %}
+<section class="conoce__seccion" id="grupo-{{ forloop.counter }}">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% if forloop.first %}{% translate "Donde se hace el trabajo" %}{% else %}{% translate "También en el centro" %}{% endif %}</span><h2>{{ tipo }}</h2></header>
+  <div class="area__tarjetas">{% for tarjeta in tarjetas %}{% include 'centros_id/visor/_area_tarjeta.html' %}{% endfor %}</div>
+</section>
+{% endfor %}
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no registra sus áreas.") enlace=completar %}</section>
+{% endif %}
+
+{% if planos %}
+<section class="conoce__seccion" id="plano">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El edificio" %}</span><h2>{% translate "Dónde está cada área" %}</h2></header>
+  <div class="cv-planos">{% for fila in planos %}<div class="cv-planos__nivel" data-aparecer>{% include 'centros_id/visor/_plano.html' with plano=fila.plano zonas=fila.zonas %}
+    <ul class="area__otras cv-plano__leyenda">{% for zona in fila.zonas %}{% if zona.componente %}<li><a href="{% url 'componente_centro_id' centro.slug zona.componente.codigo %}"><i class="{{ zona.componente.icono }}" aria-hidden="true"></i><span><strong>{{ zona.nombre }}</strong><small>{{ zona.codigo }} · {{ zona.area_m2|floatformat:"0" }} m²</small></span></a></li>{% endif %}{% endfor %}</ul></div>{% endfor %}</div>
+  <p class="ficha__nota">{% translate "Cada punto del plano es un espacio: los de las áreas abren su página; los de apoyo se listan en «Espacios del edificio»." %}</p>
+</section>
+{% endif %}
+
+{% if zonas_por_nivel %}
+<section class="conoce__seccion" id="espacios">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Por niveles" %}</span><h2>{% translate "Espacios del edificio" %}</h2></header>
+  {% if superficie %}<ul class="ficha__lineas cv-superficie" data-aparecer>{% if total_m2 %}<li><i class="fas fa-building" aria-hidden="true"></i>{{ total_m2|floatformat:"0g" }} m² {% translate "cubiertos" %}</li>{% endif %}{% for nivel, metros in superficie.items %}<li><i class="fas fa-layer-group" aria-hidden="true"></i>{{ nivel }} · {{ metros|floatformat:"0g" }} m²</li>{% endfor %}</ul>{% endif %}
+  {% for nivel, zonas in zonas_por_nivel.items %}
+  <h3 class="area__subtitulo cv-subtitulo">{{ nivel }} <small class="cv-mudo">{{ zonas|length }} {% translate "espacios" %}</small></h3>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Código" %}</th><th scope="col">{% translate "Espacio" %}</th><th scope="col">{% translate "Dimensiones" %}</th><th scope="col">{% translate "Superficie" %}</th><th scope="col">{% translate "Área del centro" %}</th><th scope="col">{% translate "Acceso" %}</th></tr></thead><tbody>
+    {% for zona in zonas %}<tr id="zona-{{ zona.codigo|slugify }}"><td><span class="area__codigo">{{ zona.codigo }}</span></td><td><strong>{{ zona.nombre }}</strong></td><td>{{ zona.dimensiones|default:"—" }}</td><td>{{ zona.area_m2|floatformat:"0" }} m²</td><td>{% if zona.componente %}<a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug zona.componente.codigo %}"><i class="{{ zona.componente.icono }}" aria-hidden="true"></i> {{ zona.componente }}</a>{% else %}<span class="cv-mudo">{% translate "Apoyo" %}</span>{% endif %}</td><td>{% if zona.reservable %}<a class="area__boton-ficha" href="{{ solicitar_url }}?tipo=uso{% if zona.componente %}&amp;area={{ zona.componente.codigo }}{% endif %}"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Solicitar" %}</a>{% else %}<span class="cv-mudo">—</span>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if recorrido %}
+<section class="conoce__seccion" id="recorrido">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Sin moverte" %}</span><h2>{% translate "Recorrido 360°" %}</h2></header>
+  <div class="cv-recorrido" data-aparecer><iframe src="{{ recorrido }}" title="{% translate "Recorrido virtual de" %} {{ centro.nombre }}" loading="lazy" allow="fullscreen; xr-spatial-tracking; gyroscope; accelerometer" allowfullscreen></iframe></div>
+</section>
+{% endif %}
+
+{% if galeria %}
+<section class="conoce__seccion" id="imagenes">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En imágenes" %}</span><h2>{% translate "El edificio en imágenes" %}</h2></header>
+  {% include 'centros_id/visor/_galeria.html' with imagenes=galeria %}
+  <p class="ficha__nota">{% translate "Las fotos de cada área están en su página." %}</p>
+</section>
+{% include 'centros_id/visor/_visor.html' with imagenes=galeria %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Balance de materia y energía" %}{% endblock %}
+{% block encabezado %}{% translate "Balance de materia y energía" %}{% endblock %}
+{% block subtitulo %}{{ receta.nombre_publico }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Materia prima" %}</dt><dd>{{ cantidad }} {{ receta.unidad_base }}</dd></div><div><dt>{% translate "Corridas base" %}</dt><dd>{{ factor }}</dd></div>{% if cambios %}<div><dt>{% translate "Escenario" %}</dt><dd>{{ cambios|length }} dato{{ cambios|length|pluralize }} movido{{ cambios|length|pluralize }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Balance de materia y energía" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__section">
+  <header><span>{% translate "CÓMO SE CALCULA" %}</span><small>{% translate "datos → ecuación → comprobación" %}</small></header>
+  <div class="saber-bases">
+    <article class="saber-base"><h4><i class="fas fa-balance-scale"></i>{% translate "Materia" %}</h4><code class="saber-formula">Entrada + incorporado = producto + subproductos + merma</code><dl><div><dt>{% translate "La fuente" %}</dt><dd>{% translate "La receta publicada, sus insumos, salidas y rendimientos por etapa." %}</dd></div><div><dt>{% translate "La comprobación" %}</dt><dd>{% translate "El diagrama muestra la diferencia y nombra la etapa cuando una salida declarada no tiene masa que la cubra." %}</dd></div></dl></article>
+    <article class="saber-base"><h4><i class="fas fa-temperature-high"></i>{% translate "Energía" %}</h4><code class="saber-formula">Q útil = m · cₚ · ΔT &nbsp;|&nbsp; Q suministrado = Q útil / η</code><dl><div><dt>{% translate "La fuente" %}</dt><dd>{% translate "Masa del escenario y propiedades térmicas editables; no se confunden referencias bibliográficas con mediciones UPEC." %}</dd></div><div><dt>{% translate "La comprobación" %}</dt><dd>{% translate "Temperaturas, unidades, eficiencia y propiedades usadas quedan visibles junto al resultado." %}</dd></div></dl></article>
+  </div>
+</section>
+<form class="aula-form" method="get" aria-label="{% translate "Datos de la simulación" %}">
+  {% if referencia %}<input type="hidden" name="{{ referencia.parametro.0 }}" value="{{ referencia.parametro.1 }}">{% endif %}
+  <input type="hidden" name="origen" value="{{ origen }}">
+  <label>{% translate "Proceso" %}<select name="receta">{% for item in procesos %}<option value="{{ item.pk }}"{% if item.pk == receta.pk %} selected{% endif %}>{{ item.nombre_publico }}</option>{% endfor %}</select></label>
+  <label>{% translate "Materia prima (" %}{{ receta.unidad_base }})<input type="number" name="cantidad" min="0.001" step="0.001" value="{{ cantidad }}"><small>{% translate "Corrida base:" %} {{ receta.cantidad_base|floatformat:"-3" }} {{ receta.unidad_base }}</small></label>
+  <label>{% translate "Entra a (°C)" %}<input type="number" name="t_inicial" step="0.1" value="{{ parametros.t_inicial }}"></label>
+  <label>{% translate "Temperatura de proceso (°C)" %}<input type="number" name="t_proceso" step="0.1" value="{{ parametros.t_proceso }}"><small>{% if calientes %}{% translate "Tomada de «" %}{{ calientes.0.nombre }}»{% else %}{% translate "El proceso no declara una etapa de calentamiento" %}{% endif %}</small></label>
+  <label>{% translate "Sale a (°C)" %}<input type="number" name="t_final" step="0.1" value="{{ parametros.t_final }}"></label>
+  <label>{% translate "Eficiencia térmica (%)" %}<input type="number" name="eficiencia" min="1" max="100" step="1" value="{{ parametros.eficiencia }}"></label>
+  <label>{% translate "Potencia disponible (kW)" %}<input type="number" name="potencia_kw" min="0" step="0.1" value="{{ parametros.potencia_kw }}"><small>{% translate "Con 0 no se calcula el tiempo." %}</small></label>
+  <details class="aula-grupo aula-form__wide">
+    <summary>{% translate "Propiedades térmicas del escenario" %} <small>{% translate "Revísalas antes de usar el cálculo fuera del aula." %}</small></summary>
+    <div class="aula-grupo__campos">
+      <label>Densidad (kg/L)<input type="number" name="densidad" min="0.001" step="0.01" value="{{ parametros.densidad }}"></label>
+      <label>{% translate "Calor específico cₚ (kJ/kg·K)" %}<input type="number" name="calor_especifico" min="0.001" step="0.01" value="{{ parametros.calor_especifico }}"></label>
+      <label>{% translate "Calor latente del vapor (kJ/kg)" %}<input type="number" name="calor_latente_vapor" min="0.001" step="1" value="{{ parametros.calor_latente_vapor }}"></label>
+      <label>{% translate "COP del sistema de frío" %}<input type="number" name="cop_frio" min="0.1" step="0.1" value="{{ parametros.cop_frio }}"></label>
+    </div>
+  </details>
+  <p class="aula-form__wide">{% if propiedades_referencia_lactea %}{% translate "Los valores iniciales son referencias para leche líquida y servicios térmicos; deben sustituirse por propiedades validadas del producto y del equipo para una decisión operativa." %}{% else %}<strong>{% translate "Atención:" %}</strong> {% translate "esta receta no es láctea. Sustituye densidad y calor específico por valores documentados del material antes de interpretar el balance de energía." %}{% endif %}</p>
+
+  <div class="aula-form__wide aula-variables">
+    <p>{% translate "Cada dato de la receta se puede mover aquí sin tocar la planta: el rendimiento, el trabajo y la espera de cada etapa, cuánto entra de cada insumo y cuánto se declara de cada salida; también puedes quitar etapas para ver qué pasa sin ellas. Lo que cambies recalcula el balance, las mermas, los tiempos y el diagrama; lo que dejes como está sigue siendo el dato de la receta." %}</p>
+    {% for grupo in variables %}
+    <details class="aula-grupo"{% if grupo.movido %} open{% endif %}>
+      <summary>{{ grupo.titulo }}{% if grupo.movido %} <b>MOVIDO</b>{% endif %}<small>{{ grupo.detalle }}</small></summary>
+      <div class="aula-grupo__campos">
+        {% for campo in grupo.campos %}
+        <label{% if campo.movido %} class="is-movido"{% endif %}><span>{{ campo.etiqueta }}</span>
+          {% if campo.tipo == 'casilla' %}<input type="checkbox" name="{{ campo.campo }}" value="1"{% if campo.valor %} checked{% endif %}>{% else %}<input type="number" name="{{ campo.campo }}" value="{{ campo.valor }}" min="0" step="{{ campo.paso }}"{% if campo.maximo %} max="{{ campo.maximo }}"{% endif %}>{% endif %}
+          <small>{{ campo.ayuda }}{% if campo.movido %} {% translate "· La receta dice" %} {{ campo.receta }}.{% endif %}</small>
+        </label>
+        {% endfor %}
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+
+  <button type="submit">{% translate "Simular" %}</button>
+  {% if ajustes %}<a class="aula-reset" href="{{ reiniciar_url }}">{% translate "Volver a los datos de la receta" %}</a>{% endif %}
+</form>
+
+{% if guardado %}<p class="unit-report__notice aula-ok">{{ guardado }}</p>{% endif %}
+
+{% if cambios %}
+<section class="unit-report__section">
+  <header><span>{% translate "LO QUE MOVISTE EN ESTE ESCENARIO" %}</span><small>{{ cambios|length }} dato{{ cambios|length|pluralize }} distinto{{ cambios|length|pluralize }} {% translate "de la receta" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Variable" %}</th><th>{% translate "La receta dice" %}</th><th>{% translate "Tu escenario" %}</th></tr></thead><tbody>
+    {% for cambio in cambios %}<tr><td><strong>{{ cambio.variable }}</strong></td><td>{{ cambio.de }}</td><td class="aula-aviso">{{ cambio.a }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "TU ESCENARIO FRENTE A LA RECETA" %}</span><small>{% translate "el mismo cálculo con los datos que cambiaste" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Resultado" %}</th><th>{% translate "Receta" %}</th><th>{% translate "Tu escenario" %}</th></tr></thead><tbody>
+    {% for fila in comparacion %}<tr><td><strong>{{ fila.0 }}</strong></td><td>{{ fila.1 }}</td><td{% if fila.1 != fila.2 %} class="aula-aviso"{% endif %}>{{ fila.2 }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if diagrama_escenario %}<figure class="unit-report__diagram">{{ diagrama_escenario|safe }}</figure>{% endif %}
+</section>
+{% endif %}
+
+<section class="unit-report__summary" aria-label="{% translate "Balance de materia" %}">
+  <article><span>{% translate "Entra" %}</span><strong>{{ balance.entrada }}</strong><small>{{ balance.unidad_base }}</small></article>
+  <article><span>{% translate "Producto por balance" %}</span><strong>{{ balance.producto_por_balance }}</strong><small>{{ balance.unidad_producto }} de {{ proceso.producto }}</small></article>
+  <article><span>{% translate "Producto esperado" %}</span><strong>{{ balance.producto_esperado }}</strong><small>{{ balance.unidad_producto }} {% translate "· rendimiento declarado" %}</small></article>
+  <article><span>{% translate "Merma total" %}</span><strong>{{ general.merma_total }}</strong><small>{{ balance.unidad_base }} · {{ general.proporcion_merma }} {% translate "% de lo que entra" %}</small></article>
+</section>
+
+{% include 'portal/pages/unidades/aula/includes/balance_general.html' %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "ENTRADAS Y SALIDAS, ETAPA POR ETAPA" %}</span><small>{% translate "lo que entra por la izquierda y lo que se va por la derecha" %}</small></header>
+  <div class="doc-flujo">
+    {% for fila in flujo %}
+    <div class="doc-fila">
+      <div class="doc-entradas">
+        {% for insumo in fila.insumos %}<span class="doc-chip"><i class="fas fa-arrow-right" aria-hidden="true"></i><b>{{ insumo.nombre }}</b><small>{{ insumo.cantidad }}</small></span>{% endfor %}
+        {% if fila.entra %}<span class="doc-masa">entra <b>{{ fila.entra }}</b></span>{% endif %}
+      </div>
+      <div class="doc-etapa{% if fila.punto_critico %} is-critica{% elif fila.punto_control %} is-control{% endif %}">
+        <i class="{{ fila.operacion.icono }}" aria-hidden="true"></i>
+        <div>
+          <strong>{{ fila.orden }}. {{ fila.nombre }}</strong>
+          <span>{{ fila.operacion.nombre }}{% if fila.equipo %} · {{ fila.equipo }}{% endif %}{% if fila.minutos %} · {{ fila.minutos }} min{% endif %}</span>
+          {% if fila.punto_critico %}<em>{% translate "PCC (inocuidad):" %} {{ fila.parametro }} · {{ fila.limite }}</em>{% elif fila.punto_control %}<em>{% translate "PC (calidad):" %} {{ fila.parametro }} · {{ fila.limite }}</em>{% endif %}
+        </div>
+      </div>
+      <div class="doc-salidas">
+        {% for salida in fila.salidas %}<span class="doc-chip{% if salida.clase == 'merma' %} is-merma{% endif %}"><i class="fas fa-arrow-right" aria-hidden="true"></i><b>{{ salida.nombre }}</b></span>{% empty %}<span class="doc-masa">sigue <b>{{ fila.continua }}</b></span>{% endfor %}
+        {% if fila.salidas and fila.continua %}<span class="doc-masa">sigue <b>{{ fila.continua }}</b></span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "BALANCE DE MATERIA POR ETAPA" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Entra" %}</th><th>{% translate "Se incorpora" %}</th><th>{% translate "Continúa" %}</th><th>{% translate "Sale declarado" %}</th><th>{% translate "Pérdida" %}</th></tr></thead><tbody>
+    {% for fila in balance.filas %}<tr><td>{{ fila.orden }}</td><td>{{ fila.nombre }} <small>({{ fila.rendimiento_pct }} %)</small></td><td>{{ fila.entra }}</td><td>{% if fila.agregado != "0" %}+{{ fila.agregado }}{% else %}—{% endif %}</td><td>{{ fila.continua }}</td><td>{% for salida in fila.salidas %}{{ salida }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}{% if fila.externo %} <small>{% translate "(externo" %} {{ fila.externo }})</small>{% endif %}</td><td>{% if fila.perdida != "0" %}{{ fila.perdida }}{% else %}—{% endif %}{% if fila.exceso %} <small class="aula-aviso">(+{{ fila.exceso }} {% translate "sin cubrir)" %}</small>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="unit-report__notice">{% translate "El balance corre en" %} {{ balance.unidad_base }} {% translate "por el rendimiento de cada etapa, sumando lo que se incorpora al producto; los auxiliares del proceso (salmuera, empaques) no entran al flujo." %}</p>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "TODO LO QUE ENTRA" %}</span><small>{{ entradas|length }} insumo{{ entradas|length|pluralize }}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Etapa" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Cantidad en este escenario" %}</th><th>{% translate "Su papel en el balance" %}</th></tr></thead><tbody>
+    {% for entrada in entradas %}<tr><td>{% if entrada.etapa %}{{ entrada.etapa }}{% else %}{% translate "Sin etapa" %}{% endif %}</td><td><strong>{{ entrada.nombre }}</strong>{% if not entrada.obligatorio %} <small>{% translate "(opcional)" %}</small>{% endif %}</td><td>{{ entrada.cantidad }}</td><td>{{ entrada.rol }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "TODO LO QUE SALE" %}</span><small>{% translate "subproductos declarados y mermas del balance" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Etapa" %}</th><th>{% translate "Salida" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Qué es" %}</th></tr></thead><tbody>
+    {% for salida in salidas %}<tr><td>{{ salida.etapa }}</td><td><strong>{{ salida.nombre }}</strong></td><td>{{ salida.cantidad|default:"—" }}</td><td>{{ salida.tipo }} · {{ salida.detalle }}</td></tr>{% empty %}<tr><td colspan="4">{% translate "Con estos datos el proceso no pierde masa ni declara subproductos." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__summary" aria-label="{% translate "Balance de energía" %}">
+  <article><span>{% translate "Masa a calentar" %}</span><strong>{{ energia.masa_kg }} kg</strong><small>{{ cantidad }} {{ receta.unidad_base }}</small></article>
+  <article><span>{% translate "Calor útil" %}</span><strong>{{ energia.calor_util_kj }} {% translate "kJ" %}</strong><small>de {{ parametros.t_inicial }} a {{ parametros.t_proceso }} {% translate "°C (" %}{{ energia.salto_calor }} {% translate "K)" %}</small></article>
+  <article><span>{% translate "Energía a suministrar" %}</span><strong>{{ energia.calor_kwh }} {% translate "kWh" %}</strong><small>{{ energia.calor_suministrado_kj }} {% translate "kJ con" %} {{ energia.eficiencia_pct }} {% translate "% de eficiencia · ≈" %} {{ energia.vapor_kg }} {% translate "kg de vapor" %}</small></article>
+  <article><span>{% translate "Calor por retirar" %}</span><strong>{{ energia.frio_kj }} {% translate "kJ" %}</strong><small>de {{ parametros.t_proceso }} a {{ parametros.t_final }} {% translate "°C · ≈" %} {{ energia.frio_kwh }} {% translate "kWh eléctricos" %}</small></article>
+  {% if energia.minutos %}<article><span>{% translate "Tiempo de calentamiento" %}</span><strong>{{ energia.minutos }} min</strong><small>a {{ parametros.potencia_kw }} {% translate "kW" %}</small></article>{% endif %}
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "ETAPAS TÉRMICAS DEL PROCESO" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Trabajo térmico" %}</th><th>{% translate "Parámetro" %}</th><th>{% translate "Límite" %}</th><th>{% translate "Equipo" %}</th></tr></thead><tbody>
+    {% for fila in calientes %}<tr><td>{{ fila.orden }}</td><td>{{ fila.nombre }}</td><td>{% translate "Calienta" %}{% if fila.temperatura %} · {{ fila.temperatura }} {% translate "°C" %}{% endif %}</td><td>{{ fila.parametro|default:"—" }}</td><td>{{ fila.limite|default:"—" }}</td><td>{{ fila.equipo|default:"—" }}</td></tr>{% endfor %}
+    {% for fila in frias %}<tr><td>{{ fila.orden }}</td><td>{{ fila.nombre }}</td><td>{% translate "Enfría" %}{% if fila.temperatura %} · {{ fila.temperatura }} {% translate "°C" %}{% endif %}</td><td>{{ fila.parametro|default:"—" }}</td><td>{{ fila.limite|default:"—" }}</td><td>{{ fila.equipo|default:"—" }}</td></tr>{% endfor %}
+    {% if not calientes and not frias %}<tr><td colspan="6">{% translate "El proceso no declara etapas térmicas." %}</td></tr>{% endif %}
+  </tbody></table></div>
+  <p class="unit-report__notice">{% translate "Este escenario usó calor específico" %} {{ energia.calor_especifico }} {% translate "kJ/(kg·K), densidad" %} {{ energia.densidad }} kg/L, calor latente del vapor {{ energia.calor_latente_vapor }} {% translate "kJ/kg y COP" %} {{ energia.cop_frio }}{% translate ". Son entradas editables y quedan separadas de los datos medidos en corridas reales." %}</p>
+</section>
+{% endblock %}

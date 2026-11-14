@@ -1,0 +1,91 @@
+/* Aula wiki: contenido opt-in; sin dependencias ni fuentes adicionales. */
+.curso-wiki {
+    --wiki-tinta: #173a35;
+    --wiki-verde: #24663f;
+    --wiki-azul: #175b80;
+    --wiki-borde: #d9e5e2;
+    min-width: 0;
+    color: var(--wiki-tinta);
+    font-size: clamp(.95rem, .9rem + .2vw, 1.08rem);
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+.curso-wiki > * { min-width: 0; }
+.curso-wiki p { margin: 0 0 1rem; }
+.curso-wiki strong { color: #143c31; font-weight: 750; }
+.curso-wiki a { color: #155e83; text-decoration: underline; text-underline-offset: .18em; }
+.curso-wiki a:hover { color: #103c59; text-decoration-thickness: 2px; }
+.curso-wiki a:focus-visible, .curso-wiki summary:focus-visible,
+.curso-wiki [tabindex="0"]:focus-visible {
+    outline: 3px solid #b77900;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+.curso-wiki__indice {
+    margin: .25rem 0 1.75rem;
+    padding: 1rem clamp(1rem, 2vw, 1.5rem);
+    border: 1px solid var(--wiki-borde);
+    border-top: 4px solid #2f7352;
+    border-radius: 14px;
+    background: linear-gradient(120deg, #f0f8f3, #f4f8fc);
+}
+.curso-wiki__indice summary { cursor: pointer; color: #214d3b; font-weight: 800; }
+.curso-wiki__indice summary i { margin-right: .45rem; }
+.curso-wiki__indice ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1.5rem; margin: .8rem 0 0; padding: 0; list-style: none; }
+.curso-wiki__indice li { padding: 0; margin: 0; }
+.curso-wiki__indice a { display: inline-block; padding: .15rem 0; font-size: .9em; line-height: 1.5; text-decoration: none; }
+.curso-wiki__indice .curso-wiki__indice-nivel-3 { padding-left: 1rem; border-left: 2px solid #bed7d6; }
+.curso-wiki .curso-wiki__titulo {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    margin: 2rem 0 1rem;
+    color: var(--wiki-tinta);
+    font-weight: 800;
+    line-height: 1.35;
+    scroll-margin-top: 1.5rem;
+}
+.curso-wiki h3.curso-wiki__titulo { padding: .8rem 0; border-bottom: 2px solid #e4eee7; font-size: clamp(1.16rem, 1rem + .5vw, 1.45rem); }
+.curso-wiki h4.curso-wiki__titulo { padding-left: .8rem; border-left: 4px solid #67a5b8; color: #225b72; font-size: 1.08em; }
+.curso-wiki__numero { display: grid; flex: 0 0 2rem; width: 2rem; height: 2rem; place-items: center; border-radius: 10px; background: #e7f2eb; color: #245e3c; font-size: .85em; }
+.curso-wiki ul, .curso-wiki ol { margin: .5rem 0 1.25rem; padding-left: 1.6rem; }
+.curso-wiki li { margin: .45rem 0; padding-left: .25rem; }
+.curso-wiki li::marker { color: #2b7553; font-weight: 800; }
+.curso-wiki__tabla { width: 100%; max-width: 100%; margin: 1.25rem 0; overflow: auto; border: 1px solid var(--wiki-borde); border-radius: 12px; overscroll-behavior-inline: contain; }
+.curso-wiki table { width: 100%; border-collapse: collapse; font-size: .9em; line-height: 1.6; }
+.curso-wiki th, .curso-wiki td { min-width: 7rem; padding: .8rem 1rem; border-bottom: 1px solid #e0e9e4; text-align: left; vertical-align: top; }
+.curso-wiki th { color: #fff; background: #285f48; font-weight: 750; }
+.curso-wiki th strong, .curso-wiki th a { color: #fff; }
+.curso-wiki th code { color: #173a35; }
+.curso-wiki tbody tr:nth-child(even) { background: #f5f9f7; }
+.curso-wiki tbody tr:last-child td { border-bottom: 0; }
+.curso-wiki code { padding: .12rem .38rem; border: 1px solid #dae4eb; border-radius: 5px; background: #edf3f8; color: #1d4f70; font-family: Consolas, 'Liberation Mono', monospace; font-size: .87em; overflow-wrap: anywhere; }
+.curso-wiki__codigo { margin: 1.25rem 0; overflow: hidden; border: 1px solid #284556; border-radius: 12px; background: #102b3b; color: #f0f7fa; }
+.curso-wiki__lenguaje { display: block; padding: .4rem 1rem; border-bottom: 1px solid #365266; color: #d4e8ee; font-size: .75em; letter-spacing: .05em; }
+.curso-wiki pre { max-width: 100%; margin: 0; padding: 1rem 1.2rem; overflow: auto; line-height: 1.7; tab-size: 4; }
+.curso-wiki pre code { padding: 0; border: 0; background: transparent; color: inherit; font-size: .85em; white-space: pre; overflow-wrap: normal; }
+.curso-wiki__aviso { margin: 1.4rem 0; padding: 1rem 1.2rem; border: 1px solid #bdd7ea; border-left: 5px solid #2c709b; border-radius: 12px; background: #f0f7fd; }
+.curso-wiki__aviso-titulo { display: flex; align-items: center; gap: .6rem; margin: 0 0 .35rem; color: #205274 !important; }
+.curso-wiki__aviso p { margin-bottom: 0; }
+.curso-wiki__aviso--tip { border-color: #bedcc8; border-left-color: #3b8156; background: #f0f8f2; }
+.curso-wiki__aviso--tip .curso-wiki__aviso-titulo { color: #275b3b !important; }
+.curso-wiki__aviso--warning { border-color: #e7cd8c; border-left-color: #a36e10; background: #fff8e9; }
+.curso-wiki__aviso--warning .curso-wiki__aviso-titulo { color: #73500c !important; }
+.curso-wiki__figura { margin: 1.5rem 0; padding: clamp(.5rem, 1.6vw, 1rem); border: 1px solid var(--wiki-borde); border-radius: 16px; background: #f7faf9; }
+.curso-wiki__ampliar { display: block; border-radius: 10px; }
+.curso-wiki__figura img { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 10px; background: #fff; }
+.curso-wiki__figura figcaption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; margin-top: .7rem; color: #45635b; font-size: .8em; line-height: 1.55; }
+.curso-wiki__figura figcaption a { flex: 0 0 auto; padding: .3rem .55rem; border: 1px solid #bed4ca; border-radius: 7px; background: #fff; color: #255c40; font-weight: 700; text-decoration: none; }
+.curso-wiki hr { margin: 1.8rem 0; border: 0; border-top: 1px solid var(--wiki-borde); }
+.curso-wiki__sr { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (max-width: 620px) {
+    .curso-wiki__indice ol { grid-template-columns: minmax(0, 1fr); }
+    .curso-wiki th, .curso-wiki td { min-width: 6rem; padding: .65rem .7rem; }
+    .curso-wiki__aviso { padding: .85rem .9rem; }
+    .curso-wiki__figura figcaption { align-items: flex-start; }
+}
+@media print {
+    .curso-wiki__indice, .curso-wiki__figura figcaption a { display: none; }
+    .curso-wiki__tabla, .curso-wiki pre { overflow: visible; }
+    .curso-wiki__figura, .curso-wiki__aviso { break-inside: avoid; }
+}

@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ recurso.nombre }}</title>
+{% if not destino and estado == 'pendiente' or not destino and estado == 'en_curso' %}<meta http-equiv="refresh" content="15">{% endif %}
+<style>body{margin:0;font:16px system-ui;color:#21382b;background:#f4f7f5}a{color:#28643a}iframe{width:100%;height:100vh;display:block;border:0}main{padding:24px;max-width:700px}p{line-height:1.6}</style></head>
+<body>{% if destino %}<iframe src="{{ destino }}" title="{{ recurso.nombre }}" sandbox="allow-scripts allow-forms allow-same-origin allow-downloads allow-popups" referrerpolicy="no-referrer"></iframe>
+{% elif estado == 'pendiente' or estado == 'en_curso' %}<main><h2>Poniéndose en marcha</h2><p>El proyecto se está preparando en su entorno independiente. Esta página se actualizará sola en unos minutos.</p></main>
+{% elif estado == 'error' %}<main><h2>No disponible por ahora</h2><p>No se pudo poner en marcha esta versión del proyecto. Los administradores de la unidad pueden ver el detalle y reintentarlo desde su ficha.</p></main>
+{% else %}<main><h2>Pendiente de puesta en marcha</h2><p>El paquete está guardado. Su entorno independiente debe prepararse antes de poder abrirlo. Si se reemplazó el ZIP, se necesita desplegar la nueva versión conservando la base de datos.</p></main>{% endif %}
+</body></html>

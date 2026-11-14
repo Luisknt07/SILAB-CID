@@ -1,0 +1,1 @@
+{% extends "inventario/base.html" %}{% block content %}<section class="panel login"><h1>Ingresar a la práctica</h1><p>Utilice el usuario creado en su equipo.</p><form method="post">{% csrf_token %}{{ form.as_p }}<input type="hidden" name="next" value="{{ next }}"><button type="submit">Ingresar</button></form></section>{% endblock %}

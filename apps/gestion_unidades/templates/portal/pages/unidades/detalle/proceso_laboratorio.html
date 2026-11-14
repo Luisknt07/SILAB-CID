@@ -1,0 +1,98 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ proceso.nombre }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce ficha area">
+  {% if revisar_borrador %}<p class="conoce__borrador area__borrador"><i class="fas fa-eye-slash" aria-hidden="true"></i> {% translate "Borrador de referencia: el público no lo ve. El laboratorio revisa cada etapa y lo activa para publicarlo." %} {% translate "Revisar y activar" as rotulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='proceso' pk=proceso.pk titulo=proceso.nombre rotulo=rotulo %}</p>{% endif %}
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{% if seccion %}{% translate "Sección" %} {{ seccion }} · {% endif %}{{ unidad.nombre }}</span>
+      <h1>{{ proceso.nombre }}</h1>
+      {% include 'portal/pages/unidades/includes/editar.html' with clave='proceso' pk=proceso.pk titulo=proceso.nombre %}
+      <ul class="conoce__datos">
+        <li><i class="fas fa-cube" aria-hidden="true"></i>{% translate "Entrega:" %} {{ proceso.producto.nombre }}</li>
+        <li><i class="fas fa-clock" aria-hidden="true"></i>{{ duracion_total }}</li>
+        {% if proceso.codigo %}<li><i class="fas fa-tag" aria-hidden="true"></i>{{ proceso.codigo }}</li>{% endif %}
+      </ul>
+    </div>
+    <div class="conoce__portada-acciones"><button type="button" class="conoce__boton is-principal" data-accion="reservar"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Reservar para hacerlo" %}</button></div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "El proceso en cifras" %}">
+    <div data-aparecer><i class="fas fa-list-ol" aria-hidden="true"></i><strong data-contar="{{ etapas|length }}">{{ etapas|length }}</strong><span>{% translate "Etapas" %}</span></div>
+    {% if equipos %}<div data-aparecer><i class="fas fa-cogs" aria-hidden="true"></i><strong data-contar="{{ equipos }}">{{ equipos }}</strong><span>{% translate "Equipos que usa" %}</span></div>{% endif %}
+    {% if proceso.software.all %}<div data-aparecer><i class="fas fa-laptop-code" aria-hidden="true"></i><strong>{{ proceso.software.all|length }}</strong><span>{% translate "Programas" %}</span></div>{% endif %}
+    {% if proceso.insumos.all %}<div data-aparecer><i class="fas fa-boxes" aria-hidden="true"></i><strong>{{ proceso.insumos.all|length }}</strong><span>{% translate "Insumos" %}</span></div>{% endif %}
+  </section>
+
+  <section class="conoce__seccion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Paso a paso" %}</span><h2>{% translate "Cómo se hace" %}</h2></header>
+    {% if proceso.instrucciones %}<div class="ficha__areas" data-aparecer>{{ proceso.instrucciones|linebreaks }}</div>{% endif %}
+    <ol class="area__pasos">
+      {% for paso in etapas %}{% with etapa=paso.etapa %}<li class="area__paso" data-aparecer>
+        <span class="area__paso-numero">{{ etapa.orden }}</span>
+        <div class="area__paso-datos">
+          <div class="area__novedad-etiquetas"><span class="ficha__rol">{{ etapa.get_tipo_display }}</span>{% if etapa.punto_control or etapa.punto_critico %}<span class="area__estado is-uso">{% translate "Punto de control" %}</span>{% endif %}</div>
+          <h3>{{ etapa.nombre }}</h3>
+          <ul class="ficha__medios area__paso-meta">
+            {% if etapa.espacio %}<li><i class="fas fa-vector-square" aria-hidden="true"></i><a href="{% url 'area_unidad' unidad.slug etapa.espacio.codigo %}">{{ etapa.espacio.nombre }}</a></li>{% endif %}
+            {% if etapa.equipo %}<li><i class="fas fa-cog" aria-hidden="true"></i>{% if paso.ficha_equipo %}<a href="{% url 'ficha_equipo_publica' unidad.slug paso.ficha_equipo %}">{{ etapa.equipo.nombre }}</a>{% else %}{{ etapa.equipo.nombre }}{% endif %}</li>{% endif %}
+            {% if etapa.tiempo_total_min %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ etapa.tiempo_total_min }} min</li>{% endif %}
+            <li><i class="fas fa-user" aria-hidden="true"></i>{{ etapa.personas }} persona{{ etapa.personas|pluralize }}</li>
+          </ul>
+          {% if etapa.instrucciones %}<p>{{ etapa.instrucciones }}</p>{% endif %}
+          {% if etapa.parametro %}<p class="area__control"><i class="fas fa-ruler" aria-hidden="true"></i><strong>{% translate "Se controla:" %}</strong> {{ etapa.parametro }}{% if etapa.limite %} · <strong>{% translate "Límite:" %}</strong> {{ etapa.limite }}{% endif %}</p>{% endif %}
+          {% if paso.insumos %}<p class="area__auxiliares"><strong>{% translate "Insumos" %}</strong> {% for insumo in paso.insumos %}<span>{{ insumo.consumible.nombre }} · {{ insumo.cantidad|floatformat:"-2" }} {{ insumo.consumible.unidad_medida }}</span>{% endfor %}</p>{% endif %}
+          {% include 'portal/pages/unidades/includes/editar.html' with clave='etapa' pk=etapa.pk titulo=etapa.nombre %}
+        </div>
+      </li>{% endwith %}{% endfor %}
+    </ol>
+    {% translate "Nueva etapa" as titulo_nuevo %}{% translate "Agregar una etapa" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='etapa' pk='nuevo' padre=proceso.pk titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+  </section>
+
+  {% if insumos_generales or proceso.software.all %}
+  <section class="conoce__seccion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Antes de empezar" %}</span><h2>{% translate "Qué se necesita" %}</h2></header>
+    {% if proceso.software.all %}<ul class="ficha__lineas" data-aparecer>{% for programa in proceso.software.all %}<li><i class="fas fa-laptop-code" aria-hidden="true"></i>{{ programa.nombre }}</li>{% endfor %}</ul>{% endif %}
+    {% if insumos_generales %}<ul class="area__puntos" data-aparecer>{% for insumo in insumos_generales %}<li><i class="fas fa-box" aria-hidden="true"></i>{{ insumo.consumible.nombre }} · {{ insumo.cantidad|floatformat:"-2" }} {{ insumo.consumible.unidad_medida }}</li>{% endfor %}</ul>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Al terminar" %}</span><h2>{% translate "Qué se obtiene" %}</h2></header>
+    <div class="area__actividades">
+      <article class="area__actividad" data-aparecer>
+        <header><i class="fas fa-cube" aria-hidden="true"></i><div><span class="ficha__rol">{{ proceso.producto.get_tipo_display }}</span></div></header>
+        <h3>{{ proceso.producto.nombre }}</h3>
+        {% if proceso.producto.descripcion %}<p>{{ proceso.producto.descripcion }}</p>{% endif %}
+        <footer><span>{% translate "Por cada vez:" %} <strong>{{ proceso.rendimiento_esperado|floatformat:"-2" }}</strong> {{ proceso.producto.unidad_medida }}</span></footer>
+      </article>
+      {% for salida in proceso.salidas.all %}{% if salida.producto_id != proceso.producto_id %}<article class="area__actividad" data-aparecer>
+        <header><i class="fas fa-recycle" aria-hidden="true"></i><div><span class="ficha__rol">{{ salida.producto.get_tipo_display }}</span></div></header>
+        <h3>{{ salida.producto.nombre }}</h3>
+        <footer><span><strong>{{ salida.cantidad|floatformat:"-2" }}</strong> {{ salida.producto.unidad_medida }}</span></footer>
+      </article>{% endif %}{% endfor %}
+    </div>
+  </section>
+
+  {% if otros %}
+  <section class="conoce__seccion area__otras-seccion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Sigue recorriendo" %}</span><h2>{% translate "Otros procesos de la unidad" %}</h2></header>
+    <ul class="area__otras" data-aparecer>{% for otro in otros %}<li><a href="{% url 'proceso_laboratorio' unidad.slug otro.pk %}"><i class="fas fa-project-diagram" aria-hidden="true"></i><span><strong>{{ otro.nombre }}</strong><small>{{ otro.producto.nombre }}</small></span></a></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+</body>
+</html>

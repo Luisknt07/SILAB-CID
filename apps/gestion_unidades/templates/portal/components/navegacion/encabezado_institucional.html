@@ -1,0 +1,78 @@
+{% load static i18n idiomas marca %}
+<header class="home-top" id="homeTop">
+  <div class="home-contact">
+    <div class="home-contact-inner">
+      <ul class="contact-list">
+        <li><i class="simple-icon-phone"></i> {{ identidad_institucion.telefono }}</li>
+        <li><i class="simple-icon-envelope"></i> {{ identidad_institucion.correo }}</li>
+        <li><i class="simple-icon-location-pin"></i> {{ identidad_institucion.ubicacion }}</li>
+      </ul>
+      <div class="home-contact-actions">
+      <ul class="social-list">
+        <li>{% translate "Síguenos:" %}</li>
+        <li><i class="simple-icon-social-facebook"></i></li>
+        <li><i class="simple-icon-social-instagram"></i></li>
+        <li><i class="simple-icon-social-linkedin"></i></li>
+        {% if show_youtube %}<li><i class="simple-icon-social-youtube"></i></li>{% endif %}
+        <li><a class="top-contact-link upec-button upec-button--outline upec-button--micro" href="{% url 'servicios_portal' %}#contacto"><i class="simple-icon-envelope"></i> {% translate "Contacto" %}</a></li>
+      </ul>
+      {% include 'portal/components/navegacion/selector_idioma.html' %}
+      {# La sesion cierra la barra por la derecha, separada de contacto, redes e idiomas. #}
+      <div class="home-session" data-home-session>
+        {% if user.is_authenticated %}
+          <a class="home-session__user" href="{% url 'profile' %}" aria-label="{% translate 'Mi perfil' %}">
+            <i class="simple-icon-user"></i><span>{% firstof user.get_full_name user.get_username %}</span>
+          </a>
+          <form class="home-session__logout" method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" title="{% translate "Cerrar sesión" %}">{% translate "Cerrar sesión" %}</button>
+          </form>
+        {% else %}
+          <a class="home-session__login upec-button upec-button--primary upec-button--micro" href="{% url 'login' %}"><i class="simple-icon-user"></i> {% translate "Iniciar sesión" %}</a>
+        {% endif %}
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="home-nav" aria-label="{% translate "Navegación principal" %}">
+    <div class="home-nav-inner">
+      <a class="brand-block" href="{% url 'home' %}" aria-label="{{ identidad_producto.nombre }} · {{ identidad_institucion.siglas }}" title="{{ identidad_producto.nombre }}">
+        {% marca_institucional identidad_institucion 'oscuro' %}
+        <span class="brand-divider"></span>
+        <span class="brand-title">{{ identidad_producto.nombre_corto }}</span>
+      </a>
+
+      <ul class="home-menu" id="homeMenu">
+        <li><a class="{% if active_page == 'inicio' %}active{% endif %}" href="{% url 'home' %}"><i class="simple-icon-home"></i><span>{% translate "Inicio" %}</span></a></li>
+        <li><a class="{% if active_page == 'quienes' %}active{% endif %}" href="{% url 'quienes_somos' %}"><i class="simple-icon-people"></i><span>{% translate "Quiénes somos" %}</span></a></li>
+        <li><a class="{% if active_page == 'centros' %}active{% endif %}" href="{% url 'centros_id' %}"><i class="iconsminds-building"></i><span>{% translate "Centros I+D" %}</span></a></li>
+        <li class="nav-labs"><a class="{% if active_page == 'laboratorios' %}active{% endif %}" href="{% url 'laboratorios_unidades' %}"><i class="iconsminds-microscope"></i><span>{% translate "Laboratorios y Unidades Experimentales" %}</span></a></li>
+        <li><a class="{% if active_page == 'servicios' %}active{% endif %}" href="{% url 'servicios_portal' %}"><i class="simple-icon-briefcase"></i><span>{% translate "Servicios" %}</span></a></li>
+        <li><a class="{% if active_page == 'normativa' %}active{% endif %}" href="{% url 'normativa' %}"><i class="simple-icon-docs"></i><span>{% translate "Normativa" %}</span></a></li>
+        <li><a class="{% if active_page == 'noticias' %}active{% endif %}" href="{% url 'noticias' %}"><i class="simple-icon-feed"></i><span>{% translate "Noticias" %}</span></a></li>
+      </ul>
+
+      <div class="nav-tools">
+        <button class="mobile-toggle" type="button" id="homeMenuToggle" aria-label="{% translate "Abrir menú" %}"><i class="simple-icon-menu"></i></button>
+        {% if user.is_authenticated %}
+          <div class="reservation-notifications" data-reservation-notifications>
+            <form hidden aria-hidden="true">{% csrf_token %}</form>
+            <button class="reservation-notifications__trigger" type="button" data-notifications-toggle aria-expanded="false" aria-label="{% translate "Notificaciones de reservas" %}">
+              <i class="simple-icon-bell"></i>
+              {% if reservation_notifications_unread %}<b data-notifications-count>{{ reservation_notifications_unread }}</b>{% endif %}
+            </button>
+            <div class="reservation-notifications__menu" data-notifications-menu hidden>
+              <header><div><span>SEGUIMIENTO</span><strong>{% translate "Notificaciones" %}</strong></div>{% if reservation_notifications_unread %}<button type="button" data-notifications-read data-url="{% url 'marcar_notificaciones_reserva_leidas' %}">{% translate "Marcar leídas" %}</button>{% endif %}</header>
+              <div>
+                {% for aviso in reservation_notifications %}
+                  <a href="{{ aviso.url }}" class="{% if not aviso.leida %}is-unread{% endif %}"><i class="simple-icon-{% if aviso.tipo == 'cierre_pendiente' %}clock{% elif aviso.tipo == 'informacion' %}speech{% else %}calendar{% endif %}"></i><span><strong>{{ aviso.titulo }}</strong><small>{{ aviso.mensaje|truncatechars:105 }}</small><time>{{ aviso.creada_en|timesince }} {% translate "atrás" %}</time></span></a>
+                {% empty %}<p>{% translate "No tienes notificaciones pendientes." %}</p>{% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+</header>

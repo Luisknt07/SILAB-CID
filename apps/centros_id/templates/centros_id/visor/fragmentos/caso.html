@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}La ficha de un caso de transferencia: quién se benefició, qué reto tenía, qué se hizo y qué resultado dejó.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande{% if caso.imagen %} con-foto{% endif %}" aria-hidden="true">{% if caso.imagen %}<img src="{{ caso.imagen.url }}" alt="">{% else %}<i class="fas fa-award"></i>{% endif %}</span>
+  <div><span class="ficha__rol">{% translate "Caso de transferencia" %} · {{ caso.anio }}{% if caso.sector %} · {{ caso.sector }}{% endif %}</span><h3>{{ caso.titulo }}</h3><p><i class="fas fa-user-friends" aria-hidden="true"></i> {{ caso.beneficiario }}</p></div>
+</header>
+<div class="area__dialogo-cuerpo">
+  <div class="area__dialogo-listas">
+    <div><h4><i class="fas fa-bullseye" aria-hidden="true"></i> {% translate "El reto" %}</h4><div class="area__texto">{{ caso.reto|linebreaks }}</div></div>
+    <div><h4><i class="fas fa-tools" aria-hidden="true"></i> {% translate "Lo que se hizo" %}</h4><div class="area__texto">{{ caso.solucion|linebreaks }}</div></div>
+  </div>
+  {% if caso.contexto %}<h4>{% translate "Contexto" %}</h4><div class="area__texto">{{ caso.contexto|linebreaks }}</div>{% endif %}
+  {% if caso.aporte_centro %}<h4>{% translate "Papel del centro" %}</h4><div class="area__texto">{{ caso.aporte_centro|linebreaks }}</div>{% endif %}
+  <h4>{% translate "Transferencia documentada" %}</h4><p>{{ caso.receptor }} · {{ caso.mecanismo }} · {{ caso.fecha_transferencia|date:'d/m/Y' }}</p><p>{{ caso.evidencia }}</p>
+  {% if caso.impacto_documentado %}<h4>{% translate "Medición del resultado" %}</h4><p>{{ caso.resultado }} · {{ caso.unidad_medida }} · {{ caso.periodo_medicion }}</p><p><strong>{% translate "Referencia:" %}</strong> {{ caso.referencia }}</p><div class="area__texto">{{ caso.metodo_medicion|linebreaks }}</div>{% else %}<p class="ficha__nota">{% translate "La aceptación o el uso están documentados; la medición de impacto sigue pendiente." %}</p>{% endif %}
+  {% if caso.limites %}<h4>{% translate "Límites de atribución" %}</h4><div class="area__texto">{{ caso.limites|linebreaks }}</div>{% endif %}
+  {% if caso.componente or caso.proyecto or caso.aliado %}<span class="cv-chips">{% if caso.componente %}<a class="cv-chip" href="{% url 'componente_centro_id' centro.slug caso.componente.codigo %}"><i class="{{ caso.componente.icono }}" aria-hidden="true"></i> {{ caso.componente }}</a>{% endif %}{% if caso.proyecto %}<span class="cv-chip"><i class="fas fa-rocket" aria-hidden="true"></i> {{ caso.proyecto.titulo }}</span>{% endif %}{% if caso.aliado %}<span class="cv-chip"><i class="{{ caso.aliado.icono }}" aria-hidden="true"></i> {{ caso.aliado.nombre }}</span>{% endif %}</span>{% endif %}
+  {% if caso.enlace %}<div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ caso.enlace }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt" aria-hidden="true"></i> {% translate "Más información" %}</a></div>{% endif %}
+</div>

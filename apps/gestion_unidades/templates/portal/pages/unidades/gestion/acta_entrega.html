@@ -1,0 +1,62 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Acta de entrega ·" %} {{ reserva.codigo_reserva }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .acta-firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 28px 0 8px; }
+    .acta-firmas div { padding-top: 40px; border-top: 1px solid var(--institucion-primario, #1f3d2f); font-size: 12px; color: var(--institucion-texto, #1f3d2f); }
+    .acta-firmas strong { display: block; }
+    .acta-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    @media print { .unit-report__toolbar { display: none; } }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{% translate "Acta de entrega y certificado de calidad" %}</h1>
+        <small>{% translate "Encargo" %} {{ reserva.codigo_reserva }} · {{ expediente.receta.nombre }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl><div><dt>{% translate "Cliente" %}</dt><dd>{{ reserva.nombre_solicitante|default:reserva.usuario.username }}{% if reserva.institucion %} · {{ reserva.institucion }}{% endif %}</dd></div><div><dt>{% translate "Entregado" %}</dt><dd>{{ expediente.entregado_texto }} de {{ expediente.producto }}</dd></div><div><dt>{% translate "Emitida" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver" %}</a>
+      <div>{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+
+    <section class="unit-report__context"><span>{% translate "EL ENCARGO" %}</span><h2>{{ expediente.factor }} lote{{ expediente.factor|pluralize }} de {{ expediente.receta.nombre }}</h2><p>{% translate "Materia prima:" %} {{ expediente.escala }}, {% if expediente.materia_prima_cliente %}{% translate "entregada por el cliente" %}{% else %}{% translate "puesta por la planta" %}{% endif %}{% translate ". Producto esperado:" %} {{ expediente.producto_esperado }}{% translate ". Solicitud" %} {{ reserva.codigo_reserva }} del {{ reserva.fecha_reserva|date:"d/m/Y" }}{% translate "; corrida" %} {% if expediente.orden %}{{ expediente.orden.codigo }} ({{ expediente.orden.get_estado_display|ui }}){% else %}{% translate "sin registrar" %}{% endif %}.</p></section>
+
+    {% if expediente.materia_prima_cliente %}
+    <section class="unit-report__section">
+      <header><span>{% translate "MATERIA PRIMA RECIBIDA DEL CLIENTE" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Lote" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Fecha" %}</th><th>{% translate "Control de recepción" %}</th></tr></thead><tbody>
+        {% for lote in expediente.material %}<tr><td>{{ lote.codigo }}</td><td>{{ lote.consumible.nombre }}</td><td>{{ lote.cantidad_inicial|floatformat:"-3" }} {{ lote.consumible.unidad_medida }}</td><td>{{ lote.fecha_ingreso|date:"d/m/Y" }}</td><td>{{ lote.observaciones }}</td></tr>{% empty %}<tr><td colspan="5">{% translate "Sin materia prima del cliente registrada." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    {% endif %}
+
+    <section class="unit-report__section">
+      <header><span>{% translate "LOTES ENTREGADOS Y SU CERTIFICADO DE CALIDAD" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Lote" %}</th><th>{% translate "Producto" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Producido" %}</th><th>{% translate "Vence" %}</th><th>{% translate "Control de calidad" %}</th><th>{% translate "Referencia" %}</th></tr></thead><tbody>
+        {% for entrega in expediente.entregas %}<tr><td>{{ entrega.fecha|date:"d/m/Y" }}</td><td><strong>{{ entrega.lote.codigo }}</strong></td><td>{{ entrega.lote.producto.nombre }}</td><td>{{ entrega.cantidad|floatformat:"-3" }} {{ entrega.lote.producto.unidad_medida }}</td><td>{{ entrega.lote.fecha_produccion|date:"d/m/Y" }}</td><td>{% if entrega.lote.fecha_vencimiento %}{{ entrega.lote.fecha_vencimiento|date:"d/m/Y" }}{% else %}—{% endif %}</td><td><span class="acta-ok">{{ entrega.lote.get_control_calidad_display|ui }}</span></td><td>{{ entrega.referencia }}</td></tr>{% empty %}<tr><td colspan="8">{% translate "Todavía no hay entregas registradas." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+      <p class="unit-report__notice">{% translate "La planta certifica que cada lote entregado fue elaborado según el proceso «" %}{{ expediente.receta.nombre }}{% translate "», con sus puntos críticos de control registrados, y liberado por control de calidad antes de salir. El producto pertenece al cliente; el encargo se cobra como servicio según su cotización." %}</p>
+    </section>
+
+    <div class="acta-firmas">
+      <div><strong>{% translate "Por la planta" %}</strong>{{ unidad.nombre }}</div>
+      <div><strong>{% translate "Recibe conforme" %}</strong>{{ reserva.nombre_solicitante|default:reserva.usuario.username }}</div>
+    </div>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Acta de entrega ·" %} {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

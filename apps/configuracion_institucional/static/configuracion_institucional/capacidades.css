@@ -1,0 +1,7 @@
+.capacidad-editor{max-width:780px;box-sizing:border-box}
+.capacidad-editor p,.capacidad-editor label,.capacidad-editor .errorlist{overflow-wrap:anywhere}
+.capacidad-editor fieldset{padding:16px;box-sizing:border-box}
+.capacidad-editor textarea{display:block;box-sizing:border-box;width:100%;max-width:100%;margin-top:8px}
+.capacidad-editor .submit-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.capacidad-editor .submit-row input{max-width:100%;white-space:normal}
+@media(max-width:600px){.capacidad-editor fieldset{padding:12px}.capacidad-editor .submit-row{justify-content:flex-start}}

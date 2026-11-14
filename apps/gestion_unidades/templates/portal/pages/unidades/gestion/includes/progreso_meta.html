@@ -1,0 +1,6 @@
+{% load l10n reportes_estilo %}{% if indicador.porcentaje is not None and not indicador.pendiente and indicador.estado != 'No aplica' and indicador.estado != 'Sin definir en planificación' %}
+<div class="reporte-progreso is-{{ indicador.porcentaje|semaforo_avance }}">
+  <progress max="100" value="{{ indicador.porcentaje|unlocalize }}" title="{{ indicador.porcentaje|etiqueta_avance }}" aria-valuetext="{{ indicador.porcentaje }} % · {{ indicador.porcentaje|etiqueta_avance }}" aria-label="Avance de {{ indicador.indicador|default:indicador.nombre }}">{{ indicador.porcentaje }} %</progress>
+  {% if not sin_detalle %}{% if indicador.faltante %}<small>Faltan {{ indicador.faltante }} para la meta.</small>{% elif indicador.faltante == 0 %}<small>Meta alcanzada.</small>{% endif %}{% endif %}
+</div>
+{% endif %}

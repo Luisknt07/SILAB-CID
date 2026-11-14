@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas %}
+
+{% block title %}{% if superficie == 'erp' %}{% translate "ERP de" %}{% else %}{% translate "Gestión de" %}{% endif %} {{ unidad.nombre }} · {{ identidad_producto.nombre_corto }} · {{ identidad_institucion.siglas }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/panel_gestion.css' %}?v=20261020-areas-recursos-1">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/inventario_gestion.css' %}?v=20261022-visibilidad-2">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/gestion_cursos_panel.css' %}?v=20261009-1">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/comprobante_reserva.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+{% include 'portal/components/gestion_interfaz_assets.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+{% include 'portal/pages/unidades/gestion/includes/panel_contenido.html' %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'portal/js/pages/unidades/gestion_cursos_panel.js' %}?v=20261011-catalogo-v1"></script>
+<script src="{% static 'portal/js/pages/unidades/responsables_busqueda.js' %}?v=20261011-2"></script>
+<script src="{% static 'portal/js/pages/unidades/catalogos_busqueda.js' %}?v=20261011-1"></script>
+<script src="{% static 'portal/js/pages/unidades/panel_gestion.js' %}?v=20261110-agendas-v2"></script>
+<script src="{% static 'portal/js/pages/unidades/inventario_gestion.js' %}?v=20261022-visibilidad-2"></script>
+{% endblock %}

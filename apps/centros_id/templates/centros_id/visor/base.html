@@ -1,0 +1,41 @@
+{% load static i18n %}<!doctype html>
+{% comment %}
+Un documento del visualizador de la ficha, con las piezas de las páginas de Laboratorios: la cabecera institucional con
+sus cifras sobre el borde y, debajo, secciones con su antetítulo hechas con los mismos bloques, tarjetas, tablas, pasos,
+galería y videos. Las secciones, las áreas y las carpetas propias extienden esta base; lo que solo tienen los centros
+(el mapa de relaciones, el plano con sus puntos, los filtros, las fichas en ventana) vive en visor.css.
+{% endcomment %}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo_documento %}{{ seccion.titulo }}{% endblock %} · {{ centro.sigla|default:centro.nombre }}</title>
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  {% include 'centros_id/visor/_estilos.html' %}
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+</head>
+<body class="conoce ficha area cv{% block clase_cuerpo %}{% endblock %}" data-clave="{% block clave_cuerpo %}{{ seccion.clave }}{% endblock %}" data-titulo="{% block titulo_visor %}{{ seccion.titulo }}{% endblock %}" data-pestana="{{ pestana.clave }}" data-ficha="{{ ficha_url }}"{% block datos_cuerpo %}{% endblock %}>
+  {% block cabecera %}
+  <header class="ficha__cabecera{% block clase_cabecera %}{% if not cifras %} cv-cabecera--sola{% endif %}{% endblock %}">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{{ pestana.titulo }}{% block ceja_extra %}{% endblock %}</span>
+      <h1>{% block titulo %}{{ seccion.titulo }}{% endblock %}</h1>
+      {% block entradilla %}{% endblock %}
+    </div>
+    <div class="conoce__portada-acciones">
+      {% block acciones %}{% endblock %}
+      {% if completar %}<a class="conoce__boton" href="{{ completar }}" target="_top"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}
+      <a class="conoce__boton cv-solo-fuera" href="{{ ficha_url }}{% if seccion.clave %}?seccion={{ seccion.clave }}{% endif %}" target="_top"><i class="fas fa-landmark" aria-hidden="true"></i> {% translate "Ver en la ficha del centro" %}</a>
+    </div>
+  </header>
+  {% if cifras %}<section class="conoce__cifras" aria-label="{% translate "En cifras" %}">{% for cifra in cifras %}<div data-aparecer><i class="{{ cifra.icono }}" aria-hidden="true"></i><strong data-contar="{{ cifra.valor }}">{{ cifra.valor }}</strong><span>{{ cifra.titulo }}</span></div>{% endfor %}</section>{% endif %}
+  {% endblock %}
+  {% block contenido %}{% endblock %}
+  <footer class="cv-pie"><span><strong>{{ centro }}</strong>{% if centro.fuente %} · {{ centro.fuente }}{% endif %}</span><span>{% translate "Generado" %} {{ generado_en|date:"d/m/Y H:i" }}</span></footer>
+  <dialog class="area__dialogo cv-modal" id="cvModal" aria-label="{% translate "Ficha" %}"><button type="button" class="area__cerrar" data-cerrar aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button></dialog>
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+  {% include 'centros_id/visor/_guiones.html' %}
+</body>
+</html>

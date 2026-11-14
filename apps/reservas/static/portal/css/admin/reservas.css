@@ -1,0 +1,93 @@
+/* Montserrat y Poppins se cargan desde la paleta institucional compartida. */
+
+:root {
+  --upec-admin-green: var(--institucion-primario, #123d31);
+  --upec-admin-green-light: var(--institucion-primario, #207452);
+  --upec-admin-gold: var(--institucion-acento, #e7b938);
+  --upec-admin-ink: var(--institucion-texto, #13251f);
+  --upec-admin-muted: #66756f;
+  --upec-admin-surface: #fff;
+  --upec-admin-soft: var(--institucion-fondo, #f3f7f5);
+  --upec-admin-line: var(--institucion-borde, #d7e2dd);
+  --upec-admin-danger: #b42318;
+}
+
+body, input, select, textarea, button { font-family: 'Poppins', sans-serif; }
+h1, h2, h3, .upec-admin-heading { font-family: 'Montserrat', sans-serif; }
+
+.upec-admin-banner {
+  margin-bottom: 20px;
+  padding: 20px;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(135deg, var(--upec-admin-green), #071f1a);
+  border-top: 3px solid var(--upec-admin-gold);
+  box-shadow: 0 12px 30px rgba(var(--institucion-primario-rgb, 18, 61, 49), .16);
+}
+.upec-admin-banner h1 { margin: 0; color: #fff; font-size: clamp(1.45rem, 2.5vw, 1.9rem); font-weight: 700; }
+.upec-admin-banner h2 { margin: 5px 0 0; color: var(--upec-admin-gold); font-size: 1.05rem; font-weight: 600; }
+.upec-admin-banner p { margin: 10px 0 0; color: rgba(255,255,255,.75); font-size: .85rem; }
+
+.upec-admin-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+.upec-admin-button,
+.upec-admin-actions .button,
+.upec-admin-filter .button {
+  display: inline-flex !important;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  background: var(--upec-admin-green-light) !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: transform .2s ease, filter .2s ease;
+}
+.upec-admin-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.upec-admin-button--gold { color: var(--upec-admin-ink) !important; background: var(--upec-admin-gold) !important; }
+.upec-admin-button--dark { background: var(--upec-admin-ink) !important; }
+
+.upec-admin-card {
+  margin-bottom: 20px;
+  padding: 22px;
+  background: var(--upec-admin-surface);
+  border: 1px solid var(--upec-admin-line);
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(var(--institucion-primario-rgb, 18, 61, 49), .08);
+}
+.upec-admin-title { margin: 0 0 18px; color: var(--upec-admin-green); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+.upec-admin-chart { max-width: 920px; margin-inline: auto; overflow-x: auto; text-align: center; }
+.upec-admin-chart img { width: 880px; max-width: 100%; border: 1px solid #d7e2dd; }
+
+.upec-admin-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; margin: 0 0 18px; }
+.upec-admin-filter label { color: var(--upec-admin-green); font-weight: 600; }
+.upec-admin-filter select { min-height: 38px; padding: 5px 10px; border: 1px solid var(--upec-admin-line); border-radius: 4px; }
+
+.upec-admin-table { width: 100%; margin-bottom: 24px; border-collapse: collapse; }
+.upec-admin-table th { padding: 10px; color: var(--upec-admin-green); font-family: 'Montserrat', sans-serif; background: var(--upec-admin-soft); border-bottom: 2px solid var(--upec-admin-line); }
+.upec-admin-table td { padding: 9px 10px; border-bottom: 1px solid var(--upec-admin-line); }
+.upec-admin-value--success { color: #207452; font-weight: 600; }
+.upec-admin-value--danger { color: #b42318; font-weight: 600; }
+.upec-admin-value--strong { color: var(--upec-admin-ink); font-weight: 600; }
+
+.upec-inventory-intro { margin: 0 0 14px; color: var(--upec-admin-muted); }
+.upec-inventory-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
+.upec-inventory-field label { display: block; margin-bottom: 5px; font-weight: 600; }
+.upec-inventory-field--wide,
+.upec-inventory-submit,
+.upec-form-error--wide { grid-column: 1 / -1; }
+.upec-form-error { margin-top: 4px; color: #b42318; font-size: 12px; }
+.upec-inventory-submit { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+.upec-inventory-submit .upec-admin-button { width: 100%; max-width: 720px; }
+.upec-inventory-help { color: var(--upec-admin-muted); font-size: 12px; }
+
+@media (max-width: 767px) {
+  .upec-admin-card { padding: 16px; }
+  .upec-admin-filter { justify-content: flex-start; }
+  .upec-admin-actions > * { flex: 1 1 100%; }
+}

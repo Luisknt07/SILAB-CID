@@ -1,0 +1,126 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Trazabilidad" %} {{ lote.codigo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .traza-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    .traza-falta { color: #a12c2c; font-weight: 700; }
+    .traza-aviso { color: var(--institucion-acento-tinta, #a35d00); font-weight: 700; }
+    .traza-detalle { display: block; font-size: 11px; color: #4f5f57; }
+    .traza-busca { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+    .traza-busca input { padding: 7px 9px; border: 1px solid #c9d8cf; border-radius: 4px; font: inherit; font-size: 13px; }
+    .traza-busca button { padding: 7px 14px; border: 0; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .traza-otros a { display: inline-block; margin: 0 8px 6px 0; padding: 5px 10px; border: 1px solid #c9d8cf; border-radius: 999px; color: var(--institucion-texto, #1f3d2f); font-size: 12px; text-decoration: none; }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· TRAZABILIDAD" %}</span>
+        <h1>{% translate "Lote" %} {{ lote.codigo }}</h1>
+        <small>{{ lote.producto.nombre }} · {{ lote.cantidad_inicial|floatformat:"-3" }} {{ lote.producto.unidad_medida }} {% translate "producidos el" %} {{ lote.fecha_produccion|date:"d/m/Y" }}</small>
+        <p>{{ unidad.nombre }}</p>
+        {% if lote.demostrativo %}<p class="unit-report__notice traza-aviso">{% translate "Lote de la sesión" %} {{ lote.orden.sesion.codigo }} ({{ lote.orden.sesion.get_tipo_display|lower }}){% translate ": no es existencia real ni cuenta en los indicadores." %}</p>{% endif %}
+      </div>
+      <dl>
+        <div><dt>{% translate "Control de calidad" %}</dt><dd>{{ lote.get_control_calidad_display|ui }}</dd></div>
+        <div><dt>{% translate "Estado" %}</dt><dd>{{ lote.get_estado_display|ui }}</dd></div>
+        <div><dt>{% translate "Disponible" %}</dt><dd>{{ lote.cantidad_disponible|floatformat:"-3" }} {{ lote.producto.unidad_medida }}</dd></div>
+        {% if lote.fecha_vencimiento %}<div><dt>{% translate "Vence" %}</dt><dd>{{ lote.fecha_vencimiento|date:"d/m/Y" }}</dd></div>{% endif %}
+        <div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver a producción" %}</a>
+      <div><form method="get" class="traza-busca"><input type="search" name="buscar" placeholder="{% translate "Buscar otro lote" %}" value="{{ request.GET.buscar|default:'' }}"><button type="submit">{% translate "Buscar" %}</button></form>{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+
+    <section class="unit-report__context"><span>{% translate "LA CADENA" %}</span><h2>{% translate "De dónde salió este lote y a dónde fue" %}</h2><p>{% translate "Hacia atrás: el proceso que lo hizo, la sesión o el encargo que lo pidió y cada lote de insumo que se consumió, con el pedido por el que llegó y su control de recepción. Hacia adelante: los controles de calidad que pasó y los movimientos con los que salió de la unidad." %}</p></section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "DE DÓNDE SALIÓ" %}</span><small>{% translate "la corrida que lo produjo" %}</small></header>
+      {% if orden %}
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Orden" %}</th><th>{% translate "Proceso" %}</th><th>{% translate "Escala" %}</th><th>{% translate "Línea y equipos" %}</th><th>{% translate "Fechas" %}</th><th>{% translate "Origen" %}</th></tr></thead><tbody>
+        <tr>
+          <td><strong>{{ orden.codigo }}</strong><br><small>{{ orden.get_estado_display|ui }}</small></td>
+          <td>{{ receta.nombre }}<br><small>{{ receta.codigo }}</small></td>
+          <td>{% translate "×" %} {{ orden.factor|floatformat:"-3" }}<br><small>{{ orden.cantidad_planificada|floatformat:"-3" }} {% translate "planificados," %} {{ orden.cantidad_obtenida|default_if_none:"—"|floatformat:"-3" }} obtenidos</small></td>
+          <td>{% if orden.linea %}{{ orden.linea.nombre }}{% else %}—{% endif %}{% for equipo in equipos %}<span class="traza-detalle">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</span>{% endfor %}</td>
+          <td>{{ orden.fecha_inicio|date:"d/m/Y" }} a {{ orden.fecha_fin|date:"d/m/Y" }}{% if orden.cerrada_en %}<br><small>{% translate "cerrada el" %} {{ orden.cerrada_en|date:"d/m/Y H:i" }}</small>{% endif %}</td>
+          <td>{{ orden.get_origen_display|ui }}{% if reserva %}<br><small>{{ reserva.codigo_reserva }} · {{ reserva.nombre_solicitante|default:reserva.usuario.username }}</small>{% endif %}</td>
+        </tr>
+      </tbody></table></div>
+      {% if orden.observaciones %}<p class="unit-report__notice">{{ orden.observaciones|linebreaksbr }}</p>{% endif %}
+      {% else %}
+      <p class="unit-report__notice traza-aviso">{% translate "Este lote se registró sin orden de producción: su cadena hacia atrás no se puede reconstruir." %}</p>
+      {% endif %}
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "CON QUÉ SE HIZO" %}</span><small>{{ consumos|length }} lote{{ consumos|length|pluralize }} {% translate "de insumo consumidos" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Insumo" %}</th><th>{% translate "Lote consumido" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "De dónde llegó" %}</th><th>{% translate "Control de recepción" %}</th></tr></thead><tbody>
+        {% for fila in consumos %}<tr>
+          <td><strong>{{ fila.consumible.nombre }}</strong><br><small>{{ fila.consumible.codigo }}</small></td>
+          <td>{% if fila.lote %}{{ fila.lote.codigo }}{% if fila.del_cliente %}<br><small>{% translate "material del cliente" %}</small>{% endif %}{% if fila.lote.fecha_vencimiento %}<br><small>{% translate "vencía el" %} {{ fila.lote.fecha_vencimiento|date:"d/m/Y" }}</small>{% endif %}{% else %}<small>{% translate "sin lote" %}</small>{% endif %}</td>
+          <td>{{ fila.salida.cantidad|floatformat:"-3" }} {{ fila.consumible.unidad_medida }}<br><small>{{ fila.salida.fecha|date:"d/m/Y H:i" }}</small></td>
+          <td>{% if fila.pedido %}{{ fila.pedido.codigo }}<br><small>{{ fila.pedido.proveedor|default:"sin proveedor" }} {% translate "· entrega del" %} {{ fila.entrega.fecha|date:"d/m/Y" }}</small>{% elif fila.del_cliente %}{% translate "Lo trajo el cliente" %}{% elif fila.lote %}{{ fila.lote.documento_recepcion|default:"recepción sin documento" }}{% else %}—{% endif %}</td>
+          <td>{% if fila.control %}<span class="{% if fila.control.resultado == 'conforme' %}traza-ok{% else %}traza-falta{% endif %}">{{ fila.control.get_resultado_display|ui }}</span><br><small>{{ fila.control.plan.nombre }} · {{ fila.control.fecha|date:"d/m/Y" }}</small>{% else %}<small>{% translate "sin control de recepción" %}</small>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="5">{% translate "La corrida no registró consumos de inventario: los insumos se habían descontado antes, al cerrar la reserva." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    {% if puntos_de_control %}
+    <section class="unit-report__section">
+      <header><span>{% translate "PUNTOS DE CONTROL DEL PROCESO" %}</span><small>{{ puntos_de_control|length }} de {{ etapas|length }} etapas</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Etapa" %}</th><th>{% translate "Control" %}</th><th>{% translate "Equipo" %}</th><th>{% translate "Parámetro" %}</th><th>{% translate "Límite" %}</th></tr></thead><tbody>
+        {% for etapa in puntos_de_control %}<tr><td><strong>{{ etapa.orden }}. {{ etapa.nombre }}</strong></td><td>{% if etapa.punto_critico %}<span class="traza-falta">{% translate "PCC · inocuidad" %}</span>{% else %}{% translate "PC · calidad" %}{% endif %}</td><td>{% if etapa.equipo %}{{ etapa.equipo.nombre }}{% else %}—{% endif %}</td><td>{{ etapa.parametro|default:"—" }}</td><td>{{ etapa.limite|default:"—" }}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    {% endif %}
+
+    <section class="unit-report__section">
+      <header><span>{% translate "QUÉ CONTROLES PASÓ" %}</span><small>{{ controles|length }} control{{ controles|length|pluralize:"es" }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Plan" %}</th><th>{% translate "Mediciones" %}</th><th>{% translate "Resultado" %}</th><th>{% translate "Registró" %}</th></tr></thead><tbody>
+        {% for control in controles %}<tr>
+          <td>{{ control.fecha|date:"d/m/Y H:i" }}</td>
+          <td>{{ control.plan.nombre }}<br><small>{{ control.plan.get_momento_display|ui }}</small></td>
+          <td>{% for medicion in control.mediciones.all %}<span class="traza-detalle">{{ medicion.parametro.nombre }}: <b>{{ medicion.valor }}</b> {% translate "(límite" %} {{ medicion.parametro.limite_texto }}){% if not medicion.conforme %} · <span class="traza-falta">fuera</span>{% endif %}</span>{% endfor %}</td>
+          <td><span class="{% if control.resultado == 'conforme' %}traza-ok{% else %}traza-falta{% endif %}">{{ control.get_resultado_display|ui }}</span></td>
+          <td>{% if control.registrado_por %}{{ control.registrado_por.get_full_name|default:control.registrado_por.username }}{% else %}—{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="5">{% translate "El lote todavía no tiene controles de calidad registrados." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% for nc in no_conformidades %}
+      <p class="unit-report__notice traza-falta">{{ nc.codigo }} · {{ nc.get_gravedad_display|ui }} · {{ nc.get_estado_display|ui }} {% translate "· disposición:" %} {{ nc.get_disposicion_display|ui }}. {{ nc.descripcion }}{% if nc.causa %} {% translate "Causa:" %} {{ nc.causa }}{% endif %}{% for accion in nc.acciones.all %} {% translate "Acción:" %} {{ accion.descripcion }} ({{ accion.get_estado_display|lower|ui }}).{% endfor %}</p>
+      {% endfor %}
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "A DÓNDE FUE" %}</span><small>{{ entregado|floatformat:"-3" }} {{ lote.producto.unidad_medida }} movidos</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Movimiento" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Destino" %}</th><th>{% translate "Valor" %}</th><th>{% translate "Registró" %}</th></tr></thead><tbody>
+        {% for movimiento in movimientos %}<tr>
+          <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+          <td>{{ movimiento.get_tipo_display|ui }}{% if movimiento.referencia %}<br><small>{{ movimiento.referencia }}</small>{% endif %}</td>
+          <td>{{ movimiento.cantidad|floatformat:"-3" }} {{ lote.producto.unidad_medida }}</td>
+          <td>{% if movimiento.cliente %}{{ movimiento.cliente.nombre }}{% else %}{{ movimiento.destino|default:"—" }}{% endif %}{% if movimiento.unidad_destino %}<br><small>{{ movimiento.unidad_destino.nombre }}</small>{% endif %}{% if movimiento.temperatura_despacho is not None %}<br><small>{% translate "salió a" %} {{ movimiento.temperatura_despacho|floatformat:"-1" }} °C</small>{% endif %}{% if movimiento.tipo == 'venta' or movimiento.tipo == 'transferencia' or movimiento.tipo == 'muestra' %}<br><small class="es-navegacion"><a href="{% url 'guia_despacho' unidad.slug movimiento.pk %}">{% translate "Guía de despacho" %}</a></small>{% endif %}</td>
+          <td>{% if movimiento.valor_total %}${{ movimiento.valor_total|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{% if movimiento.registrado_por %}{{ movimiento.registrado_por.get_full_name|default:movimiento.registrado_por.username }}{% else %}—{% endif %}{% if movimiento.motivo %}<br><small>{{ movimiento.motivo|truncatechars:80 }}</small>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="6">{% translate "El lote todavía no salió de la unidad." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section es-navegacion">
+      <header><span>{% translate "OTROS LOTES" %}</span><small>{% translate "rastrea otro de esta unidad" %}</small></header>
+      <p class="traza-otros">{% for otro in otros_lotes %}<a href="{% url 'trazabilidad_lote' unidad.slug otro.pk %}">{{ otro.codigo }} · {{ otro.producto.nombre }}</a>{% empty %}<span>{% translate "La unidad no tiene lotes registrados." %}</span>{% endfor %}</p>
+    </section>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Trazabilidad del lote" %} {{ lote.codigo }} · {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

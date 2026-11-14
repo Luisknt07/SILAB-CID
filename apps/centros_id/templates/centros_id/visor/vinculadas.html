@@ -1,0 +1,30 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Capacidades vinculadas: las unidades de la universidad con las que el centro se articula, con la modalidad de acceso,
+el instrumento que la formaliza y las áreas desde donde se usan (Reglamento UPEC 2026, art. 26).{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Los laboratorios, plantas piloto, centros experimentales y observatorios de la universidad con los que el centro se articula: para qué, con qué instrumento y desde qué área." %}</p>{% endblock %}
+
+{% block contenido %}
+{% for tipo, filas in grupos.items %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Capacidades vinculadas" %}</span><h2>{{ tipo }}</h2></header>
+  <div class="area__actividades">
+    {% for fila in filas %}
+    <article class="area__actividad" data-aparecer>
+      <header><i class="fas fa-link" aria-hidden="true"></i><div><span class="ficha__rol">{{ fila.unidad.tipo|default:tipo }}</span></div></header>
+      <h3>{% if fila.unidad.url %}<a class="cv-enlace-area" href="{{ fila.unidad.url }}" target="_top">{{ fila.unidad.nombre }} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% else %}{{ fila.unidad.nombre }}{% endif %}</h3>
+      {% if fila.articulacion %}<p>{{ fila.articulacion.forma }}</p>
+      {% if fila.articulacion.modalidad or fila.articulacion.instrumento %}<ul class="ficha__medios">
+        {% if fila.articulacion.modalidad %}<li><i class="fas fa-key" aria-hidden="true"></i>{{ fila.articulacion.get_modalidad_display }}{% if fila.articulacion.reglas %} · {{ fila.articulacion.reglas }}{% endif %}</li>{% endif %}
+        {% if fila.articulacion.instrumento %}<li><i class="fas fa-file-signature" aria-hidden="true"></i>{{ fila.articulacion.instrumento }}{% if fila.articulacion.vigencia_hasta %} · {% translate "vigente hasta" %} {{ fila.articulacion.vigencia_hasta|date:"m/Y" }}{% endif %}</li>{% endif %}
+      </ul>{% endif %}{% endif %}
+      {% if fila.areas %}<footer><span class="cv-chips">{% for area in fila.areas %}<a class="cv-chip" href="{% url 'componente_centro_id' centro.slug area.codigo %}"><i class="{{ area.icono }}" aria-hidden="true"></i> {{ area.nombre_corto|default:area.nombre }}</a>{% endfor %}</span></footer>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% empty %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no registra con qué unidades se articula.") enlace=completar %}</section>
+{% endfor %}
+{% endblock %}

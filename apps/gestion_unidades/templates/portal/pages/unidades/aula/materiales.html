@@ -1,0 +1,50 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Requerimiento de materiales" %}{% endblock %}
+{% block encabezado %}{% translate "Requerimiento de materiales" %}{% endblock %}
+{% block subtitulo %}{% if desde_referencia %}{% translate "Plan de la reserva" %}{% else %}{% translate "Plan libre de corridas" %}{% endif %}{% endblock %}
+{% block datos %}{% if requerimiento %}<div><dt>{% translate "Corridas base" %}</dt><dd>{{ requerimiento.corridas }}</dd></div><div><dt>{% translate "Insumos" %}</dt><dd>{{ requerimiento.insumos }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Requerimiento de materiales" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__section"><header><span>{% translate "REGLA DEL CÁLCULO" %}</span><small>{% translate "una lista de materiales, una sola fuente" %}</small></header><div class="saber-bases"><article class="saber-base"><h4><i class="fas fa-boxes"></i>{% translate "Requerimiento bruto" %}</h4><code class="saber-formula">{% translate "Σ(cantidad de receta × factor de cada corrida)" %}</code><dl><div><dt>{% translate "Factor" %}</dt><dd>{% translate "Materia prima solicitada / materia prima de la corrida base." %}</dd></div><div><dt>{% translate "Origen" %}</dt><dd>{% translate "Insumos vinculados a la receta publicada; el cálculo no mantiene una copia paralela." %}</dd></div></dl></article><article class="saber-base"><h4><i class="fas fa-warehouse"></i>{% translate "Requerimiento neto" %}</h4><code class="saber-formula">{% translate "máx(0, bruto − stock disponible + stock de seguridad)" %}</code><dl><div><dt>{% translate "Uso" %}</dt><dd>{% translate "Separa lo cubierto de lo que debe comprarse o reponerse antes del plan." %}</dd></div><div><dt>{% translate "Comprobación" %}</dt><dd>{% translate "La tabla conserva unidad, procesos que demandan el insumo y existencias consultadas." %}</dd></div></dl></article></div></section>
+{% if not desde_referencia %}
+<form class="aula-form" method="get" aria-label="{% translate "Plan de corridas" %}">
+  {% for fila in filas_formulario %}<label>{{ fila.receta.nombre_publico }}<input type="number" name="cantidad_{{ fila.receta.pk }}" min="0" step="0.001" value="{{ fila.cantidad }}" placeholder="0"><small>{% translate "Materia prima en" %} {{ fila.receta.unidad_base }} {% translate "· corrida base" %} {{ fila.receta.cantidad_base|floatformat:"-3" }}</small></label>{% endfor %}
+  <button type="submit">{% translate "Calcular el requerimiento" %}</button>
+</form>
+{% endif %}
+
+{% if plan %}
+<section class="unit-report__section">
+  <header><span>{% translate "PLAN DE CORRIDAS" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr>{% if desde_referencia %}<th>{% translate "Sesión" %}</th>{% endif %}<th>{% translate "Proceso" %}</th><th>{% translate "Materia prima" %}</th><th>{% translate "Corridas base" %}</th></tr></thead><tbody>
+    {% for fila in plan %}<tr>{% if desde_referencia %}<td>{{ fila.etiqueta }}</td>{% endif %}<td>{{ fila.receta.nombre_publico }}</td><td>{{ fila.cantidad }} {{ fila.unidad }}</td><td>{{ fila.factor|floatformat:"-3" }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if desde_referencia %}<p class="unit-report__notice">{% translate "Las sesiones sin proceso definido no entran al plan." %} <a href="{% url 'simulador_materiales' unidad.slug %}">{% translate "Simular otro plan" %}</a>.</p>{% endif %}
+</section>
+
+<section class="unit-report__summary" aria-label="{% translate "Resumen del requerimiento" %}">
+  <article><span>{% translate "Insumos requeridos" %}</span><strong>{{ requerimiento.insumos }}</strong><small>{% translate "distintos en el plan" %}</small></article>
+  <article><span>{% translate "Cubiertos por el inventario" %}</span><strong class="aula-ok">{{ requerimiento.cubiertos }}</strong><small>{% translate "sin tocar el stock de seguridad" %}</small></article>
+  <article><span>{% translate "Por comprar o reponer" %}</span><strong{% if requerimiento.faltantes %} class="aula-falta"{% endif %}>{{ requerimiento.faltantes }}</strong><small>{% translate "insumos con faltante" %}</small></article>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "INSUMOS DEL PLAN FRENTE AL INVENTARIO" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Insumo" %}</th><th>{% translate "Clasificación" %}</th><th>{% translate "Procesos" %}</th><th>{% translate "Requerido" %}</th><th>{% translate "En inventario" %}</th><th>{% translate "Seguridad" %}</th><th>{% translate "Disponible" %}</th><th>{% translate "Faltante" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+    {% for fila in requerimiento.filas %}<tr><td><strong>{{ fila.nombre }}</strong>{% if not fila.obligatorio %}<br><small>opcional</small>{% endif %}</td><td>{{ fila.clasificacion }}</td><td>{{ fila.procesos|join:", " }}</td><td>{{ fila.bruto }} {{ fila.unidad }}</td><td>{{ fila.stock }}</td><td>{{ fila.seguridad }}</td><td>{{ fila.disponible }}</td><td>{% if fila.cubre %}—{% else %}{{ fila.neto }} {{ fila.unidad }}{% endif %}</td><td>{% if fila.cubre %}<span class="aula-ok">{% translate "Cubierto" %}</span>{% else %}<span class="aula-falta">{% translate "Comprar" %} {{ fila.neto }} {{ fila.unidad }}</span>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="unit-report__notice">{% translate "El requerimiento bruto suma lo que cada proceso pide a su escala; lo disponible es el inventario sin el stock de seguridad; lo que falta es lo que hay que comprar o reponer antes de la primera corrida." %}</p>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "LO QUE SALE DEL PLAN" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Producto" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Cantidad" %}</th></tr></thead><tbody>
+    {% for salida in requerimiento.salidas %}<tr><td>{% if salida.principal %}<strong>{{ salida.nombre }}</strong>{% else %}{{ salida.nombre }}{% endif %}</td><td>{{ salida.tipo }}</td><td>{{ salida.cantidad }} {{ salida.unidad }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% elif not desde_referencia %}
+<p class="unit-report__notice">{% translate "Escribe la materia prima de cada proceso que planeas correr y calcula lo que el inventario debe tener." %}</p>
+{% endif %}
+{% endblock %}

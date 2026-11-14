@@ -1,0 +1,36 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Participa en el observatorio" %}{% endblock %}
+{% block encabezado %}{% translate "Participa en el observatorio" %}{% endblock %}
+{% block subtitulo %}{% translate "Prácticas, vinculación, encuestas y tesis: cómo sumarse y qué datos faltan por levantar" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Encuestas activas" %}</dt><dd>{{ encuestas|length }}</dd></div><div><dt>{% translate "Datos por levantar" %}</dt><dd>{{ sin_datos|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Participa" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "CÓMO SUMARSE" %}</span><small>{{ unidad.carreras }}</small></header>
+  <ul class="obs-oferta">
+    <li><i class="fas fa-briefcase" aria-hidden="true"></i><div><strong>{% translate "Prácticas preprofesionales" %}</strong><p>{% translate "Captura y depuración de datos, actualización de series, diseño de tableros y apoyo a las publicaciones, con un tutor del observatorio." %}</p></div></li>
+    <li><i class="fas fa-hands-helping" aria-hidden="true"></i><div><strong>{% translate "Vinculación con la sociedad" %}</strong><p>{% translate "Levantamientos de campo y devolución de resultados a productores, gobiernos locales y organizaciones aliadas." %}</p></div></li>
+    <li><i class="fas fa-clipboard-check" aria-hidden="true"></i><div><strong>{% translate "Encuestador" %}</strong><p>{% translate "Con formación previa en ética, consentimiento informado y protección de datos personales." %}</p></div></li>
+    <li><i class="fas fa-graduation-cap" aria-hidden="true"></i><div><strong>{% translate "Tesis y proyectos" %}</strong><p>{% translate "Con los datos abiertos del observatorio o levantando las series que todavía faltan." %}</p></div></li>
+    {% for titulo, texto in lineas %}<li><i class="fas fa-star" aria-hidden="true"></i><div><strong>{{ titulo }}</strong><p>{{ texto }}</p></div></li>{% endfor %}
+  </ul>
+  <p>{% blocktranslate %}Para postular escribe al observatorio desde «Solicitar datos o un análisis» eligiendo «Asesoría metodológica», o acércate a su coordinación.{% endblocktranslate %} <a href="{% url 'solicitudes_observatorio' unidad.slug %}">{% translate "Ir al formulario" %} →</a></p>
+</section>
+{% if encuestas %}
+<section class="unit-report__section">
+  <header><span>{% translate "ENCUESTAS QUE NECESITAN ENCUESTADORES" %}</span></header>
+  <ul class="aula-lista">{% for encuesta in encuestas %}<li><a href="{% url 'encuestas_observatorio' unidad.slug %}#encuesta-{{ encuesta.pk }}">{{ encuesta.nombre }}</a> · {{ encuesta.get_periodicidad_display|lower }} · {{ encuesta.poblacion }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% if sin_datos %}
+<section class="unit-report__section">
+  <header><span>{% translate "DATOS QUE FALTAN: TEMAS PARA TESIS Y PRÁCTICAS" %}</span><small>{% translate "Indicadores con ficha que esperan su primera serie" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Indicador" %}</th><th>{% translate "Fuente prevista" %}</th><th>{% translate "Periodicidad" %}</th></tr></thead><tbody>
+    {% for indicador in sin_datos %}<tr><td><a href="{% url 'indicador_observatorio' unidad.slug indicador.codigo %}"><strong>{{ indicador.nombre }}</strong></a></td><td>{{ indicador.fuente }}</td><td>{{ indicador.get_periodicidad_display }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

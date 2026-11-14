@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static i18n idiomas %}
+{% load socialaccount %}
+
+{% block title %}{% translate "Acceso social" %}{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/components/autenticacion.css' %}?v=20261009-ojo-v2">{% endblock %}
+
+{% block content %}
+<div class="container auth-layout">
+    <div class="row h-100">
+        <div class="col-12 col-md-8 mx-auto my-auto">
+            <div class="card auth-card auth-card--institutional mt-5">
+                <div class="card-body">
+                    <h3 class="auth-title mb-4 text-center">
+                        {% translate "Acceso con cuenta social" %}
+                    </h3>
+                    
+                    <!-- ✅ Mostrar mensajes de error si los hay -->
+                    {% if messages %}
+                        <div class="mb-3">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Botón institucional Microsoft -->
+                    <div class="mb-3 text-center">
+                        <form method="post" action="{% provider_login_url 'microsoft' process='login' %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-dark btn-block auth-provider auth-provider--microsoft">
+                            🎓 Continuar con correo institucional (@upec.edu.ec)
+                        </button>
+                        </form>
+                    </div>
+
+                    <!-- Botón Gmail externo -->
+                    <div class="mb-3 text-center">
+                        <form method="post" action="{% provider_login_url 'google' %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-block auth-provider auth-provider--google">
+                            {% translate "🌐 Continuar con Gmail (externo)" %}
+                        </button>
+                        </form>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-center mt-3">
+                        <div class="text-muted">
+                            <small>
+                                <i class="fas fa-shield-alt text-success"></i>
+                                {% translate "Solo se permiten cuentas @gmail.com y @upec.edu.ec" %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

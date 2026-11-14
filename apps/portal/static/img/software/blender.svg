@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Blender</title>
+  <rect width="160" height="160" rx="34" fill="#fff7e9"/>
+  <path d="m30 69 39 1-18-18 13-12 33 30c25 3 39 17 36 37-3 22-24 35-50 31-22-3-37-16-38-34H25l-8-13 31-1-18-21Z" fill="#ed8a19"/>
+  <ellipse cx="92" cy="103" rx="26" ry="20" fill="#fff"/><ellipse cx="96" cy="103" rx="16" ry="13" fill="#36679b"/>
+  <text x="80" y="151" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#9c5511">Blender</text>
+</svg>

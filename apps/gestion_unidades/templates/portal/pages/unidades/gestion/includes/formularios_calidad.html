@@ -1,0 +1,58 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="plan_calidad" data-reload-view="calidad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="plan_calidad"><input type="hidden" name="registro_id">
+  <header><span>{% translate "CALIDAD E INOCUIDAD" %}</span><h3>{% translate "Plan de calidad" %}</h3><p>{% translate "Qué se controla y cuándo: la recepción de una materia prima, el proceso de un producto o su liberación. Los parámetros con su límite se agregan aparte." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Código" %}<input name="codigo" maxlength="40" placeholder="{% translate "LAC-CAL-LECHE" %}" required></label>
+    <label>{% translate "Nombre" %}<input name="nombre" maxlength="160" required></label>
+    <label>{% translate "Momento" %}<select name="momento">{% for codigo, nombre in momentos_calidad %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Producto" %}<select name="producto_id"><option value="">{% translate "Ninguno" %}</option>{% for producto in productos_para_calidad %}<option value="{{ producto.pk }}">{{ producto.nombre }}</option>{% endfor %}</select><small>{% translate "Para el control en proceso y la liberación." %}</small></label>
+    <label>{% translate "Materia prima" %}<select name="consumible_id"><option value="">{% translate "Ninguna" %}</option>{% for consumible in consumibles_para_calidad %}<option value="{{ consumible.pk }}">{{ consumible.nombre }}</option>{% endfor %}</select><small>{% translate "Para el plan de recepción." %}</small></label>
+    <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="2" placeholder="{% translate "Qué se mide, quién y con qué frecuencia" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar plan" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="parametro_calidad" data-reload-view="calidad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="parametro_calidad"><input type="hidden" name="registro_id">
+  <header><span>{% translate "CALIDAD E INOCUIDAD" %}</span><h3>{% translate "Parámetro y límite" %}</h3><p>{% translate "Numérico con mínimo o máximo (o ambos), o cualitativo con el valor esperado («negativa», «ausencia», «conforme»). Ligado a una etapa, vigila ese punto crítico en el plan HACCP." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Plan" %}<select name="plan_id" required><option value="">{% translate "Selecciona" %}</option>{% for plan in planes_calidad %}<option value="{{ plan.pk }}">{{ plan.nombre }} · {{ plan.get_momento_display|ui }}</option>{% endfor %}</select></label>
+    <label>{% translate "Orden" %}<input type="number" name="orden" min="1" step="1" value="1"></label>
+    <label>{% translate "Nombre" %}<input name="nombre" maxlength="120" placeholder="{% translate "Acidez titulable" %}" required></label>
+    <label>{% translate "Tipo" %}<select name="tipo">{% for codigo, nombre in tipos_parametro %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Unidad de medida" %}<input name="unidad_medida" maxlength="30" placeholder="°D, °C, %, g/mL"></label>
+    <label>{% translate "Mínimo" %}<input type="number" name="minimo" step="0.001"></label>
+    <label>{% translate "Máximo" %}<input type="number" name="maximo" step="0.001"></label>
+    <label>{% translate "Valor esperado (cualitativo)" %}<input name="valor_esperado" maxlength="120" placeholder="negativa"></label>
+    <label>{% translate "Método" %}<input name="metodo" maxlength="200" placeholder="{% translate "Titulación con NaOH 0,1 N" %}"></label>
+    <label>{% translate "Etapa del proceso" %}<select name="etapa_id"><option value="">{% translate "Ninguna" %}</option>{% for etapa in etapas_para_calidad %}<option value="{{ etapa.pk }}">{{ etapa.receta.nombre }} · {{ etapa.orden }}. {{ etapa.nombre }}</option>{% endfor %}</select><small>{% translate "El punto crítico que vigila, si aplica." %}</small></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Gravedad" %}</legend><label><input type="checkbox" name="critico" value="1" checked> {% translate "Crítico: fuera de límite, la no conformidad es crítica" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Quitar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar parámetro" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="no_conformidad" data-reload-view="calidad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="no_conformidad"><input type="hidden" name="registro_id"><input type="hidden" name="codigo">
+  <header><span>{% translate "NO CONFORMIDAD" %}</span><h3>{% translate "Disposición y tratamiento" %}</h3><p>{% translate "Reproceso, liberación condicionada, rechazo del lote (se retira y se da de baja) o devolución al proveedor. Se cierra con la disposición decidida y las acciones cumplidas." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Disposición" %}<select name="disposicion">{% for codigo, nombre in disposiciones_nc %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_nc %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Causa" %}<textarea name="causa" rows="3" placeholder="{% translate "Qué originó la desviación" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-gavel"></i> {% translate "Guardar decisión" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="accion_correctiva" data-reload-view="calidad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="accion_correctiva"><input type="hidden" name="registro_id"><input type="hidden" name="no_conformidad_id">
+  <header><span>{% translate "NO CONFORMIDAD" %}</span><h3>{% translate "Acción correctiva" %}</h3><p>{% translate "Qué se hará para que no se repita, quién responde y para cuándo; se marca cumplida y luego verificada." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Acción" %}<textarea name="descripcion" rows="3" required></textarea></label>
+    <label>{% translate "Responsable" %}<input name="responsable" maxlength="150" placeholder="{% translate "usuario institucional, correo o cédula" %}"></label>
+    <label>{% translate "Fecha compromiso" %}<input type="date" name="fecha_compromiso"></label>
+    <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_accion %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Verificación" %}<textarea name="verificacion" rows="2" placeholder="{% translate "Cómo se comprobó que funcionó" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar acción" %}</button></footer>
+</form>

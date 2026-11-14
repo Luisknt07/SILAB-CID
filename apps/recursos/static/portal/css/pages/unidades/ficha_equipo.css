@@ -1,0 +1,146 @@
+/* Ficha del activo: identidad, ciclo de vida, uso, contenido, mantenimiento y trazabilidad. */
+.page-ficha-equipo .portal-main { background: #f4f7f5; }
+.page-ficha-equipo .portal-footer { display: none; }
+
+.ficha { width: min(1440px, calc(100% - 32px)); margin: 20px auto 48px; }
+.ficha__hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; border-radius: 10px 10px 0 0; border-bottom: 3px solid var(--institucion-acento, #e1b738); background: var(--institucion-primario, #1e5a3d); color: #fff; }
+.ficha__hero > div > span { display: block; color: var(--institucion-acento-sobre-oscuro, #f2c94c); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.ficha__hero h1 { margin: 4px 0 2px; font-size: 24px; line-height: 1.15; }
+.ficha__hero p { margin: 0; color: rgba(255, 255, 255, .82); font-size: 12px; }
+.ficha__hero-acciones { display: flex; align-items: center; gap: 12px; }
+.ficha__volver { padding: 8px 14px; border: 1px solid rgba(255, 255, 255, .45); border-radius: 6px; color: #fff; font-size: 12px; font-weight: 700; text-decoration: none; }
+.ficha__volver:hover { background: rgba(255, 255, 255, .12); }
+
+.ficha__cuerpo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 14px; padding: 14px 0 0; }
+.ficha__tarjeta { min-width: 0; padding: 16px 18px 18px; border: 1px solid var(--institucion-primario-suave, #d7e1db); border-radius: 9px; background: #fff; }
+.ficha__tarjeta > header > span { display: block; color: var(--institucion-acento-tinta, #9a7420); font-size: 9.5px; font-weight: 800; letter-spacing: .13em; }
+.ficha__tarjeta > header h2 { margin: 2px 0 12px; color: var(--institucion-texto, #1c3b2c); font-size: 17px; }
+/* El tema institucional fija los h3 con !important: el rótulo de la tarjeta necesita lo mismo. */
+.ficha__tarjeta h3 { margin: 14px 0 5px; color: var(--institucion-primario, #1e5a3d); font-size: 11px !important; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.ficha__tarjeta p { margin: 0 0 6px; color: #2c4034; font-size: 12.5px; line-height: 1.55; }
+.ficha__tarjeta .is-empty { color: #7a8a82; font-style: italic; font-size: 12px; }
+
+.ficha__identidad { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 16px; align-items: start; }
+.ficha__foto img { display: block; width: 100%; border-radius: 8px; object-fit: cover; aspect-ratio: 4 / 3; }
+.ficha__foto-vacia { display: grid; place-items: center; gap: 6px; aspect-ratio: 4 / 3; border: 1px dashed #b8cbbf; border-radius: 8px; color: #8a9a92; background: #f5f9f6; }
+.ficha__foto-vacia i { font-size: 26px; }
+.ficha__foto-vacia span { font-size: 10px; text-align: center; }
+.ficha__datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 4px 16px; margin: 0; }
+.ficha__datos--apiladas { grid-template-columns: 1fr; }
+.ficha__datos > div { display: grid; grid-template-columns: minmax(96px, .8fr) minmax(0, 1.5fr); gap: 8px; padding: 5px 0; border-bottom: 1px dashed #e0e8e3; }
+.ficha__datos dt { color: #6b7d74; font-size: 10.5px; font-weight: 700; }
+.ficha__datos dd { margin: 0; color: #1f3329; font-size: 12px; overflow-wrap: break-word; }
+.ficha__motivos { grid-column: 1 / -1; display: grid; gap: 3px; }
+.ficha__motivos p { margin: 0; color: #5d6f68; font-size: 11.5px; }
+
+.ficha__barra { width: 100%; height: 12px; border-radius: 999px; background: #e3e9e6; overflow: hidden; }
+.ficha__barra i { display: block; height: 100%; border-radius: 999px; }
+.ficha__barra i.is-al_dia { background: #2f8f5b; }
+.ficha__barra i.is-atencion { background: var(--institucion-acento, #e1b738); }
+.ficha__barra i.is-critico { background: #b23b2e; }
+.ficha__vida-motivo { font-weight: 700; color: var(--institucion-texto, #1c3b2c) !important; }
+.ficha__vida-cifra { display: block; margin: 4px 0 8px; font-size: 20px; font-variant-numeric: tabular-nums; }
+.ficha__baja { margin-top: 10px; padding: 10px 12px; border-left: 3px solid #b23b2e; border-radius: 6px; background: #fbe4e4; display: grid; gap: 2px; }
+.ficha__baja strong { font-size: 12.5px; color: #8a2b22; }
+.ficha__baja span, .ficha__baja small { color: #7a3a33; font-size: 11px; }
+.ficha__aviso { margin-top: 10px !important; padding: 9px 12px; border-left: 3px solid var(--institucion-acento, #e1b738); border-radius: 6px; background: #fff8df; color: #745711 !important; font-size: 11.5px !important; }
+.ficha__aviso.is-ok { border-left-color: #2f8f5b; background: #edf7ef; color: #245e42 !important; }
+
+.ficha__cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.ficha__cifras > div { padding: 9px 10px; border: 1px solid #e0e8e3; border-radius: 7px; background: #fbfdfb; }
+.ficha__cifras strong { display: block; color: var(--institucion-primario, #1e5a3d); font-size: 19px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ficha__cifras span { color: #6b7d74; font-size: 9.5px; }
+.ficha__nota { margin-top: 10px !important; color: #5d6f68 !important; font-size: 11.5px !important; }
+.ficha__nota a { color: var(--institucion-primario, #1e5a3d); font-weight: 700; }
+
+.ficha__lista { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.ficha__lista li { display: grid; padding: 6px 9px; border: 1px solid #e4ebe7; border-radius: 6px; background: #fbfdfb; }
+.ficha__lista b { font-size: 12px; }
+.ficha__lista span { color: #6b7d74; font-size: 10.5px; }
+.ficha__lista--documentos a { color: var(--institucion-primario, #1e5a3d); font-size: 12px; font-weight: 700; text-decoration: none; }
+.ficha__planes { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ficha__planes li { display: grid; gap: 1px; padding: 8px 10px; border-left: 3px solid var(--institucion-primario, #1e5a3d); border-radius: 6px; background: #f3f8f5; }
+.ficha__planes b { font-size: 12.5px; }
+.ficha__planes span, .ficha__planes small { color: #5d6f68; font-size: 11px; }
+
+.ficha__ordenes { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.ficha__ordenes > li { padding: 11px 13px; border: 1px solid #e0e8e3; border-radius: 8px; background: #fbfdfb; }
+.ficha__ordenes > li > header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+.ficha__ordenes > li > header b { color: #6b7d74; font-size: 10px; letter-spacing: .04em; }
+.ficha__ordenes > li > header time { margin-left: auto; color: #6b7d74; font-size: 10.5px; }
+.ficha__ordenes > li > strong { display: block; font-size: 13px; }
+.ficha__ordenes dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 14px; margin: 6px 0 0; }
+.ficha__ordenes dl > div { display: grid; grid-template-columns: minmax(96px, .8fr) minmax(0, 1.2fr); gap: 6px; }
+.ficha__ordenes dt { color: #6b7d74; font-size: 10px; font-weight: 700; }
+.ficha__ordenes dd { margin: 0; font-size: 11px; }
+.ficha__repuestos { width: 100%; margin-top: 8px; border-collapse: collapse; font-size: 10.5px; }
+.ficha__repuestos th, .ficha__repuestos td { padding: 4px 7px; border: 1px solid #dde6e1; text-align: left; }
+.ficha__repuestos th { background: #eef4f0; color: var(--institucion-primario, #1e5a3d); font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; }
+.ficha__informe { display: inline-block; margin-top: 7px; color: var(--institucion-primario, #1e5a3d); font-size: 11px; font-weight: 700; text-decoration: none; }
+
+.ficha__trazabilidad { grid-column: 1 / -1; }
+.ficha__linea { display: grid; gap: 0; margin: 0; padding: 0 0 0 6px; list-style: none; }
+.ficha__linea li { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 9px 0 9px 18px; border-left: 2px solid #dfe7e2; }
+.ficha__linea li::before { position: absolute; top: 13px; left: -7px; width: 12px; height: 12px; content: ""; border: 2px solid #fff; border-radius: 50%; background: #c9d2cd; }
+.ficha__linea li.is-inicio::before { background: var(--institucion-primario, #1e5a3d); }
+.ficha__linea li.is-al_dia::before { background: #2f8f5b; }
+.ficha__linea li.is-atencion::before { background: var(--institucion-acento, #e1b738); }
+.ficha__linea li.is-critico::before { background: #b23b2e; }
+.ficha__linea li.is-baja::before { background: #5c6870; }
+.ficha__linea time { color: #6b7d74; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.ficha__linea strong { font-size: 12.5px; }
+.ficha__linea p { margin: 1px 0 0; color: #5d6f68; font-size: 11.5px; line-height: 1.5; }
+.ficha__linea small { color: #8a9a92; font-size: 10px; }
+
+@media (max-width: 1000px) {
+  .ficha__cuerpo { grid-template-columns: 1fr; }
+  .ficha__identidad { grid-template-columns: 1fr; }
+  .ficha__datos, .ficha__cifras, .ficha__ordenes dl { grid-template-columns: 1fr; }
+  .ficha__linea li { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* Garantia, piezas del equipo y miniaturas. */
+.ficha__garantia { grid-column: 1 / -1; display: grid; gap: 3px; margin-top: 10px; padding: 10px 12px; border-left: 3px solid #b8bfc2; border-radius: 6px; background: #f3f5f4; }
+.ficha__garantia.is-vigente { border-left-color: #2f8f5b; background: #edf7ef; }
+.ficha__garantia strong { font-size: 12px; color: #1f3329; }
+.ficha__garantia span, .ficha__garantia small { color: #5d6f68; font-size: 11px; line-height: 1.5; }
+.ficha__piezas-lista { display: grid; gap: 6px; margin: 0 0 4px; padding: 0; list-style: none; }
+.ficha__piezas-lista li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid #e4ebe7; border-radius: 7px; background: #fbfdfb; }
+.ficha__piezas-lista li.is-critica { border-left: 3px solid var(--institucion-acento, #e1b738); }
+.ficha__piezas-lista li > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ficha__piezas-lista b { font-size: 12.5px; }
+.ficha__piezas-lista em { color: #6b7d74; font-size: 11px; font-style: normal; }
+.ficha__piezas-lista p { margin: 0 !important; color: #5d6f68 !important; font-size: 11.5px !important; }
+.ficha__piezas-lista small { color: #6b7d74; font-size: 10.5px; }
+.ficha__etiqueta { padding: 1px 7px; border-radius: 999px; background: #eef2f0; color: #5d6f68; font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.ficha__etiqueta.is-ok { background: #e2f3e8; color: #1f6b43; }
+.ficha__etiqueta.is-alerta { background: #fbe4e4; color: #9b2b2b; }
+.ficha__pista { color: #8a9a92 !important; font-style: italic; }
+.ficha__cambio { color: var(--institucion-primario, #1e5a3d) !important; font-weight: 700; }
+
+/* De donde sale el dato de cada tarjeta y por donde se corrige. */
+.ficha__origen { display: flex; align-items: flex-start; gap: 7px; grid-column: 1 / -1; margin: 12px 0 0; padding-top: 9px; border-top: 1px dashed #dbe4de; color: #6b7d74; font-size: 11px; line-height: 1.55; }
+.ficha__origen i { margin-top: 2px; color: #9bb0a5; font-size: 11px; }
+.ficha__origen a { color: var(--institucion-primario, #1e5a3d); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.ficha__origen a:hover, .ficha__origen a:focus { text-decoration: underline; }
+
+/* La ficha técnica estándar: qué tan completa está y qué falta. */
+.ficha__estandar { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--institucion-acento, #e1b738); border-radius: 6px; background: #fff8df; }
+.ficha__estandar.is-completa { border-left-color: var(--institucion-primario, #1e5a3d); background: #f3f8f5; }
+.ficha__estandar > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.ficha__estandar strong { color: var(--institucion-texto, #1c3b2c); font-size: 12.5px; }
+.ficha__estandar i { flex: 1; min-width: 120px; height: 7px; overflow: hidden; border-radius: 999px; background: rgba(0, 0, 0, .08); }
+.ficha__estandar i b { display: block; height: 100%; background: var(--institucion-primario, #1e5a3d); }
+.ficha__estandar p { margin: 0 !important; color: #6b5512 !important; font-size: 11.5px !important; }
+.ficha__estandar a { justify-self: start; color: var(--institucion-primario, #1e5a3d); font-size: 11.5px; font-weight: 800; text-decoration: none; }
+/* Etiquetas del activo: código de barras, QR y accesos a la hoja A4 y al lector. */
+.ficha__codigos { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr) minmax(0, 1fr); align-items: center; gap: 12px; margin-top: 12px; padding: 12px; border: 1px dashed var(--institucion-primario-suave, #d7e1db); border-radius: 8px; }
+.ficha__codigos figure { display: grid; justify-items: center; gap: 4px; margin: 0; }
+.ficha__codigos img { max-width: 100%; max-height: 92px; }
+.ficha__codigos figcaption { color: #5f7569; font-size: 10.5px; text-align: center; overflow-wrap: anywhere; }
+.ficha__codigos a { color: var(--institucion-primario, #1e5a3d); font-weight: 700; }
+.ficha__codigos > div { display: grid; gap: 6px; }
+.ficha__accion { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--institucion-primario-suave, #d7e1db); border-radius: 6px; font-size: 11.5px; text-decoration: none; }
+.ficha__accion:hover { background: #f3f8f5; }
+@media (max-width: 640px) { .ficha__codigos { grid-template-columns: 1fr; } }
+.ficha__foto .unit-console__icono-equipo.is-grande { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; background: #f4f8f6; color: var(--institucion-primario, #1f6b46); font-size: 72px; }

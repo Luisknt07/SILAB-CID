@@ -1,0 +1,5 @@
+{% load i18n %}{% comment %}Visible u oculto con un solo clic; ocultar nunca borra nada.{% endcomment %}<form method="post" class="arbol-interruptor">{% csrf_token %}
+  <input type="hidden" name="accion" value="{{ accion }}"><input type="hidden" name="volver" value="{{ volver }}">
+  {% if campo1 %}<input type="hidden" name="{{ campo1 }}" value="{{ valor1 }}">{% endif %}{% if campo2 %}<input type="hidden" name="{{ campo2 }}" value="{{ valor2 }}">{% endif %}{% if campo3 %}<input type="hidden" name="{{ campo3 }}" value="{{ valor3 }}">{% endif %}
+  <button type="submit" role="switch" aria-checked="{% if activo %}true{% else %}false{% endif %}" class="arbol-interruptor__boton{% if activo %} is-activo{% endif %}" title="{% if activo %}{% translate 'Visible: pulse para ocultar' %}{% else %}{% translate 'Oculto: pulse para mostrar' %}{% endif %}"><span aria-hidden="true"></span>{% if activo %}{% translate "Visible" %}{% else %}{% translate "Oculto" %}{% endif %}</button>
+</form>

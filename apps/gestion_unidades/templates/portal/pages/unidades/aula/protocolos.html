@@ -1,0 +1,19 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Protocolos de control" %}{% endblock %}
+{% block encabezado %}{% translate "Protocolos de control" %}{% endblock %}
+{% block subtitulo %}{% translate "Puntos críticos de control de cada proceso" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Procesos" %}</dt><dd>{{ protocolos|length }}</dd></div><div><dt>{% translate "Puntos críticos" %}</dt><dd>{{ total_puntos }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Protocolos de control" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__context"><span>{% translate "QUÉ SE CONTROLA" %}</span><h2>{% translate "Un punto crítico por cada etapa que decide la inocuidad o la calidad" %}</h2><p>{% translate "Cada proceso declara en qué etapas se mide un parámetro con su límite; la unidad registra lo medido en cada corrida y la guía de práctica los repite como medidas de seguridad. Lo que no cumple el límite no sigue." %}</p></section>
+{% for item in protocolos %}
+<section class="unit-report__section">
+  <header><span>{{ item.receta.nombre_publico|upper }}</span><small>{{ item.puntos|length }} de {{ item.total_etapas }} {% translate "etapas son puntos críticos ·" %} <a href="{% url 'ficha_proceso_publica' unidad.slug item.receta.pk %}">{% translate "ficha del proceso" %}</a></small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Control" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Parámetro" %}</th><th>{% translate "Límite" %}</th><th>{% translate "Dónde" %}</th><th>{% translate "Instrucción" %}</th></tr></thead><tbody>
+    {% for punto in item.puntos %}<tr><td>{{ punto.orden }}</td><td><strong>{{ punto.nombre }}</strong></td><td><span class="control-etapa{% if punto.critico %} is-pcc{% endif %}">{{ punto.control }}</span></td><td>{{ punto.tipo }}</td><td>{{ punto.parametro|default:"—" }}</td><td>{{ punto.limite|default:"—" }}</td><td>{{ punto.equipo|default:punto.espacio|default:"—" }}</td><td>{{ punto.instrucciones|default:"—" }}</td></tr>{% empty %}<tr><td colspan="8">{% translate "El proceso no declara puntos de control." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endfor %}
+{% endblock %}

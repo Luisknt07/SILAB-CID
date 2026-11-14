@@ -1,0 +1,21 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/catalogo.css' %}?v=20261009-responsive-v3">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/experiencias.css' %}?v=20260920-contraste-v215">
+{% endblock %}
+
+{% block portal_content %}
+<div class="institutional-page laboratory-catalog-page">
+  {% include 'portal/pages/unidades/catalogo/portada.html' %}
+  {% include 'portal/pages/unidades/catalogo/filtros_y_listado.html' %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<script src="{% static 'portal/js/pages/unidades/catalogo/catalogo_unidades.js' %}?v=20260916-i18n-v141"></script>
+<script src="{% static 'portal/js/pages/unidades/catalogo/experiencias.js' %}?v=20260916-i18n-v141"></script>
+{% endblock %}

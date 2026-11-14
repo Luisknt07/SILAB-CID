@@ -1,0 +1,1 @@
+{% load i18n %}{% if not activo %}<a class="recurso-ciclo-accion" href="{% url 'ciclo_recurso_unidad' unidad.slug tipo registro %}#solicitar">{% translate "Solicitar compra" %}</a>{% endif %}<a class="recurso-ciclo-accion is-eliminar" href="{% url 'ciclo_recurso_unidad' unidad.slug tipo registro %}#eliminar">{% translate "Eliminar" %}</a>

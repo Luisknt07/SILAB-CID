@@ -1,0 +1,71 @@
+{% load i18n notas_cursos %}{% comment %}En el aula: una evaluación (preguntas, intentos y resultado) o un deber (entrega, estado y nota).
+Quien gestiona la unidad ve las preguntas con sus respuestas y las agrega o edita desde aquí.{% endcomment %}
+{% if evaluacion %}
+<section class="calificada" id="resultado">
+  <ul class="calificada__datos">
+    <li><i class="fas fa-bullseye" aria-hidden="true"></i> {% translate "Nota mínima" %}: <strong>{{ actual.nota_minima|sobre_diez|floatformat:"-3" }} / 10</strong></li>
+    <li><i class="fas fa-redo" aria-hidden="true"></i> {% translate "Intentos" %}: <strong>{{ evaluacion.intentos|length }} {% translate "de" %} {{ actual.intentos }}</strong></li>
+    {% if actual.fecha_limite %}<li{% if evaluacion.vencida %} class="is-vencida"{% endif %}><i class="fas fa-hourglass-end" aria-hidden="true"></i> {% translate "Hasta el" %} <strong>{{ actual.fecha_limite|date:"d/m/Y H:i" }}</strong></li>{% endif %}
+    {% if evaluacion.mejor is not None %}<li><i class="fas fa-star" aria-hidden="true"></i> {% translate "Mejor nota" %}: <strong>{{ evaluacion.mejor|sobre_diez|floatformat:"-3" }} / 10</strong></li>{% endif %}
+  </ul>
+  {% if evaluacion.ultimo %}<p class="calificada__resultado{% if evaluacion.ultimo.aprobado %} is-aprobado{% endif %}"><i class="fas fa-{% if evaluacion.ultimo.aprobado %}check-circle{% else %}times-circle{% endif %}" aria-hidden="true"></i> {% translate "Último intento" %}: <strong>{{ evaluacion.ultimo.nota|sobre_diez|floatformat:"-3" }} / 10</strong> ({{ evaluacion.correctas }} {% translate "de" %} {{ evaluacion.preguntas|length }} {% translate "correctas" %}) · {% if evaluacion.ultimo.aprobado %}{% translate "Aprobado" %}{% elif evaluacion.restantes %}{% translate "No alcanzó la nota mínima: repasa las lecciones del módulo y vuelve a intentarlo." %}{% else %}{% translate "No alcanzó la nota mínima y no quedan intentos." %}{% endif %}</p>{% endif %}
+  {% if not vista_previa and not evaluacion.aprobado %}<p class="ficha__nota">{% translate "Oportunidades restantes" %}: <strong>{{ evaluacion.disponibles }}</strong>. {% translate "Se conserva la mejor nota; cada intento queda registrado." %}</p>{% endif %}
+  {% if evaluacion.historial %}
+  <details class="calificada__historial"><summary><i class="fas fa-history" aria-hidden="true"></i> {% translate "Ver todas mis notas e intentos" %}</summary>
+    <ul>{% for fila in evaluacion.historial %}<li>{% translate "Intento" %} {{ fila.numero }} · <strong>{{ fila.intento.nota|sobre_diez|floatformat:"-3" }} / 10</strong> · {% if fila.intento.aprobado %}{% translate "Aprobado" %}{% else %}{% translate "No aprobado" %}{% endif %} · {{ fila.intento.entregado_en|date:"d/m/Y H:i" }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+  {% if evaluacion.vencida and not evaluacion.aprobado %}<p class="calificada__aviso">{% translate "El plazo de esta evaluación terminó." %}</p>{% endif %}
+  {% translate "Nueva pregunta" as titulo_pregunta %}{% include 'portal/pages/unidades/includes/editar.html' with clave='pregunta_curso' pk='nuevo' padre=actual.pk titulo=titulo_pregunta rotulo=titulo_pregunta grupo='' %}
+  {% if evaluacion.bloqueada %}
+  <div class="calificada__bloqueo"><i class="fas fa-lock" aria-hidden="true"></i><div><strong>{% translate "Esta evaluación se habilita al completar las lecciones anteriores" %}</strong><p>{% translate "Te faltan" %} {{ evaluacion.pendientes|length }}:</p><ul>{% for pendiente in evaluacion.pendientes|slice:":8" %}<li><a href="{% url 'aula_curso_leccion' unidad.slug curso.codigo pendiente.pk %}{{ edicion_query }}">{{ pendiente.titulo }}</a></li>{% endfor %}{% if evaluacion.pendientes|length > 8 %}<li>…</li>{% endif %}</ul></div></div>
+  {% elif evaluacion.preguntas %}
+  <form method="post" action="{% url 'rendir_evaluacion' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}" class="calificada__preguntas">{% csrf_token %}
+    {% for pregunta in evaluacion.preguntas %}
+    <fieldset class="calificada__pregunta{% if pregunta.acerto is True %} is-acierto{% elif pregunta.acerto is False %} is-error{% endif %}"{% if not evaluacion.puede_rendir %} disabled{% endif %}>
+      <legend><b>{{ forloop.counter }}</b> {{ pregunta.enunciado|linebreaksbr }} <small>{{ pregunta.puntos }} {% translate "pt" %}</small>{% translate "Pregunta de la evaluación" as titulo_editar_pregunta %}{% include 'portal/pages/unidades/includes/editar.html' with clave='pregunta_curso' pk=pregunta.pk titulo=titulo_editar_pregunta rotulo='' grupo='' padre='' %}</legend>
+      {% if pregunta.tipo == 'corta' %}
+      <input type="text" name="p{{ pregunta.pk }}" maxlength="300" autocomplete="off" value="{{ pregunta.respondio.0|default:'' }}" aria-label="{% translate "Tu respuesta" %}">
+      {% if evaluacion.revelar %}<p class="calificada__correcta"><i class="fas fa-check" aria-hidden="true"></i> {{ pregunta.respuestas_aceptadas.splitlines.0 }}</p>{% endif %}
+      {% else %}
+      {% for texto, correcta in pregunta.lista_opciones %}<label class="calificada__opcion{% if evaluacion.revelar and correcta %} is-correcta{% endif %}"><input type="{% if pregunta.tipo == 'multiple' %}checkbox{% else %}radio{% endif %}" name="p{{ pregunta.pk }}" value="{{ forloop.counter0 }}"{% if forloop.counter0|stringformat:"d" in pregunta.respondio %} checked{% endif %}> {{ texto }}</label>{% endfor %}
+      {% endif %}
+      {% if pregunta.acerto is not None and pregunta.explicacion %}<p class="calificada__explicacion"><i class="fas fa-info-circle" aria-hidden="true"></i> {{ pregunta.explicacion }}</p>{% endif %}
+    </fieldset>
+    {% endfor %}
+    {% if evaluacion.puede_rendir %}<button type="submit" class="conoce__boton is-principal"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% if evaluacion.intentos %}{% translate "Enviar otro intento" %}{% else %}{% translate "Enviar mis respuestas" %}{% endif %}</button>{% endif %}
+  </form>
+  {% else %}
+  <p class="aula-curso__nota">{% if vista_previa %}{% translate "Agregue las preguntas de la evaluación con «Nueva pregunta»." %}{% else %}{% translate "La unidad está preparando las preguntas de esta evaluación." %}{% endif %}</p>
+  {% endif %}
+</section>
+{% elif deber %}
+<section class="calificada" id="entrega">
+  <ul class="calificada__datos">
+    <li><i class="fas fa-bullseye" aria-hidden="true"></i> {% translate "Nota mínima" %}: <strong>{{ actual.nota_minima|sobre_diez|floatformat:"-3" }} / 10</strong></li>
+    {% if actual.fecha_limite %}<li{% if deber.vencida %} class="is-vencida"{% endif %}><i class="fas fa-hourglass-end" aria-hidden="true"></i> {% translate "Entrega hasta el" %} <strong>{{ actual.fecha_limite|date:"d/m/Y H:i" }}</strong></li>{% endif %}
+  </ul>
+  {% with entrega=deber.entrega %}
+  {% if entrega %}
+  <div class="calificada__entrega is-{{ entrega.estado }}">
+    <header><strong>{{ entrega.get_estado_display }}</strong>{% if entrega.nota is not None %}<span>{% translate "Nota" %}: <b>{{ entrega.nota|sobre_diez|floatformat:"-3" }} / 10</b></span>{% endif %}</header>
+    <p>{% translate "Entregado el" %} {{ entrega.entregada_en|date:"d/m/Y H:i" }}{% if entrega.tardia %} · <em>{% translate "fuera de plazo" %}</em>{% endif %}</p>
+    <ul>
+      {% if entrega.archivo %}<li><a href="{% url 'archivo_entrega' unidad.slug curso.codigo entrega.pk %}"{% if entrega.archivo.name|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="Tu entrega · {{ actual.titulo }}"{% else %} download{% endif %}><i class="fas fa-paperclip" aria-hidden="true"></i> {% translate "Tu archivo" %}</a></li>{% endif %}
+      {% if entrega.enlace %}<li><a href="{{ entrega.enlace }}"{% if entrega.enlace|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="Tu entrega · {{ actual.titulo }}"{% else %} target="_blank" rel="noopener noreferrer"{% endif %}><i class="fas fa-link" aria-hidden="true"></i> {% translate "Tu enlace" %}</a></li>{% endif %}
+    </ul>
+    {% if entrega.retroalimentacion %}<blockquote><i class="fas fa-comment-dots" aria-hidden="true"></i> {{ entrega.retroalimentacion|linebreaksbr }}</blockquote>{% endif %}
+  </div>
+  {% endif %}
+  {% if deber.puede_entregar %}
+  <form method="post" enctype="multipart/form-data" action="{% url 'entregar_deber' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}" class="calificada__formulario">{% csrf_token %}
+    <h3>{% if entrega %}{% translate "Reemplazar la entrega" %}{% else %}{% translate "Entregar el trabajo" %}{% endif %}</h3>
+    {% if deber.vencida %}<p class="calificada__aviso">{% translate "El plazo terminó: puedes entregar, pero quedará marcado fuera de plazo." %}</p>{% endif %}
+    {{ deber.formulario.non_field_errors }}
+    {% for campo in deber.formulario %}<label>{{ campo.label }}{{ campo }}{{ campo.errors }}</label>{% endfor %}
+    <button type="submit" class="conoce__boton is-principal"><i class="fas fa-upload" aria-hidden="true"></i> {% translate "Enviar" %}</button>
+  </form>
+  {% elif vista_previa %}<p class="aula-curso__nota">{% translate "Los inscritos entregan aquí su trabajo; se califica en «Calificaciones»." %}</p>{% endif %}
+  {% endwith %}
+</section>
+{% endif %}

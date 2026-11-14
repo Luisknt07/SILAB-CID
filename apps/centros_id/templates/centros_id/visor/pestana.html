@@ -1,0 +1,76 @@
+{% load static i18n %}<!doctype html>
+{% comment %}
+La portada de una pestaña, con la misma pieza que las de Laboratorios (portada_tecnologica): un lado es un escenario
+con las fotos de lo que contiene la pestaña, fundidas bajo un degradado y con su escena animada encima; el otro
+presenta la pestaña: su frase y su texto, sus cifras, «Qué vas a encontrar» con cada sección, de dónde salen los datos
+y cómo leerlos. Se abre al cambiar de pestaña.
+{% endcomment %}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ pestana.titulo }} · {{ centro.sigla|default:centro.nombre }}</title>
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/components/portada_tecnologica.css' %}?v=20261003-portadas-v8">
+  <link rel="stylesheet" href="{% static 'centros_id/visor.css' %}?v=20261007-cid-v18">
+</head>
+<body class="cv cv-portada-pestana" data-clave="" data-titulo="{{ pestana.titulo }}" data-pestana="{{ pestana.clave }}" data-ficha="{{ ficha_url }}">
+  <article class="tech-portada tema-{{ portada.tema }}{% if imagenes %} con-fotos{% endif %}">
+    <div class="tech-portada__escenario" aria-hidden="true">
+      {% if imagenes %}<ul class="tech-portada__diapositivas">{% for imagen in imagenes %}<li{% if forloop.first %} class="is-activa"{% endif %} style="background-image: url('{{ imagen }}')"></li>{% endfor %}</ul>{% endif %}
+      <span class="tech-portada__velo"></span>
+      <span class="tech-portada__rejilla"></span>
+      <span class="tech-portada__barrido"></span>
+      <div class="tech-portada__holograma">{% include 'portal/pages/unidades/detalle/includes/escena_tecnologica.html' with tema=portada.tema %}</div>
+    </div>
+
+    <div class="tech-portada__contenido">
+      <span class="tech-portada__puntos" aria-hidden="true"></span>
+      <header class="tech-portada__cabeza">
+        <span class="tech-portada__chip"><i class="{{ pestana.icono }}" aria-hidden="true"></i> {% translate "Sección de la ficha" %} · {{ centro.sigla|default:centro.nombre }}</span>
+        <h2>{{ pestana.titulo }}</h2>
+        <p class="tech-portada__lema">{{ portada.frase }}</p>
+        <p class="tech-portada__entrada">{{ portada.texto }}</p>
+        {% if editar %}<a class="cv-portada-pestana__editar" href="{{ editar }}" target="_top"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar el centro" %}</a>{% endif %}
+        {% if cifras %}
+        <ul class="tech-portada__cifras">
+          {% for cifra in cifras %}<li style="--orden: {{ forloop.counter }}"><strong>{{ cifra.total }}</strong><span>{{ cifra.nombre }}</span></li>{% endfor %}
+        </ul>
+        {% endif %}
+      </header>
+
+      <section class="tech-portada__bloque">
+        <h3>{% translate "Qué vas a encontrar" %}</h3>
+        {% if modulos %}
+        <ul class="tech-portada__modulos">
+          {% for modulo in modulos %}
+          <li style="--orden: {{ forloop.counter }}">
+            <a class="tech-portada__modulo{% if modulo.imagen %} con-foto{% endif %}" href="{{ modulo.url }}">
+              {% if modulo.imagen %}<img src="{{ modulo.imagen }}" alt="" loading="lazy">{% else %}<i class="{{ modulo.icono }}" aria-hidden="true"></i>{% endif %}
+              <span><strong>{{ modulo.titulo }}</strong>{% if modulo.detalle %}<small>{{ modulo.detalle }}</small>{% endif %}</span>
+              <b aria-hidden="true">›</b>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="tech-portada__pista">{% translate "Elige cualquiera aquí o en la lista de la derecha y se abre en este visor." %}</p>
+        {% else %}
+        <p class="tech-portada__pista">{% translate "El centro todavía no publica contenido en esta pestaña." %}</p>
+        {% endif %}
+      </section>
+
+      <footer class="tech-portada__pie">
+        <section><h4>{% translate "De dónde salen los datos" %}</h4><p>{{ portada.datos }}</p></section>
+        <section><h4>{% translate "Cómo se lee" %}</h4><ul>{% for nota in portada.como %}<li>{{ nota }}</li>{% endfor %}</ul></section>
+        {% if modulos %}
+        <div class="tech-portada__cinta" aria-hidden="true"><div>{% for vuelta in '12' %}{% for modulo in modulos %}<span><i class="{{ modulo.icono }}"></i> {{ modulo.titulo }}</span>{% endfor %}{% endfor %}</div></div>
+        {% endif %}
+      </footer>
+    </div>
+  </article>
+  <script src="{% static 'portal/js/components/portada_tecnologica.js' %}?v=20261003-portadas-v3" defer></script>
+  <script src="{% static 'centros_id/visor.js' %}?v=20261007-cid-v18" defer></script>
+</body>
+</html>

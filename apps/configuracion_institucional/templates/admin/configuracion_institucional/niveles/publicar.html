@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}{% load i18n %}
+{% block extrahead %}{{ block.super }}{{ media }}{% endblock %}
+{% block breadcrumbs %}<ul class="grp-horizontal-list"><li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li><li><a href="{% url 'admin:configuracion_institucional_revisionnivelesacademicos_changelist' %}">{% translate "Niveles académicos" %}</a></li><li>{% translate "Revisar y publicar niveles" %}</li></ul>{% endblock %}
+{% block content %}<section class="catalogo-institucional-panel grp-module">
+<h2>{{ revision.titulo }}</h2><p>{% translate "Revisa los niveles, las rutas y la compatibilidad. La publicación no modifica perfiles, reservas ni vinculaciones anteriores." %}</p>
+<p>{% translate "Cambiar una ruta modifica las propuestas futuras; no confirma niveles ni reescribe vinculaciones anteriores." %}</p>
+{% if problemas %}<ul class="errorlist">{% for problema in problemas %}<li>{{ problema }}</li>{% endfor %}</ul>{% else %}<p>{% blocktranslate %}Compatibilidad comprobada en {{ campos_revisados }} campos. Se comprobará nuevamente al confirmar.{% endblocktranslate %}</p>{% endif %}
+<details open><summary>{% translate "Niveles activos" %} ({{ catalogo.niveles|length }})</summary><dl class="catalogo-resumen">{% for codigo, etiqueta in catalogo.niveles %}<div><dt>{{ codigo }}</dt><dd>{{ etiqueta }}{% if codigo in catalogo.estudiantes %} · {% translate "Disponible para estudiantes" %}{% endif %}</dd></div>{% endfor %}</dl></details>
+<details><summary>{% translate "Niveles históricos" %} ({{ catalogo.historicos|length }})</summary><dl class="catalogo-resumen">{% for codigo, etiqueta in catalogo.historicos %}<div><dt>{{ codigo }}</dt><dd>{{ etiqueta }}</dd></div>{% endfor %}</dl></details>
+<h3>{% translate "Rutas de avance" %}</h3><ol>{% for ruta in catalogo.secuencias %}<li>{{ ruta|join:" → " }}</li>{% empty %}<li>{% translate "Sin avance automático" %}</li>{% endfor %}</ol>
+<p>{% translate "Nombre del nivel solicitado" %}: {{ catalogo.etiqueta_faltante }}</p>
+<form method="post">{% csrf_token %}{{ form.non_field_errors }}{{ form.base_esperada }}{{ form.base_esperada.errors }}{% if not problemas %}<p>{{ form.confirmar }}{{ form.confirmar.label_tag }}{{ form.confirmar.errors }}</p><button type="submit">{% translate "Confirmar publicación" %}</button>{% endif %}<a href="{{ volver_url }}">{% translate "Volver" %}</a></form>
+</section>{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n idiomas %}
+{% block titulo %}{% translate "Catálogo de servicios" %}{% endblock %}
+{% block encabezado %}{% translate "Servicios y tarifas" %}{% endblock %}
+{% block subtitulo %}{% translate "Capacidades que la unidad ofrece y condiciones para solicitarlas" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Servicios" %}</dt><dd>{{ total_servicios }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Catálogo de servicios y tarifas" %}{% endblock %}
+{% block barra %}<div><a class="es-navegacion" href="{{ volver_url }}" target="_top">{% translate "← Volver a la unidad" %}</a><a class="is-primary" href="{{ unidad.get_absolute_url }}#reservas-servicios" target="_top">{% translate "Abrir sistema de reservas" %}</a></div>{% endblock %}
+{% block contenido %}
+<style>
+  .service-public-intro { margin:0 0 18px; padding:14px 16px; border-left:4px solid #087f8f; background:var(--institucion-fondo, #eef7f5); color:var(--institucion-texto, #34584b); font-size:12px; line-height:1.6; }
+  .service-public-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+  .service-public-card { display:grid; grid-template-rows:auto 1fr auto; overflow:hidden; border:1px solid var(--institucion-primario-suave, #d5e3dc); border-radius:9px; background:#fff; }
+  .service-public-card__head { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:14px 15px; border-bottom:1px solid var(--institucion-primario-suave, #dbe7df); background:var(--institucion-fondo, #f3f8f5); }
+  .service-public-card__head small { color:#087f8f; font-size:9px; font-weight:850; letter-spacing:.09em; text-transform:uppercase; }
+  .service-public-card__head h3 { margin:4px 0 0; color:var(--institucion-texto, #123024); font-size:15px; line-height:1.3; }
+  .service-public-card__head code { align-self:start; color:var(--institucion-acento-tinta, #8a681b); font-size:10px; font-weight:800; }
+  .service-public-card__body { padding:14px 15px; }
+  .service-public-card__body > p { margin:0 0 12px; color:#4d645a; font-size:12px; line-height:1.55; }
+  .service-public-card dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 14px; margin:0; }
+  .service-public-card dt { color:var(--institucion-texto, #2f6b4f); font-size:9px; font-weight:850; letter-spacing:.07em; text-transform:uppercase; }
+  .service-public-card dd { margin:2px 0 0; color:var(--institucion-texto, #334e43); font-size:11px; line-height:1.45; }
+  .service-public-card__tarifas { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px; }
+  .service-public-card__tarifas span { padding:8px 10px; border-radius:6px; background:var(--institucion-primario-suave, #eef6f2); color:var(--institucion-texto, #315447); font-size:10px; }
+  .service-public-card__tarifas strong { display:block; margin-top:2px; color:var(--institucion-texto, #0b5f52); font-size:15px; }
+  .service-public-card__action { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 15px; color:#fff; background:linear-gradient(100deg,#17a2b8,#01697a); font-size:11px; font-weight:850; text-decoration:none; }
+  .service-public-card__action:hover { color:#fff; text-decoration:none; filter:brightness(.96); }
+  @media(max-width:620px){ .service-public-card dl,.service-public-card__tarifas{grid-template-columns:1fr;} }
+</style>
+<p class="service-public-intro">{% translate "Las tarifas son referencias calculadas con los mismos valores base, horas de equipo y mano de obra que utiliza el asistente. Los materiales, el diseño, la modalidad y los aportes institucionales se confirman al cotizar la solicitud." %}</p>
+{% for familia in familias %}
+<section class="unit-report__section">
+  <header><span>{{ familia.nombre|upper }}</span><small>{{ familia.servicios|length }} servicio{{ familia.servicios|length|pluralize }}</small></header>
+  <div class="service-public-grid">
+    {% for servicio in familia.servicios %}
+    <article class="service-public-card">
+      <header class="service-public-card__head"><div><small>{{ servicio.get_tipo_servicio_display|ui }}</small><h3>{{ servicio.nombre }}</h3></div><code>{{ servicio.code }}</code></header>
+      <div class="service-public-card__body">
+        <p>{{ servicio.descripcion|default:'Servicio sujeto a revisión técnica.' }}</p>
+        <dl>
+          <div><dt>{% translate "Incluye" %}</dt><dd>{{ servicio.resultado_entregado|default:'Alcance definido durante la revisión técnica.' }}</dd></div>
+          <div><dt>{% translate "Requisitos" %}</dt><dd>{{ servicio.requisitos_usuario|default:'Describe el resultado esperado al enviar la solicitud.' }}</dd></div>
+          <div><dt>{% translate "Entrega referencial" %}</dt><dd>{{ servicio.tiempo_estimado_texto|default:'Por confirmar según la agenda.' }}</dd></div>
+          <div><dt>{% translate "Unidad de facturación" %}</dt><dd>{{ servicio.unidad_cobro }}</dd></div>
+          <div><dt>{% translate "Responsable" %}</dt><dd>{% if servicio.responsable_publico %}{{ servicio.responsable_publico.nombre_publico }}{% else %}{% translate "Coordinación de la unidad" %}{% endif %}</dd></div>
+          <div><dt>{% translate "Estado" %}</dt><dd>{% translate "Disponible para solicitud" %}</dd></div>
+        </dl>
+        <div class="service-public-card__tarifas"><span>{% translate "Comunidad UPEC" %}<strong>${{ servicio.tarifa_interna_referencial|floatformat:'2u' }}</strong></span><span>{% translate "Usuario externo" %}<strong>${{ servicio.tarifa_externa_referencial|floatformat:'2u' }}</strong></span></div>
+      </div>
+      <a class="service-public-card__action" href="{{ unidad.get_absolute_url }}?servicio={{ servicio.pk }}#reservas-servicios" target="_top"><span>{% translate "Solicitar este servicio" %}</span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "La unidad todavía no publica servicios en su catálogo." %}</p>
+{% endfor %}
+{% endblock %}

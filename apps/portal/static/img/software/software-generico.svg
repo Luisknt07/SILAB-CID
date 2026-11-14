@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Software</title>
+  <rect width="160" height="160" rx="34" fill="#edf5f0"/>
+  <rect x="25" y="31" width="110" height="82" rx="12" fill="#2d7050"/>
+  <rect x="36" y="46" width="88" height="52" rx="6" fill="#fff"/>
+  <path d="m56 61-12 11 12 11m48-22 12 11-12 11M88 55 72 89" fill="none" stroke="#d5a62f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M61 113h38l9 16H52l9-16Z" fill="#245b42"/>
+  <text x="80" y="151" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#244d3a">Software</text>
+</svg>

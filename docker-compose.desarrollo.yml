@@ -1,0 +1,30 @@
+# Entorno local con Django nativo. No combinar con docker-compose.yml.
+# Reutiliza exclusivamente el volumen existente; no crea otra base vacía.
+name: citt
+
+services:
+  db:
+    image: postgres:17
+    container_name: slcid-postgresql-institucional
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Configure la base local existente}
+      POSTGRES_USER: ${DB_USER:?Configure el usuario local}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure la clave local}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    external: true
+    name: citt_postgres_data

@@ -1,0 +1,17 @@
+{% load static i18n %}<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ curso.nombre }} · {% translate "Grupos e inscripción" %}</title>
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/gestion_cursos.css' %}?v=20261009-visores-v2">
+{% include 'portal/components/paleta_institucional.html' %}</head>
+<body class="conoce aula-curso"><header class="aula-curso__cabecera"><a class="aula-curso__volver" href="{{ curso_url }}">{% translate "Página del curso" %}</a><div><span class="conoce__antetitulo">{{ unidad.nombre }}</span><h1>{{ curso.nombre }}</h1></div></header>
+<main class="inscritos curso-grupos">{% if messages %}<div class="portal-messages" role="status" aria-live="polite">{% for message in messages %}<p class="portal-messages__item is-{{ message.tags|default:'info' }}">{{ message }}</p>{% endfor %}</div>{% endif %}<h2>{% translate "Grupos del curso" %}</h2>
+<p>{% translate "Cada grupo tiene sus fechas, cupo y participantes. Todos utilizan los mismos módulos y materiales del curso." %}</p>
+<section class="gestion__bloque gestion__bloque--ancho"><h3>{% if grupo %}{% translate "Editar grupo" %}: {{ grupo.nombre }}{% else %}{% translate "Nuevo grupo" %}{% endif %}</h3>
+<form method="post" class="gestion__formulario curso-grupos__formulario">{% csrf_token %}{% if grupo %}<input type="hidden" name="edicion" value="{{ grupo.pk }}">{% endif %}{{ formulario.as_p }}<button type="submit" class="conoce__boton is-principal">{% translate "Guardar grupo" %}</button>{% if grupo %}<a class="conoce__boton" href="{% url 'grupos_curso' unidad.slug curso.codigo %}">{% translate "Crear otro grupo" %}</a>{% endif %}</form></section>
+{% for actual in grupos %}<section class="gestion__bloque"><h3>{{ actual.nombre }}</h3><p>{{ actual.get_tipo_grupo_display }}{% if actual.destinatario %} · {{ actual.destinatario }}{% endif %} · {{ actual.estado.1 }}</p>
+<p>{% if actual.inicio %}{{ actual.inicio|date:"d/m/Y" }}{% endif %}{% if actual.fin %} — {{ actual.fin|date:"d/m/Y" }}{% endif %}{% if actual.horario %} · {{ actual.horario }}{% endif %}{% if actual.lugar %} · {{ actual.lugar }}{% endif %}</p>
+<p>{{ actual.matriculados }} {% translate "inscritos" %} · {{ actual.reservadas }} {% translate "invitaciones con plaza reservada" %} · {% if actual.cupos_disponibles is None %}{% translate "sin límite de cupo" %}{% else %}{{ actual.cupos_disponibles }} {% translate "cupos disponibles" %}{% endif %}</p>
+<a class="conoce__boton" href="?edicion={{ actual.pk }}">{% translate "Editar grupo" %}</a> <a class="conoce__boton is-principal" href="{{ inscritos_url }}?edicion={{ actual.pk }}">{% translate "Gestionar participantes" %}</a></section>{% empty %}<p>{% translate "Crea el primer grupo para ofrecer el curso." %}</p>{% endfor %}</main>{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body></html>

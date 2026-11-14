@@ -1,0 +1,46 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Espacio, equipos y software" %}<section class="unit-report__section">
+  <header><span>{% translate "CÓMO USARLA O VISITARLA" %}</span></header>
+  <ul class="obs-oferta">
+    <li><i class="fas fa-door-open" aria-hidden="true"></i><div><strong><a href="{% url 'solicitudes_observatorio' unidad.slug %}?tipo=sala">{% translate "Pedir el uso de la sala" %}</a></strong><p>{% translate "Para tesis, proyectos y clases que trabajen con los datos del observatorio; el equipo responde con fecha y condiciones." %}</p></div></li>
+    {% if visitas.acepta_configurada %}<li><i class="fas fa-users" aria-hidden="true"></i><div><strong><a href="{% url 'solicitar_visita' unidad.slug %}">{% translate "Pedir una visita guiada" %}</a></strong><p>{{ visitas.texto|default:_("Para colegios, instituciones y gremios: cómo se define un indicador, de dónde salen los datos y cómo se leen los tableros.") }}</p></div></li>{% endif %}
+  </ul>
+</section>
+{% endblock %}
+{% block encabezado %}{% translate "Espacio, equipos y software" %}{% endblock %}
+{% block subtitulo %}{% translate "Dónde trabaja el observatorio, con qué equipos y estaciones, y qué software usa" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Espacios" %}</dt><dd>{{ espacios|length }}</dd></div><div><dt>{% translate "Equipos" %}</dt><dd>{{ equipos|length }}</dd></div><div><dt>{% translate "Software" %}</dt><dd>{{ software|length }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Espacio, equipos y software" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__section">
+  <header><span>{% translate "ESPACIO" %}</span><small>{% translate "Su uso se pide con una solicitud, sin agenda de reservas" %}</small></header>
+  {% for espacio in espacios %}
+  <dl class="unit-report__fields">
+    <div><dt>{% translate "Espacio" %}</dt><dd><strong>{{ espacio.nombre }}</strong></dd></div>
+    <div><dt>{% translate "Ubicación" %}</dt><dd>{{ espacio.ubicacion|default:_("Por confirmar") }}</dd></div>
+    <div><dt>{% translate "Capacidad" %}</dt><dd>{% if espacio.capacidad %}{{ espacio.capacidad }} {% translate "personas" %}{% else %}{% translate "Por confirmar" %}{% endif %}</dd></div>
+    {% if espacio.descripcion_publica %}<div><dt>{% translate "Para qué sirve" %}</dt><dd>{{ espacio.descripcion_publica }}</dd></div>{% endif %}
+  </dl>
+  {% empty %}
+  <p class="unit-report__notice">{% translate "El observatorio todavía no registra su espacio." %}</p>
+  {% endfor %}
+</section>
+{% if equipos %}<section class="unit-report__section">
+  <header><span>{% translate "EQUIPOS Y ESTACIONES" %}</span><small>{% translate "Propios o compartidos con los laboratorios" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Equipo" %}</th><th>{% translate "Código" %}</th><th>{% translate "Unidad que lo custodia" %}</th></tr></thead><tbody>
+    {% for unidad_equipo in equipos %}<tr><td><strong>{{ unidad_equipo.equipo.nombre }}</strong></td><td>{{ unidad_equipo.codigo_unidad }}</td><td>{{ unidad_equipo.laboratorio|default:"—" }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>{% endif %}
+<section class="unit-report__section">
+  <header><span>{% translate "SOFTWARE Y PLATAFORMAS" %}</span></header>
+  {% if software %}
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Programa" %}</th><th>{% translate "Para qué se usa" %}</th><th>{% translate "Acceso" %}</th></tr></thead><tbody>
+    {% for programa in software %}<tr><td><strong>{% if programa.sitio_web %}<a href="{{ programa.sitio_web }}" target="_blank" rel="noopener noreferrer">{{ programa.nombre }}</a>{% else %}{{ programa.nombre }}{% endif %}</strong>{% include 'portal/pages/unidades/includes/editar.html' with clave='software' pk=programa.pk titulo=programa.nombre %}</td><td>{{ programa.descripcion|default:"—" }}</td><td>{{ programa.get_tipo_acceso_display }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}
+  <p class="unit-report__notice">{% translate "El observatorio todavía no registra su software." %}</p>
+  {% endif %}
+</section>
+{% endblock %}

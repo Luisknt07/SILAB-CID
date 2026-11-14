@@ -1,0 +1,15 @@
+{% load static i18n idiomas %}<article class="area__equipo" data-aparecer>
+  {% comment %}Su foto o la de catálogo; sin ninguna, el ícono de su familia (no la foto de otro equipo).{% endcomment %}
+  {% with tipo=unidad_equipo.equipo %}<a class="area__equipo-foto" href="{% url 'ficha_equipo_publica' unidad.slug unidad_equipo.codigo_unidad %}" aria-hidden="true" tabindex="-1">{% if tipo.imagen %}<img src="{{ tipo.imagen.url }}" alt="" loading="lazy">{% elif tipo.imagen_catalogo %}<img src="{% static tipo.imagen_catalogo %}" alt="" loading="lazy">{% else %}<span class="area__ilustracion area__equipo-icono"><i class="{{ tipo.icono|default:'fas fa-cogs' }}"></i></span>{% endif %}</a>{% endwith %}
+  <div class="area__equipo-datos">
+    <span class="area__estado {% if unidad_equipo.estado_unidad == 'disponible' %}is-ok{% elif unidad_equipo.estado_unidad == 'en_uso' or unidad_equipo.estado_unidad == 'prestado' %}is-uso{% else %}is-fuera{% endif %}">{{ unidad_equipo.get_estado_unidad_display|ui }}</span>
+    <h3>{{ unidad_equipo.equipo.nombre }}</h3>
+    {% if unidad_equipo.equipo.marca or unidad_equipo.equipo.modelo %}<p>{{ unidad_equipo.equipo.marca }} {{ unidad_equipo.equipo.modelo }}</p>{% endif %}
+    <ul class="area__equipo-meta">
+      <li><i class="fas fa-tag" aria-hidden="true"></i>{{ unidad_equipo.codigo_unidad }}</li>
+      {% if unidad_equipo.ubicacion_especifica %}<li><i class="fas fa-map-pin" aria-hidden="true"></i>{{ unidad_equipo.ubicacion_especifica }}</li>{% endif %}
+    </ul>
+    {% with auxiliares=unidad_equipo.equipo.auxiliares.all %}{% if auxiliares %}<p class="area__auxiliares"><strong>{% translate "Auxiliares" %}</strong> {% for auxiliar in auxiliares %}<span>{{ auxiliar.nombre }}</span>{% endfor %}</p>{% endif %}{% endwith %}
+    <a class="area__enlace" href="{% url 'ficha_equipo_publica' unidad.slug unidad_equipo.codigo_unidad %}">{% translate "Ver ficha técnica" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</article>

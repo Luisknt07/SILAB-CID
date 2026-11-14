@@ -1,0 +1,17 @@
+{% with lectura=documento.resumen_interfaz %}
+<tr class="entregas__fila" id="entrega-{% if documento.pk %}{{ documento.pk }}{% else %}{{ documento.exigido.codigo }}-{{ documento.anio }}-{{ documento.corte|default:'anual' }}{% endif %}" data-entrega data-estado-entrega="{{ lectura.grupo }}" data-nombre-entrega="{{ documento.nombre_documental }}">
+  <th scope="row" class="entregas__nombre"><span class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span><strong>{{ nombre|default:documento.nombre_documental }}</strong><small>{% if lectura.permanente %}Documento permanente{% else %}{{ documento.etiqueta_gestion }}{% endif %}{% if documento.recurso_id %} · v{{ documento.version }}{% endif %}</small></span></span></th>
+  <td data-columna="Estado">{% include 'portal/pages/unidades/gestion/includes/estado_aprobacion_qr.html' with qr=lectura.revision_simple fecha_visible=True %}</td>
+  <td data-columna="Avance" class="entregas__avance">{% include 'portal/pages/unidades/gestion/includes/avance_documental.html' with avance=lectura.avance nombre_documento=documento.nombre_documental %}{% if lectura.cierre_operativo and lectura.nota is not None %}<small>Resultado: {{ lectura.nota }} %</small>{% endif %}</td>
+  <td data-columna="Fechas" class="documento-fechas">{% if not lectura.permanente or documento.correccion_hasta %}{% if lectura.plazo %}<small>{% if documento.correccion_hasta %}Corrección hasta{% else %}Plazo{% endif %}: {{ lectura.plazo|date:'d/m/Y H:i' }}{% if lectura.vencido %} · Vencido{% endif %}</small>{% else %}<small>Sin fecha asignada</small>{% endif %}{% endif %}{% if lectura.fecha_envio %}<small>Enviado: {{ lectura.fecha_envio|date:'d/m/Y H:i' }}</small>{% endif %}</td>
+  <td data-columna="Observaciones"><a class="entregas__ver-nota" href="{% url 'gestion_expediente_unidad' unidad.slug %}?anio={{ anio }}&amp;corte={{ documento.corte|default:corte }}&amp;gestionar={% if documento.pk %}{{ documento.pk }}{% else %}{{ documento.exigido.codigo }}{% endif %}&amp;vista=observaciones" data-entrega-abrir aria-haspopup="dialog">Observaciones</a></td>
+  <td data-columna="Acciones"><span class="entregas__acciones">
+    {% if documento.recurso_id %}<a class="documento-accion is-pdf" href="{% url 'recurso_unidad' documento.recurso_id %}" data-ver-pdf data-pdf-titulo="{{ documento.nombre_documental }}">Ver</a>{% endif %}
+    {% if not solo_lectura and documento.estado != 'validado' %}
+      {% if not documento.pk %}<a class="documento-accion is-editar" href="{% url 'gestion_expediente_unidad' unidad.slug %}?anio={{ anio }}&amp;corte={{ documento.corte|default:corte }}&amp;gestionar={{ documento.exigido.codigo }}" data-entrega-abrir>Preparar</a>{% endif %}
+      {% if documento.exigido.redactable and documento.pk %}<a class="documento-accion is-editar" href="{% url 'redactar_documento_expediente' unidad.slug documento.pk %}" data-entrega-editor data-editor-titulo="{{ documento.nombre_documental }}">Editar</a>{% endif %}
+      {% if not documento.aprobacion_en_linea_disponible %}<a class="documento-accion is-cargar" href="{% url 'gestion_expediente_unidad' unidad.slug %}?anio={{ anio }}&amp;corte={{ documento.corte|default:corte }}&amp;gestionar={% if documento.pk %}{{ documento.pk }}{% else %}{{ documento.exigido.codigo }}{% endif %}" data-entrega-abrir>Cargar</a>{% endif %}
+    {% endif %}
+  </span></td>
+</tr>
+{% endwith %}

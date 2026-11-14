@@ -1,0 +1,94 @@
+/* Centros experimentales: la página de cada eje productivo y las secciones del centro (cómo funciona, ejes,
+   calendario, destino de lo que produce y temas de investigación). Se apoya en conoce_unidad y area_unidad. */
+.centro-eje__credito { position: absolute; right: 16px; top: 12px; z-index: 2; color: rgba(255, 255, 255, .88); font-size: 11px; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+.centro-eje__credito a { color: inherit; }
+
+.centro-temporadas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.centro-temporadas li { padding: 16px; border: 1px solid #e1e9e4; border-top: 4px solid var(--institucion-primario, #1d5b3a); border-radius: 10px; background: #fff; }
+.centro-temporadas strong { display: block; margin-bottom: 6px; color: var(--institucion-texto, #173b2c); }
+.centro-temporadas p { margin: 0; color: #4b5d54; font-size: 14px; }
+
+.centro-destinos, .centro-publicos { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin: 0 0 18px; padding: 0; list-style: none; }
+.centro-destinos li, .centro-publicos li { display: flex; gap: 12px; padding: 16px; border: 1px solid #e1e9e4; border-radius: 10px; background: #fff; }
+.centro-destinos i, .centro-publicos i { flex: 0 0 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #eef2f0; color: var(--institucion-primario, #1d5b3a); }
+.centro-destinos.is-necesidades i { background: #fff4dc; color: #8a6d1d; }
+.centro-destinos strong, .centro-publicos strong { display: block; margin-bottom: 4px; color: var(--institucion-texto, #173b2c); }
+.centro-destinos p, .centro-publicos p { margin: 0; color: #4b5d54; font-size: 14px; }
+
+/* La lista de ejes del centro (2.1). */
+.centro-ejes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.centro-ejes > li { display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d5e2da; border-radius: 10px; background: #fff; }
+.centro-ejes__foto { display: block; height: 190px; overflow: hidden; background: #e6ece8; }
+.centro-ejes__foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.centro-ejes h3 { display: flex; gap: 8px; align-items: center; margin: 14px 16px 6px; font-size: 16px; color: var(--institucion-texto, #173b2c); }
+.centro-ejes h3 i { color: var(--institucion-primario, #1d5b3a); }
+.centro-ejes h3 a { color: inherit; text-decoration: none; }
+.centro-ejes h3 a:hover { text-decoration: underline; }
+.centro-ejes p { margin: 0 16px 10px; color: #4b5d54; font-size: 14px; }
+.centro-ejes__rubros { display: flex; flex-wrap: wrap; gap: 6px; margin: auto 16px 14px; padding: 0; list-style: none; }
+.centro-ejes__rubros li { padding: 2px 9px; border-radius: 12px; background: #eef4f0; color: #2c4a3b; font-size: 12px; font-weight: 700; }
+
+/* Cómo funciona el centro (1.4). */
+.centro-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 0 0 8px; padding: 0; list-style: none; }
+.centro-datos li { padding: 14px; border: 1px solid #e1e9e4; border-radius: 10px; background: #fff; }
+.centro-datos i { color: var(--institucion-primario, #1d5b3a); }
+.centro-datos strong { display: block; margin: 6px 0 2px; font-size: 20px; color: var(--institucion-texto, #173b2c); }
+.centro-datos span { color: #5f7268; font-size: 13px; }
+.centro-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.centro-roles li { display: flex; gap: 12px; padding: 16px; border: 1px solid #e1e9e4; border-radius: 10px; background: #fff; }
+.centro-roles i { flex: 0 0 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: #eef2f0; color: var(--institucion-primario, #1d5b3a); }
+.centro-roles strong { display: block; margin-bottom: 4px; color: var(--institucion-texto, #173b2c); }
+.centro-roles p { margin: 0; color: #4b5d54; font-size: 13.5px; }
+.centro-ciclo { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: ciclo; }
+.centro-ciclo li { position: relative; padding: 14px; border-radius: 10px; background: #f3f7f4; counter-increment: ciclo; }
+.centro-ciclo li::before { content: counter(ciclo); display: inline-grid; place-items: center; width: 24px; height: 24px; margin-bottom: 6px; border-radius: 50%; background: var(--institucion-primario, #1d5b3a); color: #fff; font-size: 12px; font-weight: 800; }
+.centro-ciclo strong { display: block; margin-bottom: 4px; color: var(--institucion-texto, #173b2c); }
+.centro-ciclo p { margin: 0; color: #4b5d54; font-size: 13px; }
+.centro-fuente { margin: 8px 0 0; color: #6b7a72; font-size: 12px; }
+
+/* Calendario de todos los ejes (2.2) y tabla de temas (5.1). */
+.centro-tabla { width: 100%; border-collapse: collapse; background: #fff; font-size: 13.5px; }
+.centro-tabla th, .centro-tabla td { padding: 9px 10px; border-bottom: 1px solid #e3ebe6; text-align: left; vertical-align: top; }
+.centro-tabla th { background: #f3f7f4; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.centro-tabla td a { color: var(--institucion-texto, #173b2c); font-weight: 700; }
+.centro-tabla-envoltura { overflow-x: auto; }
+
+@media (max-width: 760px) {
+    .centro-ciclo { grid-template-columns: 1fr; }
+}
+
+/* Plan y registros de producción (3.1): avance frente a la meta, estado del ciclo y registro del día. */
+.centro-avance { display: inline-block; width: 90px; height: 8px; overflow: hidden; border-radius: 4px; background: #e1eae5; vertical-align: middle; }
+.centro-avance span { display: block; height: 100%; background: var(--institucion-primario, #1d5b3a); }
+.centro-estado { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #eef2f0; color: #2c4a3b; font-size: 11px; font-weight: 800; }
+.centro-estado.is-en_curso { background: #e3f2e8; color: #1f6b46; }
+.centro-estado.is-cerrado { background: #eceff1; color: #55646b; }
+.centro-aviso { margin: 0 0 14px; padding: 10px 14px; border-left: 4px solid var(--institucion-primario, #1d5b3a); border-radius: 6px; background: #eef6f1; }
+.centro-acciones { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 0 0 14px; }
+.centro-acciones a { color: var(--institucion-texto, #173b2c); font-weight: 700; }
+.centro-formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 0 0 18px; }
+.centro-formulario label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--institucion-texto, #173b2c); }
+.centro-formulario input, .centro-formulario select { min-height: 38px; padding: 0 10px; border: 1px solid #c9d6ce; border-radius: 6px; font: inherit; font-weight: 400; }
+.centro-formulario .errorlist { margin: 0; padding: 0; list-style: none; color: #a12c2c; font-size: 12px; font-weight: 400; }
+.centro-formulario button { min-height: 40px; padding: 0 18px; border: 0; border-radius: 6px; background: var(--institucion-primario, #1d5b3a); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.centro-formulario > div { display: flex; align-items: end; }
+
+/* Cursos del centro (5.2) y simuladores (2.3). */
+.centro-cursos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.centro-cursos > li { display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid #d5e2da; border-radius: 10px; background: #fff; }
+.centro-cursos > li.is-disponible { border-color: var(--institucion-primario, #1d5b3a); box-shadow: inset 4px 0 0 var(--institucion-primario, #1d5b3a); }
+.centro-cursos__cabeza { display: flex; gap: 10px; align-items: flex-start; }
+.centro-cursos__cabeza > i { flex: 0 0 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: #eef2f0; color: var(--institucion-primario, #1d5b3a); }
+.centro-cursos__cabeza strong { display: block; color: var(--institucion-texto, #173b2c); }
+.centro-cursos__cabeza small { color: #5f7268; }
+.centro-cursos__cabeza small a { color: inherit; font-weight: 700; }
+.centro-cursos p { margin: 0; color: #4b5d54; font-size: 13.5px; }
+.centro-cursos__accion { margin-top: auto; color: var(--institucion-primario, #1d5b3a); font-size: 13px; font-weight: 800; text-decoration: none; }
+.centro-cursos__accion.is-revision { color: #8a6d1d; }
+.centro-simulador .aula-form { margin-bottom: 14px; }
+
+/* Cómo se reserva (6.1): lo que se cuida al entrar. */
+.centro-cuidados { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.centro-cuidados li { display: flex; gap: 10px; align-items: baseline; color: #3f5148; font-size: 14px; }
+.centro-cuidados i { color: var(--institucion-primario, #1d5b3a); }
+.centro-roles .centro-roles__nota { margin-top: 6px; color: #5f7268; font-size: 12px; }

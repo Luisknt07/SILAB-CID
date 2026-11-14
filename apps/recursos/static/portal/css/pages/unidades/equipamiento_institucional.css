@@ -1,0 +1,37 @@
+/* Equipamiento institucional: una tarjeta por familia de producto con su reparto entre unidades y su uso. */
+.institucional { padding-bottom: 40px; }
+.institucional .institucional__portada { min-height: 300px; }
+.institucional__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 22px var(--conoce-lado) 0; padding: 16px 18px; border-radius: 18px; background: #fff; box-shadow: 0 10px 26px rgba(0, 0, 0, .06); }
+.institucional__filtros label { display: grid; gap: 5px; color: var(--conoce-oscuro); font-size: 12px; font-weight: 800; }
+.institucional__filtros select, .institucional__filtros input { min-width: 220px; padding: 10px 12px; border: 1px solid #d5e2db; border-radius: 12px; font: inherit; font-size: 14px; }
+.institucional__filtros .conoce__boton { border-color: var(--conoce-amarillo); background: var(--conoce-amarillo); color: var(--conoce-oscuro); cursor: pointer; }
+.institucional__filtros p { flex-basis: 100%; margin: 0; color: var(--conoce-gris); font-size: 12px; }
+
+.institucional__familias { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.institucional__familia a { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; height: 100%; box-sizing: border-box; padding: 14px; border-left: 5px solid #1d7a47; border-radius: 18px; background: #fff; box-shadow: 0 8px 22px rgba(0, 0, 0, .06); color: inherit; text-decoration: none; transition: transform .2s, box-shadow .2s; }
+.institucional__familia a:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(0, 0, 0, .1); }
+.institucional__familia.is-subutilizada a, .institucional__familia.is-sin_uso a { border-left-color: #c58a00; }
+.institucional__familia.is-demandada a { border-left-color: #a12c2c; }
+.institucional__foto { display: grid; place-items: center; overflow: hidden; width: 96px; height: 96px; border-radius: 14px; background: linear-gradient(160deg, #fff, var(--conoce-suave)); color: var(--conoce-primario); font-size: 34px; }
+.institucional__foto img { width: 100%; height: 100%; object-fit: cover; }
+.institucional__datos { display: grid; gap: 4px; min-width: 0; }
+.institucional__grupo { color: var(--conoce-primario); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.institucional__datos strong { color: var(--conoce-oscuro); font-size: 15px; line-height: 1.3; }
+.institucional__cuenta { color: var(--conoce-gris); font-size: 12.5px; font-weight: 600; }
+.institucional__cuenta b { color: var(--conoce-oscuro); font-size: 15px; }
+.institucional__reparto { display: flex; flex-wrap: wrap; gap: 4px; }
+.institucional__reparto em { padding: 2px 8px; border-radius: 999px; background: #e3f5ea; color: #1d7a47; font-size: 10.5px; font-style: normal; font-weight: 700; }
+.institucional__reparto em.is-subutilizada, .institucional__reparto em.is-sin_uso { background: #fff4d6; color: #8a6207; }
+.institucional__reparto em.is-demandada { background: #fbeceb; color: #a12c2c; }
+.institucional__diagnostico { color: var(--conoce-oscuro); font-size: 12px; font-weight: 700; }
+.institucional__recomendacion { display: block; padding: 8px 10px; border-radius: 10px; background: #fff8e1; color: #6b5205; font-size: 12px; line-height: 1.45; }
+.institucional__aviso { margin: 20px var(--conoce-lado) 0; padding: 14px 16px; font-size: 14px; }
+.institucional__estado { padding: 3px 10px; border-radius: 999px; background: #e3f5ea; color: #1d7a47; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.institucional__estado.is-subutilizada, .institucional__estado.is-sin_uso { background: #fff4d6; color: #8a6207; }
+.institucional__estado.is-demandada { background: #fbeceb; color: #a12c2c; }
+
+@media (max-width: 520px) {
+    .institucional__familias { grid-template-columns: 1fr; }
+    .institucional__familia a { grid-template-columns: 72px minmax(0, 1fr); }
+    .institucional__foto { width: 72px; height: 72px; }
+}

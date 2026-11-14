@@ -1,0 +1,47 @@
+{% load static i18n idiomas marca %}
+<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Expediente de calidad" %} {{ anio }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/expediente.css' %}?v=20261018-plan-estandar-2">
+<link rel="stylesheet" href="{% static 'portal/css/components/progreso_general.css' %}?v=20261018-indicadores-1">
+  <link rel="stylesheet" href="{% static 'portal/css/components/reportes_indicadores.css' %}?v=20261017-diseno-4">
+  {% include 'portal/components/reportes_interfaz_assets.html' %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page expediente-page reportes-entregas">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{% translate "Expediente de calidad" %} {{ anio }}</h1>
+        <small>{% translate "Planeación · Ejecución · Evaluación · Mejora continua" %}</small>
+        <p>{{ unidad.nombre }} · <b>{{ etiqueta_periodo }}</b></p>
+      </div>
+      <dl>
+        <div><dt>{{ etiqueta_periodo }}</dt><dd>{{ rango_periodo.0|date:"d/m/Y" }} – {{ rango_periodo.1|date:"d/m/Y" }}</dd></div>
+        <div><dt>{% translate "Entregas del expediente" %}</dt><dd>{{ cumplimiento.entregadas }}/{{ cumplimiento.filas|length }} {% translate "enviadas" %}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones del expediente" %}">
+      {% if solo_lectura %}<span class="expediente__rol"><i class="fas fa-folder-open" aria-hidden="true"></i> {% blocktranslate with dependencia=unidad.adscrita_a %}Recibes el informe de {{ dependencia }}: lees el expediente de esta unidad; la valida su responsable y la califica la Dirección.{% endblocktranslate %}</span>{% else %}<a href="{% url 'gestion_unidad' unidad.slug %}?view=reportes#reportes">{% translate "← Volver a la gestión" %}</a>{% endif %}
+    </section>
+
+    {% if messages %}<section class="expediente__mensajes">{% for mensaje in messages %}<p class="is-{{ mensaje.tags }}">{{ mensaje }}</p>{% endfor %}</section>{% endif %}
+
+    {% if gestion_documento %}
+      <p><a href="{% url 'gestion_expediente_unidad' unidad.slug %}?anio={{ anio }}&amp;corte={{ corte }}#entrega-{% if documento.pk %}{{ documento.pk }}{% else %}{{ documento.exigido.codigo }}-{{ documento.anio }}-{{ documento.corte|default:'anual' }}{% endif %}">← Volver a la tabla de entregas</a></p>
+      <h2>{{ nombre }}</h2>
+      {% include 'portal/pages/unidades/gestion/includes/expediente_gestion_documento.html' %}
+    {% else %}{% include 'portal/pages/unidades/gestion/includes/expediente_cuerpo.html' %}{% endif %}
+  </main>
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+  <script defer src="{% static 'portal/js/pages/unidades/entregas.js' %}?v=20261018-observaciones-1"></script>
+</body>
+</html>

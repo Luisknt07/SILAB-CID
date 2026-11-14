@@ -1,0 +1,53 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+<style>
+  .sesiones-tabla { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid var(--institucion-primario-suave, #d3e1d8); border-radius: 12px; overflow: hidden; }
+  .sesiones-tabla th, .sesiones-tabla td { padding: 10px 12px; border-bottom: 1px solid var(--institucion-primario-suave, #e6eee9); text-align: left; vertical-align: top; }
+  .sesiones-tabla th { background: var(--institucion-fondo, #f2f7f4); color: var(--institucion-texto, #1f3d2f); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .sesiones-tabla small { color: #6b7a73; }
+  .sesiones-tabla .estado { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--institucion-primario-suave, #edf1ef); color: #52625a; }
+  .sesiones-tabla .estado.is-ok { background: #e6f2ea; color: #245a42; }
+  .sesiones-tabla .estado.is-pendiente { background: #fff3cd; color: var(--institucion-acento-tinta, #7d621d); }
+  .sesiones-tabla .acciones { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sesiones-tabla .acciones a { font-size: 12px; font-weight: 700; color: var(--institucion-texto, #245a42); text-decoration: none; border: 1px solid #c9d8cf; border-radius: 999px; padding: 4px 10px; background: #fff; }
+</style>
+{% endblock %}
+{% block portal_content %}
+<section class="guide-shell">
+  <header class="guide-hero">
+    <div>
+      <span class="guide-eyebrow">{% translate "PROGRAMACIÓN DEL PERÍODO" %}</span>
+      <h1>{% translate "Mis sesiones programadas" %}</h1>
+      <p>{{ unidad.nombre }} · {% if pendientes %}{{ pendientes }} {% translate "sesión" %}{{ pendientes|pluralize:"es" }} pendiente{{ pendientes|pluralize }} {% translate "de guía o de materiales" %}{% else %}{% translate "todas tus sesiones tienen proceso y guía" %}{% endif %}</p>
+    </div>
+    <div class="guide-hero__actions">
+      <a class="guide-btn guide-btn--ghost" href="{{ unidad.get_absolute_url }}">{% translate "Volver a la unidad" %}</a>
+      <a class="guide-btn guide-btn--ghost" href="{% url 'lista_guias_practica' unidad.slug %}">{% translate "Mis guías de práctica" %}</a>
+    </div>
+  </header>
+  <table class="sesiones-tabla">
+    <thead><tr><th>{% translate "Sesión" %}</th><th>{% translate "Programa y práctica" %}</th><th>{% translate "Proceso y materiales" %}</th><th>{% translate "Guía de la sesión" %}</th><th>{% translate "Estado" %}</th><th></th></tr></thead>
+    <tbody>
+      {% for fila in filas %}
+      <tr>
+        <td><strong>{{ fila.numero }} de {{ fila.total }}</strong><br><small>{{ fila.reserva.fecha|date:"d/m/Y" }} · {{ fila.reserva.hora_inicio|time:"H:i" }}–{{ fila.reserva.hora_fin|time:"H:i" }}</small><br><small>{{ fila.reserva.codigo_reserva }}</small></td>
+        <td>{{ fila.programa }}<br><small>{{ fila.tema }}</small></td>
+        <td>{% if fila.proceso %}{{ fila.proceso }}<br>{% if fila.aula %}<small><a href="{{ fila.aula.balance_url }}">{% translate "Simular con estos datos" %}</a> · <a href="{{ fila.aula.materiales_url }}">{% translate "Materiales del período" %}</a></small><br>{% endif %}<small>{{ fila.reserva.consumibles_solicitados.count }} insumo{{ fila.reserva.consumibles_solicitados.count|pluralize }} pedido{{ fila.reserva.consumibles_solicitados.count|pluralize }}</small>{% else %}<span class="estado is-pendiente">{% translate "Sin proceso ni materiales" %}</span>{% endif %}</td>
+        <td>{% if fila.guia %}<span class="estado{% if fila.guia_lista %} is-ok{% else %} is-pendiente{% endif %}">{{ fila.guia.get_estado_publicacion_display|ui }}</span>{% else %}<span class="estado">{% translate "Sin guía" %}</span>{% endif %}</td>
+        <td><span class="estado">{{ fila.reserva.get_estado_display|ui }}</span></td>
+        <td class="acciones">
+          <a href="{{ fila.url_completar }}">{% if fila.reserva.estado == 'pendiente' %}{% translate "Completar la sesión" %}{% else %}{% translate "Ver la sesión" %}{% endif %}</a>
+          {% if fila.url_guia %}<a href="{{ fila.url_guia }}">{% if fila.guia_lista %}{% translate "Ver guía" %}{% else %}{% translate "Completar guía" %}{% endif %}</a>{% endif %}
+          <a href="{{ fila.url_comprobante }}">{% translate "Comprobante" %}</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">{% translate "Todavía no has programado sesiones en esta unidad. Al reservar varias sesiones desde el asistente, cada una aparece aquí para completar su proceso, sus materiales y su guía." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

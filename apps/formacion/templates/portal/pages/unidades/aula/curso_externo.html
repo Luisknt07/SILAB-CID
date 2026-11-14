@@ -1,0 +1,27 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ curso.nombre }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261011-catalogo-v2">
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce ficha area curso-ficha">
+  {% if not curso.publicado %}<p class="conoce__borrador area__borrador">Actividad sin publicar: solo visible para la gestión de la unidad.</p>{% endif %}
+  {% if not curso.activo %}<p class="conoce__borrador area__borrador">Actividad desactivada. Se conserva su información para la administración.</p>{% endif %}
+  <header class="conoce__portada area__portada{% if curso.imagen %} con-foto{% else %} area__portada--plano{% endif %}"{% if curso.imagen %} style="--conoce-foto: url('{{ curso.imagen.url }}')"{% endif %}>
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{{ curso.get_clasificacion_display }} · Plataforma externa</span>
+      <h1>{{ curso.nombre }}</h1>{% if curso.lema %}<p class="conoce__lema">{{ curso.lema }}</p>{% endif %}
+      <ul class="conoce__datos"><li><i class="fas fa-university" aria-hidden="true"></i>{{ curso.entidad_organizadora|default:'Institución organizadora por confirmar' }}</li><li><i class="fas fa-laptop-house" aria-hidden="true"></i>{{ modalidad }}</li>{% if curso.duracion_horas %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ curso.duracion_horas }} h</li>{% endif %}</ul>
+      <div class="conoce__portada-acciones">{% if curso.url_externa_segura and curso.activo %}<a class="conoce__boton" href="{{ curso.url_externa_segura }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt" aria-hidden="true"></i> Ir a la plataforma organizadora <span class="sr-only">(abre en otra pestaña)</span></a>{% endif %}{% if editor_curso_url %}<a class="conoce__boton" href="{{ editor_curso_url }}">Editar actividad</a>{% endif %}<a class="conoce__boton" href="{{ todos_url }}">Catálogo de formación</a></div>
+    </div>
+  </header>
+  <section class="conoce__seccion" aria-labelledby="colaboracion-titulo"><header class="conoce__titulo"><span class="conoce__antetitulo">Participación institucional</span><h2 id="colaboracion-titulo">{{ curso.entidad_organizadora|default:'Institución organizadora' }}</h2></header><div class="area__explicacion"><article class="ficha__bloque"><header><i class="fas fa-handshake" aria-hidden="true"></i><h2>{{ unidad.nombre }}</h2></header><p>Universidad Politécnica Estatal del Carchi · {{ curso.get_participacion_unidad_display }}</p><p>La inscripción, el desarrollo de la actividad y las condiciones de certificación se consultan en la plataforma organizadora.</p></article></div></section>
+  {% if curso.descripcion or curso.dirigido_a %}<section class="conoce__seccion" aria-labelledby="actividad-titulo"><header class="conoce__titulo"><h2 id="actividad-titulo">Sobre la actividad</h2></header><div class="area__explicacion">{% if curso.descripcion %}<article class="ficha__bloque"><div class="area__texto">{{ curso.descripcion|linebreaks }}</div></article>{% endif %}{% if curso.dirigido_a %}<article class="ficha__bloque"><h3>A quién va dirigida</h3>{{ curso.dirigido_a|linebreaks }}</article>{% endif %}</div></section>{% endif %}
+  {% if curso.lista_aprendizajes or curso.lista_requisitos %}<section class="conoce__seccion"><div class="curso__listas">{% if curso.lista_aprendizajes %}<article class="curso__lista"><h2>Contenidos y objetivos</h2><ul>{% for item in curso.lista_aprendizajes %}<li><i class="fas fa-check" aria-hidden="true"></i><span>{{ item }}</span></li>{% endfor %}</ul></article>{% endif %}{% if curso.lista_requisitos %}<article class="curso__lista curso__lista--requisitos"><h2>Requisitos</h2><ul>{% for item in curso.lista_requisitos %}<li><i class="fas fa-angle-right" aria-hidden="true"></i><span>{{ item }}</span></li>{% endfor %}</ul></article>{% endif %}</div></section>{% endif %}
+</body></html>

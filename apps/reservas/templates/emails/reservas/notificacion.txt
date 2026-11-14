@@ -1,0 +1,44 @@
+GESTIÓN Y RESERVA · {{ identidad_institucion.siglas }}
+{{ identidad_producto.nombre_corto }} · {{ identidad_institucion.nombre }}
+
+{{ notificacion.titulo }}
+{{ comprobante.saludo }}.
+
+{{ notificacion.mensaje }}
+
+Referencia: {{ comprobante.codigo }}
+Laboratorio: {{ comprobante.unidad }}
+Actividad: {{ comprobante.titulo }}
+Actividad vinculada: {{ comprobante.actividad }}
+Fecha y horario: {{ comprobante.fecha }} · {{ comprobante.horario }}
+Tipo y propósito: {{ comprobante.tipo_solicitud }} · {{ comprobante.proposito }}
+Participantes: {{ comprobante.participantes_total }}
+Solicitante: {{ comprobante.solicitante }} · {{ comprobante.correo_solicitante }} · {{ comprobante.telefono_solicitante }}
+Motivo o descripción: {{ comprobante.descripcion }}
+{% if comprobante.solicitud %}Lo que se solicita realizar: {{ comprobante.solicitud }}
+{% endif %}Requisitos especiales: {{ comprobante.requisitos }}
+{% if comprobante.documentacion.aplica %}Documentación de práctica: {{ comprobante.documentacion.etiqueta }} · {{ comprobante.documentacion.detalle }}
+{% endif %}Responsable de atención: {{ comprobante.responsable }}
+Estado: {{ comprobante.estado }}
+{% if comprobante.cancelacion %}Cancelación: {{ comprobante.cancelacion }}
+{% endif %}
+RECURSOS Y CONDICIONES
+{% for recurso in comprobante.recursos %}- {{ recurso.categoria }}: {{ recurso.nombre }}{% if recurso.detalle %} · {{ recurso.detalle }}{% endif %}
+{% endfor %}
+{% if comprobante.participantes %}PARTICIPANTES REGISTRADOS
+{% for participante in comprobante.participantes %}- {{ participante.nombre }} · {{ participante.correo }}
+{% endfor %}{% endif %}
+QUÉ SUCEDE AHORA
+{% if comprobante.documentacion.requiere_guia and not comprobante.documentacion.lista %}1. Completa la guía institucional y envíala a revisión; es requisito para aprobar la reserva.
+2. El laboratorio revisará la documentación, los recursos, el horario y las condiciones.
+3. Recibirás una actualización cuando cambie el estado.
+4. Antes de asistir, confirma en “Mis reservas” que esté confirmada.
+{% else %}1. El laboratorio revisará la documentación, los recursos, el horario y las condiciones.
+2. Recibirás una actualización cuando cambie el estado.
+3. Antes de asistir, confirma en “Mis reservas” que esté confirmada.
+{% endif %}
+
+Comprobante y seguimiento:
+{{ enlace }}
+
+Soporte: indica la referencia {{ comprobante.codigo }}. Contacto de la unidad: {{ comprobante.contacto_unidad }}.

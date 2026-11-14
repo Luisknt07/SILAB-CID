@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}El visor de imágenes de Laboratorios: amplía una imagen y recorre las demás con botones, flechas o
+deslizando. Va una sola vez por página, con las imágenes en el orden de su galería.{% endcomment %}<dialog class="area__visor" data-visor aria-label="{% translate "Imágenes" %}">
+  <button type="button" class="area__cerrar" data-cerrar-visor aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+  <button type="button" class="area__visor-paso is-anterior" data-visor-paso="-1" aria-label="{% translate "Anterior" %}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+  <figure><img data-visor-imagen src="" alt=""><figcaption><strong data-visor-titulo></strong><small data-visor-rotulo></small><span data-visor-cuenta></span></figcaption></figure>
+  <button type="button" class="area__visor-paso is-siguiente" data-visor-paso="1" aria-label="{% translate "Siguiente" %}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+  <script type="application/json" data-visor-imagenes>[{% for imagen in imagenes %}{"url": "{{ imagen.imagen.url|escapejs }}", "titulo": "{{ imagen.titulo|escapejs }}", "rotulo": "{% if imagen.es_plano %}{% translate "Plano o diagrama" %}{% else %}{{ imagen.credito|default:_("Foto")|escapejs }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+</dialog>

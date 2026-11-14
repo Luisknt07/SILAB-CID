@@ -1,0 +1,44 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Desarrollos y propiedad intelectual: los prototipos con su madurez tecnológica (TRL) y los registros de propiedad
+intelectual con el estado de su protección, con las piezas de Laboratorios.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Los prototipos y desarrollos con su nivel de madurez tecnológica (TRL 1 a 9) y la propiedad intelectual: registros de software, modelos de utilidad y patentes, con el estado de su protección." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if hay_resultados %}{% include 'centros_id/visor/_filtros_resultados.html' %}{% endif %}
+{% if prototipos %}
+<section class="conoce__seccion" id="prototipos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que se construye" %}</span><h2>{% translate "Prototipos y desarrollos" %}</h2></header>
+  <div class="area__actividades">{% for resultado in prototipos %}<a class="area__actividad cv-tarjeta-enlace" href="{% url 'fragmento_centro_id' centro.slug 'resultado' resultado.pk %}" data-modal="{% url 'fragmento_centro_id' centro.slug 'resultado' resultado.pk %}"{% if abrir == resultado.pk %} data-abrir-auto{% endif %} data-aparecer>
+    <header><i class="{{ resultado.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{{ resultado.anio }}</span>{% if resultado.componente %}<span class="ficha__rol cv-rol--suave">{{ resultado.componente }}</span>{% endif %}</div></header>
+    <h3>{{ resultado.titulo }}</h3>
+    {% if resultado.descripcion %}<p>{{ resultado.descripcion|truncatewords:24 }}</p>{% endif %}
+    {% if resultado.trl_documentado %}<footer><span class="cv-trl" aria-label="TRL {{ resultado.trl }}">{% for nivel in niveles_trl %}<i{% if nivel <= resultado.trl %} class="is-hecho"{% endif %} title="TRL {{ nivel }}"></i>{% endfor %}<b>TRL {{ resultado.trl }}</b></span></footer>{% endif %}
+  </a>{% endfor %}</div>
+</section>
+{% endif %}
+{% include 'centros_id/visor/_paginacion.html' %}
+
+{% if propiedad %}
+<section class="conoce__seccion" id="propiedad">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que se protege" %}</span><h2>{% translate "Propiedad intelectual" %}</h2></header>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Resultado" %}</th><th scope="col">{% translate "Registro" %}</th><th scope="col">{% translate "Año" %}</th><th scope="col">{% translate "Estado" %}</th><th scope="col">{% translate "Licencia" %}</th></tr></thead><tbody>
+    {% for resultado in propiedad %}<tr><td><button type="button" class="cv-enlace" data-modal="{% url 'fragmento_centro_id' centro.slug 'resultado' resultado.pk %}"><strong>{{ resultado.titulo }}</strong></button>{% if resultado.componente %}<small class="cv-mudo">{{ resultado.componente }}</small>{% endif %}</td><td>{{ resultado.revista|default:"—" }}</td><td>{{ resultado.anio }}</td><td>{% if resultado.pi_documentada %}<span class="area__estado {% if resultado.estado_pi == 'solicitada' %}is-uso{% else %}is-ok{% endif %}">{{ resultado.get_estado_pi_display }}</span>{% else %}{% translate 'Protección pendiente de respaldo' %}{% endif %}</td><td>{{ resultado.licencia|default:"—" }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+
+{% if prototipos or propiedad %}
+<section class="conoce__seccion" id="madurez">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cómo se lee" %}</span><h2>{% translate "El nivel de madurez tecnológica" %}</h2></header>
+  <ul class="area__puntos" data-aparecer>
+    <li><i class="fas fa-flask" aria-hidden="true"></i><span>TRL 1–3 · {% translate "Investigación" %}<small>{% translate "Principios, concepto y prueba experimental" %}</small></span></li>
+    <li><i class="fas fa-tools" aria-hidden="true"></i><span>TRL 4–6 · {% translate "Desarrollo" %}<small>{% translate "Validación en laboratorio y en entorno relevante" %}</small></span></li>
+    <li><i class="fas fa-industry" aria-hidden="true"></i><span>TRL 7–9 · {% translate "Despliegue" %}<small>{% translate "Demostración, sistema completo y operación real" %}</small></span></li>
+  </ul>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("No hay desarrollos que coincidan con esta consulta.") enlace=completar %}</section>
+{% endif %}
+{% endblock %}

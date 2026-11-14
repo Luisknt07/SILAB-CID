@@ -1,0 +1,261 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas %}
+{% comment %}
+Ficha del activo: que es, que contiene, como se usa, cuanta vida le queda, que
+se le ha hecho en cada mantenimiento y todo lo que le ha pasado.
+{% endcomment %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/panel_gestion.css' %}?v=20261016-fondo-blanco-v7">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_equipo.css' %}?v=20261002-ficha-estandar-v1">
+{% include 'portal/components/gestion_interfaz_assets.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+{% block portal_content %}
+<section class="ficha">
+  <header class="ficha__hero">
+    <div>
+      <span>{% translate "FICHA DEL ACTIVO" %} · {{ unidad.nombre }}</span>
+      <h1>{{ ficha.equipo.codigo_unidad }} · {{ ficha.tipo.nombre }}</h1>
+      <p>{{ ficha.contenido.categoria }} · {{ ficha.tipo.codigo }}{% if ficha.contenido.unidades_totales > 1 %} · {% blocktranslate with disponibles=ficha.contenido.unidades_disponibles total=ficha.contenido.unidades_totales %}{{ disponibles }} de {{ total }} unidades disponibles en la unidad{% endblocktranslate %}{% endif %}</p>
+    </div>
+    <div class="ficha__hero-acciones">
+      <span class="mant-semaforo is-{{ ficha.semaforo }}">{{ ficha.etiqueta }}</span>
+      <a class="ficha__volver" href="{{ url_pdf }}" data-ver-pdf
+         data-pdf-titulo="{{ ficha.equipo.codigo_unidad }} · {{ ficha.tipo.nombre }}"
+         data-pdf-descarga="{{ url_pdf }}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver la ficha en PDF" %}</a>
+      <a class="ficha__volver" href="{{ url_panel }}">{% translate "← Volver al seguimiento" %}</a>
+    </div>
+  </header>
+
+  <div class="ficha__cuerpo">
+    <article class="ficha__tarjeta ficha__identidad">
+      <div class="ficha__foto">
+        {% comment %}La misma fotografía que ve quien reserva el equipo.{% endcomment %}
+        {% if ficha.contenido.imagen %}<img src="{{ ficha.contenido.imagen }}" alt="{{ ficha.tipo.nombre }}">{% else %}<span class="unit-console__icono-equipo is-grande" aria-hidden="true"><i class="{{ ficha.tipo.icono|default:'fas fa-cogs' }}"></i></span>{% endif %}
+      </div>
+      <dl class="ficha__datos">
+        <div><dt>{% translate "Estado operativo" %}</dt><dd>{{ ficha.equipo.get_estado_unidad_display }}</dd></div>
+        <div><dt>{% translate "Criticidad" %}</dt><dd>{{ ficha.equipo.get_criticidad_display }}</dd></div>
+        <div><dt>{% translate "Marca y modelo" %}</dt><dd>{% if ficha.tipo.marca or ficha.tipo.modelo %}{{ ficha.tipo.marca }} {{ ficha.tipo.modelo }}{% elif ficha.tipo.medios_publicos.identidad_propuesta %}{{ ficha.tipo.medios_publicos.identidad_propuesta.marca }} {{ ficha.tipo.medios_publicos.identidad_propuesta.modelo }} <small>{% translate "Referencia provisional" %}</small>{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Código del bien" %}</dt><dd>{% if ficha.equipo.codigo_bien %}{{ ficha.equipo.codigo_bien }}{% if ficha.equipo.tipo_bien %} · {{ ficha.equipo.get_tipo_bien_display }}{% endif %}{% else %}{% translate "Pendiente de asignar por bodega" %}{% endif %}</dd></div>
+        <div><dt>{% translate "N.º de serie" %}</dt><dd>{% firstof ficha.equipo.numero_serie "—" %}</dd></div>
+        <div><dt>{% translate "Custodio" %}</dt><dd>{% firstof ficha.equipo.custodio "—" %}{% if ficha.equipo.ubicacion_bodega %} · {{ ficha.equipo.ubicacion_bodega|lower|capfirst }}{% endif %}</dd></div>
+        <div><dt>{% translate "Ingreso a bodega" %}</dt><dd>{% if ficha.equipo.fecha_ingreso_bodega %}{{ ficha.equipo.fecha_ingreso_bodega|date:"d/m/Y" }}{% else %}—{% endif %}{% if ficha.equipo.valor_contable %} · {{ ficha.equipo.valor_contable|floatformat:"2u" }} USD{% endif %}</dd></div>
+        <div><dt>{% translate "Ubicación" %}</dt><dd>{% firstof ficha.equipo.ubicacion_especifica "—" %}</dd></div>
+        <div><dt>{% translate "Adquisición" %}</dt><dd>{% if ficha.equipo.fecha_adquisicion %}{{ ficha.equipo.fecha_adquisicion|date:"d/m/Y" }} · {{ ficha.equipo.get_origen_adquisicion_display }}{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Valor referencial" %}</dt><dd>{% if ficha.equipo.valor_referencial %}{{ ficha.equipo.valor_referencial|floatformat:2 }} USD{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Garantía" %}</dt><dd>{% if ficha.garantia.fin %}{% if ficha.garantia.vigente %}{% translate "vigente hasta" %} {{ ficha.garantia.fin|date:"d/m/Y" }}{% else %}{% translate "venció el" %} {{ ficha.garantia.fin|date:"d/m/Y" }}{% endif %}{% else %}{% translate "No registrada" %}{% endif %}</dd></div>
+      </dl>
+      {% include 'portal/pages/unidades/includes/medios_recurso.html' with recurso=ficha.tipo %}
+      {% if ficha.garantia.cobertura or ficha.garantia.fin %}
+      <div class="ficha__garantia grid-completo {% if ficha.garantia.vigente %}is-vigente{% endif %}">
+        <strong>{% if ficha.garantia.vigente %}{% blocktranslate with dias=ficha.garantia.dias_restantes %}En garantía: quedan {{ dias }} días{% endblocktranslate %}{% else %}{% translate "Fuera de garantía" %}{% endif %}{% if ficha.garantia.meses %} · {% blocktranslate with meses=ficha.garantia.meses %}{{ meses }} meses desde la adquisición{% endblocktranslate %}{% endif %}</strong>
+        {% if ficha.garantia.cobertura %}<span>{{ ficha.garantia.cobertura }}</span>{% endif %}
+        {% if ficha.garantia.contacto %}<small>{% translate "Proveedor:" %} {{ ficha.garantia.contacto }}</small>{% endif %}
+        {% if ficha.garantia.vigente %}<small>{% translate "Un correctivo dentro de la garantía se registra con ejecutor «cubierto por la garantía» y sin costo para la unidad." %}</small>{% endif %}
+      </div>
+      {% endif %}
+      <div class="ficha__motivos">{% for motivo in ficha.motivos %}<p>{{ motivo }}</p>{% endfor %}</div>
+      <div class="ficha__estandar{% if estandar.completitud.porcentaje == 100 %} is-completa{% endif %}">
+        <div><strong>{% translate "Ficha técnica estándar" %} · {{ estandar.completitud.porcentaje }} %</strong><i aria-hidden="true"><b style="width: {{ estandar.completitud.porcentaje }}%"></b></i></div>
+        {% if estandar.completitud.falta %}<p>{% translate "Falta:" %} {{ estandar.completitud.falta|join:", " }}.{% if estandar.faltan %} {% translate "Especificaciones de la plantilla" %} «{{ estandar.grupo }}» {% translate "por registrar:" %} {{ estandar.faltan|join:", " }}.{% endif %}</p>{% else %}<p>{% translate "Tiene todo lo que pide la ficha estándar." %}</p>{% endif %}
+        {% if origenes.tipo.url %}<a href="{{ origenes.tipo.url }}">{% translate "Completar la ficha técnica" %} →</a>{% endif %}
+      </div>
+      <div class="ficha__codigos">
+        <figure><img src="{% url 'identificador_equipo' unidad.slug ficha.equipo.codigo_unidad %}?tipo=barra" alt="{% translate "Código de barras de" %} {{ ficha.equipo.codigo_etiqueta }}"><figcaption>{{ ficha.equipo.codigo_etiqueta }} · <a href="{% url 'identificador_equipo' unidad.slug ficha.equipo.codigo_unidad %}?tipo=barra&amp;descargar=1">{% translate "Descargar" %}</a></figcaption></figure>
+        <figure><img src="{% url 'identificador_equipo' unidad.slug ficha.equipo.codigo_unidad %}" alt="{% translate "Código QR de" %} {{ ficha.equipo.codigo_unidad }}"><figcaption>{% translate "QR de la ficha" %} · <a href="{% url 'identificador_equipo' unidad.slug ficha.equipo.codigo_unidad %}?descargar=1">{% translate "Descargar" %}</a></figcaption></figure>
+        <div>
+          <a class="ficha__accion" href="{% url 'etiquetas_equipos' unidad.slug %}?equipo={{ ficha.equipo.pk }}" data-ver-pdf data-pdf-titulo="Etiqueta · {{ ficha.equipo }}"><i class="fas fa-print" aria-hidden="true"></i> {% translate "Imprimir etiqueta" %}</a>
+          <a class="ficha__accion" href="{% url 'lector_equipos' %}?unidad={{ unidad.slug }}&amp;codigo={{ ficha.equipo.codigo_unidad|urlencode }}"><i class="fas fa-barcode" aria-hidden="true"></i> {% translate "Hermanos, familia y recorrido" %}</a>
+        </div>
+      </div>
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.tipo %}
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.activo %}
+    </article>
+
+    <article class="ficha__tarjeta ficha__vida">
+      <header><span>{% translate "CICLO DE VIDA" %}</span><h2>{% translate "Cuánta vida le queda" %}</h2></header>
+      <p class="ficha__vida-motivo">{{ ficha.vida.motivo_texto }}.</p>
+      {% if ficha.vida.consumida is not None %}
+      <div class="ficha__barra"><i style="width: {% if ficha.vida.consumida > 100 %}100{% else %}{{ ficha.vida.consumida }}{% endif %}%" class="{% if ficha.vida.cumplida %}is-critico{% elif ficha.vida.alerta %}is-atencion{% else %}is-al_dia{% endif %}"></i></div>
+      <b class="ficha__vida-cifra">{{ ficha.vida.consumida }} %</b>
+      {% else %}
+      <p class="is-empty">{% translate "Sin vida útil definida para este tipo de equipo." %}</p>
+      {% endif %}
+      <dl class="ficha__datos ficha__datos--apiladas">
+        <div><dt>{% translate "Vida útil prevista" %}</dt><dd>{% if ficha.vida.anios %}{{ ficha.vida.anios }} {% translate "años" %}{% if ficha.vida.fin_previsto %} · {% translate "hasta" %} {{ ficha.vida.fin_previsto|date:"m/Y" }}{% endif %}{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Por tiempo transcurrido" %}</dt><dd>{% if ficha.vida.por_tiempo is not None %}{{ ficha.vida.por_tiempo }} %{% else %}—{% endif %}</dd></div>
+        <div><dt>{% translate "Por horas de operación" %}</dt><dd>{% if ficha.vida.por_uso is not None %}{{ ficha.vida.por_uso }} % · {{ ficha.vida.horas_acumuladas|floatformat:0 }} {% translate "de" %} {{ ficha.vida.horas_limite }} h{% else %}{% translate "No se mide por horas" %}{% endif %}</dd></div>
+      </dl>
+      {% if ficha.equipo.fecha_baja %}
+      <div class="ficha__baja">
+        <strong>{% translate "Retirado de operación el" %} {{ ficha.equipo.fecha_baja|date:"d/m/Y" }}</strong>
+        <span>{{ ficha.equipo.get_motivo_baja_display }}</span>
+        {% if ficha.equipo.observacion_baja %}<small>{{ ficha.equipo.observacion_baja }}</small>{% endif %}
+        {% if ficha.retiro.reemplazo %}<small>{% translate "Reemplazo registrado:" %} <a href="{% url 'ficha_equipo_unidad' unidad.slug ficha.retiro.reemplazo.pk %}">{{ ficha.retiro.reemplazo.codigo_unidad }}</a></small>{% else %}<small>{% translate "Sin reemplazo registrado." %}</small>{% endif %}
+        <small>{{ ficha.retiro.aviso }}</small>
+      </div>
+      {% elif ficha.vida.cumplida %}
+      <p class="ficha__aviso">{% translate "El activo cumplió su vida útil: corresponde evaluar su renovación y, al reemplazarlo, registrar la baja con el equipo que asume su función." %}</p>
+      {% endif %}
+      {% if ficha.reemplaza_a %}
+      <p class="ficha__aviso is-ok">{% translate "Este equipo reemplaza a" %} {% for viejo in ficha.reemplaza_a %}<a href="{% url 'ficha_equipo_unidad' unidad.slug viejo.pk %}">{{ viejo.codigo_unidad }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+      {% endif %}
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.vida %}
+    </article>
+
+    {% if ficha.retiro.tiene_registro %}
+    <article class="ficha__tarjeta ficha__trazabilidad" id="registro-retiro" style="overflow-wrap: anywhere;">
+      <header><span>{% translate "REGISTRO ÚNICO DEL ACTIVO" %}</span><h2>{% translate "Retiro operativo y sustitución" %}</h2></header>
+      <dl class="ficha__datos">
+        <div><dt>{% translate "Situación actual" %}</dt><dd>{{ ficha.retiro.estado }}</dd></div>
+        <div><dt>{% translate "Fecha del retiro" %}</dt><dd>{% if ficha.retiro.fecha %}{{ ficha.retiro.fecha|date:"d/m/Y" }}{% else %}{% translate "Sin retiro registrado" %}{% endif %}</dd></div>
+        {% if ficha.retiro.fecha %}<div><dt>{% translate "Motivo" %}</dt><dd>{{ ficha.retiro.motivo }}</dd></div>{% endif %}
+        <div><dt>{% translate "Referencia / justificación" %}</dt><dd>{{ ficha.retiro.justificacion|default:"Sin referencia registrada" }}</dd></div>
+        <div><dt>{% translate "Equipo que asume la función" %}</dt><dd>{% if ficha.retiro.reemplazo %}<a href="{% url 'ficha_equipo_unidad' unidad.slug ficha.retiro.reemplazo.pk %}">{{ ficha.retiro.reemplazo.codigo_unidad }} · {{ ficha.retiro.reemplazo.equipo.nombre }}</a>{% else %}{% translate "Sin reemplazo registrado" %}{% endif %}</dd></div>
+        <div><dt>{% translate "Este equipo sustituye a" %}</dt><dd>{% for anterior in ficha.retiro.reemplazados %}<a href="{% url 'ficha_equipo_unidad' unidad.slug anterior.pk %}">{{ anterior.codigo_unidad }} · {{ anterior.equipo.nombre }}</a>{% if not forloop.last %}; {% endif %}{% empty %}{% translate "Sin registro" %}{% endfor %}</dd></div>
+      </dl>
+      <p class="ficha__nota">{{ ficha.retiro.origen }} {{ ficha.retiro.aviso }}</p>
+      <a class="ficha__accion" href="{{ url_pdf_retiro }}" data-ver-pdf data-pdf-titulo="{% translate 'Registro de retiro operativo y sustitución' %} · {{ ficha.equipo.codigo_unidad }}" data-pdf-descarga="{{ url_pdf_retiro }}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver registro de retiro y sustitución" %}</a>
+      <h3>{% translate "Historial y respaldos registrados" %}</h3>
+      <p class="ficha__nota">{% translate "La fecha de cada evento es la de su registro. Los adjuntos se conservan como respaldo; no se presume su aprobación administrativa." %}</p>
+      <ol class="ficha__linea">
+        {% for hito in ficha.retiro.historial %}
+        <li class="is-baja"><time>{{ hito.fecha|date:"d/m/Y H:i" }}</time><div><strong>{{ hito.evento.get_tipo_display }}</strong><p>{{ hito.descripcion }}</p><small>{% translate "Registrado por:" %} {% if hito.usuario %}{% firstof hito.usuario.get_full_name hito.usuario.username %}{% else %}{% translate "No registrado" %}{% endif %}</small>{% if hito.evidencia %}<p><a class="ficha__informe" href="{{ hito.evidencia.url }}"{% if hito.evidencia.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{% translate 'Respaldo del retiro' %} · {{ ficha.equipo.codigo_unidad }}" data-pdf-descarga="{{ hito.evidencia.url }}"{% else %} download{% endif %}><i class="fas fa-paperclip" aria-hidden="true"></i> {{ hito.respaldo }}</a></p>{% else %}<p class="is-empty">{% translate "Sin adjunto registrado en este evento." %}</p>{% endif %}</div></li>
+        {% empty %}<li class="is-neutro"><div><p>{% translate "El inventario conserva el retiro actual, pero no hay eventos históricos de retiro registrados. No se presume autor ni respaldo adjunto." %}</p></div></li>{% endfor %}
+      </ol>
+    </article>
+    {% endif %}
+
+    <article class="ficha__tarjeta ficha__uso">
+      <header><span>{% translate "NIVEL DE USO" %}</span><h2>{% translate "Cuánto se usa" %}</h2></header>
+      <div class="ficha__cifras">
+        <div><strong>{{ ficha.uso.sesiones }}</strong><span>{% translate "sesiones en 12 meses" %}</span></div>
+        <div><strong>{{ ficha.uso.horas|floatformat:1 }}</strong><span>{% translate "horas efectivas" %}</span></div>
+        <div><strong>{{ ficha.uso.usuarios }}</strong><span>{% translate "usuarios distintos" %}</span></div>
+        <div><strong>{{ ficha.uso.horas_acumuladas|floatformat:0 }}</strong><span>{% translate "horas acumuladas" %}</span></div>
+      </div>
+      <div class="mant-barras" role="img" aria-label="{% translate "Sesiones por mes" %}">
+        {% for mes in ficha.uso.serie %}
+        <div class="mant-barras__mes" title="{{ mes.etiqueta }}: {{ mes.sesiones }} {% translate "sesiones" %} · {{ mes.horas }} h">
+          <div class="mant-barras__par"><i class="mant-barras__completado" style="height: {% widthratio mes.sesiones ficha.uso.maximo 100 %}%"><b>{% if mes.sesiones %}{{ mes.sesiones }}{% endif %}</b></i></div>
+          <span>{{ mes.etiqueta }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% if ficha.contenido.espacios %}
+      <p class="ficha__nota">{% translate "Se reserva desde:" %} {% for espacio in ficha.contenido.espacios %}<b>{{ espacio.nombre }}</b> ({{ espacio.get_tipo_display }}{% if espacio.capacidad %} · {% blocktranslate with capacidad=espacio.capacidad %}capacidad {{ capacidad }}{% endblocktranslate %}{% endif %}){% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+      {% endif %}
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.uso %}
+    </article>
+
+    <article class="ficha__tarjeta ficha__contenido">
+      <header><span>{% translate "QUÉ CONTIENE" %}</span><h2>{% translate "Características, accesorios y documentación" %}</h2></header>
+      {% if ficha.tipo.caracteristicas_publicas %}<h3>{% translate "Características" %}</h3><p>{{ ficha.tipo.caracteristicas_publicas|linebreaksbr }}</p>{% endif %}
+      {% if ficha.tipo.uso_publico %}<h3>{% translate "Para qué sirve" %}</h3><p>{{ ficha.tipo.uso_publico|linebreaksbr }}</p>{% endif %}
+      {% if ficha.tipo.instrucciones_publicas %}<h3>{% translate "Cómo se opera" %}</h3><p>{{ ficha.tipo.instrucciones_publicas|linebreaksbr }}</p>{% endif %}
+      {% if ficha.contenido.auxiliares %}
+      <h3>{% translate "Equipos auxiliares" %}</h3>
+      <p class="ficha__nota">{% for auxiliar in ficha.contenido.auxiliares %}{{ auxiliar.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
+      {% if ficha.contenido.accesorios_incluidos %}
+      <h3>{% translate "Accesorios que llegan con el equipo" %}</h3>
+      <p class="ficha__nota">{% for accesorio in ficha.contenido.accesorios_incluidos %}{{ accesorio }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
+      <h3>{% translate "Insumos y materiales que consume" %}</h3>
+      {% if ficha.contenido.insumos %}
+      <ul class="ficha__lista">{% for insumo in ficha.contenido.insumos %}<li><b>{{ insumo.nombre }}</b> <span>{{ insumo.get_clasificacion_display }}{% if insumo.presentacion %} · {{ insumo.presentacion }}{% endif %} · {% translate "existencia" %} {{ insumo.stock_total|floatformat:"-2" }} {{ insumo.unidad_medida|default:"" }}</span></li>{% endfor %}</ul>
+      <small class="ficha__pista">{% translate "Se gastan en el trabajo y no cambian el funcionamiento del equipo; las piezas van aparte." %}</small>
+      {% else %}<p class="is-empty">{% translate "No hay insumos asociados a este equipo en el inventario." %}</p>{% endif %}
+      {% if ficha.contenido.software %}
+      <h3>{% translate "Software instalado" %}</h3>
+      <ul class="ficha__lista">{% for software in ficha.contenido.software %}<li><b>{{ software.nombre }}</b> <span>{{ software.version }} · {{ software.get_tipo_acceso_display }}</span></li>{% endfor %}</ul>
+      {% endif %}
+      {% if ficha.contenido.documentos %}
+      <h3>{% translate "Documentación técnica" %}</h3>
+      <ul class="ficha__lista ficha__lista--documentos">{% for etiqueta, archivo in ficha.contenido.documentos %}<li><a href="{{ archivo.url }}"{% if archivo.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{{ etiqueta }}" data-pdf-descarga="{{ archivo.url }}"{% else %} download{% endif %}><i class="fas fa-file-alt" aria-hidden="true"></i> {{ etiqueta }}</a></li>{% endfor %}</ul>
+      {% endif %}
+      {% if ficha.unidades_hermanas %}
+      <h3>{% translate "Otros activos del mismo tipo en la unidad" %}</h3>
+      <p class="ficha__nota">{% for hermano in ficha.unidades_hermanas %}<a href="{% url 'ficha_equipo_unidad' unidad.slug hermano.pk %}">{{ hermano.codigo_unidad }}</a>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.insumos %}
+    </article>
+
+    <article class="ficha__tarjeta ficha__piezas">
+      <header><span>{% translate "PARTES DEL EQUIPO" %}</span><h2>{% translate "Piezas, herramientas y protección" %}</h2><p>{% translate "Lo que compone la máquina y decide su funcionamiento, lo que viene con ella y lo que la protege. No son insumos." %}</p></header>
+      {% for clase, etiqueta, filas in ficha.piezas %}
+      <h3>{{ etiqueta }}</h3>
+      <ul class="ficha__piezas-lista">
+        {% for fila in filas %}
+        <li class="{% if fila.pieza.critica %}is-critica{% endif %}">
+          <div>
+            <b>{{ fila.pieza.nombre }}</b>
+            {% if fila.pieza.cantidad > 1 %}<em>× {{ fila.pieza.cantidad }}</em>{% endif %}
+            {% if fila.pieza.critica %}<span class="ficha__etiqueta">{% translate "Crítica" %}</span>{% endif %}
+            {% if fila.pieza.repuesto_disponible %}<span class="ficha__etiqueta is-ok">{% translate "Con repuesto" %}</span>{% elif fila.pieza.critica %}<span class="ficha__etiqueta is-alerta">{% translate "Sin repuesto" %}</span>{% endif %}
+          </div>
+          {% if fila.pieza.descripcion %}<p>{{ fila.pieza.descripcion }}</p>{% endif %}
+          {% if fila.pieza.vida_util_horas %}<small>{% blocktranslate with horas=fila.pieza.vida_util_horas %}Se cambia cada {{ horas }} h de operación{% endblocktranslate %}.</small>{% endif %}
+          {% if fila.pieza.recomendacion %}<small class="ficha__pista">{{ fila.pieza.recomendacion }}</small>{% endif %}
+          {% if fila.cambios %}<small class="ficha__cambio">{% blocktranslate with veces=fila.cambios|length fecha=fila.ultimo_cambio|date:"d/m/Y" %}Cambiada {{ veces }} vez/veces en este activo; la última el {{ fecha }}{% endblocktranslate %}.</small>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% empty %}
+      <p class="is-empty">{% translate "Este tipo de equipo todavía no tiene sus piezas registradas." %}</p>
+      {% endfor %}
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.piezas %}
+    </article>
+
+    <article class="ficha__tarjeta ficha__mantenimiento">
+      <header><span>{% translate "MANTENIMIENTO" %}</span><h2>{% translate "Plan y fichas de estado" %}</h2></header>
+      {% if ficha.planes %}
+      <ul class="ficha__planes">{% for plan in ficha.planes %}<li><b>{{ plan.nombre }}</b><span>{{ plan.get_tipo_display|ui }} · {% blocktranslate with dias=plan.frecuencia_dias %}cada {{ dias }} días{% endblocktranslate %} · {{ plan.get_ejecutor_display }} · {% translate "próximo" %} {{ plan.proxima_ejecucion|date:"d/m/Y" }}{% if plan.responsable %} · {% firstof plan.responsable.get_full_name plan.responsable.username %}{% elif plan.proveedor %} · {{ plan.proveedor }}{% endif %}</span>{% if plan.instrucciones %}<small>{{ plan.instrucciones }}</small>{% endif %}</li>{% endfor %}</ul>
+      {% else %}<p class="is-empty">{% translate "Este equipo no tiene plan de mantenimiento vigente." %}</p>{% endif %}
+      <h3>{% translate "Qué se hizo en cada intervención" %}</h3>
+      {% if ficha.fichas %}
+      <ol class="ficha__ordenes">
+        {% for item in ficha.fichas %}
+        <li>
+          <header><b>{{ item.orden.codigo }}</b><span class="unit-console__status is-{{ item.orden.estado }}">{{ item.orden.get_estado_display|ui }}</span><time>{{ item.orden.fecha_programada|date:"d/m/Y" }}</time></header>
+          <strong>{{ item.orden.titulo }}</strong>
+          <p>{{ item.orden.resultado|default:item.orden.descripcion|default:"Sin detalle registrado." }}</p>
+          <dl>
+            <div><dt>{% translate "Tipo" %}</dt><dd>{{ item.orden.get_tipo_display }}</dd></div>
+            <div><dt>{% translate "Ejecutado por" %}</dt><dd>{{ item.orden.get_ejecutor_display }}{% if item.orden.responsable or item.orden.proveedor %} · {% firstof item.orden.responsable.get_full_name item.orden.responsable.username item.orden.proveedor %}{% endif %}</dd></div>
+            {% if item.horas_detenido %}<div><dt>{% translate "Equipo detenido" %}</dt><dd>{{ item.horas_detenido }} h</dd></div>{% endif %}
+            {% if item.orden.incidencia %}<div><dt>{% translate "Origen" %}</dt><dd>{% translate "Incidencia" %} · {{ item.orden.incidencia.titulo }}</dd></div>{% endif %}
+            <div><dt>{% translate "Costo" %}</dt><dd>{{ item.costo_total|floatformat:2 }} USD</dd></div>
+          </dl>
+          {% if item.repuestos %}
+          <table class="ficha__repuestos"><thead><tr><th>{% translate "Repuesto" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Costo unitario" %}</th><th>{% translate "Procedencia" %}</th></tr></thead><tbody>{% for repuesto in item.repuestos %}<tr><td>{{ repuesto.descripcion }}</td><td>{{ repuesto.cantidad|floatformat:"-2" }}</td><td>{{ repuesto.costo_unitario|floatformat:2 }}</td><td>{{ repuesto.get_procedencia_display }}</td></tr>{% endfor %}</tbody></table>
+          {% endif %}
+          {% if item.orden.informe %}<a class="ficha__informe" href="{{ item.orden.informe.url }}"{% if item.orden.informe.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="Informe de mantenimiento · {{ ficha.equipo }}" data-pdf-descarga="{{ item.orden.informe.url }}"{% else %} download{% endif %}><i class="fas fa-paperclip" aria-hidden="true"></i> {% translate "Informe adjunto" %}</a>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      <p class="ficha__nota">{% translate "Costo acumulado del activo:" %} <b>{{ ficha.costo_total|floatformat:2 }} USD</b></p>
+      {% else %}<p class="is-empty">{% translate "Todavía no se registra ningún mantenimiento para este equipo." %}</p>{% endif %}
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.mantenimiento %}
+    </article>
+
+    <article class="ficha__tarjeta ficha__trazabilidad">
+      <header><span>{% translate "TRAZABILIDAD" %}</span><h2>{% translate "Todo lo que le ha pasado" %}</h2></header>
+      <ol class="ficha__linea">
+        {% for hito in ficha.trazabilidad %}
+        <li class="is-{{ hito.tono }}">
+          <time>{{ hito.fecha|date:"d/m/Y H:i" }}</time>
+          <div><strong>{{ hito.titulo }}</strong><p>{{ hito.detalle|truncatechars:220 }}</p>{% if hito.quien %}<small>{% firstof hito.quien.get_full_name hito.quien.username %}</small>{% endif %}</div>
+        </li>
+        {% empty %}
+        <li class="is-neutro"><div><strong>{% translate "Sin historial registrado." %}</strong></div></li>
+        {% endfor %}
+      </ol>
+      {% include 'portal/pages/unidades/gestion/includes/origen_del_dato.html' with origen=origenes.trazabilidad %}
+    </article>
+  </div>
+</section>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+{% endblock %}

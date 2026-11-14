@@ -1,0 +1,30 @@
+{% load reportes_estilo seguimiento_indicadores %}{% if es_soporte_planificacion %}
+<tr data-reporte-anexo data-soporte-planificacion="{{ anexo.exigido.codigo }}" data-meta-codigo="{{ anexo.exigido.codigo }}" data-meta-estado="neutro"{% if anexo.pk and not modo_admin %} id="entrega-{{ anexo.pk }}{% if en_modal %}-modal{% endif %}"{% endif %}>
+  <td class="reporte-item">{{ numero_item }}</td>
+  <th scope="row"><span class="cierre-evidencia-nombre documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ nombre }}</span></span><small>Anexo de planificación</small></th>
+  <td><span class="reporte-exigencia is-informativo">Anexo de planificación</span></td>
+  <td colspan="4">Respaldo de las actividades previstas. Sin meta ni puntos independientes.</td>
+  <td class="cierre-avance">{% include 'portal/pages/unidades/gestion/includes/avance_documental.html' with avance=anexo.avance_documental nombre_documento=nombre %}</td>
+  <td class="cierre-detalle">{% if unidad|es_unidad_auditable %}{% include 'portal/pages/unidades/gestion/includes/control_automatico.html' with control=anexo.automatizacion %}{% endif %}{% if not recurso %}<small>Archivo pendiente</small>{% endif %}</td>
+  <td>{% include 'portal/pages/unidades/gestion/includes/anexo_planificacion_acciones.html' %}</td>
+</tr>
+{% else %}{% regroup indicadores by exigencia as grupos_exigencia %}{% for indicador in indicadores %}
+<tr data-indicador-anexo="{{ indicador.codigo }}" data-meta-codigo="{{ indicador.codigo }}" data-meta-estado="{{ indicador|clasificacion_meta }}"{% if forloop.first and not sin_anexo %} data-reporte-anexo{% if not modo_admin and anexo.pk %} id="entrega-{{ anexo.pk }}{% if en_modal %}-modal{% endif %}"{% endif %}{% endif %}>
+  {% if forloop.first %}<td class="reporte-item" rowspan="{{ indicadores|length }}">{{ numero_item }}</td>{% endif %}
+  {% if forloop.first %}<th scope="rowgroup" rowspan="{{ indicadores|length }}"><span class="cierre-evidencia-nombre documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ nombre }}</span></span>{% if origen_documental %}<small>Anexo de {{ origen_documental|lower }}</small>{% endif %}</th>{% endif %}
+  {% if grupos_exigencia|length == 1 %}{% if forloop.first %}<td rowspan="{{ indicadores|length }}"><span class="reporte-exigencia is-{{ indicador|exigencia_estilo }}">{{ indicador.exigencia }}</span></td>{% endif %}{% else %}<td><span class="reporte-exigencia is-{{ indicador|exigencia_estilo }}">{{ indicador.exigencia }}</span></td>{% endif %}
+  <td>{{ indicador.indicador }}{% ficha_meta_conservada indicador as ficha_indicador_lectura %}{% if ficha_indicador_lectura %}{% include 'portal/pages/unidades/gestion/includes/indicador_origen.html' with ficha=ficha_indicador_lectura %}{% endif %}</td>
+  <td>{{ indicador.meta|default:'—' }}</td>
+  <td>{% if indicador.estado == 'Anexo automático' and indicador.registrado == 0 %}Sin movimientos{% else %}{{ indicador.registrado|default_if_none:'Sin medición' }}{% endif %}{% if indicador.denominador %}<small>de {{ indicador.denominador }} verificados</small>{% endif %}</td>
+  <td>{% include 'portal/pages/unidades/gestion/includes/estado_meta.html' with solo_estado=True %}</td>
+  <td class="cierre-avance">{% if indicador.porcentaje is not None %}<span>{{ indicador.porcentaje }} %</span>{% include 'portal/pages/unidades/gestion/includes/progreso_meta.html' with sin_detalle=True %}{% else %}—{% endif %}</td>
+  <td class="cierre-detalle">{% include 'portal/pages/unidades/gestion/includes/detalle_meta.html' %}</td>
+  {% if forloop.first %}<td rowspan="{{ indicadores|length }}">{% include 'portal/pages/unidades/gestion/includes/anexo_cierre_documento.html' %}</td>{% endif %}
+</tr>
+{% empty %}
+<tr data-reporte-anexo{% if not modo_admin and anexo.pk %} id="entrega-{{ anexo.pk }}{% if en_modal %}-modal{% endif %}"{% endif %}>
+  <td class="reporte-item">{{ numero_item }}</td>
+  <th scope="row"><span class="cierre-evidencia-nombre documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ nombre }}</span></span>{% if origen_documental %}<small>Anexo de {{ origen_documental|lower }}</small>{% endif %}</th><td colspan="7">Sin indicador definido en la planificación de esta entrega.{% if unidad|es_unidad_auditable or documento_principal.unidad|es_unidad_auditable %}{% include 'portal/pages/unidades/gestion/includes/control_automatico.html' with control=anexo.automatizacion %}{% endif %}</td>
+  <td>{% include 'portal/pages/unidades/gestion/includes/anexo_cierre_documento.html' %}</td>
+</tr>
+{% endfor %}{% endif %}

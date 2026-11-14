@@ -1,0 +1,59 @@
+{% load i18n l10n reportes_estilo %}
+<section class="expediente-progreso" id="cumplimiento-general{% if progreso_unidad_id %}-{{ progreso_unidad_id }}{% endif %}" data-progreso-general aria-labelledby="cumplimiento-general-titulo{% if progreso_unidad_id %}-{{ progreso_unidad_id }}{% endif %}">
+  <div class="expediente-progreso__balance has-desglose">
+    <div class="expediente-progreso__resumen">
+      <div class="expediente-progreso__cabecera">
+        <div class="expediente-progreso__titulo"><h3 id="cumplimiento-general-titulo{% if progreso_unidad_id %}-{{ progreso_unidad_id }}{% endif %}">Avance operativo acumulado</h3><span>Las mismas metas e indicadores del informe, con los registros al corte.</span></div>
+      </div>
+      {% with avance=progreso_general.avance_operativo %}
+      <div class="expediente-progreso__avance-operativo{% if avance.medido %} is-{{ avance.porcentaje|semaforo_avance }}{% endif %}" data-avance-operativo>
+        {% if avance.medido %}<div class="expediente-progreso__avance-valor"><strong>{{ avance.porcentaje|floatformat:2 }} %</strong><span>Seguimiento provisional</span></div>
+        <progress value="{{ avance.porcentaje|unlocalize }}" max="100" aria-label="Avance operativo acumulado de las metas" aria-valuetext="{{ avance.porcentaje|floatformat:2 }} % provisional; no es la nota oficial">{{ avance.porcentaje|floatformat:2 }} %</progress>
+        {% if avance.indicadores_total %}<p>{{ avance.indicadores_con_avance }} de {{ avance.indicadores_total }} metas con avance. Las pendientes conservan cero provisional.</p>{% endif %}
+        {% if avance.semestres_total > 1 %}<p>Hay medición de {{ avance.semestres_con_fuente }} de {{ avance.semestres_total }} semestres{% if avance.parcial %}; el resto conserva cero provisional{% endif %}.</p>{% endif %}
+        {% else %}<strong class="is-pendiente">Sin medición</strong><p>Consulta las metas de la unidad para obtener la medición de este alcance. Los trámites y la edición no sustituyen la actividad registrada.</p>{% endif %}
+      </div>
+      {% endwith %}
+      <div class="expediente-progreso__resultado">
+        <b>Nota oficial del cierre</b>
+        {% if progreso_general.resultado_porcentaje is not None %}<strong>{{ progreso_general.resultado_porcentaje|floatformat:2 }} %</strong><span>Resultado operativo · escala de 0 a 100</span>
+        {% else %}<strong class="is-pendiente">Pendiente</strong><span>El cierre todavía no tiene un resultado acreditado.</span>{% endif %}
+      </div>
+      <div class="expediente-progreso__tramites">
+        <div class="expediente-progreso__datos"><span><b>{{ progreso_general.completados|default:0 }} de {{ progreso_general.total }}</b> trámites acreditados</span><span>{% if corte %}Planificación y cierre{% else %}Planificación y cierre de los dos semestres{% endif %}</span></div>
+      </div>
+      <p class="expediente-progreso__distincion">La planificación conforme es un <b>prerrequisito</b>; no agrega puntos. La calificación corresponde al informe de cierre y al cumplimiento real de sus metas.</p>
+      {% if not corte %}<p class="expediente-progreso__distincion">Solo se promedian <b>ambos cierres acreditados</b>. Si falta un cierre o su planificación conforme, el resultado anual queda pendiente. Un cierre bajo el mínimo requiere mejora y no se compensa con el otro.</p>{% endif %}
+      {% with operativo=progreso_general.evaluacion_operativa %}{% if operativo.aplica %}
+      <div data-resultado-operativo class="expediente-progreso__operativo{% if operativo.no_compensable %} is-no-cumple{% endif %}">
+        <strong>{% if operativo.no_compensable %}Requiere mejora{% elif operativo.pendiente %}Cierre pendiente de acreditar{% else %}Cierre acreditado{% endif %}</strong>
+        <p>{{ operativo.motivo }}</p>
+      </div>{% endif %}{% endwith %}
+    </div>
+    <div class="expediente-progreso__desglose">
+      <div class="expediente-progreso__desglose-cabecera"><h4>Planificar, ejecutar y comprobar</h4><span>Trámites del alcance consultado</span></div>
+      <ol class="expediente-progreso__aportes">
+        {% for aporte in progreso_general.desglose %}
+        <li data-aporte-documental="{{ aporte.codigo }}" data-aporte="{{ aporte.aporte|unlocalize }}" data-aporte-maximo="{{ aporte.maximo|unlocalize }}" data-tramite-tipo="{{ aporte.tipo }}"{% if aporte.documento_id %} data-aporte-documento-id="{{ aporte.documento_id }}"{% endif %} class="{% if aporte.completado %}has-aporte{% endif %}">
+          <div class="expediente-progreso__documento"><strong>{{ aporte.nombre_documento }}</strong>{% if aporte.periodo %}<small>{{ aporte.periodo }}</small>{% endif %}</div>
+          <div class="expediente-progreso__puntos">{% if aporte.puntua %}{% if aporte.resultado_porcentaje is not None %}<b>{{ aporte.resultado_porcentaje|floatformat:2 }} %</b>{% else %}<b>Por acreditar</b>{% endif %}<small>Resultado del cierre</small>{% else %}<b>Prerrequisito</b><small>Sin puntos adicionales</small>{% endif %}</div>
+          <div class="expediente-progreso__motivo"><span>{% firstof aporte.conformidad.etapa_actual.etiqueta aporte.estado %}</span></div>
+        </li>
+        {% empty %}<li>No hay trámites de planificación y cierre en este alcance.</li>{% endfor %}
+      </ol>
+      <p class="expediente-progreso__exclusiones"><b>Documentos base:</b> resolución, protocolo y plan anual de compras se verifican por vigencia o conformidad. No suman puntos a la calificación.</p>
+      <p class="expediente-progreso__exclusiones">Los anexos respaldan la planificación y el cierre; no tienen una puntuación independiente. La columna Avance muestra preparación, vigencia o metas.</p>
+    </div>
+  </div>
+  <div class="expediente-progreso__metodo" data-reporte-informacion>
+    <button type="button" data-reporte-informacion-abrir data-modal-titulo="Cómo se acredita el resultado del cierre" aria-haspopup="dialog"><i class="far fa-question-circle" aria-hidden="true"></i> Consultar comprobaciones y método</button>
+    <template data-reporte-informacion-contenido>
+      <p>El informe de cierre determina el resultado operativo en una escala de 0 a 100 según las metas y las evidencias verificadas. La planificación conforme es un requisito previo; aprobarla no añade puntos a la nota.</p>
+      <p>La resolución, el protocolo y las compras mantienen sus propias verificaciones de vigencia y conformidad. No elevan ni compensan el resultado del cierre. Los anexos documentan la evidencia y tampoco suman puntos independientes.</p>
+      <p>La barra de avance operativo usa el mismo promedio de metas exigibles y aplicables que el informe. Los indicadores pendientes cuentan como cero provisional; un 16,67 % en una de 13 metas aporta aproximadamente 1,28 % al avance general.</p>
+      <p>Este seguimiento puede avanzar con la planificación observada o el informe en borrador. La nota oficial continúa pendiente hasta acreditar el cierre y su planificación conforme. Los documentos administrativos y la edición no se incluyen en este promedio.</p>
+      <h4>Comprobaciones del expediente</h4>
+      <ul>{% for aporte in progreso_general.desglose %}<li><strong>{{ aporte.nombre_documento }}</strong>{% if aporte.periodo %} · {{ aporte.periodo }}{% endif %}<p><b>{% firstof aporte.conformidad.etapa_actual.etiqueta aporte.estado %}</b>. {{ aporte.motivo }}</p></li>{% endfor %}{% for documento in progreso_general.sin_ponderacion %}<li><strong>{{ documento.nombre_documento }}</strong>{% if documento.periodo %} · {{ documento.periodo }}{% endif %}<p><b>{{ documento.estado }}</b>. {{ documento.motivo }} Sin puntos adicionales.</p></li>{% endfor %}</ul>
+    </template>
+  </div>
+</section>

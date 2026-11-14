@@ -1,0 +1,34 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Fotos y videos" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/galeria_interior.css' %}?v=20260928-galeria-v1">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="galeria-interior">
+  {% if galeria %}
+  <nav class="galeria-interior__areas" aria-label="{% translate "Áreas de la planta" %}" data-galeria-areas></nav>
+  <main class="galeria-interior__escenario" data-galeria-escenario aria-live="polite">
+    <button type="button" class="galeria-interior__flecha is-anterior" data-galeria-anterior aria-label="{% translate "Anterior" %}">‹</button>
+    <div class="galeria-interior__medio" data-galeria-medio></div>
+    <button type="button" class="galeria-interior__flecha is-siguiente" data-galeria-siguiente aria-label="{% translate "Siguiente" %}">›</button>
+  </main>
+  <footer class="galeria-interior__pie">
+    <div class="galeria-interior__leyenda" data-galeria-leyenda></div>
+    <ol class="galeria-interior__tira" data-galeria-tira></ol>
+  </footer>
+  {{ galeria|json_script:"datosGaleriaInterior" }}
+  <script src="{% static 'portal/js/pages/unidades/galeria_interior.js' %}?v=20260928-galeria-v1"></script>
+  {% else %}
+  <section class="galeria-interior__vacia">
+    <i aria-hidden="true">▣</i>
+    <h1>{% translate "Fotos y videos de la planta" %}</h1>
+    <p>{% translate "La unidad todavía no publica fotos ni videos de su interior." %}</p>
+    {% if editar_url %}<p>{% translate "Se cargan en el editor de la unidad, en «La planta por dentro: fotos y videos», cada uno con su área." %}</p><a href="{{ editar_url }}" target="_top">{% translate "Cargar fotos y videos" %} →</a>{% endif %}
+  </section>
+  {% endif %}
+</body>
+</html>

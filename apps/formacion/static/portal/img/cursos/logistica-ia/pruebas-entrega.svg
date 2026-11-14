@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="titulo descripcion"><title id="titulo">Antes de entregar, recorre esta ruta</title><desc id="descripcion">Un prototipo comprensible y comprobado vale más que una lista larga de funciones</desc>
+<rect x="0" y="0" width="1200" height="144" rx="0" fill="#122d2a"/>
+<text x="42" y="38" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#ffda50">APLICACIONES LOGÍSTICAS CON IA</text>
+<text x="42" y="85" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">Antes de entregar, recorre esta ruta</text>
+<text x="42" y="131" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#c9ded6">Un prototipo comprensible y comprobado vale más que una lista larga de funciones</text>
+<rect x="40" y="180" width="350" height="220" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="40" y="180" width="8" height="220" rx="3" fill="#24623c"/>
+<circle cx="80" cy="220" r="21" fill="#24623c"/>
+<text x="71" y="226" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">1</text>
+<text x="115" y="225" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#24623c">Funciona</text>
+<text x="64" y="289" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Entrada y salida válida dan el</text>
+<text x="64" y="320" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">saldo esperado.</text>
+<rect x="425" y="180" width="350" height="220" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="425" y="180" width="8" height="220" rx="3" fill="#b84e55"/>
+<circle cx="465" cy="220" r="21" fill="#b84e55"/>
+<text x="456" y="226" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">2</text>
+<text x="500" y="225" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#b84e55">Rechaza</text>
+<text x="449" y="289" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Duplicados, cantidades</text>
+<text x="449" y="320" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">inválidas y exceso de salida.</text>
+<rect x="810" y="180" width="350" height="220" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="810" y="180" width="8" height="220" rx="3" fill="#3266af"/>
+<circle cx="850" cy="220" r="21" fill="#3266af"/>
+<text x="841" y="226" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">3</text>
+<text x="885" y="225" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#3266af">Protege</text>
+<text x="834" y="289" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Consulta puede leer; no</text>
+<text x="834" y="320" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">puede registrar.</text>
+<rect x="40" y="430" width="350" height="220" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="40" y="430" width="8" height="220" rx="3" fill="#087c87"/>
+<circle cx="80" cy="470" r="21" fill="#087c87"/>
+<text x="71" y="476" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">4</text>
+<text x="115" y="475" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#087c87">Coincide</text>
+<text x="64" y="539" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">CSV, tablero y MCP</text>
+<text x="64" y="570" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">muestran datos verificables.</text>
+<rect x="425" y="430" width="350" height="220" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="425" y="430" width="8" height="220" rx="3" fill="#7451ac"/>
+<circle cx="465" cy="470" r="21" fill="#7451ac"/>
+<text x="456" y="476" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">5</text>
+<text x="500" y="475" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#7451ac">Se reproduce</text>
+<text x="449" y="539" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Otra persona puede seguir tu</text>
+<text x="449" y="570" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">guía de arranque.</text>
+<rect x="810" y="430" width="350" height="220" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="810" y="430" width="8" height="220" rx="3" fill="#24623c"/>
+<circle cx="850" cy="470" r="21" fill="#24623c"/>
+<text x="841" y="476" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">6</text>
+<text x="885" y="475" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#24623c">Se explica</text>
+<text x="834" y="539" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Demuestra el caso, una</text>
+<text x="834" y="570" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">corrección y sus límites.</text>
+<line x1="40" y1="704" x2="1160" y2="704" stroke="#d4e1db" stroke-width="2" stroke-linecap="round"/>
+<text x="42" y="739" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#4c6662">Cuestionarios y entregas: mínimo 70/100. Las entregas necesitan revisión docente.</text>
+</svg>

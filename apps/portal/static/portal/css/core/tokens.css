@@ -1,0 +1,100 @@
+:root {
+  /* Identidad institucional */
+  --upec-color-navy-950: #071525;
+  --upec-color-navy-900: #0a1c36;
+  --upec-color-navy-700: #173d6a;
+  --upec-color-green-900: #003f2d;
+  --upec-color-green-800: #064e3b;
+  --upec-color-green-700: #087454;
+  --upec-color-green-600: #006633;
+  --upec-color-green-100: #e8f5ee;
+  --upec-color-gold-500: #f2bd3f;
+  --upec-color-gold-400: #fece00;
+  --upec-color-gold-300: #ffd45a;
+  --upec-color-cyan-400: #55ecdd;
+
+  /* Texto y superficies */
+  --upec-color-ink: #18312a;
+  --upec-color-muted: #64736e;
+  --upec-color-surface: #ffffff;
+  --upec-color-background: #f3f7f5;
+  --upec-color-line: #dce8e3;
+  --upec-color-success: #28a745;
+  --upec-color-info: #17a2b8;
+  --upec-color-warning: #ffc107;
+  --upec-color-danger: #dc3545;
+
+  /* Tipografía */
+  --upec-font-family-heading: "Montserrat", sans-serif;
+  --upec-font-family-body: "Poppins", sans-serif;
+  --upec-font-family: var(--upec-font-family-body);
+  --upec-font-weight-regular: 400;
+  --upec-font-weight-medium: 500;
+  --upec-font-weight-semibold: 600;
+  --upec-font-weight-bold: 700;
+  --upec-font-weight-extrabold: 800;
+  --upec-text-xs: clamp(0.7rem, 0.66rem + 0.12vw, 0.78rem);
+  --upec-text-sm: clamp(0.78rem, 0.74rem + 0.14vw, 0.88rem);
+  --upec-text-body: clamp(0.875rem, 0.84rem + 0.14vw, 1rem);
+  --upec-text-lead: clamp(1rem, 0.94rem + 0.22vw, 1.15rem);
+  --upec-title-sm: clamp(1.35rem, 1.1rem + 0.8vw, 2rem);
+  --upec-title-md: clamp(2rem, 1.55rem + 1.5vw, 3.5rem);
+  --upec-title-lg: clamp(2.9rem, 2rem + 3vw, 5.8rem);
+  --upec-line-height-body: 1.65;
+  --upec-line-height-heading: 1.08;
+
+  /* Contenedores y espaciado */
+  --upec-container-wide: 1780px;
+  --upec-container-content: 1780px;
+  /* Las fichas y catálogos admiten más espacio sin estirarse en monitores grandes. */
+  --upec-container-workspace: 1780px;
+  --upec-workspace-gutter: var(--upec-page-gutter);
+  --upec-header-height: 97px;
+  --upec-page-gutter: clamp(32px, 8vw, 152px);
+  --upec-space-xs: 0.5rem;
+  --upec-space-sm: 0.75rem;
+  --upec-space-md: 1rem;
+  --upec-space-lg: 1.5rem;
+  --upec-space-xl: 2rem;
+  --upec-section-space: clamp(64px, 7vw, 100px);
+
+  /* Formas y elevación */
+  --upec-radius-control: 8px;
+  --upec-radius-small: 10px;
+  --upec-radius-card: 16px;
+  --upec-radius-large: 22px;
+  --upec-radius-pill: 999px;
+  --upec-shadow-card: 0 18px 40px rgba(10, 28, 54, 0.12);
+  --upec-shadow-header: 0 14px 36px rgba(0, 28, 20, 0.22);
+  --upec-control-height: 44px;
+  --upec-control-padding: 0.75rem 1.25rem;
+  --upec-transition: 180ms ease;
+
+  /* Compatibilidad temporal con los nombres anteriores. */
+  --upec-green: var(--upec-color-green-900);
+  --upec-green-2: var(--upec-color-green-600);
+  --upec-green-3: var(--upec-color-green-700);
+  --upec-gold: var(--upec-color-gold-500);
+  --upec-gold-2: var(--upec-color-gold-300);
+  --portal-green: var(--upec-color-green-800);
+  --portal-green-2: var(--upec-color-green-700);
+  --portal-gold: var(--upec-color-gold-500);
+  --portal-ink: var(--upec-color-ink);
+  --portal-muted: var(--upec-color-muted);
+  --portal-bg: var(--upec-color-background);
+  --portal-line: var(--upec-color-line);
+
+  /* Alias utilizados por la portada durante la migración. */
+  --ink: var(--upec-color-ink);
+  --muted: var(--upec-color-muted);
+  --line: rgba(0, 63, 45, 0.14);
+  --soft: var(--upec-color-background);
+  --deep: var(--upec-color-green-900);
+  --header-h: 86px;
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --upec-page-gutter: 28px;
+  }
+}

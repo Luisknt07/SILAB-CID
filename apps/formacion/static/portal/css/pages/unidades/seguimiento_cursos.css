@@ -1,0 +1,34 @@
+/* Seguimiento académico: tablas accesibles y formularios adaptables desde 320 px. */
+.seguimiento { max-width: 1550px; margin-inline: auto; }
+.seguimiento__panel { background: #fff; border: 1px solid #d8e2df; border-radius: 14px; padding: clamp(16px, 2vw, 28px); margin-bottom: 24px; }
+.seguimiento__panel > h2 { margin-top: 0; }
+.seguimiento__filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin-block: 18px; }
+.seguimiento__filtros label { display: flex; flex: 1 1 190px; flex-direction: column; gap: 6px; font-size: .9rem; font-weight: 700; min-width: 0; }
+.seguimiento__filtros input, .seguimiento__filtros select { box-sizing: border-box; font: inherit; font-weight: 400; color: #18362b; background: #fff; border: 1px solid #aebfb7; border-radius: 7px; min-height: 43px; padding: 9px 11px; width: 100%; }
+.seguimiento__resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin-block: 20px; }
+.seguimiento__resumen > div { display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: 10px; background: #eef5f1; border-left: 4px solid #286542; }
+.seguimiento__resumen strong { color: #174f31; font-size: clamp(1.2rem, 2vw, 1.65rem); overflow-wrap: anywhere; }
+.seguimiento__resumen span { font-size: .85rem; line-height: 1.5; color: #3a5147; }
+.seguimiento__estado { display: block; width: fit-content; font-size: .8rem; font-weight: 700; padding: 5px 8px; border-radius: 6px; background: #edf0f3; color: #334858; margin-block: 7px; }
+.seguimiento__estado.is-aprobado, .seguimiento__estado.is-aprobada, .seguimiento__estado.is-completada { background: #e4f2e8; color: #1b5b34; }
+.seguimiento__estado.is-reprobado, .seguimiento__estado.is-reprobada { background: #f9e9e7; color: #8a2c28; }
+.seguimiento__estado.is-corregir, .seguimiento__estado.is-revision { background: #fff3d0; color: #765500; }
+.seguimiento__certificado { display: flex; align-items: flex-start; gap: 16px; border: 1px solid #d0dfd7; background: #f7faf8; padding: 18px; border-radius: 10px; }
+.seguimiento__certificado > i { font-size: 1.8rem; color: #286542; }
+.seguimiento__certificado p { margin-block: 6px; }
+.seguimiento__error { color: #7b241d; background: #fff0ed; border-left: 4px solid #aa443b; padding: 14px 18px; border-radius: 6px; }
+.seguimiento .inscritos__tabla-envoltura { max-width: 100%; overflow-x: auto; border: 1px solid #d8e2df; border-radius: 9px; }
+.seguimiento .inscritos__tabla { min-width: 720px; }
+.seguimiento .inscritos__tabla td, .seguimiento .inscritos__tabla th { vertical-align: top; min-width: 145px; white-space: normal; }
+.seguimiento .inscritos__tabla small { display: block; font-size: .78rem; font-weight: 400; margin-top: 6px; line-height: 1.45; color: #52655c; }
+.seguimiento .inscritos__tabla details { margin-top: 9px; font-size: .8rem; text-align: left; }
+.seguimiento .inscritos__tabla summary { cursor: pointer; color: #245e3e; font-weight: 700; }
+.seguimiento .inscritos__tabla ol { padding-left: 20px; margin-block: 10px; }
+.seguimiento .inscritos__tabla li + li { margin-top: 9px; }
+.seguimiento progress { display: block; width: 120px; height: 8px; accent-color: #286542; margin-bottom: 8px; }
+.seguimiento__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.seguimiento :focus-visible { outline: 3px solid #d7ae29; outline-offset: 3px; }
+@media (max-width: 600px) { .seguimiento { padding-inline: 10px; } .seguimiento__filtros { align-items: stretch; flex-direction: column; } .seguimiento__filtros label { flex-basis: auto; } .seguimiento__filtros .conoce__boton { justify-content: center; } }
+
+.aula-curso__cabecera .conoce__antetitulo{color:#ffdd69;}
+.seguimiento .conoce__boton:not(.is-principal){border:1px solid #8dab99;background:#fff;color:#245f37;}

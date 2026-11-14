@@ -1,0 +1,14 @@
+{% load static i18n idiomas marca %}
+        <section class="upec-about__hero" id="presentacion">
+          <img src="{% static 'img/innovacion.png' %}" alt="{% translate "Investigación e innovación en la UPEC" %}">
+          <div class="upec-about__shade"></div>
+          <div class="upec-about__hero-tech" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="upec-about__hero-brand">{% marca_institucional identidad_institucion 'oscuro' %}<span>{{ identidad_producto.nombre_corto }}</span></div>
+          <div class="upec-about__hero-copy">
+            <span class="upec-about__eyebrow">{% translate "Sistema institucional UPEC" %}</span>
+            <h1>{% translate "Quiénes" %} <strong>somos</strong></h1>
+            <p>{% translate "El Sistema de Laboratorios y Centros de Investigación y Desarrollo UPEC articula centros de investigación, laboratorios, observatorios, centros experimentales y plantas piloto para fortalecer la docencia, la investigación aplicada, la innovación, la transferencia tecnológica y la vinculación con la sociedad." %}</p>
+            <div class="upec-about__hero-actions"><a href="{% url 'centros_id' %}">{% translate "Explorar Centros I+D" %}</a><a class="is-ghost" href="{% url 'laboratorios_unidades' %}">{% translate "Ver Laboratorios y Unidades" %}</a></div>
+          </div>
+          <div class="upec-about__hero-note"><i class="simple-icon-location-pin"></i><span><b>{% translate "Territorio de impacto" %}</b>{% translate "Norte del Ecuador y región fronteriza" %}</span></div>
+        </section>

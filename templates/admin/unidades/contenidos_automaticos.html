@@ -1,0 +1,46 @@
+{% load i18n %}{% comment %}Las subcarpetas que la plataforma arma sola en una sección (cada área en las fichas de equipo, el escáner…), con sus elementos, como nodos del árbol. Se renombran, ordenan u ocultan; ocultar no toca el área ni el equipo de origen.{% endcomment %}{% for grupo in seccion.grupos %}
+<li id="{{ grupo.ancla }}">
+  <div class="arbol__nodo is-automatica{% if grupo.oculto %} is-oculta{% endif %}">
+    {% include "admin/unidades/contenidos_icono.html" with tipo='automatica' %}
+    <span class="arbol__tipo" title="{% translate 'La arma la plataforma con lo registrado' %}">{% translate "Automática" %}</span>
+    {% if puede_editar %}{% translate "Nombre de la subcarpeta (vacío, el común)" as etiqueta %}{% translate "Sin nombre: lista de la sección" as sin_nombre %}{% include "admin/unidades/contenidos_nombre.html" with accion='renombrar_grupo' campo1='numero' valor1=seccion.numero campo2='grupo' valor2=grupo.clave campo3='comun' valor3=grupo.nombre_comun nombre=grupo.nombre volver=grupo.ancla etiqueta=etiqueta vacio=True marcador=grupo.nombre_comun|default:sin_nombre maximo=120 clase='' %}{% else %}<strong class="arbol__nombre">{{ grupo.nombre|default:_("Lista de la sección") }}</strong>{% endif %}
+    <ul class="contenidos-ficha__estados">
+      <li>{% blocktranslate count total=grupo.botones|length %}{{ total }} elemento{% plural %}{{ total }} elementos{% endblocktranslate %}{% if grupo.visibles != grupo.botones|length %} · {% blocktranslate with visibles=grupo.visibles %}{{ visibles }} visibles{% endblocktranslate %}{% endif %}</li>
+      {% if grupo.nombre != grupo.nombre_comun %}<li>{% translate "Nombre común:" %} {{ grupo.nombre_comun|default:"—" }}</li>{% endif %}
+      {% if not puede_editar and grupo.oculto %}<li class="is-oculta">{% translate "Oculta" %}</li>{% endif %}
+    </ul>
+    {% if puede_editar %}
+    <div class="contenidos-ficha__acciones">
+      {% if not grupo.primera %}<form method="post">{% csrf_token %}
+        <input type="hidden" name="accion" value="ordenar_grupo"><input type="hidden" name="direccion" value="subir"><input type="hidden" name="numero" value="{{ seccion.numero }}"><input type="hidden" name="grupo" value="{{ grupo.clave }}"><input type="hidden" name="orden" value="{{ grupo.orden_actual }}"><input type="hidden" name="volver" value="{{ grupo.ancla }}">
+        <button type="submit" class="is-secundario" title="{% translate 'Subir un lugar' %}" aria-label="{% translate 'Subir un lugar' %}">↑</button>
+      </form>{% endif %}
+      {% if not grupo.ultima %}<form method="post">{% csrf_token %}
+        <input type="hidden" name="accion" value="ordenar_grupo"><input type="hidden" name="direccion" value="bajar"><input type="hidden" name="numero" value="{{ seccion.numero }}"><input type="hidden" name="grupo" value="{{ grupo.clave }}"><input type="hidden" name="orden" value="{{ grupo.orden_actual }}"><input type="hidden" name="volver" value="{{ grupo.ancla }}">
+        <button type="submit" class="is-secundario" title="{% translate 'Bajar un lugar' %}" aria-label="{% translate 'Bajar un lugar' %}">↓</button>
+      </form>{% endif %}
+      {% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_grupo' campo1='numero' valor1=seccion.numero campo2='grupo' valor2=grupo.clave activo=grupo.oculto|yesno:",1" volver=grupo.ancla campo3='' %}
+    </div>
+    {% endif %}
+  </div>
+  {% if grupo.botones %}
+  <details class="arbol__plegable">
+    <summary>{% blocktranslate count total=grupo.botones|length %}Ver su elemento{% plural %}Ver sus {{ total }} elementos{% endblocktranslate %}</summary>
+    <ul class="arbol">
+      {% for boton in grupo.botones %}
+      <li>
+        <div class="arbol__nodo is-elemento{% if boton.oculto %} is-oculta{% endif %}">
+          {% if boton.imagen %}<img class="arbol__miniatura" src="{{ boton.imagen }}" alt="" loading="lazy">{% else %}{% include "admin/unidades/contenidos_icono.html" with tipo='elemento' %}{% endif %}
+          <span class="arbol__texto"><strong title="{{ boton.nombre }}">{{ boton.nombre }}</strong>{% if boton.subtitulo %}<small>{{ boton.subtitulo }}</small>{% endif %}</span>
+          <div class="contenidos-ficha__acciones">
+            {% if puede_editar %}{% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_elemento' campo1='numero' valor1=seccion.numero campo2='elemento' valor2=boton.id campo3='nombre' valor3=boton.nombre activo=boton.oculto|yesno:",1" volver=grupo.ancla %}{% elif boton.oculto %}<span class="contenidos-ficha__estados"><span class="is-oculta">{% translate "Oculto" %}</span></span>{% endif %}
+            <a class="arbol__enlace" href="{{ boton.url }}" target="_blank" rel="noopener" title="{% translate 'Su página tiene los botones «Editar» para cambiar textos, fotos y videos' %}">{% translate "Abrir y editar" %}</a>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+</li>
+{% endfor %}

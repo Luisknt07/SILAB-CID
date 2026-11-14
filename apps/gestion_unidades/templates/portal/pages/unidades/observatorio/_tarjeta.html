@@ -1,0 +1,12 @@
+{% load i18n %}<li class="obs-indicador{% if fila.alerta %} is-alerta{% endif %}">
+  <h3><a href="{% url 'indicador_observatorio' unidad.slug fila.indicador.codigo %}">{{ fila.indicador.nombre }}</a></h3>
+  {% if fila.ultimo %}
+  <div class="obs-indicador__valor"><strong>{{ fila.ultimo_texto }}</strong><span>{{ fila.indicador.unidad_medida }} · {{ fila.ultimo.periodo }}{% if fila.ultimo.provisional %} ({% translate "provisional" %}){% endif %}</span></div>
+  {% if fila.cambio_texto %}<span class="obs-cambio{% if fila.favorable is True %} is-favorable{% elif fila.favorable is False %} is-desfavorable{% endif %}">{% if fila.direccion == 'sube' %}▲{% elif fila.direccion == 'baja' %}▼{% else %}={% endif %} {{ fila.cambio_texto }} {% translate "frente a" %} {{ fila.anterior.periodo }}</span>{% endif %}
+  {% if fila.puntos %}<svg viewBox="0 0 160 40" preserveAspectRatio="none" role="img" aria-label="{% translate "Tendencia de los últimos periodos" %}"><polyline points="{{ fila.puntos }}"/></svg>{% endif %}
+  {% if fila.alerta %}<span class="obs-alerta"><i class="fas fa-bell" aria-hidden="true"></i> {% if fila.alerta == 'bajo' %}{% translate "Bajo el umbral" %}{% elif fila.alerta == 'variacion' %}{% translate "Empeoró más de lo admitido" %}{% else %}{% translate "Sobre el umbral" %}{% endif %}</span>{% endif %}
+  {% else %}
+  <div class="obs-indicador__valor"><span>{% translate "Sin datos publicados todavía" %}</span></div>
+  {% endif %}
+  <small>{{ fila.indicador.territorio_principal }} · {{ fila.indicador.get_periodicidad_display }} · {{ fila.indicador.fuente }}</small>
+</li>

@@ -1,0 +1,155 @@
+{% load static guia_formato i18n idiomas marca %}{% comment %}
+Plantilla institucional FT04: una sola fuente para la vista HTML, el editor y el asistente de reservas.
+modo = 'lectura' (documento cerrado), 'edicion' (zonas editables sobre una guia guardada)
+o 'asistente' (la guia nace con la reserva; los datos automaticos los rellena el asistente).
+Solo las zonas [data-guia-campo] son editables; encabezado, numeracion, datos de la reserva,
+politicas y firmas quedan fuera del editor. Materiales complementarios y bibliografia se
+escriben en su propio apartado (fuente en [data-guide-source]) y se muestran formateados.
+{% endcomment %}<article class="guide-document{% if modo != 'lectura' %} guide-document--editable{% endif %}" data-guide-document data-guide-mode="{{ modo }}">
+  <header class="guide-document__header">
+    {% marca_institucional identidad_institucion 'oscuro' %}
+    <div><strong>{% translate "Guía de práctica" %}</strong><span>{{ identidad_institucion.nombre }}</span></div>
+    <div><strong>{% translate "Código: UPEC-P10-S01-FT04" %}</strong><span>{% translate "Revisión: 01" %}</span><span>{% translate "Versión de la guía:" %} {% if modo == 'asistente' %}<b data-guide-auto="version">{% translate "se asigna al guardar" %}</b>{% else %}{{ guia.numero_version|default:'1' }}{% endif %}</span></div>
+  </header>
+  <div class="guide-document__title">
+    {% if modo == 'lectura' %}<span class="guide-status guide-status--{{ guia.estado_publicacion }}">{{ guia.get_estado_publicacion_display|ui }}</span>{% else %}<span class="guide-status guide-status--borrador" data-guide-auto="status">{% if guia %}{{ guia.get_estado_publicacion_display|ui }}{% else %}{% translate "Borrador académico" %}{% endif %}</span>{% endif %}
+    <h2 data-guide-auto="title">{% if modo == 'asistente' %}{% translate "Guía de práctica" %}{% else %}{{ guia.titulo|default:'Guía de práctica' }}{% endif %}</h2>
+  </div>
+
+  <section class="guide-document__section guide-document__section--general">
+    <h3><span>01</span> {% translate "Datos generales" %}</h3>
+    <dl class="guide-data-grid">
+      {% if modo == 'asistente' %}
+      <div><dt>{% translate "Código" %}</dt><dd data-guide-auto="code">{% translate "Se genera al guardar" %}</dd></div>
+      <div><dt>{% translate "Asignatura" %}</dt><dd data-guide-auto="subject">{% translate "Por completar" %}</dd></div>
+      <div><dt>{% translate "Carrera y semestre" %}</dt><dd data-guide-auto="career">{% translate "Según el perfil" %}</dd></div>
+      <div><dt>{% translate "Docente responsable" %}</dt><dd data-guide-auto="responsible">{% translate "Solicitante principal" %}</dd></div>
+      <div><dt>{% translate "Laboratorio" %}</dt><dd data-guide-auto="laboratory">{% translate "Unidad de laboratorio" %}</dd></div>
+      <div><dt>{% translate "Categoría de uso" %}</dt><dd data-guide-auto="purpose">{% translate "Docencia y práctica curricular" %}</dd></div>
+      <div><dt>{% translate "Duración estimada" %}</dt><dd data-guide-auto="duration">{% translate "Se calcula al elegir el horario" %}</dd></div>
+      <div><dt>{% translate "N.º estudiantes" %}</dt><dd data-guide-auto="participants">{% translate "1 persona" %}</dd></div>
+      {% else %}
+      <div><dt>{% translate "Código" %}</dt><dd>{% firstof guia.codigo_guia guia.actividad.codigo 'Sin código' %}</dd></div>
+      <div><dt>{% translate "Asignatura" %}</dt><dd>{{ contenido.asignatura|default:'No registrado' }}</dd></div>
+      <div><dt>{% translate "Carrera y semestre" %}</dt><dd>{{ contenido.carrera_semestre|default:'No registrado' }}</dd></div>
+      <div><dt>{% translate "Docente responsable" %}</dt><dd>{{ contenido.docente_responsable|default:'No registrado' }}</dd></div>
+      <div><dt>{% translate "Laboratorio" %}</dt><dd>{{ contenido.laboratorio|default:unidad.nombre }}</dd></div>
+      <div><dt>{% translate "Categoría de uso" %}</dt><dd>{{ contenido.categoria_uso|default:'No aplica' }}</dd></div>
+      <div><dt>{% translate "Duración estimada" %}</dt><dd>{{ contenido.duracion|default:'No registrado' }}</dd></div>
+      <div><dt>{% translate "N.º estudiantes" %}</dt><dd>{{ contenido.maximo_estudiantes|default:'No registrado' }}</dd></div>
+      {% if contenido.sesion_programada %}<div><dt>{% translate "Sesión programada" %}</dt><dd>{{ contenido.sesion_programada }}</dd></div><div><dt>{% translate "Guía general del período" %}</dt><dd>{{ contenido.guia_general_codigo|default:'—' }}</dd></div>{% endif %}
+      {% endif %}
+    </dl>
+    {% if modo == 'asistente' %}<p class="guide-document__source"><b>{% translate "Reserva vinculada:" %}</b> <span data-guide-auto="activity">{% translate "Actividad por identificar" %}</span> · <span data-guide-auto="schedule">{% translate "Horario por seleccionar" %}</span></p>{% elif contenido.reserva_fuente_codigo %}<p class="guide-document__source">{% translate "Autocompletado desde la reserva" %} {{ contenido.reserva_fuente_codigo }}{% translate "; las correcciones de la guía no alteran la solicitud original." %}</p>{% endif %}
+  </section>
+
+  <section class="guide-document__section">
+    <h3><span>02</span> {% translate "Resultado(s) de aprendizaje vinculado(s)" %}</h3>
+    <div class="guide-zone guide-richtext" data-guia-campo="resultado_aprendizaje" data-guia-tipo="texto" data-guia-etiqueta="Resultado de aprendizaje" data-guia-requerido="1">{% if modo == 'lectura' and not contenido.es_html %}{{ contenido.resultado_aprendizaje|guia_richtext }}{% else %}{{ zonas.resultado_aprendizaje|safe }}{% endif %}</div>
+  </section>
+  <section class="guide-document__section">
+    <h3><span>03</span> {% translate "Objetivo(s) de la práctica" %}</h3>
+    <div class="guide-zone guide-richtext" data-guia-campo="objetivos" data-guia-tipo="texto" data-guia-etiqueta="Objetivos de la práctica" data-guia-requerido="1">{% if modo == 'lectura' and not contenido.es_html %}{% if contenido.objetivos %}<ul class="guide-document__list">{% for item in contenido.objetivos %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{% translate "No registrado" %}</p>{% endif %}{% else %}{{ zonas.objetivos|safe }}{% endif %}</div>
+  </section>
+  <section class="guide-document__section">
+    <h3><span>04</span> {% translate "Fundamento teórico" %}</h3>
+    <div class="guide-zone guide-richtext" data-guia-campo="fundamento_teorico" data-guia-tipo="rico" data-guia-etiqueta="Fundamento teórico">{% if modo == 'lectura' and not contenido.es_html %}{{ contenido.fundamento_teorico|guia_richtext:contenido.figuras }}{% else %}{{ zonas.fundamento_teorico|safe }}{% endif %}</div>
+  </section>
+
+  <section class="guide-document__section">
+    <h3><span>05</span> {% translate "Equipos, software, materiales e insumos requeridos" %}</h3>
+    <div class="guide-resource-grid">
+      {% if modo == 'asistente' %}
+      <div><h4>{% translate "Equipos" %}</h4><ul><li data-guide-auto="equipment">{% translate "Se seleccionan en el paso 3" %}</li></ul></div>
+      <div><h4>{% translate "Software y licencias" %}</h4><ul><li data-guide-auto="software">{% translate "Se seleccionan en el paso 3" %}</li></ul></div>
+      <div><h4>{% translate "Materiales, insumos o reactivos" %}</h4><ul><li data-guide-auto="consumables">{% translate "Se toman de la reserva" %}</li></ul></div>
+      {% else %}
+      <div><h4>{% translate "Equipos" %}</h4><ul>{% for item in contenido.equipos %}<li>{{ item }}</li>{% empty %}<li>{% translate "No aplica" %}</li>{% endfor %}</ul></div>
+      <div><h4>{% translate "Software y licencias" %}</h4><ul>{% for item in contenido.software %}<li>{{ item }}</li>{% empty %}<li>{% translate "No aplica" %}</li>{% endfor %}</ul></div>
+      <div><h4>{% translate "Materiales, insumos o reactivos" %}</h4><ul>{% for item in contenido.materiales %}<li>{{ item }}</li>{% empty %}<li>{% translate "No aplica" %}</li>{% endfor %}</ul></div>
+      {% endif %}
+    </div>
+    {% if modo != 'lectura' %}<p class="guide-document__source">{% translate "Estos datos provienen de la reserva y de la unidad; para cambiarlos se corrige la solicitud, no la guía." %}</p>{% endif %}
+  </section>
+
+  <section class="guide-document__section">
+    <h3><span>06</span> {% translate "Seguridad institucional y precauciones específicas" %}</h3>
+    {% if modo == 'lectura' and not contenido.es_html %}
+      {% if contenido.medidas_seguridad %}<ul class="guide-document__list">{% for item in contenido.medidas_seguridad %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{% translate "No registrado" %}</p>{% endif %}
+    {% else %}
+      <h4 class="guide-document__subheading">{% translate "Normas de la unidad" %}</h4>
+      <ul class="guide-document__list" data-guide-auto-list="safety">{% if modo == 'asistente' %}<li>{% translate "Se aplicarán las normas vigentes de la unidad y las restricciones de los equipos seleccionados." %}</li>{% else %}{% for item in contenido.seguridad_institucional %}<li>{{ item }}</li>{% empty %}{% for item in politicas_unidad.seguridad %}<li>{{ item }}</li>{% empty %}<li>{% translate "Se aplicará la normativa vigente de la unidad." %}</li>{% endfor %}{% endfor %}{% endif %}</ul>
+      <h4 class="guide-document__subheading">{% translate "Precauciones de esta actividad" %}</h4>
+      <div class="guide-zone guide-richtext" data-guia-campo="medidas_seguridad" data-guia-tipo="texto" data-guia-etiqueta="Precauciones de la actividad">{{ zonas.medidas_seguridad|safe }}</div>
+    {% endif %}
+  </section>
+
+  <section class="guide-document__section guide-document__procedure">
+    <h3><span>07</span> {% translate "Procedimiento" %}</h3>
+    <div class="guide-zone guide-richtext" data-guia-campo="procedimiento" data-guia-tipo="pasos" data-guia-etiqueta="Procedimiento" data-guia-requerido="1" data-guia-formato="{{ contenido.formato_procedimiento|default:'numerado' }}">{% if modo == 'lectura' and not contenido.es_html %}{{ contenido|guia_procedimiento }}{% else %}{{ zonas.procedimiento|safe }}{% endif %}</div>
+  </section>
+
+  <section class="guide-document__section">
+    <h3><span>08</span> {% translate "Resultados esperados y criterio de evaluación" %}</h3>
+    <div class="guide-result-grid">
+      <div><h4>{% translate "Resultados esperados" %}</h4><div class="guide-zone guide-richtext" data-guia-campo="resultados_esperados" data-guia-tipo="tablas" data-guia-etiqueta="Resultados esperados">{% if modo == 'lectura' and not contenido.es_html %}<ul>{% for item in contenido.resultados_esperados %}<li>{{ item }}</li>{% empty %}<li>{% translate "No registrado" %}</li>{% endfor %}</ul>{% else %}{{ zonas.resultados_esperados|safe }}{% endif %}</div></div>
+      <div><h4>{% translate "Criterio de evaluación" %}</h4><div class="guide-zone guide-richtext" data-guia-campo="criterios_evaluacion" data-guia-tipo="tablas" data-guia-etiqueta="Criterios de evaluación">{% if modo == 'lectura' and not contenido.es_html %}<ul>{% for item in contenido.criterios_evaluacion %}<li>{{ item }}</li>{% empty %}<li>{% translate "No registrado" %}</li>{% endfor %}</ul>{% else %}{{ zonas.criterios_evaluacion|safe }}{% endif %}</div></div>
+    </div>
+  </section>
+
+  <section class="guide-document__section">
+    <h3><span>09</span> {% translate "Manejo de residuos generados" %}</h3>
+    {% if modo == 'asistente' %}<p data-guide-auto="waste">{% translate "Se determinará según los materiales e insumos finalmente aprobados." %}</p>{% elif contenido.manejo_residuos %}<ul class="guide-document__list">{% for item in contenido.manejo_residuos %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>{% translate "No registrado" %}</p>{% endif %}
+  </section>
+
+  <section class="guide-document__section guide-document__references">
+    <h3><span>10</span> {% translate "Materiales complementarios" %}</h3>
+    <div class="guide-source-zone guide-editor-keep" data-guide-source="materiales_complementarios" hidden></div>
+    <div data-guide-materials>
+      {% if modo == 'asistente' %}<ul class="guide-materials"><li class="is-empty">{% translate "No registrados" %}</li></ul>{% else %}
+      <ul class="guide-materials">{% for item in contenido.materiales_complementarios %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.titulo }}</a> <small>{{ item.url }}</small>{% else %}{{ item.titulo }}{% endif %}</li>{% empty %}<li class="is-empty">{% translate "No registrados" %}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="guide-document__section guide-document__references">
+    <h3><span>11</span> {% translate "Bibliografía / referencias" %}</h3>
+    <div class="guide-source-zone guide-editor-keep" data-guide-source="bibliografia" hidden></div>
+    <div data-guide-references>
+      {% if modo == 'asistente' %}<ol class="guide-references"><li class="is-empty">{% translate "No registrada" %}</li></ol>{% else %}
+      <ol class="guide-references">{% for item in contenido.bibliografia %}<li>{{ item }}</li>{% empty %}<li class="is-empty">{% translate "No registrada" %}</li>{% endfor %}</ol>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if contenido.cronograma %}
+  <section class="guide-document__section guide-document__schedule">
+    <h3><span>12</span> {% translate "Cronograma de sesiones del período" %}</h3>
+    <table class="guide-schedule"><thead><tr><th>{% translate "Sesión" %}</th><th>{% translate "Fecha" %}</th><th>{% translate "Semana" %}</th><th>{% translate "Tema" %}</th><th>{% translate "Proceso" %}</th><th>{% translate "Ejercicios y simuladores" %}</th></tr></thead><tbody>
+      {% for fila in contenido.cronograma %}<tr><td>{{ fila.sesion }}</td><td>{{ fila.fecha_texto|default:fila.fecha }}</td><td>{{ fila.semana|default:'—' }}</td><td>{{ fila.tema|default:'Por definir' }}</td><td>{{ fila.proceso|default:'—' }}</td><td>{{ fila.ejercicios }}{% if fila.software %}{% if fila.ejercicios %} · {% endif %}{{ fila.software|join:', ' }}{% endif %}</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+  {% endif %}
+  {% firmas_documento contenido as firmas %}
+  <div class="guide-signatures guide-editor-keep{% if modo == 'lectura' %} guide-signatures--final{% endif %}" data-guide-signatures>
+    {% for firma in firmas %}{% if modo != 'lectura' or firma.activo %}
+    <div class="guide-signature{% if not firma.activo %} is-off{% endif %}" data-guide-signature="{{ firma.rol }}">
+      <strong>{{ firma.etiqueta|upper }}</strong>
+      {% if modo == 'lectura' %}
+      <span class="guide-signature__space" aria-hidden="true"><small>{% translate "Espacio para la firma electrónica (FirmaEC)" %}</small></span>
+      <span>{{ firma.nombre_vista }}</span>
+      <em>{{ firma.cargo_vista }}</em>
+      <i>{{ firma.estado_vista }} · {{ firma.fecha_vista }}</i>
+      {% if firma.verificacion %}<small>{% translate "Verificación:" %} {{ firma.verificacion }}</small>{% endif %}
+      {% else %}
+      <label class="guide-signature__toggle"><input type="checkbox" name="firma_{{ firma.rol }}_activo" value="1"{% if firma.activo %} checked{% endif %}{% if firma.rol == 'elaborado' %} disabled{% endif %}> {% translate "Incluir esta firma" %}</label>
+      <label><span>{% translate "Nombre" %}</span><input type="text" name="firma_{{ firma.rol }}_nombre" value="{{ firma.nombre }}" maxlength="180" placeholder="{{ firma.nombre_vista }}"{% if modo == 'asistente' and firma.rol == 'elaborado' %} data-guide-auto="author"{% endif %}></label>
+      <label><span>{% translate "Cargo" %}</span><input type="text" name="firma_{{ firma.rol }}_cargo" value="{{ firma.cargo }}" maxlength="120" placeholder="{% translate "Cargo o función" %}"></label>
+      <label><span>{% translate "Fecha" %}</span><input type="text" name="firma_{{ firma.rol }}_fecha" value="{{ firma.fecha }}" maxlength="40" placeholder="{{ firma.fecha_vista }}"></label>
+      <i>{{ firma.estado_vista }}</i>
+      {% endif %}
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+  <p class="guide-document__source">{% translate "Las firmas corresponden a acciones autenticadas dentro del sistema UPEC y quedan vinculadas al historial de la guía. La firma con certificado electrónico (FirmaEC) es opcional y se registra por separado." %}</p>
+</article>

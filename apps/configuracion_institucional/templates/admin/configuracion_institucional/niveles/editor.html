@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block extrahead %}{{ block.super }}{{ media }}{% endblock %}
+{% block breadcrumbs %}<ul class="grp-horizontal-list"><li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li><li><a href="{{ volver_url }}">{% translate "Niveles académicos" %}</a></li><li>{% translate "Crear revisión" %}</li></ul>{% endblock %}
+{% block content %}<section class="catalogo-institucional-panel grp-module">
+<p>{% translate "Guardar crea un borrador. Los cambios se aplican solo después de revisar y publicar con autorización." %}</p>
+<p>{% translate "Conserva los códigos existentes. Retira niveles como históricos y revisa las rutas de avance antes de publicar." %}</p>
+<p>{% translate "Cambiar una ruta modifica las propuestas futuras; no confirma niveles ni reescribe vinculaciones anteriores." %}</p>
+<form method="post" novalidate>{% csrf_token %}{{ form.non_field_errors }}
+<div class="catalogo-titulo">{{ form.titulo.label_tag }}{{ form.titulo }}{{ form.titulo.errors }}</div>
+{{ form.contenido.label_tag }}{{ form.contenido.errors }}{{ form.contenido }}
+<div class="catalogo-acciones"><button type="submit">{% translate "Guardar borrador" %}</button><a href="{{ volver_url }}">{% translate "Volver" %}</a></div>
+</form></section>{% endblock %}

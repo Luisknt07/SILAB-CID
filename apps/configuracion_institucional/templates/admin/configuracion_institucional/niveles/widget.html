@@ -1,0 +1,10 @@
+{% load i18n %}
+<div data-level-editor data-code="{% translate 'Código estable' %}" data-label="{% translate 'Nombre visible' %}" data-student="{% translate 'Disponible para estudiantes' %}" data-retire="{% translate 'Retirar como histórico' %}" data-remove="{% translate 'Quitar de la propuesta' %}" data-step="{% translate 'Nivel de la ruta' %}" data-choice="{% translate 'Selecciona un nivel' %}">
+<textarea name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %} class="catalogo-json">{% if widget.value != None %}{{ widget.value }}{% endif %}</textarea>
+<div class="catalogo-editor" data-guided hidden>
+<fieldset><legend>{% translate "Niveles activos" %}</legend><p>{% translate "Marca los niveles admitidos para estudiantes. El código conserva sus referencias cuando cambia la etiqueta." %}</p><div data-levels></div><button type="button" data-add-level>{% translate "Agregar nivel" %}</button></fieldset>
+<fieldset><legend>{% translate "Niveles históricos" %}</legend><p>{% translate "Se conservan para consultar registros anteriores; no se ofrecen como niveles nuevos." %}</p><div data-history></div><button type="button" data-add-history>{% translate "Agregar referencia histórica" %}</button></fieldset>
+<fieldset><legend>{% translate "Rutas de avance" %}</legend><p>{% translate "Ordena los niveles de cada ruta. Un nivel solo puede pertenecer a una ruta y cada ruta necesita al menos dos niveles estudiantiles." %}</p><div data-routes></div><button type="button" data-add-route>{% translate "Agregar ruta" %}</button></fieldset>
+<fieldset><legend>{% translate "Texto para completar el perfil" %}</legend><label>{% translate "Nombre del nivel solicitado" %}<input type="text" data-missing maxlength="250"></label></fieldset>
+</div><noscript>{% translate "Sin JavaScript puedes editar los niveles en el campo JSON. La estructura y sus referencias se validan antes de guardar." %}</noscript>
+</div>

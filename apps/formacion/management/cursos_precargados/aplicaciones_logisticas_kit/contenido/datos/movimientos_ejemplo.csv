@@ -1,0 +1,5 @@
+paso,codigo,tipo,cantidad,motivo,saldo_esperado
+1,AD-001,E,5.00,Recepción de práctica,22.00
+2,AD-001,S,2.00,Despacho de práctica,20.00
+3,AD-003,S,0.25,Consumo de práctica,9.00
+4,AD-002,S,99.00,Intento sin disponibilidad,20.00

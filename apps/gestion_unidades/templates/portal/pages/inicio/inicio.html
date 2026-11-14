@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas marca %}
+
+{% block title %}{% translate "Inicio -" %} {{ identidad_producto.nombre_corto }} · {{ identidad_institucion.siglas }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/portal.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/inicio/inicio.css' %}?v=20261009-responsive-v2">
+{% endblock %}
+
+{% block content %}
+<div class="upec-home">
+  <section class="hero full-bleed" aria-label="{% translate "Presentacion" %}">
+    <div class="hero-slides" data-home-hero aria-hidden="true">
+      <img class="is-active" src="{% static 'img/generated/home-hero/hero-laboratorio-conectado.png' %}" alt="" decoding="async" fetchpriority="high">
+      <img data-src="{% static 'img/generated/home-hero/hero-agrotecnologia.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-fabricacion-avanzada.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-innovacion-interdisciplinaria.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-energia-sostenible.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-alimentos-biotecnologia.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-realidad-extendida.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-laboratorio-ambiental.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-biotecnologia-vegetal.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-analisis-clinico.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-microscopia-docencia.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-simulacion-logistica.png' %}" alt="" decoding="async">
+      <img data-src="{% static 'img/generated/home-hero/hero-agricultura-precision.png' %}" alt="" decoding="async">
+    </div>
+    <div class="home-hero-tech" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="hero-brand-mark">{% marca_institucional identidad_institucion 'oscuro' %}<span>{{ portada_inicio.mensaje_marca }}</span></div>
+
+    <div class="hero-inner">
+      <div class="hero-content">
+        {% if inicio_preview %}<p role="status">{% translate "Vista previa: este contenido todavía no cambia la portada pública." %} <a class="home-btn secondary" href="{{ inicio_volver_url }}">{% translate "Volver" %}</a></p>{% endif %}
+        <span class="eyebrow">{{ portada_inicio.lema }}</span>
+        <h1>{% if portada_inicio.titulo %}{{ portada_inicio.titulo }}{% else %}{{ identidad_producto.nombre }} <span>{{ identidad_institucion.siglas }}</span>{% endif %}</h1>
+        <p>{{ portada_inicio.resumen }}</p>
+        <div class="hero-actions">
+          <a class="home-btn primary" href="{% url 'centros_id' %}">
+            <i class="iconsminds-building"></i> {{ portada_inicio.boton_centros }} <i class="simple-icon-arrow-right"></i>
+          </a>
+          <a class="home-btn secondary" href="{% url 'laboratorios_unidades' %}">
+            <i class="iconsminds-microscope"></i> {{ portada_inicio.boton_unidades }} <i class="simple-icon-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-slide-status" aria-label="{% translate "Galería principal" %}"><span class="is-active"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  </section>
+
+  <section class="stats-wrap content-shell" aria-label="{% translate "Indicadores principales" %}">
+    <ul class="stats-grid">
+      <li class="stat-item">
+        <span class="stat-icon"><i class="iconsminds-building"></i></span>
+        <span><strong class="stat-number">6</strong><span class="stat-label">{% translate "Centros I+D Activos" %}</span></span>
+      </li>
+      <li class="stat-item">
+        <span class="stat-icon"><i class="iconsminds-microscope"></i></span>
+        <span><strong class="stat-number">48</strong><span class="stat-label">{% translate "Laboratorios y Unidades" %}</span></span>
+      </li>
+      <li class="stat-item">
+        <span class="stat-icon"><i class="iconsminds-calendar"></i></span>
+        <span><strong class="stat-number">356</strong><span class="stat-label">{% translate "Reservas este mes" %}</span></span>
+      </li>
+      <li class="stat-item">
+        <span class="stat-icon"><i class="iconsminds-monitor"></i></span>
+        <span><strong class="stat-number">312</strong><span class="stat-label">{% translate "Equipos disponibles" %}</span></span>
+      </li>
+      <li class="stat-item">
+        <span class="stat-icon"><i class="iconsminds-big-data"></i></span>
+        <span><strong class="stat-number">84</strong><span class="stat-label">{% translate "Proyectos activos" %}</span></span>
+      </li>
+      <li class="stat-item">
+        <span class="stat-icon"><i class="iconsminds-file"></i></span>
+        <span><strong class="stat-number">24</strong><span class="stat-label">{% translate "Normativas y Protocolos" %}</span></span>
+      </li>
+    </ul>
+  </section>
+
+  {% include 'portal/components/unidades_conectadas.html' with connected_units_id='ecosistema' %}
+
+  <section class="page-quienes home-interactive-experiences" aria-label="{% translate "Experiencias interactivas" %}">
+    <div class="ecosystem-access-rail" aria-hidden="true">
+      <svg class="ecosystem-access-wires" viewBox="0 0 1400 150" preserveAspectRatio="none">
+        <defs><marker id="wire-arrow-cyan" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M1 1L7 4L1 7" fill="none" stroke="#1bc9b2" stroke-width="1.5"></path></marker><marker id="wire-arrow-gold" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M1 1L7 4L1 7" fill="none" stroke="#dfa524" stroke-width="1.5"></path></marker></defs>
+        <path class="wire-base" d="M120 8H500L555 42H655L700 70M1280 8H900L845 42H745L700 70M700 70V92H285V142M700 92V142M700 92H1210V142"></path>
+        <path class="wire-energy wire-energy--research" d="M120 8H500L555 42H655L700 70V92H285V140" marker-end="url(#wire-arrow-cyan)"></path>
+        <path class="wire-energy wire-energy--research wire-energy--center" d="M555 42H655L700 70V140" marker-end="url(#wire-arrow-cyan)"></path>
+        <path class="wire-energy wire-energy--practice" d="M1280 8H900L845 42H745L700 70V92H1210V140" marker-end="url(#wire-arrow-gold)"></path>
+        <g class="wire-nodes"><circle cx="120" cy="8" r="4"></circle><circle cx="555" cy="42" r="4"></circle><circle cx="1280" cy="8" r="4"></circle><circle cx="845" cy="42" r="4"></circle><circle cx="700" cy="70" r="6"></circle><circle cx="285" cy="92" r="4"></circle><circle cx="700" cy="92" r="4"></circle><circle cx="1210" cy="92" r="4"></circle></g>
+      </svg>
+      <div class="ecosystem-access-rail__research"><span><i class="simple-icon-control-play"></i> {% translate "Vídeos" %}</span><span><i class="simple-icon-grid"></i> {% translate "Modelos 3D" %}</span><span><i class="simple-icon-layers"></i> {% translate "Simulación y gemelos" %}</span></div>
+      <strong><i class="simple-icon-link"></i> {% translate "Explora, aprende e interactúa" %} <b>›</b></strong>
+      <div class="ecosystem-access-rail__practice"><span><i class="simple-icon-cursor-move"></i> {% translate "Tours 360°" %}</span><span><i class="simple-icon-chemistry"></i> {% translate "Prácticas experimentales" %}</span><span><i class="simple-icon-picture"></i> {% translate "Recursos multimedia" %}</span></div>
+    </div>
+    {% include 'portal/components/experiencias_interactivas.html' %}
+    <div class="ecosystem-closing-rail"><i class="simple-icon-shield"></i><b>{% translate "Un solo ecosistema, múltiples experiencias" %}</b><span>{% translate "Conecta investigación, docencia y tecnología en un ambiente integrado que impulsa el conocimiento y el desarrollo sostenible." %}</span></div>
+  </section>
+
+  <div class="page-quienes home-industry-transfer">
+    {% include 'portal/components/ecosistema_industrial.html' %}
+  </div>
+
+  <section class="capabilities full-bleed" aria-label="{% translate "Capacidades y experiencias" %}">
+    <div class="cap-inner">
+      <div class="cap-text">
+        <h2>{% translate "Capacidades y experiencias" %}</h2>
+        <div class="cap-tabs">
+          <span class="cap-tab active"><i class="iconsminds-optimization"></i> {% translate "Innovacion" %}</span>
+          <span class="cap-tab"><i class="iconsminds-gears"></i> {% translate "Simulacion" %}</span>
+          <span class="cap-tab"><i class="iconsminds-cpu"></i> IA</span>
+          <span class="cap-tab"><i class="iconsminds-handshake"></i> {% translate "Vinculacion" %}</span>
+        </div>
+        <p>{% translate "Transformamos ideas en soluciones a traves de tecnologia, investigacion aplicada, prototipado, analitica de datos y trabajo colaborativo." %}</p>
+        <a class="home-btn primary" href="{% url 'hublab' %}">{% translate "Conoce nuestras capacidades" %} <i class="simple-icon-arrow-right"></i></a>
+      </div>
+
+      <div class="media-board">
+        <div class="media-tile video-tile">
+          <img src="{% static 'img/cards/upec3.jpg' %}" alt="{% translate "Campus UPEC" %}">
+        </div>
+        <div class="media-tile">
+          <img src="{% static 'img/cards/realdiadvirtual.jpg' %}" alt="{% translate "Entornos tecnologicos" %}">
+        </div>
+        <div class="media-stack">
+          <div class="media-tile"><img src="{% static 'img/parcela.png' %}" alt="{% translate "Investigacion agricola" %}"></div>
+          <div class="media-tile"><img src="{% static 'img/AGRICULTURA.png' %}" alt="{% translate "Innovacion aplicada" %}"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="updates content-shell">
+    <div class="updates-head">
+      <h2>{% translate "Destacados y actualidad" %}</h2>
+      <a href="{% url 'noticias' %}">{% translate "Ver todas las noticias" %} <i class="simple-icon-arrow-right"></i></a>
+    </div>
+
+    <ul class="news-grid">
+      <li class="news-card">
+        <img src="{% static 'img/cards/formacion.jpeg' %}" alt="">
+        <div class="news-body">
+          <div class="news-meta"><span class="tag">{% translate "Noticia" %}</span><span>{% translate "12 May 2025" %}</span></div>
+          <h3>{% translate "UPEC inaugura nuevo Laboratorio de Biotecnologia Aplicada" %}</h3>
+          <a href="{% url 'laboratorios_unidades' %}">{% translate "Explorar unidades" %} <i class="simple-icon-arrow-right"></i></a>
+        </div>
+      </li>
+      <li class="news-card">
+        <img src="{% static 'img/cards/lacteos.png' %}" alt="">
+        <div class="news-body">
+          <div class="news-meta"><span class="tag gold">{% translate "Convocatoria" %}</span><span>{% translate "08 May 2025" %}</span></div>
+          <h3>{% translate "Convocatoria interna para Proyectos de Investigacion 2025" %}</h3>
+          <a href="{% url 'centros_id' %}">{% translate "Explorar Centros I+D" %} <i class="simple-icon-arrow-right"></i></a>
+        </div>
+      </li>
+      <li class="news-card">
+        <img src="{% static 'img/cards/ue12.png' %}" alt="">
+        <div class="news-body">
+          <div class="news-meta"><span class="tag">{% translate "Proyecto" %}</span><span>{% translate "05 May 2025" %}</span></div>
+          <h3>{% translate "Proyecto de energias renovables recibe financiamiento SENESCYT" %}</h3>
+          <a href="{% url 'centros_id' %}">{% translate "Explorar Centros I+D" %} <i class="simple-icon-arrow-right"></i></a>
+        </div>
+      </li>
+      <li class="news-card">
+        <img src="{% static 'img/cards/industry.jpg' %}" alt="">
+        <div class="news-body">
+          <div class="news-meta"><span class="tag">{% translate "Publicacion" %}</span><span>{% translate "30 Abr 2025" %}</span></div>
+          <h3>{% translate "Nuevo articulo publicado en revista indexada Scopus Q1" %}</h3>
+          <a href="{% url 'centros_id' %}">{% translate "Explorar Centros I+D" %} <i class="simple-icon-arrow-right"></i></a>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="impact-band full-bleed" aria-label="{% translate "Impacto" %}">
+    <ul class="impact-grid">
+      <li class="impact-item"><i class="iconsminds-conference"></i><span><strong>+120</strong>{% translate "Investigadores activos" %}</span></li>
+      <li class="impact-item"><i class="iconsminds-library"></i><span><strong>+2.500</strong>{% translate "Estudiantes beneficiados" %}</span></li>
+      <li class="impact-item"><i class="iconsminds-book"></i><span><strong>+1.200</strong>{% translate "Publicaciones generadas" %}</span></li>
+      <li class="impact-item"><i class="iconsminds-handshake"></i><span><strong>+35</strong>{% translate "Convenios nacionales e internacionales" %}</span></li>
+      <li class="impact-item"><i class="iconsminds-gears"></i><span><strong>+95%</strong>{% translate "Equipamiento operativo" %}</span></li>
+      <li class="impact-item"><i class="iconsminds-line-chart"></i><span><strong>+10</strong>{% translate "Anos impulsando la ciencia" %}</span></li>
+    </ul>
+  </section>
+
+  <footer class="home-footer full-bleed">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        {% marca_institucional identidad_institucion 'oscuro' %}
+        <p>{% translate "Sistema de Laboratorios y Centros de Investigacion y Desarrollo" %}</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="{% url 'quienes_somos' %}">{% translate "Quiénes somos" %}</a></li>
+        <li><a href="{% url 'centros_id' %}">{% translate "Centros I+D" %}</a></li>
+        <li><a href="{% url 'laboratorios_unidades' %}">{% translate "Laboratorios y Unidades" %}</a></li>
+        <li><a href="{% url 'servicios_portal' %}">{% translate "Servicios" %}</a></li>
+        <li><a href="{% url 'servicios_portal' %}#contacto">{% translate "Contacto" %}</a></li>
+      </ul>
+      <div class="footer-copy">
+        <p>{% translate "Universidad Politecnica Estatal del Carchi" %}</p>
+        <p>&copy; {% now "Y" %} {{ identidad_institucion.siglas }}{% translate ". Todos los derechos reservados." %}</p>
+      </div>
+    </div>
+  </footer>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+<script src="{% static 'portal/js/portal.js' %}?v=20260916-i18n-v141"></script>
+<script defer src="{% static 'portal/js/pages/inicio/inicio_galeria.js' %}?v=20261011-carga-diferida-v1"></script>
+{% endblock %}

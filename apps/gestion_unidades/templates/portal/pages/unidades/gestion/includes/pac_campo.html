@@ -1,0 +1,22 @@
+{% if campo_pac.clave == 'grupo' %}
+  <div class="pac-campo"><span>{{ campo_pac.etiqueta }}</span><output class="pac-campo__derivado" data-pac-grupo>{{ valor_pac|default:'Por definir' }}</output><small>Se obtiene de los dos primeros caracteres de la partida.</small></div>
+{% else %}
+  <label class="pac-campo{% if compacto %} pac-campo--compacto{% elif campo_pac.tipo == 'multilinea' or campo_pac.clave == 'item' %} pac-campo--ancho{% endif %}">
+    <span>{{ campo_pac.etiqueta }}{% if campo_pac.requerido %} <em>*</em>{% endif %}</span>
+    {% if campo_pac.tipo == 'opcion' %}
+      <select class="guide-form__control" name="compras__{{ campo_pac.clave }}">
+        <option value=""{% if campo_pac.clave == 'clasificacion_pac' and valor_pac == 'por_definir' %} selected{% endif %}>{% if campo_pac.clave == 'clasificacion_pac' or campo_pac.clave == 'pac' or campo_pac.clave == 'clasificacion' %}Clasificación por definir{% else %}Selecciona una opción{% endif %}</option>
+        {% for valor_opcion, etiqueta_opcion in campo_pac.opciones %}{% if campo_pac.clave != 'clasificacion_pac' or valor_opcion != 'por_definir' %}<option value="{{ valor_opcion }}"{% if valor_pac == valor_opcion %} selected{% endif %}>{{ etiqueta_opcion }}</option>{% endif %}{% endfor %}
+      </select>
+    {% elif campo_pac.tipo == 'entero' %}
+      <input class="guide-form__control" type="number" step="1" min="1" max="20" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac }}" inputmode="numeric">
+    {% elif campo_pac.tipo == 'numero' %}
+      <input class="guide-form__control" type="number" step="any" min="0" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac }}" inputmode="decimal">
+    {% elif campo_pac.tipo == 'multilinea' %}
+      <textarea class="guide-form__control" name="compras__{{ campo_pac.clave }}" rows="3" maxlength="2000">{{ valor_pac }}</textarea>
+    {% else %}
+      <input class="guide-form__control" type="text" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac }}" maxlength="300"{% if campo_pac.clave == 'fuente_pac' %} list="pac-fuentes-referencia" placeholder="Código o denominación confirmado"{% elif campo_pac.clave == 'item' %} placeholder="Ej.: Computador de escritorio" title="Sólo el nombre del bien o servicio; las características van en Especificaciones y sustento"{% elif campo_pac.clave == 'grupo_fases' %} list="pac-proyectos-fases" placeholder="Ej.: Renovación del área de cómputo"{% elif campo_pac.clave == 'cpc' or campo_pac.clave == 'partida' %} inputmode="numeric" placeholder="Por definir, si aún no se conoce"{% endif %}>
+    {% endif %}
+    {% if campo_pac.ayuda and not sin_ayuda %}<small>{{ campo_pac.ayuda }}</small>{% endif %}
+  </label>
+{% endif %}

@@ -1,0 +1,60 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'admin/css/reportes_menu.css' %}?v=20261021-filas-compactas-1">
+<div class="citt-reportes" data-reportes-menu>
+  <div class="citt-reportes__columnas" data-reportes-columnas>
+  {% for seccion_reportes in menu_reportes.secciones %}
+    <section id="reportes-panel-{{ seccion_reportes.codigo }}" class="citt-reportes__ambito" aria-labelledby="ambito-{{ seccion_reportes.codigo }}" data-reportes-ambito="{{ seccion_reportes.codigo }}" data-reportes-seccion="{{ seccion_reportes.codigo }}">
+      <header>
+        <h3 id="ambito-{{ seccion_reportes.codigo }}">{{ seccion_reportes.nombre }}</h3>
+        <p>{{ seccion_reportes.descripcion }}</p>
+      </header>
+      {% if seccion_reportes.principal %}
+      <a class="citt-reportes__principal" href="{{ seccion_reportes.principal.admin_url }}"{% if seccion_reportes.principal.navegacion_directa %} data-panel-direct{% endif %} data-reporte-principal="{{ seccion_reportes.codigo }}" data-reporte-tipo="{{ seccion_reportes.principal.tipo_menu.codigo }}">
+        <span class="citt-reportes__icono" aria-hidden="true">{% include 'admin/includes/category_icon.html' with icon='reports' %}</span>
+        <span class="citt-reportes__presentacion">
+          <small>{% translate "Acceso principal" %} · {{ seccion_reportes.principal.tipo_menu.nombre }}</small>
+          <strong>{{ seccion_reportes.principal.name }}</strong>
+          <span>{{ seccion_reportes.principal.descripcion }}</span>
+        </span>
+        <span class="citt-reportes__entrada">{{ seccion_reportes.principal.texto_entrada }} <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      {% endif %}
+  {% if seccion_reportes.tipos %}
+  <aside class="citt-reportes__leyenda" aria-label="{% translate 'Tipos de acceso' %}">
+    <details>
+    <summary>{% translate 'Cómo se identifican los accesos' %}</summary>
+    <div class="citt-reportes__ayuda">
+    {% for tipo_acceso in seccion_reportes.tipos %}
+    <div><span class="citt-reportes__tipo is-{{ tipo_acceso.codigo }}">{{ tipo_acceso.nombre }}</span><p>{{ tipo_acceso.descripcion }}</p></div>
+    {% endfor %}
+    </div>
+    </details>
+  </aside>
+  {% endif %}
+  {% if seccion_reportes.categorias %}
+  <div class="citt-reportes__detalle">
+  {% for categoria_reportes in seccion_reportes.categorias %}
+  <details class="citt-reportes__categoria" data-reportes-categoria="{{ categoria_reportes.codigo }}"{% if categoria_reportes.codigo == 'evaluacion' %} open{% endif %}>
+    <summary{% if categoria_reportes.descripcion %} title="{{ categoria_reportes.descripcion }}"{% endif %}>
+      <h3 id="reportes-{{ categoria_reportes.codigo }}">{{ categoria_reportes.nombre }}<span class="citt-reportes__cantidad">{{ categoria_reportes.total }} <span class="citt-reportes__solo-lectura">{% blocktranslate count total=categoria_reportes.total %}acceso{% plural %}accesos{% endblocktranslate %}</span></span><span class="citt-reportes__plegar" aria-hidden="true"></span></h3>
+    </summary>
+    {% for subcategoria_reportes in categoria_reportes.subcategorias %}
+    <section class="citt-reportes__subcategoria">
+      {% if categoria_reportes.subcategorias|length > 1 %}
+      <header>
+        <h4>{{ subcategoria_reportes.nombre }}</h4>
+      </header>
+      {% endif %}
+      <div class="citt-admin-model-grid">
+        {% for model in subcategoria_reportes.models %}{% include 'admin/includes/reporte_card.html' %}{% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </details>
+  {% endfor %}
+  </div>
+  {% endif %}
+  </section>
+  {% endfor %}
+  </div>
+</div>

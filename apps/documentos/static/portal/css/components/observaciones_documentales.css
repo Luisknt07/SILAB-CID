@@ -1,0 +1,12 @@
+.observaciones-documentales{color:#263c30;font-size:14px;line-height:1.5}
+.observaciones-documentales__nota{padding:8px 0;border-bottom:1px solid #e1e8e3}
+.observaciones-documentales__nota p{margin:5px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.observaciones-documentales small{color:#607366;font-size:12px}
+.observaciones-documentales__editor{display:grid;gap:10px;margin:14px 0}
+.observaciones-documentales__editor label{display:grid;gap:6px;font-weight:600}
+.observaciones-documentales__editor textarea{box-sizing:border-box;width:100%;min-height:85px;padding:9px;border:1px solid #b9ccbf;border-radius:5px;font-family:inherit;font-size:14px;line-height:1.5;resize:vertical}
+.observaciones-documentales .observaciones-documentales__editor .observaciones-documentales__guardar{position:static;justify-self:start;float:none;width:auto;height:auto;margin:0;padding:7px 16px;border:1px solid #28663f;border-radius:5px;background:#28663f;color:#fff;cursor:pointer}
+.observaciones-documentales details{margin-top:14px;padding-top:10px;border-top:1px solid #dfe7e1}
+.observaciones-documentales summary{cursor:pointer;font-weight:600;color:#385e43}
+.observaciones-documentales__cambio{padding:9px 0;border-bottom:1px solid #e8ede9}
+.observaciones-documentales__cambio p{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere}

@@ -1,0 +1,12 @@
+entidad,campo,significado,tipo,ejemplo,regla
+Producto,codigo,Identificador único,Texto,AD-001,Mayúsculas y no repetido
+Producto,nombre,Descripción del material,Texto,Caja corrugada,Obligatorio y sin etiquetas
+Producto,unidad,Unidad de manejo,Lista,UN,UN o KG o LT
+Producto,minimo,Umbral docente de alerta,Decimal,10.00,Mayor o igual a cero
+Producto,existencia,Saldo calculado,Decimal,17.00,No se edita directamente
+Movimiento,tipo,Entrada o salida,Lista,E,E o S
+Movimiento,cantidad,Cantidad del movimiento,Decimal,2.50,Positiva y hasta dos decimales
+Movimiento,motivo,Por qué se realiza,Texto,Despacho de práctica,Obligatorio
+Movimiento,usuario,Quién registra,Relación,operador,Usuario autorizado
+Movimiento,fecha,Cuándo se registra,FechaHora,Generada por el sistema,Automática
+Movimiento,clave,Identificador del envío,UUID,Generado por el formulario,Evita doble registro

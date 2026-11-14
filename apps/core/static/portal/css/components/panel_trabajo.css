@@ -1,0 +1,128 @@
+.panel-task { position: fixed; z-index: 1080; display: flex; flex-direction: column; margin: 0; padding: 0; border: 1px solid var(--institucion-borde, #ccd7d1); border-top: 3px solid var(--institucion-acento, #f7d447); border-radius: 5px; background: var(--institucion-superficie, #fff); box-shadow: none; }
+.panel-task[hidden] { display: none; }
+.panel-task > header { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; padding: 6px 12px; border-bottom: 1px solid var(--institucion-borde, #ccd7d1); }
+.panel-task > header > h2 { flex: 1 1 200px; min-width: 0; font-size: 15px !important; line-height: 1.4; }
+.panel-task h2 { margin: 0; font: 600 15px/1.4 var(--institucion-fuente-cuerpo, var(--upec-font-family-body, "Poppins", Arial, sans-serif)); color: var(--institucion-texto, #18312a); overflow-wrap: anywhere; }
+.panel-task > header > button { position: static; display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; float: none; width: auto; height: auto; min-height: 32px; max-width: 100%; margin: 0 0 0 auto; padding: 5px 10px; box-sizing: border-box; font: 600 14px/1.4 var(--institucion-fuente-cuerpo, var(--upec-font-family-body, "Poppins", Arial, sans-serif)); white-space: nowrap; text-indent: 0; overflow: visible; border: 1px solid var(--institucion-boton-acento, #f7d447); border-radius: 4px; background: var(--institucion-boton-acento, #f7d447); color: var(--institucion-boton-acento-texto, #18312a); cursor: pointer; }
+.panel-task iframe { width: 100%; flex: 1; min-height: 0; border: 0; background: #fff; }
+.panel-task__status { margin: 0; padding: 6px 12px; font-size: 12px; }
+.panel-task__status:empty { display: none; }
+
+/* Solo el documento interior: el panel padre conserva su cabecera y su menú. */
+html.panel-task-document { scroll-padding-top: 12px; }
+html.panel-task-document [data-panel-back] { display: none; }
+html.panel-task-document body { margin: 0 !important; padding: 0 !important; min-width: 0; }
+html.panel-task-document #grp-header,
+html.panel-task-document #grp-context-navigation,
+html.panel-task-document .institutional-header,
+html.panel-task-document .portal-header,
+html.panel-task-document body > header,
+html.panel-task-document body > nav,
+html.panel-task-document .portal-footer { display: none !important; }
+/* En las fichas públicas (área, equipo, unidad) la portada y el índice son contenido, no la cabecera del sitio: el
+   título ya va en la barra del visor, así que la portada se oculta, pero el índice de secciones se conserva y las
+   cifras, que se montan sobre la portada, bajan a su sitio. */
+html.panel-task-document body.conoce > nav.conoce__indice { display: flex !important; margin-top: 0; }
+html.panel-task-document body.conoce > .conoce__cifras { margin-top: 14px; }
+html.panel-task-document body > main,
+html.panel-task-document #grp-content { margin: 0 !important; padding: 12px !important; }
+/* Supera la especificidad del espaciado reservado para la cabecera del admin. */
+html.panel-task-document body:not(.citt-admin-dashboard):not(.grp-login):not(.grp-popup) #grp-content {
+  padding: 12px !important; top: 0 !important;
+}
+/* La barra fija de guardar tapaba los últimos campos del formulario. */
+html.panel-task-document body:not(.citt-admin-dashboard):not(.grp-login):not(.grp-popup):has(.grp-fixed-footer) #grp-content { padding-bottom: 96px !important; }
+html.panel-task-document .portal,
+html.panel-task-document .portal-layout,
+html.panel-task-document .portal-main { width: 100%; max-width: none; min-width: 0; min-height: 0; margin: 0 !important; padding: 0 !important; }
+html.panel-task-document .guide-shell,
+html.panel-task-document .practice-shell { width: 100%; max-width: none; margin: 0; padding: 0 0 16px; }
+
+/* El título ya está en el panel; aquí quedan los datos y las acciones. */
+html.panel-task-document .guide-hero,
+html.panel-task-document .practice-hero { min-height: 0; padding: 10px 14px; gap: 12px; flex-wrap: wrap; border: 1px solid var(--institucion-borde, #ccd7d1); border-bottom: 2px solid var(--institucion-acento, #f7d447); border-radius: 4px; background: var(--institucion-superficie, #fff); color: var(--institucion-texto, #18312a); }
+html.panel-task-document .practice-hero::before,
+html.panel-task-document .guide-hero h1,
+html.panel-task-document .guide-hero .guide-eyebrow,
+html.panel-task-document .practice-hero h1,
+html.panel-task-document .practice-hero > div:first-child > span { display: none; }
+html.panel-task-document .guide-hero p,
+html.panel-task-document .practice-hero p { margin: 0; font-size: 13px; color: var(--institucion-texto, #18312a); overflow-wrap: anywhere; }
+html.panel-task-document .guide-hero > div,
+html.panel-task-document .practice-hero > div { min-width: 0; }
+html.panel-task-document .guide-hero .guide-btn--ghost { color: var(--institucion-primario, #2b6339); border-color: var(--institucion-borde, #ccd7d1); background: var(--institucion-superficie, #fff); }
+html.panel-task-document .redaccion__modos { border-color: var(--institucion-borde, #ccd7d1); background: var(--institucion-superficie, #fff); }
+html.panel-task-document .redaccion__modos button { color: var(--institucion-texto, #18312a); }
+html.panel-task-document .redaccion__modos button.is-on { background: var(--institucion-boton-acento, #f7d447); color: var(--institucion-boton-acento-texto, #18312a); }
+/* En móvil se conserva una franja de navegación sobre la tarea. */
+@media (max-width: 600px) { .panel-task > header { padding: 6px 8px; } .panel-task h2 { font-size: 13px; } }
+/* Integrada al visor, no flotante: lo anterior no asoma debajo ni se desplaza el fondo. */
+.con-tarea > * { visibility: hidden; }
+.panel-task-sin-scroll { overflow: hidden !important; overscroll-behavior: none; }
+
+/* La función ya se identifica en la barra del panel; se conserva su contexto y estado. */
+html.panel-task-document .ce-heading {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+html.panel-task-document .ce-heading :is(h1, .ce-eyebrow) { display: none; }
+html.panel-task-document .ce-heading p { margin: 0; font-size: 14px; line-height: 1.4; }
+html.panel-task-document .ce-heading .ce-badge { flex: 0 0 auto; font-size: 12px; }
+html.panel-task-document .ce-top-actions { gap: 6px; margin-bottom: 8px; }
+
+/* Los pies de los formularios internos no reservan una segunda franja de navegación. */
+html.panel-task-document :is(.editor__pie, .cert-editor__acciones) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 6px 0;
+  margin: 8px 0 0;
+}
+html.panel-task-document :is(.editor__pie, .cert-editor__acciones) :is(button, a),
+html.panel-task-document .ce-top-actions .ce-btn {
+  min-height: 32px;
+  margin: 0;
+  padding: 5px 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Gestión abierta en el marco compartido: el título está arriba, aquí queda la unidad. */
+html.panel-task-document .unit-console__titlebar {
+  position: static;
+  min-height: 0;
+  border: 1px solid var(--institucion-borde, #ccd7d1);
+  border-radius: 4px;
+  background: var(--institucion-superficie, #fff);
+  color: var(--institucion-texto, #18312a);
+}
+html.panel-task-document .unit-console__titlebar :is(
+  .unit-console__tech, .unit-console__title-icon,
+  .unit-console__identity > span, .unit-console__identity h1, .unit-console__close
+) { display: none; }
+html.panel-task-document .unit-console__titlebar-inner {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+}
+html.panel-task-document .unit-console__identity { min-width: 0; flex: 1; }
+html.panel-task-document .unit-console__identity p {
+  margin: 0;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+}
+html.panel-task-document .unit-console__operator { margin: 0; color: inherit; }
+html.panel-task-document .unit-console__operator small { color: inherit; font-size: 12px; }
+html.panel-task-document .unit-console__operator strong { color: inherit; font-size: 14px; }
+
+/* Certificados: navegación breve para dedicar la altura a la hoja completa. */
+.panel-task.is-certificate-editor > header { gap: 4px 8px; padding: 3px 8px; }
+.panel-task.is-certificate-editor > header > h2 { font-size: 13px !important; line-height: 1.3; }
+.panel-task.is-certificate-editor > header > button { min-height: 26px; padding: 3px 8px; font-size: 12px; line-height: 1.4; }

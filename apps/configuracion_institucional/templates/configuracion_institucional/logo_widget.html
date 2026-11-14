@@ -1,0 +1,10 @@
+{% load i18n %}
+<div class="institution-logo-editor" data-logo-editor{% if widget.is_initial %} data-logo-original="{{ widget.value.url }}"{% endif %}>
+{% include 'django/forms/widgets/clearable_file_input.html' %}
+<div class="institution-logo-previews" data-logo-previews{% if not widget.is_initial %} hidden{% endif %}>
+<figure><figcaption>{% translate "Fondo claro" %}</figcaption><div class="institution-logo-surface institution-logo-surface--light"><img{% if widget.is_initial %} src="{{ widget.value.url }}"{% endif %} alt="{% translate 'Vista previa del logo sobre fondo claro' %}" data-logo-image decoding="async"></div></figure>
+<figure><figcaption>{% translate "Fondo oscuro" %}</figcaption><div class="institution-logo-surface institution-logo-surface--dark"><img{% if widget.is_initial %} src="{{ widget.value.url }}"{% endif %} alt="{% translate 'Vista previa del logo sobre fondo oscuro' %}" data-logo-image decoding="async"></div></figure>
+</div>
+<p class="institution-logo-status" data-logo-status role="status" aria-live="polite" data-empty="{% translate 'Selecciona una imagen para verla antes de guardar.' %}" data-selected="{% translate 'Imagen seleccionada. La vista previa no guarda ni publica el archivo.' %}" data-removed="{% translate 'El logo se retirará de la nueva revisión. El historial se conserva.' %}" data-error="{% translate 'No se puede previsualizar: usa PNG, JPEG o WebP, hasta 2 MB, 4096 px por lado y 4 MP.' %}">{% if not widget.is_initial %}{% translate "Selecciona una imagen para verla antes de guardar." %}{% endif %}</p>
+<button type="button" class="institution-logo-reset" data-logo-reset hidden>{% translate "Restablecer selección" %}</button>
+</div>

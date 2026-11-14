@@ -1,0 +1,84 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+<style>
+  .sesion-shell { display: grid; gap: 16px; }
+  .sesion-card { padding: 18px 20px; border: 1px solid var(--institucion-primario-suave, #d3e1d8); border-radius: 14px; background: #fff; }
+  .sesion-card h2 { margin: 0 0 4px; font-size: 18px; color: var(--institucion-texto, #1f3d2f); }
+  .sesion-card p.lead { margin: 0 0 12px; color: #6b7a73; font-size: 13px; }
+  .sesion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .sesion-grid label, .sesion-insumos label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: var(--institucion-texto, #1f3d2f); }
+  .sesion-grid input, .sesion-grid select, .sesion-insumos input { padding: 8px 10px; border: 1px solid #c9d8cf; border-radius: 8px; font-size: 13px; }
+  .sesion-grid small, .sesion-insumos small { font-weight: 500; color: #6b7a73; }
+  .sesion-insumos { display: grid; gap: 8px; margin-top: 12px; }
+  .sesion-insumos__fila { display: grid; grid-template-columns: 1.6fr 1fr auto; gap: 10px; align-items: end; padding: 8px 10px; border: 1px solid var(--institucion-primario-suave, #e1eae5); border-radius: 10px; background: #f8fbf9; }
+  .sesion-insumos__fila.is-locked { border-color: var(--institucion-primario, #2f6b4f); }
+  .sesion-insumos__fila b.tag { font-size: 10px; padding: 2px 8px; border-radius: 999px; background: var(--institucion-primario, #2f6b4f); color: #fff; }
+  .sesion-insumos__fila b.tag.is-optional { background: var(--institucion-acento, #c8a13a); }
+  .sesion-alert { padding: 10px 12px; border-radius: 10px; font-size: 13px; }
+  .sesion-alert.is-error { background: #fbeeed; color: #a12c2c; }
+  .sesion-alert.is-ok { background: #eef6f1; color: #2f5241; }
+  .sesion-alert.is-info { background: #fffaea; color: #5a4a14; }
+  .sesion-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }
+  .sesion-facts span { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--institucion-primario-suave, #e1eae5); border-radius: 10px; background: #fff; font-size: 12px; }
+  .sesion-facts b { font-size: 15px; color: var(--institucion-texto, #1f3d2f); }
+  .sesion-aula { margin: 8px 0 0; font-size: 12px; color: var(--institucion-texto, #2f5241); }
+  .sesion-aula a { color: var(--institucion-texto, #245a42); font-weight: 700; }
+  .sesion-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+</style>
+{% endblock %}
+{% block portal_content %}
+<section class="guide-shell sesion-shell">
+  <header class="guide-hero">
+    <div>
+      <span class="guide-eyebrow">{% translate "SESIÓN PROGRAMADA" %}</span>
+      <h1>{% translate "Sesión" %} {{ numero }} de {{ total }} · {{ reserva.fecha|date:"d/m/Y" }}</h1>
+      <p>{{ unidad.nombre }} · {{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }} · {{ reserva.codigo_reserva }} · {{ reserva.get_estado_display|ui }}{% if reserva.programacion.asignatura %} · {{ reserva.programacion.asignatura.nombre }}{% endif %}</p>
+    </div>
+    <div class="guide-hero__actions">
+      <a class="guide-btn guide-btn--ghost" href="{{ url_sesiones }}">{% translate "Mis sesiones programadas" %}</a>
+      <a class="guide-btn guide-btn--ghost" href="{% url 'comprobante_reserva' reserva.pk %}">{% translate "Comprobante" %}</a>
+    </div>
+  </header>
+
+  {% if guardado %}<div class="sesion-alert is-ok">{% translate "La sesión quedó completada con su proceso, su materia prima y sus insumos; la guía de la sesión se prellenó desde el proceso y espera tu revisión." %}</div>{% endif %}
+  {% if error %}<div class="sesion-alert is-error">{{ error }}</div>{% endif %}
+  {% if not editable %}<div class="sesion-alert is-info">{% translate "La sesión ya fue aprobada por la unidad. Lo que cambies ahora se pide desde «Mis reservas» como una solicitud de cambio, para que la unidad lo revise." %}</div>{% endif %}
+
+  <form method="post" class="sesion-card">
+    {% csrf_token %}
+    <h2>{% translate "Qué harás en esta sesión" %}</h2>
+    <p class="lead">{% translate "El proceso marca todo lo que la planta exige; tú indicas la materia prima y ajustas los insumos que el laboratorio te ofrece." %}</p>
+    <div class="sesion-grid">
+      <label>{% translate "Práctica o tema" %}<input type="text" name="tema" maxlength="240" value="{% if plan %}{{ plan.tema }}{% endif %}" {% if not editable %}disabled{% endif %}></label>
+      <label>{% translate "Proceso" %}<select name="receta_id" {% if not editable %}disabled{% endif %}><option value="">{% translate "Sin proceso definido" %}</option>{% for proceso in procesos %}<option value="{{ proceso.pk }}" {% if reserva.receta_id == proceso.pk %}selected{% endif %}>{{ proceso.nombre_publico }}</option>{% endfor %}</select><small>{% translate "Al guardar, la sesión toma las áreas, los equipos con sus auxiliares, el software y los insumos del proceso." %}</small></label>
+      <label>{% translate "Materia prima" %}<input type="number" name="cantidad" min="0.001" step="0.001" value="{{ cantidad_actual }}" {% if not editable %}disabled{% endif %}><small>{% if seleccion %}{{ reserva.receta.unidad_base }} {% translate "· corrida base:" %} {{ reserva.receta.cantidad_base|floatformat:"-3" }}{% else %}{% translate "En la unidad de la corrida base del proceso." %}{% endif %}</small></label>
+    </div>
+    {% if seleccion %}
+    <div class="sesion-facts">
+      <span><b>{{ seleccion.escala }}</b><small>{% translate "materia prima" %}</small></span>
+      <span><b>{{ seleccion.producto_esperado }}</b><small>de {{ seleccion.producto }}</small></span>
+      <span><b>{{ seleccion.espacios|length }} {% translate "áreas ·" %} {{ seleccion.equipos|length }} equipos</b><small>{% translate "marcados por el proceso" %}</small></span>
+      <span><b>{{ seleccion.sesion.horas|length }} h</b><small>{% translate "de línea seguidas" %}{% if seleccion.sesion.dias_extra %} {% translate "· sigue" %} {{ seleccion.sesion.dias_extra }} {% translate "día" %}{{ seleccion.sesion.dias_extra|pluralize }} {% translate "más" %}{% endif %}</small></span>
+    </div>
+    {% if aula %}<p class="sesion-aula"><i class="fas fa-calculator" aria-hidden="true"></i> {% translate "Simula con estos datos:" %} <a href="{{ aula.balance_url }}" target="_blank" rel="noopener">{% translate "balance de materia y energía" %}</a> · <a href="{{ aula.linea_url }}" target="_blank" rel="noopener">{% translate "balance de línea" %}</a> · <a href="{{ aula.materiales_url }}" target="_blank" rel="noopener">{% translate "materiales de la programación" %}</a> · <a href="{{ aula.ficha_url }}" target="_blank" rel="noopener">{% translate "ficha del proceso" %}</a></p>{% endif %}
+    <div class="sesion-insumos">
+      <strong>{% translate "Insumos y materiales del proceso" %}</strong>
+      {% for insumo in insumos %}
+      <div class="sesion-insumos__fila{% if insumo.obligatorio %} is-locked{% endif %}">
+        <div><strong>{{ insumo.nombre }}</strong><br><small>{{ insumo.clasificacion }}{% if insumo.etapa %} {% translate "· etapa" %} {{ insumo.etapa }}{% endif %}{% if insumo.agotado %} · <b>{% translate "agotado: el laboratorista lo repone antes de aprobar" %}</b>{% endif %}</small></div>
+        <label>{% translate "Cantidad (" %}{{ insumo.unidad }})<input type="number" name="insumo_{{ insumo.id }}" min="0" step="0.001" value="{{ insumo.cantidad_actual }}" {% if not editable %}disabled{% endif %}><small>{% translate "Propuesta del proceso:" %} {{ insumo.cantidad }} {{ insumo.unidad }}</small></label>
+        <b class="tag{% if not insumo.obligatorio %} is-optional{% endif %}">{% if insumo.obligatorio %}{% translate "Obligatorio" %}{% else %}{% translate "Opcional" %}{% endif %}</b>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="sesion-actions">
+      {% if editable %}<button type="submit" class="guide-btn guide-btn--gold"><i class="fas fa-save" aria-hidden="true"></i> {% translate "Guardar la sesión" %}</button>{% endif %}
+      {% if url_guia %}<a class="guide-btn guide-btn--soft" href="{{ url_guia }}"><i class="fas fa-book-open" aria-hidden="true"></i> {% if guia.estado_publicacion == 'publicada' %}{% translate "Ver la guía de la sesión" %}{% else %}{% translate "Completar la guía de la sesión" %}{% endif %}{% if guia %} · {{ guia.get_estado_publicacion_display|ui }}{% endif %}</a>{% endif %}
+    </div>
+  </form>
+</section>
+{% endblock %}

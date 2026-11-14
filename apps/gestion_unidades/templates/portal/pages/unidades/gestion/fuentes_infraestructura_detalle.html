@@ -1,0 +1,16 @@
+{% if tipo == 'PLAN-INFRA' and fila.detalle.alcance_infraestructura == 'no_aplica' %}
+<small>Declaración de no aplicación · Año {{ fila.fecha|date:'Y' }}</small>
+<small>{{ fila.detalle.justificacion_alcance|default:'Justificación pendiente' }}</small>
+{% else %}
+<small>Área: {{ fila.detalle.ubicacion|default:'Sin identificar' }}</small>
+{% if tipo == 'PLAN-INFRA' %}
+{% if fila.detalle.alcance_todo_laboratorio %}<small>Alcance completo del laboratorio declarado y respaldado en el plan</small>{% endif %}
+<small>{{ fila.detalle.intervencion|default:'Intervención sin definir' }} · Criticidad: {{ fila.criticidad_lectura }}</small>
+<small>Primera fecha: {{ fila.detalle.fecha_programada|default:'Sin definir' }} · {% if fila.detalle.frecuencia_dias == 0 %}Intervención única{% else %}Cada {{ fila.detalle.frecuencia_dias|default:'Sin definir' }} días{% endif %}</small>
+{% if fila.detalle.fecha_fin_programacion %}<small>Hasta: {{ fila.detalle.fecha_fin_programacion }}</small>{% endif %}
+{% else %}
+<small>Plan: {{ fila.detalle.plan_codigo|default:'Sin vincular' }} · Fecha prevista: {{ fila.detalle.fecha_programada|default:'Sin definir' }}</small>
+<small>Ejecución: {{ fila.detalle.fecha_inicio|default:'Sin inicio' }} — {{ fila.detalle.fecha_fin|default:'Sin cierre' }}</small>
+<small>{{ fila.detalle.resultado|default:'Resultado sin documentar' }}</small>
+{% endif %}
+{% endif %}

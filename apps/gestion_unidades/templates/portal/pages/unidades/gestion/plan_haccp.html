@@ -1,0 +1,62 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Plan HACCP ·" %} {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .haccp-parametro { display: block; font-size: 11px; color: #4f5f57; }
+    .haccp-pcc { display: inline-block; padding: 1px 6px; border-radius: 3px; background: #a12c2c; color: #fff; font-size: 10px; font-weight: 700; }
+    .haccp-diagrama { margin: 0 0 10px; border: 1px solid #dbe7df; border-radius: 6px; background: #fff; }
+    .haccp-diagrama > [data-reporte-informacion-abrir] { padding: 10px 12px; color: #275b87; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .haccp-diagrama > div { padding: 8px 12px; overflow-x: auto; }
+    .haccp-diagrama svg { display: block; min-width: 640px; margin: 0 auto; }
+    @media print { .haccp-diagrama > div { display: block; } }
+    .haccp-parametro b { color: #1f3d2f; }
+  </style>
+  {% if not documento_pdf %}{% include 'portal/components/reportes_interfaz_assets.html' %}{% include 'portal/components/gestion_interfaz_assets.html' %}{% endif %}
+  {% include 'portal/components/marco_incrustado.html' %}
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· CALIDAD E INOCUIDAD" %}</span>
+        <h1>{% translate "Plan HACCP" %}</h1>
+        <small>{% translate "Puntos críticos de control de cada proceso, sus límites, la vigilancia y la acción correctiva" %}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl><div><dt>{% translate "Procesos" %}</dt><dd>{{ haccp|length }}</dd></div><div><dt>{% translate "Planes de calidad" %}</dt><dd>{{ planes|length }}</dd></div><div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}" target="_top">{% translate "← Volver a la unidad" %}</a>
+      <div>{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+
+    <section class="unit-report__context"><span>PRINCIPIO</span><h2>{% translate "Cada etapa que decide la inocuidad tiene su límite, su vigilancia y su acción" %}</h2><p>{% translate "Los puntos críticos salen de la ficha de cada proceso; los parámetros y límites de los planes de calidad los vigilan en la recepción, durante el proceso y al liberar cada lote. Lo que sale del límite se registra como no conformidad y el lote no sigue hasta que la unidad decide su disposición." %}</p></section>
+
+    {% for item in haccp %}
+    <section class="unit-report__section">
+      <header><span>{{ item.receta.nombre|upper }}</span><small>{{ item.filas|length }} punto{{ item.filas|length|pluralize }} {% translate "crítico" %}{{ item.filas|length|pluralize }} {% translate "de control" %}</small></header>
+      {% if documento_pdf %}<section class="haccp-diagrama"><div>{{ item.diagrama|safe }}</div></section>{% else %}<div class="haccp-diagrama" data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="{% translate 'Diagrama de flujo y puntos críticos' %} · {{ item.receta.nombre }}" aria-haspopup="dialog">{% translate "Ver diagrama de flujo del proceso con sus PCC" %}</button><template data-reporte-informacion-contenido><div class="gestion-haccp-diagrama">{{ item.diagrama|safe }}</div></template></div>{% endif %}
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Etapa (PCC)" %}</th><th>{% translate "Parámetro del proceso" %}</th><th>{% translate "Límite crítico" %}</th><th>{% translate "Parámetros de calidad que lo vigilan" %}</th><th>{% translate "Vigilancia" %}</th><th>{% translate "Acción correctiva" %}</th></tr></thead><tbody>
+        {% for fila in item.filas %}<tr><td>{% if fila.codigo %}<span class="haccp-pcc">{{ fila.codigo }}</span> {% endif %}<strong>{{ fila.etapa.orden }}. {{ fila.etapa.nombre }}</strong>{% if fila.etapa.equipo %}<br><small>{{ fila.etapa.equipo.nombre }}</small>{% endif %}</td><td>{{ fila.peligro }}</td><td>{{ fila.limite }}</td><td>{% for parametro in fila.parametros %}<span class="haccp-parametro"><b>{{ parametro.nombre }}</b>: {{ parametro.limite_texto }} · {{ parametro.plan.nombre }}{% if parametro.metodo %} · {{ parametro.metodo }}{% endif %}</span>{% empty %}<small>{% translate "Se vigila con el parámetro del proceso; sin parámetro de calidad ligado." %}</small>{% endfor %}</td><td>{{ fila.monitoreo }}</td><td>{{ fila.accion }}</td></tr>{% empty %}<tr><td colspan="6">{% translate "El proceso no declara puntos críticos." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    {% endfor %}
+
+    <section class="unit-report__section">
+      <header><span>{% translate "PLANES DE CALIDAD" %}</span><small>{% translate "qué se mide y con qué límites" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Plan" %}</th><th>{% translate "Momento" %}</th><th>{% translate "Aplica a" %}</th><th>{% translate "Parámetros y límites" %}</th></tr></thead><tbody>
+        {% for plan in planes %}<tr><td><strong>{{ plan.nombre }}</strong><br><small>{{ plan.codigo }}</small></td><td>{{ plan.get_momento_display|ui }}</td><td>{{ plan.aplica_a }}</td><td>{% for parametro in plan.parametros_ordenados %}<span class="haccp-parametro"><b>{{ parametro.nombre }}</b>: {{ parametro.limite_texto }}{% if parametro.metodo %} · {{ parametro.metodo }}{% endif %}</span>{% empty %}<small>{% translate "Sin parámetros." %}</small>{% endfor %}</td></tr>{% empty %}<tr><td colspan="4">{% translate "La unidad no ha definido planes de calidad." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Plan HACCP ·" %} {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

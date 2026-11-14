@@ -1,0 +1,40 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Cómo funciona el centro" %}{% endblock %}
+{% block encabezado %}{% translate "Cómo funciona el centro" %}{% endblock %}
+{% block subtitulo %}{% translate "Una finca que produce y experimenta a la vez: quién hace qué, el ciclo de producción, sus ejes y cómo se usa" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Ejes productivos" %}</dt><dd>{{ ejes|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Cómo funciona el centro" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+{% if datos %}
+<section class="unit-report__section">
+  <h2>{% translate "El centro en datos" %}</h2>
+  <ul class="centro-datos">{% for icono, valor, detalle in datos %}<li><i class="{{ icono }}" aria-hidden="true"></i><strong>{{ valor }}</strong><span>{{ detalle }}</span></li>{% endfor %}</ul>
+  {% if fuente_datos %}<p class="centro-fuente">{% translate "Fuente:" %} {{ fuente_datos }}</p>{% endif %}
+</section>
+{% endif %}
+<section class="unit-report__section">
+  <h2>{% translate "Quién hace qué" %}</h2>
+  <ul class="centro-roles">{% for icono, rol, que_hace in roles %}<li><i class="{{ icono }}" aria-hidden="true"></i><div><strong>{{ rol }}</strong><p>{{ que_hace }}</p></div></li>{% endfor %}</ul>
+</section>
+<section class="unit-report__section">
+  <h2>{% translate "El ciclo de producción" %}</h2>
+  <p>{% translate "Con este ciclo el centro deja de producir solo en temporada de prácticas: cada eje planifica, produce, registra, entrega y evalúa." %}</p>
+  <ol class="centro-ciclo">{% for paso, explicacion in ciclo %}<li><strong>{{ paso }}</strong><p>{{ explicacion }}</p></li>{% endfor %}</ol>
+</section>
+{% if ejes %}
+<section class="unit-report__section">
+  <h2>{% translate "Sus ejes productivos" %}</h2>
+  <ul class="centro-ejes">{% for eje in ejes %}<li><h3><i class="{{ eje.icono }}" aria-hidden="true"></i><a href="{% url 'eje_centro' unidad.slug eje.codigo %}">{{ eje.titulo }}</a></h3><p>{{ eje.resumen }}</p></li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% if usos %}
+<section class="unit-report__section">
+  <h2>{% translate "Cómo se usa el centro" %}</h2>
+  <ul class="centro-roles">{% for icono, uso, explicacion in usos %}<li><i class="{{ icono }}" aria-hidden="true"></i><div><strong>{{ uso }}</strong><p>{{ explicacion }}</p></div></li>{% endfor %}</ul>
+  <p class="centro-fuente"><a href="{{ reservar_url }}">{% translate "Reservar una práctica, un recorrido o un servicio" %} →</a></p>
+</section>
+{% endif %}
+{% endblock %}

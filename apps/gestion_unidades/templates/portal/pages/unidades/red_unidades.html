@@ -1,0 +1,56 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n %}
+
+{% block title %}{% if foco %}{{ foco.nombre }} · {% endif %}{% translate "Red de unidades" %} | {{ identidad_producto.nombre_corto }}{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/red_unidades.css' %}?v=20261006-red-v4">
+{% endblock %}
+
+{% block portal_content %}
+<div class="institutional-page red-unidades">
+  <header class="red-unidades__cabecera">
+    <span class="red-unidades__antetitulo">{% translate "Cómo trabajan juntas" %}</span>
+    <h1>{% if foco %}{{ foco.nombre }}: {% translate "sus relaciones" %}{% else %}{% translate "Red de unidades" %}{% endif %}</h1>
+    <p>{% translate "Los centros experimentales producen la materia prima, las plantas piloto la transforman, los laboratorios analizan sus muestras y los observatorios siguen con datos lo que producen. Toca una unidad para ir a su ficha." %}</p>
+    {% if foco %}<p><a class="red-unidades__volver" href="{% url 'red_unidades' %}"><i class="simple-icon-share" aria-hidden="true"></i> {% translate "Ver toda la red" %}</a> <a class="red-unidades__volver" href="{{ foco.get_absolute_url }}"><i class="simple-icon-arrow-left" aria-hidden="true"></i> {% translate "Volver a la unidad" %}</a></p>{% endif %}
+  </header>
+
+  {% if red.relaciones %}
+  <ul class="red-unidades__leyenda" aria-label="{% translate "Tipos de relación" %}">{% for tipo in red.leyenda %}<li style="--color: {{ tipo.color }}"><i class="{{ tipo.icono }}" aria-hidden="true"></i> {{ tipo.nombre }}</li>{% endfor %}</ul>
+
+  <div class="red-unidades__lienzo" role="img" aria-label="{% translate "Diagrama de relaciones entre unidades" %}">
+    <svg viewBox="0 0 {{ red.ancho }} {{ red.alto }}" width="{{ red.ancho }}" height="{{ red.alto }}" aria-hidden="true">
+      {% for columna in red.columnas %}<text class="red-unidades__columna" x="{{ columna.x }}" y="34"><tspan>{{ columna.titulo }}</tspan></text>{% endfor %}
+      {% for trazo in red.trazos %}<path d="{{ trazo.camino }}" stroke="{{ trazo.color }}" class="red-unidades__trazo{% if trazo.atenuado %} is-atenuado{% endif %}"><title>{{ trazo.relacion }}</title></path>{% endfor %}
+    </svg>
+    {% for columna in red.columnas %}{% for nodo in columna.nodos %}
+    <a class="red-unidades__nodo{% if nodo.foco %} is-foco{% endif %}{% if nodo.atenuada %} is-atenuada{% endif %}" style="left: {{ nodo.x }}px; top: {{ nodo.y }}px; width: {{ red.ancho_nodo }}px" href="{{ nodo.unidad.get_absolute_url }}" title="{{ nodo.unidad.nombre }}">
+      <i class="{{ columna.icono }}" aria-hidden="true"></i><span>{{ nodo.unidad.nombre_corto|default:nodo.unidad.nombre }}{% if nodo.unidad.estado_catalogo == 'en_creacion' %} <small>{% translate "en creación" %}</small>{% endif %}</span>
+    </a>{% endfor %}{% endfor %}
+  </div>
+
+  {% if foco %}
+  <section class="red-unidades__detalle">
+    <h2>{% translate "Con quién se relaciona" %}</h2>
+    {% include 'portal/pages/unidades/detalle/relaciones_unidad.html' with grupos=relaciones_foco %}
+  </section>
+  {% endif %}
+
+  <section class="red-unidades__detalle">
+    <h2>{% translate "Todas las relaciones" %}</h2>
+    <div class="red-unidades__tabla-envoltura"><table class="red-unidades__tabla">
+      <thead><tr><th>{% translate "Unidad" %}</th><th>{% translate "Relación" %}</th><th>{% translate "Con" %}</th><th>{% translate "Qué pasa de una a otra" %}</th></tr></thead>
+      <tbody>{% for relacion in red.relaciones %}<tr{% if foco and foco.pk != relacion.origen_id and foco.pk != relacion.destino_id %} class="is-atenuada"{% endif %}>
+        <td><a href="{{ relacion.origen.get_absolute_url }}">{{ relacion.origen.nombre }}</a></td>
+        <td>{{ relacion.get_tipo_display }}</td>
+        <td><a href="{{ relacion.destino.get_absolute_url }}">{{ relacion.destino.nombre }}</a></td>
+        <td>{{ relacion.que_fluye|default:"—" }}</td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  {% else %}
+  <p class="red-unidades__vacio">{% translate "Todavía no hay relaciones registradas entre unidades." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

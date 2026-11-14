@@ -1,0 +1,171 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ eje.titulo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+  <link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce ficha area">
+  <header class="conoce__portada area__portada{% if portada %} con-foto{% else %} area__portada--plano{% endif %}"{% if portada %} style="--conoce-foto: url('{{ portada.imagen.url }}')"{% endif %}>
+    {% if portada.credito %}<span class="centro-eje__credito">{% translate "Foto:" %} {% if portada.fuente %}<a href="{{ portada.fuente }}" target="_blank" rel="noopener noreferrer">{{ portada.titulo }} · {{ portada.credito }}</a>{% else %}{{ portada.titulo }} · {{ portada.credito }}{% endif %}</span>{% endif %}
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Eje productivo" %} · {{ unidad.nombre_corto|default:unidad.nombre }}</span>{% if puede_editar %}<a class="equipo__editar" href="{% url 'editar_registro' unidad.slug 'eje_productivo' eje.pk %}" data-editar-ficha data-editar-titulo="{{ eje.titulo }}"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar el eje" %}</a>{% endif %}
+      <h1>{{ eje.titulo }}</h1>
+      <p class="conoce__lema">{{ eje.resumen }}</p>
+      <ul class="conoce__datos">
+        <li><i class="{{ eje.icono }}" aria-hidden="true"></i>{% translate "Eje productivo" %}</li>
+        {% if eje.lista_rubros %}<li><i class="fas fa-seedling" aria-hidden="true"></i>{{ eje.lista_rubros|join:", " }}</li>{% endif %}
+      </ul>
+      <div class="conoce__portada-acciones">
+        <a class="conoce__boton is-principal" href="{{ reservar_url }}"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Reservar una práctica o una visita" %}</a>
+        <a class="conoce__boton" href="{% url 'ejes_centro' unidad.slug %}"><i class="fas fa-th-large" aria-hidden="true"></i> {% translate "Todos los ejes" %}</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "El eje en cifras" %}">
+    <div data-aparecer><i class="fas fa-seedling" aria-hidden="true"></i><strong data-contar="{{ eje.lista_rubros|length }}">{{ eje.lista_rubros|length }}</strong><span>{% translate "Rubros" %}</span></div>
+    <div data-aparecer><i class="fas fa-shoe-prints" aria-hidden="true"></i><strong data-contar="{{ eje.pasos|length }}">{{ eje.pasos|length }}</strong><span>{% translate "Pasos de trabajo" %}</span></div>
+    <div data-aparecer><i class="fas fa-vector-square" aria-hidden="true"></i><strong data-contar="{{ espacios|length }}">{{ espacios|length }}</strong><span>{% translate "Áreas del centro" %}</span></div>
+    <div data-aparecer><i class="fas fa-truck-loading" aria-hidden="true"></i><strong data-contar="{{ eje.destinos|length }}">{{ eje.destinos|length }}</strong><span>{% translate "Destinos de lo que produce" %}</span></div>
+  </section>
+
+  <nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+    <a href="#que-produce" data-indice="que-produce">{% translate "Qué produce" %}</a>
+    {% if galeria %}<a href="#galeria" data-indice="galeria">{% translate "Galería" %}</a>{% endif %}
+    {% if eje.pasos %}<a href="#como-trabaja" data-indice="como-trabaja">{% translate "Cómo trabaja" %}</a>{% endif %}
+    {% if eje.temporadas %}<a href="#calendario" data-indice="calendario">{% translate "Calendario" %}</a>{% endif %}
+    {% if espacios %}<a href="#areas" data-indice="areas">{% translate "Áreas" %}</a>{% endif %}
+    {% if eje.destinos %}<a href="#destino" data-indice="destino">{% translate "A dónde va" %}</a>{% endif %}
+    {% if videos %}<a href="#videos" data-indice="videos">{% translate "Videos" %}</a>{% endif %}
+    {% if eje.publicos or eje.lista_practicas %}<a href="#quien" data-indice="quien">{% translate "Para quién sirve" %}</a>{% endif %}
+    {% if eje.necesidades %}<a href="#producir-mas" data-indice="producir-mas">{% translate "Para producir más" %}</a>{% endif %}
+    {% if eje.lista_temas %}<a href="#investigacion" data-indice="investigacion">{% translate "Investigación" %}</a>{% endif %}
+    {% if otros %}<a href="#otros" data-indice="otros">{% translate "Otros ejes" %}</a>{% endif %}
+  </nav>
+
+  <section class="conoce__seccion" id="que-produce">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El eje" %}</span><h2>{% translate "Qué produce y para qué" %}</h2></header>
+    <div class="area__explicacion">
+      <article class="ficha__bloque ficha__bloque--creacion" data-aparecer><header><i class="{{ eje.icono }}" aria-hidden="true"></i><h2>{% translate "Qué produce" %}</h2></header><div class="area__texto">{{ eje.que_produce|linebreaks }}</div></article>
+      {% if eje.lista_rubros %}<article class="ficha__bloque" data-aparecer><header><i class="fas fa-list" aria-hidden="true"></i><h2>{% translate "Sus rubros" %}</h2></header><ul class="area__lista">{% for rubro in eje.lista_rubros %}<li>{{ rubro }}</li>{% endfor %}</ul></article>{% endif %}
+    </div>
+  </section>
+
+  {% if galeria %}
+  <section class="conoce__seccion" id="galeria">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En imágenes" %}</span><h2>{% translate "Galería del eje" %}</h2></header>
+    <div class="area__collage area__collage--{{ galeria|length|stringformat:'s' }}" data-aparecer>
+      {% for imagen in galeria %}<button type="button" class="area__collage-pieza" data-abrir-imagen="{{ forloop.counter0 }}" aria-label="{% translate "Ampliar" %}: {{ imagen.titulo }}">
+        <img src="{{ imagen.imagen.url }}" alt="{{ imagen.titulo }}" loading="lazy">
+        <span class="area__collage-pie"><strong>{{ imagen.titulo }}</strong><small>{{ imagen.credito }}</small></span>
+        <i class="fas fa-expand area__collage-ampliar" aria-hidden="true"></i>
+      </button>{% endfor %}
+    </div>
+    <p class="ficha__nota">{% translate "Fotos con licencia libre que ilustran el eje, con su crédito; las fotos propias del centro las reemplazan cuando se suben." %}</p>
+  </section>
+  {% endif %}
+
+  {% if eje.pasos %}
+  <section class="conoce__seccion" id="como-trabaja">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Paso a paso" %}</span><h2>{% translate "Cómo trabaja el eje" %}</h2></header>
+    <div class="area__diagrama" data-diagrama data-aparecer>
+      <header><i class="fas fa-project-diagram" aria-hidden="true"></i><div><strong>{% translate "Diagrama: cómo trabaja, paso a paso" %}</strong><small>{% translate "Toca cada paso para ver qué pasa en él." %}</small></div></header>
+      <ol class="area__diagrama-pasos">{% for titulo, explicacion in eje.pasos %}<li><button type="button" data-paso="{{ forloop.counter0 }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"><b>{{ forloop.counter }}</b><span>{{ titulo }}</span></button></li>{% endfor %}</ol>
+      {% for titulo, explicacion in eje.pasos %}<div class="area__diagrama-panel" data-panel-paso="{{ forloop.counter0 }}"{% if not forloop.first %} hidden{% endif %}><span>{% translate "Paso" %} {{ forloop.counter }} {% translate "de" %} {{ eje.pasos|length }}</span><strong>{{ titulo }}</strong><p>{{ explicacion }}</p></div>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if eje.temporadas %}
+  <section class="conoce__seccion" id="calendario">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cuándo se hace qué" %}</span><h2>{% translate "Calendario del eje" %}</h2></header>
+    <ol class="centro-temporadas" data-aparecer>{% for cuando, que in eje.temporadas %}<li><strong>{{ cuando }}</strong><p>{{ que }}</p></li>{% endfor %}</ol>
+  </section>
+  {% endif %}
+
+  {% if espacios %}
+  <section class="conoce__seccion" id="areas">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Dónde se trabaja" %}</span><h2>{% translate "Áreas del centro que lo componen" %}</h2></header>
+    <ul class="area__otras" data-aparecer>{% for espacio in espacios %}<li><a href="{% url 'area_unidad' unidad.slug espacio.codigo %}"><i class="fas fa-vector-square" aria-hidden="true"></i><span><strong>{{ espacio.nombre }}</strong><small>{{ espacio.get_tipo_display }}{% if espacio.capacidad %} · {% translate "hasta" %} {{ espacio.capacidad }} {% translate "personas" %}{% endif %}</small></span></a></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if eje.destinos %}
+  <section class="conoce__seccion" id="destino">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que sale del eje" %}</span><h2>{% translate "A dónde va lo que produce" %}</h2></header>
+    <ul class="centro-destinos" data-aparecer>{% for destino, que in eje.destinos %}<li><i class="fas fa-arrow-right" aria-hidden="true"></i><div><strong>{{ destino }}</strong>{% if que %}<p>{{ que }}</p>{% endif %}</div></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if videos %}
+  <section class="conoce__seccion" id="videos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para aprender el manejo" %}</span><h2>{% translate "Videos" %}</h2></header>
+    <div class="area__videos" data-videos data-aparecer>
+      <div class="area__video-principal">
+        <button type="button" class="area__video-pantalla" data-reproducir data-video="{{ videos.0.id }}" aria-label="{% translate "Reproducir" %}: {{ videos.0.titulo }}" style="--miniatura: url('https://i.ytimg.com/vi/{{ videos.0.id }}/hqdefault.jpg')">
+          <span class="area__video-play"><i class="fas fa-play" aria-hidden="true"></i></span>
+        </button>
+        <div class="area__video-datos"><strong data-video-titulo>{{ videos.0.titulo }}</strong><small data-video-canal>{{ videos.0.canal }}</small><p data-video-descripcion>{{ videos.0.descripcion }}</p></div>
+      </div>
+      {% if videos|length > 1 %}<ol class="area__video-lista">
+        {% for video in videos %}<li><button type="button" data-elegir-video="{{ video.id }}" data-titulo="{{ video.titulo }}" data-canal="{{ video.canal }}" data-descripcion="{{ video.descripcion }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+          <img src="https://i.ytimg.com/vi/{{ video.id }}/mqdefault.jpg" alt="" loading="lazy"><span><strong>{{ video.titulo }}</strong><small>{{ video.canal }}</small></span>
+        </button></li>{% endfor %}
+      </ol>{% endif %}
+    </div>
+    <p class="ficha__nota">{% translate "Los videos son de sus autores y se cargan desde YouTube solo al reproducirlos." %}</p>
+  </section>
+  {% endif %}
+
+  {% if eje.publicos or eje.lista_practicas %}
+  <section class="conoce__seccion" id="quien">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para quién sirve" %}</span><h2>{% translate "Qué le sirve a cada quien" %}</h2></header>
+    {% if eje.publicos %}<ul class="centro-publicos" data-aparecer>{% for publico, uso in eje.publicos %}<li><i class="fas fa-user-friends" aria-hidden="true"></i><div><strong>{{ publico }}</strong>{% if uso %}<p>{{ uso }}</p>{% endif %}</div></li>{% endfor %}</ul>{% endif %}
+    {% if eje.lista_practicas %}<article class="ficha__bloque" data-aparecer><header><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i><h2>{% translate "Prácticas y asignaturas que atiende" %}</h2></header><ul class="area__lista">{% for practica in eje.lista_practicas %}<li>{{ practica }}</li>{% endfor %}</ul></article>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if eje.necesidades %}
+  <section class="conoce__seccion" id="producir-mas">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Qué le falta" %}</span><h2>{% translate "Para producir más y mejor" %}</h2></header>
+    <ul class="centro-destinos is-necesidades" data-aparecer>{% for necesidad, permite in eje.necesidades %}<li><i class="fas fa-tools" aria-hidden="true"></i><div><strong>{{ necesidad }}</strong>{% if permite %}<p>{{ permite }}</p>{% endif %}</div></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if eje.lista_temas %}
+  <section class="conoce__seccion" id="investigacion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para tesis, prácticas y proyectos" %}</span><h2>{% translate "Temas de investigación abiertos" %}</h2></header>
+    <ul class="area__puntos" data-aparecer>{% for tema in eje.lista_temas %}<li><i class="fas fa-search" aria-hidden="true"></i>{{ tema }}</li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if otros %}
+  <section class="conoce__seccion area__otras-seccion" id="otros">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Sigue recorriendo" %}</span><h2>{% translate "Otros ejes del centro" %}</h2></header>
+    <ul class="area__otras" data-aparecer>{% for otro in otros %}<li><a href="{% url 'eje_centro' unidad.slug otro.codigo %}"><i class="{{ otro.icono }}" aria-hidden="true"></i><span><strong>{{ otro.titulo }}</strong><small>{{ otro.resumen|truncatechars:70 }}</small></span></a></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if galeria %}
+  <dialog class="area__visor" data-visor aria-label="{% translate "Galería del eje" %}">
+    <button type="button" class="area__cerrar" data-cerrar-visor aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+    <button type="button" class="area__visor-paso is-anterior" data-visor-paso="-1" aria-label="{% translate "Anterior" %}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+    <figure><img data-visor-imagen src="" alt=""><figcaption><strong data-visor-titulo></strong><small data-visor-rotulo></small><span data-visor-cuenta></span></figcaption></figure>
+    <button type="button" class="area__visor-paso is-siguiente" data-visor-paso="1" aria-label="{% translate "Siguiente" %}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+    <script type="application/json" data-visor-imagenes>[{% for imagen in galeria %}{"url": "{{ imagen.imagen.url|escapejs }}", "titulo": "{{ imagen.titulo|escapejs }}", "rotulo": "{{ imagen.credito|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+  </dialog>
+  {% endif %}
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+  <script src="{% static 'portal/js/pages/unidades/area_unidad.js' %}?v=20261004-area-v4"></script>
+  {% if puede_editar %}<script src="{% static 'portal/js/components/edicion_en_ficha.js' %}?v=20261003-altas-v1"></script>{% endif %}
+</body>
+</html>

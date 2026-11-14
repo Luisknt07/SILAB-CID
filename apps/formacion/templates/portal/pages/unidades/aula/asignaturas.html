@@ -1,0 +1,36 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Asignaturas y carreras" %}{% endblock %}
+{% block encabezado %}{% translate "Asignaturas y carreras que atiende" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué asignaturas practican en la unidad, de qué carreras y en qué semestre" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Asignaturas" %}</dt><dd>{{ total }}</dd></div><div><dt>{% translate "Carreras" %}</dt><dd>{{ carreras|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Asignaturas y carreras" %}{% endblock %}
+{% block contenido %}
+{% if carreras|length > 1 %}
+<ul class="aula-mapa" aria-label="{% translate "Carreras que atiende" %}">
+  {% for carrera in carreras %}<li><a class="aula-mapa__item" href="#carrera-{{ forloop.counter }}">
+    <span class="aula-mapa__icono"><i class="fas fa-user-graduate" aria-hidden="true"></i></span>
+    <span class="aula-mapa__texto"><strong>{{ carrera.nombre }}</strong><small>{% for asignatura in carrera.asignaturas|slice:":3" %}{{ asignatura.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if carrera.asignaturas|length > 3 %}…{% endif %}</small></span>
+    <span class="aula-mapa__cuenta">{{ carrera.asignaturas|length }}<small>asignatura{{ carrera.asignaturas|length|pluralize }}</small></span>
+  </a></li>{% endfor %}
+</ul>
+{% endif %}
+{% for carrera in carreras %}
+<section class="unit-report__section" id="carrera-{{ forloop.counter }}">
+  <header><span>{{ carrera.nombre|upper }}</span><small>{{ carrera.asignaturas|length }} {% translate "asignatura" %}{{ carrera.asignaturas|length|pluralize }}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Asignatura" %}</th><th>{% translate "Código" %}</th><th>{% translate "Semestre" %}</th><th>{% translate "Período" %}</th><th>{% translate "Qué practica aquí" %}</th></tr></thead><tbody>
+    {% for asignatura in carrera.asignaturas %}<tr>
+      <td><strong>{{ asignatura.nombre }}</strong>{% include 'portal/pages/unidades/includes/editar.html' with clave='asignatura' pk=asignatura.pk titulo=asignatura.nombre %}</td>
+      <td>{{ asignatura.codigo }}</td>
+      <td>{{ asignatura.semestre|default:"—" }}</td>
+      <td>{{ asignatura.periodo|default:"—" }}</td>
+      <td>{{ asignatura.descripcion|default:"—" }}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "La unidad todavía no registra asignaturas." %}</p>
+{% endfor %}
+{% translate "Nueva asignatura" as titulo_nuevo %}{% translate "Agregar una asignatura" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='asignatura' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

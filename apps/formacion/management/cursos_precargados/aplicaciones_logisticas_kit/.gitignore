@@ -1,0 +1,6 @@
+.qa/
+__pycache__/
+contenido/db.sqlite3
+contenido/.secreto-local
+contenido/.venv/
+contenido/opencode.json

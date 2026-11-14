@@ -1,0 +1,47 @@
+{% load static i18n %}<!doctype html>
+{% comment %}
+Ubicación y cómo llegar: el centro sobre el mapa de las sedes de la institución, con el mismo mapa que usan las
+unidades (Leaflet y OpenStreetMap). El mapa ocupa todo el visor; la ficha del centro flota sobre él.
+{% endcomment %}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ subpagina.titulo }} · {{ centro.sigla|default:centro.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'js/vendor/leaflet/leaflet.css' %}?v=1.9.4">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/mapa_unidad.css' %}?v=20260928-piso-foto-v1">
+  <link rel="stylesheet" href="{% static 'centros_id/visor.css' %}?v=20261007-cid-v18">
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="mapa-unidad-pagina cv" data-clave="{{ subpagina.clave }}" data-titulo="{{ subpagina.titulo }}" data-pestana="{{ pestana.clave }}" data-ficha="{{ ficha_url }}">
+  <main class="mapa-unidad-pagina__lienzo">
+    <div class="mapa-unidad" data-mapa-unidad role="region" aria-label="{% translate "Mapa de ubicación de" %} {{ centro.nombre }}"></div>
+    <div class="mapa-unidad__aviso" data-mapa-aviso{% if mapa.punto %} hidden{% endif %}>{% if not mapa.punto %}
+      <strong>{% translate "Punto exacto por marcar" %}</strong>
+      <span>{% if centro.direccion %}{{ centro.direccion }}. {% elif centro.ubicacion %}{{ centro.ubicacion }}. {% endif %}{% translate "Mientras tanto se muestran las sedes de la" %} {{ identidad_institucion.siglas }}.</span>
+      {% if completar %}<a href="{{ completar }}" target="_top">{% translate "Marcarlo en el administrador" %} →</a>{% elif mapa.comoLlegar %}<a href="{{ mapa.comoLlegar }}" target="_blank" rel="noopener">{% translate "Buscar la dirección" %} ↗</a>{% endif %}
+    {% endif %}</div>
+    <aside class="cv-mapa-ficha">
+      <strong>{{ centro.nombre }}</strong>
+      {% if centro.ubicacion %}<span>{{ centro.ubicacion }}</span>{% endif %}
+      {% if centro.direccion %}<span>{{ centro.direccion }}</span>{% endif %}
+      {% if centro.horario_atencion %}<span><i class="fas fa-clock" aria-hidden="true"></i> {{ centro.horario_atencion }}</span>{% endif %}
+      {% if centro.como_llegar %}<p>{{ centro.como_llegar|linebreaksbr }}</p>{% endif %}
+      {% if mapa.comoLlegar %}<a class="cv-mapa-ficha__boton is-principal" href="{{ mapa.comoLlegar }}" target="_blank" rel="noopener"><i class="fas fa-directions" aria-hidden="true"></i> {% translate "Cómo llegar" %}</a>{% endif %}
+      {% if mapa.punto %}<button type="button" class="cv-mapa-ficha__boton" data-mapa-ver="unidad"><i class="fas fa-crosshairs" aria-hidden="true"></i> {% translate "Ver el centro" %}</button>{% endif %}
+    </aside>
+    <aside class="mapa-unidad__leyenda">
+      <span><i class="mapa-unidad__muestra mapa-unidad__muestra--sede" aria-hidden="true"></i>{% translate "Sedes de la" %} {{ identidad_institucion.siglas }}</span>
+      <span><i class="mapa-unidad__muestra" aria-hidden="true"></i>{% translate "Edificios" %}</span>
+      {% if completar %}<div><a href="{{ completar }}" target="_top">{% translate "Editar ubicación" %}</a></div>{% endif %}
+    </aside>
+  </main>
+  {{ mapa|json_script:"datosMapaUnidad" }}
+  <script src="{% static 'js/vendor/leaflet/leaflet.js' %}?v=1.9.4"></script>
+  <script src="{% static 'portal/js/pages/unidades/mapa_unidad.js' %}?v=20260928-piso-foto-v1"></script>
+  <script src="{% static 'centros_id/visor.js' %}?v=20261007-cid-v18"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{% load i18n %}
+{% if area.sectores_operativos %}
+<section class="conoce__seccion" id="operaciones">
+  <header class="conoce__titulo"><span class="conoce__antetitulo">{% translate 'Del recurso a la operación' %}</span><h2>{% translate 'Sectores y operaciones' %}</h2></header>
+  <div class="cv-operaciones">{% for nombre, actividad, evidencia in area.sectores_operativos %}<article><span class="cv-operaciones__numero">{{ forloop.counter|stringformat:'02d' }}</span><h3>{{ nombre }}</h3><p>{{ actividad }}</p><p class="cv-operaciones__control"><i class="fas fa-clipboard-check" aria-hidden="true"></i><strong>{% translate 'Control y evidencia' %}</strong> {{ evidencia }}</p></article>{% endfor %}</div>
+</section>
+{% endif %}
+{% if area.lista_insumos %}
+<section class="conoce__seccion" id="materiales"><header class="conoce__titulo"><span class="conoce__antetitulo">{% translate 'Preparar el trabajo' %}</span><h2>{% translate 'Insumos y materiales' %}</h2></header><dl class="cv-materiales">{% for nombre, detalle in area.lista_insumos %}<div><dt><i class="fas fa-boxes" aria-hidden="true"></i>{{ nombre }}</dt><dd>{{ detalle }}</dd></div>{% endfor %}</dl><p class="ficha__nota">{% translate 'La aceptación de materiales, cantidades y recursos se confirma en el expediente; estas categorías no representan existencias disponibles.' %}</p></section>
+{% endif %}
+{% if area.aplicaciones_academicas %}
+<section class="conoce__seccion" id="carreras"><header class="conoce__titulo"><span class="conoce__antetitulo">{% translate 'Participación con propósito' %}</span><h2>{% translate 'Qué hace cada carrera aquí' %}</h2></header><div class="cv-academia">{% for carrera, actividad, evidencia in area.aplicaciones_academicas %}<article><h3><i class="fas fa-graduation-cap" aria-hidden="true"></i>{{ carrera }}</h3><p>{{ actividad }}</p><p><strong>{% translate 'Evidencia de trabajo' %}:</strong> {{ evidencia }}</p></article>{% endfor %}</div><p class="ficha__nota">{% translate 'Prácticas, visitas, pasantías e investigación se acuerdan con la coordinación académica y la oficina de innovación: objetivo, responsable, inducción, recursos, horario y evaluación.' %}</p></section>
+{% endif %}

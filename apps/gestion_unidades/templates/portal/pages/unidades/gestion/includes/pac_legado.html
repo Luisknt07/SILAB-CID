@@ -1,0 +1,38 @@
+<div class="guide-field guide-field--wide guide-editor-keep pac-editor pac-editor--legado" data-campo="compras" data-tabla="compras" data-pac-legado>
+  <header class="pac-editor__cabecera">
+    <div><h3>Necesidades del plan anual de compras</h3><p>Consulta del contenido enviado. Se muestran los datos conservados con el documento.</p></div>
+    <div class="pac-editor__total"><span>Total previsto (USD)</span><output>{% if dato.pac_total is not None %}{{ dato.pac_total|floatformat:2 }}{% else %}—{% endif %}</output></div>
+  </header>
+  {% if dato.centro_costo %}<p class="pac-editor__orientacion">Centro de costo agrupador registrado: <strong>{{ dato.centro_costo }}</strong></p>{% endif %}
+  <div class="pac-editor__desplazamiento" role="region" aria-label="Necesidades conservadas en el documento enviado" tabindex="0">
+    <table class="pac-editor__tabla pac-legado__tabla" aria-label="Necesidades del plan anual enviado">
+      <thead><tr><th><div class="pac-legado__columnas"><span>Bien o servicio</span><span>Cantidad</span><span>Valor unitario (USD)</span><span>Total (USD)</span><span>Justificación registrada</span></div></th></tr></thead>
+      <tbody>{% for fila_pac in dato.filas_pac %}<tr><td>
+        <div class="pac-necesidad pac-legado__necesidad">
+          <input type="hidden" name="compras__id_necesidad" value="{{ fila_pac.valor.id_necesidad|default:'' }}">
+          <div class="pac-legado__columnas pac-legado__datos">
+            <span>{{ fila_pac.valor.item }}</span><span>{{ fila_pac.valor.cantidad }}</span><span>{{ fila_pac.valor.costo_unitario }}</span>
+            <strong>{% if fila_pac.total is not None %}{{ fila_pac.total|floatformat:2 }}{% else %}—{% endif %}</strong><span>{{ fila_pac.valor.justificacion|default:'—' }}</span>
+          </div>
+          <div class="pac-necesidad__inferior"><span class="pac-necesidad__numero">Necesidad {{ forloop.counter }}</span>
+            <details class="pac-necesidad__detalle pac-necesidad__administracion"><summary>Clasificación administrativa registrada</summary>
+              <dl class="pac-legado__clasificacion">
+                <div><dt>CPC</dt><dd>{{ fila_pac.valor.cpc|default:'—' }}</dd></div>
+                <div><dt>Partida presupuestaria</dt><dd>{{ fila_pac.valor.partida|default:'—' }}</dd></div>
+                <div><dt>Grupo de gasto</dt><dd>{{ fila_pac.valor.grupo|default:'—' }}</dd></div>
+                <div><dt>Clasificación PAC / NO PAC</dt><dd>{% if fila_pac.valor.clasificacion_pac == 'pac' %}PAC{% elif fila_pac.valor.clasificacion_pac == 'no_pac' %}NO PAC{% else %}Por definir{% endif %}</dd></div>
+                <div><dt>Fuente de financiamiento universitaria</dt><dd>{{ fila_pac.valor.fuente_pac|default:'—' }}</dd></div>
+                {% if fila_pac.valor.observaciones %}<div class="pac-legado__ancho"><dt>Observaciones</dt><dd>{{ fila_pac.valor.observaciones }}</dd></div>{% endif %}
+                {% if fila_pac.valor.categoria %}<div><dt>Categoría interna registrada</dt><dd>{{ fila_pac.valor.categoria|capfirst }}</dd></div>{% endif %}
+                {% if fila_pac.valor.prioridad %}<div><dt>Prioridad registrada</dt><dd>{{ fila_pac.valor.prioridad|capfirst }}</dd></div>{% endif %}
+                {% if fila_pac.valor.fuente %}<div><dt>Fuente interna registrada</dt><dd>{{ fila_pac.valor.fuente|capfirst }}</dd></div>{% endif %}
+                {% if fila_pac.valor.trimestre %}<div><dt>Trimestre previsto</dt><dd>{{ fila_pac.valor.trimestre }}</dd></div>{% endif %}
+              </dl>
+            </details>
+          </div>
+        </div>
+      </td></tr>{% empty %}<tr><td class="pac-legado__vacio">Sin adquisiciones registradas en el documento enviado.</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <button type="button" data-anadir-fila hidden disabled aria-hidden="true">Añadir necesidad</button>
+</div>

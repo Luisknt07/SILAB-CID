@@ -1,0 +1,13 @@
+{% load i18n %}
+{% if equipo.solo_referencia %}
+  <span class="area__estado is-uso">{% translate "Propuesta por evaluar · no adquirida" %}</span>
+  {% if equipo.cantidad %}<br><small>{% translate "Cantidad propuesta (referencial):" %} {{ equipo.cantidad }}</small>{% endif %}
+{% elif equipo.unidades %}
+  <strong>{{ equipo.unidades|length }}</strong> {% translate "unidad" %}{{ equipo.unidades|length|pluralize:"es" }}<br>
+  <span class="area__estado {% if equipo.disponibles %}is-ok{% else %}is-fuera{% endif %}">{{ equipo.disponibles }} {% translate "disponible" %}{{ equipo.disponibles|pluralize }}</span>
+{% elif equipo.modelo_registrado %}
+  <span class="area__estado is-uso">{% translate "Sin unidades vinculadas a esta área" %}</span>
+{% else %}
+  <span class="area__estado is-uso">{% translate "Existencia por verificar" %}</span>
+  {% if equipo.cantidad %}<br><small>{% translate "Cantidad de referencia:" %} {{ equipo.cantidad }}</small>{% endif %}
+{% endif %}

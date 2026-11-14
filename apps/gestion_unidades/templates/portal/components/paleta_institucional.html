@@ -1,0 +1,90 @@
+{% load static marca %}
+<link rel="stylesheet" href="{% static 'portal/css/core/fuentes.css' %}?v=20261009-local-v1">
+{% if paleta_institucional %}
+<link rel="stylesheet" href="{% static 'portal/css/components/paleta_componentes.css' %}?v=20260917-inicio-editorial-v156-final">
+{% with componentes=paleta_institucional|componentes_paleta %}
+<style id="paleta-institucional">
+:root {
+ --institucion-primario: {{ paleta_institucional.primario }};
+ --institucion-oscuro: {{ paleta_institucional.oscuro }};
+ --institucion-acento: {{ paleta_institucional.acento }};
+ --institucion-texto: {{ paleta_institucional.texto }};
+ --institucion-fondo: {{ paleta_institucional.fondo }};
+ --institucion-primario-rgb: {{ componentes.primario_rgb }};
+ --institucion-primario-hover-rgb: {{ componentes.primario_hover_rgb }};
+ --institucion-oscuro-rgb: {{ componentes.oscuro_rgb }};
+ --institucion-acento-rgb: {{ componentes.acento_rgb }};
+ --institucion-acento-tinta-rgb: {{ componentes.acento_tinta_rgb }};
+ --institucion-acento-sobre-oscuro-rgb: {{ componentes.acento_sobre_oscuro_rgb }};
+ --institucion-texto-rgb: {{ componentes.texto_rgb }};
+ --institucion-fondo-rgb: {{ componentes.fondo_rgb }};
+ --institucion-primario-suave-rgb: {{ componentes.primario_suave_rgb }};
+ --institucion-superficie: {{ componentes.color_secundario }};
+ --institucion-primario-hover: {{ componentes.primario_hover }};
+ --institucion-primario-tinta: {{ componentes.primario_tinta }};
+ --institucion-primario-suave: {{ componentes.primario_suave }};
+ --institucion-acento-suave: {{ componentes.acento_suave }};
+ --institucion-acento-tinta: {{ componentes.acento_tinta }};
+ --institucion-acento-sobre-oscuro: {{ componentes.acento_sobre_oscuro }};
+ --institucion-borde: {{ componentes.borde }};
+ --institucion-linea-color: {{ componentes.linea_color }};
+ --institucion-linea-fondo: {{ componentes.linea_fondo }};
+ --institucion-linea-grosor: {{ componentes.linea_grosor }}px;
+ --institucion-linea-opacidad: {{ componentes.linea_opacidad|stringformat:'.2f' }};
+ --institucion-linea-ancho: {{ componentes.linea_ancho }}%;
+ --institucion-linea-fraccion: {{ componentes.linea_fraccion|stringformat:'.2f' }};
+ --institucion-degradado-superficie: {{ componentes.superficie_degradado }};
+ --institucion-capa-rgb: {{ componentes.capa_rgb }};
+ --institucion-placa: {{ componentes.placa }};
+ --institucion-placa-acento: {{ componentes.placa_acento }};
+ --institucion-capa-opacidad: {{ componentes.capa_opacidad|stringformat:'.2f' }};
+ --institucion-capa-ancho: {{ componentes.capa_ancho }}%;
+ --institucion-titulo: {{ componentes.titulo_color }};
+ {% if componentes.icono_color %}--institucion-icono: {{ componentes.icono_color }};{% endif %}
+ {% if componentes.fuente_cuerpo %}--institucion-fuente-cuerpo: {{ componentes.fuente_cuerpo|safe }}; --upec-font-family-body: var(--institucion-fuente-cuerpo);{% endif %}
+ {% if componentes.fuente_titulos %}--institucion-fuente-titulos: {{ componentes.fuente_titulos|safe }}; --upec-font-family-heading: var(--institucion-fuente-titulos);{% endif %}
+ --institucion-imagen-primaria: {{ componentes.imagen_primaria }};
+ --institucion-degradado-primario: {{ componentes.degradado_primario }};
+ --institucion-degradado-bandas: {{ componentes.degradado_bandas }};
+ --institucion-degradado-botones: {{ componentes.degradado_botones }};
+ --institucion-boton-principal: {{ componentes.boton_principal }};
+ --institucion-boton-principal-texto: {{ componentes.boton_principal_texto }};
+ --institucion-boton-acento: {{ componentes.boton_acento }};
+ --institucion-boton-acento-texto: {{ componentes.boton_acento_texto }};
+ --institucion-barra: {{ componentes.barra_color }};
+ --institucion-barra-imagen: {{ componentes.barra_imagen }};
+ --institucion-panel-modulo: {{ componentes.panel_modulo }};
+ --institucion-panel-modulo-texto: {{ componentes.panel_modulo_texto }};
+ --institucion-panel-carpeta: {{ componentes.panel_carpeta }};
+ --institucion-panel-seleccion: {{ componentes.panel_seleccion }};
+ --institucion-panel-seleccion-texto: {{ componentes.panel_seleccion_texto }};
+{% if componentes.panel_imagen != 'none' %} --institucion-panel-imagen: {{ componentes.panel_imagen }};
+{% endif %}{% if componentes.panel_modulo_fondo %} --institucion-panel-modulo-fondo: {{ componentes.panel_modulo_fondo }};
+{% endif %}{% if componentes.panel_carpeta_fondo %} --institucion-panel-carpeta-fondo: {{ componentes.panel_carpeta_fondo }};
+{% endif %} --upec-color-green-900: var(--institucion-primario); --upec-color-green-800: var(--institucion-primario);
+ --upec-color-green-700: var(--institucion-primario); --upec-color-green-600: var(--institucion-primario);
+ --upec-color-navy-950: var(--institucion-oscuro); --upec-color-navy-900: var(--institucion-oscuro);
+ --upec-color-gold-500: var(--institucion-acento); --upec-color-gold-400: var(--institucion-acento); --upec-color-gold-300: var(--institucion-acento);
+ --upec-color-ink: var(--institucion-texto); --upec-color-bg: var(--institucion-fondo); --upec-color-background: var(--institucion-fondo);
+ --upec-color-green-100: var(--institucion-primario-suave); --upec-color-line: var(--institucion-borde); --upec-color-muted: var(--institucion-texto);
+ --citt-admin-navy: var(--institucion-oscuro); --citt-admin-green: var(--institucion-primario); --citt-admin-green-2: var(--institucion-primario);
+ --citt-admin-gold: var(--institucion-acento); --citt-admin-ink: var(--institucion-texto); --citt-admin-soft: var(--institucion-fondo);
+}
+{% if paleta_institucional.escala_fuente %}html { font-size: {{ componentes.escala_fuente }}%; }{% endif %}
+{% if componentes.fuente_cuerpo %}body, button, input, select, textarea, table, p, th, td, label { font-family: var(--institucion-fuente-cuerpo) !important; }{% endif %}
+{% if componentes.fuente_titulos %}h1, h2, h3, h4, h5, h6 { font-family: var(--institucion-fuente-titulos) !important; }{% endif %}
+.home-top .home-contact { background-color: var(--institucion-barra); background-image: var(--institucion-barra-imagen); }
+.home-top .home-nav, .home-top.is-scrolled .home-nav { background: var(--institucion-oscuro); }
+.citt-admin-brand__mark { background: var(--institucion-oscuro); border-color: var(--institucion-acento); }
+{% if paleta_institucional.degradado_primario %}
+.citt-admin-brand__mark { background-image: var(--institucion-degradado-bandas); }
+#unitDetail #modulo-tabs .nav-link.active, #unitDetail #modulo-tabs .nav-link[aria-current="page"], .unit-detail__module-nav .nav-link.active { background: var(--institucion-primario) !important; background-image: none !important; }
+{% endif %}
+@media (max-width: 1199.98px) { .home-top .home-menu { background: var(--institucion-oscuro); } }
+</style>
+{% endwith %}
+{% endif %}
+
+<link rel="stylesheet" href="{% static 'portal/css/components/acciones_superficies.css' %}?v=20260928-interior-v1">
+
+<link rel="stylesheet" href="{% static 'portal/css/core/encuadre.css' %}?v=20261009-responsive-v3">

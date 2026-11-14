@@ -1,0 +1,10 @@
+{% load i18n %}<details class="contenidos-ficha__nueva">
+  <summary>{{ rotulo }}</summary>
+  <form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+    <input type="hidden" name="accion" value="crear_carpeta"><input type="hidden" name="volver" value="{{ volver }}">
+    {% if padre %}<input type="hidden" name="padre" value="{{ padre }}">{% else %}<input type="hidden" name="destino" value="{{ destino }}">{% endif %}
+    <label>{% translate "Nombre" %} <input type="text" name="nombre" maxlength="255" required></label>
+    <label>{% translate "Quién la ve" %} <select name="visibilidad">{% for clave, nombre in visibilidades %}<option value="{{ clave }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <button type="submit">{% translate "Crear carpeta" %}</button>
+  </form>
+</details>

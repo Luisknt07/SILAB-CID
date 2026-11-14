@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas %}
+
+{% block title %}{{ unidad.nombre }} · {{ identidad_producto.nombre_corto }} · {{ identidad_institucion.siglas }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/detalle_base.css' %}?v=20260920-contraste-v215">
+{% if nueva_seccion_url or ediciones %}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipo_editar.css' %}?v=20261009-editor-v2">
+<link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">{% endif %}
+<link rel="stylesheet" href="{% static 'portal/css/components/visor_pdf.css' %}?v=20261018-ancho-100">
+{% if relaciones_unidad or centros_id_integran %}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/red_unidades.css' %}?v=20261006-red-v4">{% endif %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reservas.css' %}?v=20261110-agendas-unificadas-v7">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/comprobante_reserva.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/detalle_visual.css' %}?v=20261012-fullscreen-v5">
+<link rel="stylesheet" href="{% static 'portal/css/components/portada_tecnologica.css' %}?v=20261003-portadas-v8">
+{% if puede_gestionar_unidad %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/panel_gestion.css' %}?v=20261020-areas-recursos-1">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/inventario_gestion.css' %}?v=20261022-visibilidad-2">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/gestion_cursos_panel.css' %}?v=20261009-1">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+{% include 'portal/components/gestion_interfaz_assets.html' %}
+{% endif %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% if not puede_gestionar_unidad %}{% include 'portal/components/agenda_assets.html' %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="project-detail-page" id="unitDetail">
+  <div id="hublabProjectConfig"
+       class="d-none"
+       data-project-id="{{ unidad.id }}"
+       data-project-name="{{ unidad.nombre }}"
+       data-project-slug="{{ unidad.slug }}"
+       data-initial-content-url="{% static 'portal/visualizadores/video_institucional/video_institucional.html' %}"
+       data-initial-video-id="{{ video_presentacion_id }}"
+       data-initial-video-title="{% if video_presentacion_propio %}{{ unidad.nombre }}{% else %}Laboratorios y Unidades experimentales{% endif %}"
+       data-initial-video-subtitle="{{ identidad_institucion.nombre }}"
+       data-initial-video-description="Vinculando el conocimiento científico con el desarrollo productivo y social de la región"></div>
+
+  <section class="project-detail-hero" id="unitHero" {% if unidad.imagen %}style="--unit-hero-image:url('{{ unidad.imagen.url }}')"{% endif %}>
+    <div class="unit-detail__hero-inner">
+      <div class="unit-detail__breadcrumbs">
+        <a class="unit-detail__back" href="{% url 'laboratorios_unidades' %}"><i class="simple-icon-arrow-left"></i> {% translate "Volver al listado" %}</a>
+        <span>{% translate "Laboratorios y Unidades Experimentales" %}</span><i class="simple-icon-arrow-right"></i>
+        <span>{{ unidad.nombre_tipologia }}</span><i class="simple-icon-arrow-right"></i>
+        <strong>{{ unidad.nombre }}</strong>
+      </div>
+
+      <div class="unit-detail__hero-copy">
+        <span class="unit-detail__eyebrow"><i class="simple-icon-layers"></i> {{ unidad.nombre_tipologia|default:'Capacidad institucional'|ui }}{% if unidad.nombre_corto %} · {{ unidad.nombre_corto }}{% endif %}</span>
+        <div class="unit-detail__mobile-title-row" style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px">
+          <h1>{{ unidad.nombre }}</h1>
+          <div class="unit-detail__mobile-actions" style="display:flex;gap:8px" aria-label="{% translate "Acciones de la unidad" %}">
+            <button type="button" data-ui-click="shareProject" class="unit-action unit-action--secondary" style="display:inline-flex;width:42px;min-width:42px;height:42px;min-height:42px;padding:0" aria-label="{% translate "Compartir unidad" %}" title="{% translate "Compartir" %}"><i class="fas fa-share-alt"></i></button>
+            {% if puede_gestionar_unidad %}
+            <a href="{% url 'gestion_unidad' unidad.slug %}" data-ui-click="abrirGestionLaboratorio" class="unit-action unit-action--management" style="display:inline-flex;width:42px;min-width:42px;height:42px;min-height:42px;padding:0" aria-label="{{ unidad.etiqueta_gestion }}" title="{{ unidad.etiqueta_gestion }}"><i class="fas fa-sliders-h"></i></a>
+            {% if configuracion_operativa.registra_produccion %}<a href="{% url 'erp_planta' unidad.slug %}" class="unit-action unit-action--management" style="display:inline-flex;width:42px;min-width:42px;height:42px;min-height:42px;padding:0" aria-label="{% translate "ERP de la planta" %}" title="{% translate "ERP de la planta" %}"><i class="fas fa-industry"></i></a>{% endif %}
+            {% endif %}
+            {% if unidad.dependencia == 'observatorios' %}<a href="{% url 'solicitudes_observatorio' unidad.slug %}" class="unit-action unit-action--primary" style="display:inline-flex;width:42px;min-width:42px;height:42px;min-height:42px;padding:0" aria-label="{% translate "Solicitar datos" %}" title="{% translate "Solicitar datos" %}"><i class="fas fa-database"></i></a>
+            {% elif configuracion_operativa.reservas_equipos or configuracion_operativa.reservas_espacios or configuracion_operativa.solicitudes_servicio %}
+            <button type="button" data-ui-click="abrirModalEquipos" class="unit-action unit-action--primary" style="display:inline-flex;width:42px;min-width:42px;height:42px;min-height:42px;padding:0" aria-label="{% translate "Reservar" %}" title="{% translate "Reservar" %}"><i class="fas fa-calendar"></i></button>
+            {% endif %}
+          </div>
+        </div>
+        {% if unidad.descripcion_corta %}<h2>{{ unidad.descripcion_corta }}</h2>{% endif %}
+        {% if unidad.descripcion %}<p>{{ unidad.descripcion }}</p>{% endif %}
+      </div>
+
+      <div class="unit-detail__hero-actions">
+        <button type="button" data-ui-click="shareProject" class="unit-action unit-action--secondary" aria-label="{% translate "Compartir unidad" %}" title="{% translate "Compartir" %}"><i class="fas fa-share-alt"></i><span>{% translate "Compartir" %}</span></button>
+        {% if puede_gestionar_unidad %}
+        <a href="{% url 'gestion_unidad' unidad.slug %}" data-ui-click="abrirGestionLaboratorio" class="unit-action unit-action--management" aria-label="{{ unidad.etiqueta_gestion }}" title="{{ unidad.etiqueta_gestion }}"><i class="fas fa-sliders-h"></i><span>{{ unidad.etiqueta_gestion }}</span></a>
+        {% if configuracion_operativa.registra_produccion %}<a href="{% url 'erp_planta' unidad.slug %}" class="unit-action unit-action--management" aria-label="{% translate "ERP de la planta" %}" title="{% translate "ERP de la planta" %}"><i class="fas fa-industry"></i><span>{% translate "ERP de la planta" %}</span></a>{% endif %}
+        {% endif %}
+        {% if unidad.dependencia == 'observatorios' %}<a href="{% url 'solicitudes_observatorio' unidad.slug %}" class="unit-action unit-action--primary" aria-label="{% translate "Solicitar datos o un análisis" %}" title="{% translate "Solicitar datos o un análisis" %}"><i class="fas fa-database"></i><span>{% translate "Solicitar datos" %}</span></a>
+        {% elif configuracion_operativa.reservas_equipos or configuracion_operativa.reservas_espacios or configuracion_operativa.solicitudes_servicio %}
+        <button type="button" data-ui-click="abrirModalEquipos" class="unit-action unit-action--primary" aria-label="{% translate "Reservar" %}" title="{% translate "Reservar" %}"><i class="fas fa-calendar"></i><span>{% translate "Reservar" %}</span></button>
+        {% endif %}
+      </div>
+      {% if unidad.imagen and unidad.credito_imagen %}<p class="unit-detail__credito" style="position:absolute;right:16px;top:12px;margin:0;font-size:11px;color:rgba(255,255,255,.85);text-shadow:0 1px 2px rgba(0,0,0,.6)">{% translate "Foto:" %} {% if unidad.credito_imagen_url %}<a href="{{ unidad.credito_imagen_url }}" target="_blank" rel="noopener noreferrer" style="color:inherit">{{ unidad.credito_imagen }}</a>{% else %}{{ unidad.credito_imagen }}{% endif %}</p>{% endif %}
+
+    </div>
+  </section>
+
+  <nav class="unit-detail__module-nav" aria-label="{% translate "Contenido de la unidad" %}">
+    <ul id="modulo-tabs" role="tablist" style="--unit-module-count:{{ modulos|length|default:1 }}">
+      {% for modulo in modulos %}
+      <li><a class="nav-link{% if forloop.first %} active{% endif %}" href="javascript:void(0);" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if forloop.first %} aria-current="page"{% endif %} data-modulo="{{ modulo.clave }}"{% if modulo.oculta_al_publico %} title="{% translate "Sin contenido publicado: el público no ve esta pestaña" %}"{% endif %}><i class="{{ modulo.icono|default:'iconsminds-folder' }}"></i><span>{{ modulo.nombre|ui }}</span>{% if modulo.oculta_al_publico %} <i class="fas fa-eye-slash" aria-label="{% translate "Oculta al público" %}"></i>{% endif %}</a></li>
+      {% empty %}<li class="unit-resource-empty">{% translate "No hay módulos activos." %}</li>{% endfor %}
+    </ul>
+  </nav>
+
+  {% include 'portal/pages/unidades/detalle/portadas_modulo.html' %}
+  {% if secciones_planta %}
+  <template data-seccion-integrada="requisitos-acceso">
+    <article class="plant-section-view plant-access-view">
+      <header><span>{% translate "Requisitos de acceso" %}</span><h2>{% translate "Condiciones para ingresar" %}</h2><p>{% translate "La unidad valida estas condiciones durante la solicitud y antes de iniciar la actividad." %}</p></header>
+      {% if acceso_reserva %}<aside class="plant-access-view__status"><i class="fas fa-user-check" aria-hidden="true"></i><div><small>{% translate "Perfil consultado" %}</small><strong>{{ acceso_reserva.categoria_display }}</strong>{% if acceso_reserva.pendientes %}<span>{{ acceso_reserva.pendientes|length }} requisito{{ acceso_reserva.pendientes|length|pluralize }} pendiente{{ acceso_reserva.pendientes|length|pluralize }}</span>{% else %}<span>{% translate "Sin documentos pendientes para este perfil." %}</span>{% endif %}</div></aside>{% endif %}
+      <div class="plant-access-view__grid">
+        {% for requisito in requisitos_ingreso %}<article><i class="fas {% if requisito.tipo == 'induccion' %}fa-chalkboard-teacher{% elif requisito.tipo == 'proteccion' %}fa-hard-hat{% elif requisito.tipo == 'documento' %}fa-file-shield{% else %}fa-clipboard-check{% endif %}" aria-hidden="true"></i><div><small>{{ requisito.tipo_display }} · {{ requisito.aplica_display }}</small><h3>{{ requisito.nombre }}</h3>{% if requisito.descripcion %}<p>{{ requisito.descripcion }}</p>{% endif %}<span>{% if requisito.obligatorio %}{% translate "Obligatorio" %}{% else %}{% translate "Opcional" %}{% endif %}{% if requisito.vigencia_dias %} {% translate "· vigencia de" %} {{ requisito.vigencia_dias }} {% translate "días" %}{% endif %}</span></div></article>{% empty %}<p class="unit-resource-empty">{% translate "Esta unidad no ha publicado requisitos adicionales." %}</p>{% endfor %}
+      </div>
+    </article>
+  </template>
+  {% if interior.plano_y_video %}
+  <template data-seccion-integrada="planta-interior">
+    <article class="plant-section-view plant-interior">
+      <header><span>{% translate "La planta por dentro" %}</span><h2>{% translate "Plano y recorrido en video" %}</h2><p>{% translate "Reconoce la distribución física de la unidad antes de ingresar." %}</p></header>
+      {% if unidad.plano_espacios %}<figure><img src="{{ unidad.plano_espacios.url }}" alt="Plano de {{ unidad.nombre }}"><figcaption>{% translate "Plano o layout de los espacios" %}</figcaption></figure>{% endif %}
+      {% if unidad.recorrido_espacios_youtube_embed_url %}<iframe src="{{ unidad.recorrido_espacios_youtube_embed_url }}" title="Recorrido por {{ unidad.nombre }}" allowfullscreen></iframe>{% endif %}
+    </article>
+  </template>
+  {% endif %}
+  {% endif %}
+  <main class="unit-detail__workspace project-detail-workspace">
+    <section class="unit-detail__viewer" aria-label="{% translate "Visualizador de contenidos" %}">
+      <header>
+        <div class="unit-detail__viewer-heading"><span id="viewer-eyebrow">{% translate "Archivo activo" %}</span><h2 id="viewer-title">{% if identidad_logistica_visible %}{% translate "Laboratorio por dentro" %}{% else %}{% translate "Video institucional" %}{% endif %}</h2></div>
+        <div class="unit-detail__viewer-actions" role="group" aria-label="{% translate 'Acciones de esta sección' %}">
+        <button type="button" class="unit-detail__section-link" id="unitViewerLink" title="{% translate 'Copiar enlace a esta sección' %}" aria-label="{% translate 'Copiar enlace a esta sección' %}"><i class="fas fa-link" aria-hidden="true"></i></button>
+        <button type="button"
+                class="unit-detail__fullscreen"
+                id="unitViewerFullscreen"
+                aria-label="{% translate "Ver visualizador en pantalla completa" %}"
+                aria-pressed="false"
+                title="{% translate "Pantalla completa" %}">
+          <i class="fas fa-expand" aria-hidden="true"></i>
+        </button>
+        </div>
+        <span class="unit-detail__link-status" id="unitViewerLinkStatus" role="status" aria-live="polite" hidden></span>
+      </header>
+      <div id="dynamic-content" class="tab-content content-section project-detail-content" data-view="simuladores">
+        {% if identidad_logistica_visible %}
+        <iframe data-initial-src="{% url 'logistica_identidad' unidad.slug %}" class="content-iframe" title="Mapa académico del laboratorio" referrerpolicy="same-origin"></iframe>
+        <noscript><a href="{% url 'logistica_identidad' unidad.slug %}">Abrir áreas, asignaturas y rutas de aprendizaje</a></noscript>
+        {% else %}
+        <iframe src="{% static 'portal/visualizadores/video_institucional/video_institucional.html' %}?video=IJxxIxTuMb8&amp;titulo=Laboratorios%20y%20Unidades%20experimentales&amp;subtitulo=Universidad%20Polit%C3%A9cnica%20Estatal%20del%20Carchi&amp;descripcion=Vinculando%20el%20conocimiento%20cient%C3%ADfico%20con%20el%20desarrollo%20productivo%20y%20social%20de%20la%20regi%C3%B3n" class="content-iframe" title="Video institucional de {{ unidad.nombre }}" allow="autoplay" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        {% endif %}
+      </div>
+    </section>
+
+    <aside class="unit-detail__sidebar">
+      <section class="unit-panel unit-panel--resources">
+        <h2>{% translate "Contenidos" %}</h2>
+
+        <div id="accordion" class="unit-resource-accordion">
+          {% for modulo in modulos %}
+          <div class="modulo-carpeta-list{% if not forloop.first %} hublab-module-hidden{% endif %}" data-modulo="{{ modulo.clave }}">
+            {% if modulo.clave == 'informacion-general' %}
+            {% if secciones_planta %}
+            {% if secciones_planta.presentacion and not secciones_planta.presentacion.oculta %}
+            <div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.presentacion.titulo }}">
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapsePresentacionPlanta" aria-expanded="true" aria-controls="collapsePresentacionPlanta"><span data-seccion="{{ secciones_planta.presentacion.numero }}"><i class="iconsminds-video"></i></span><strong>{{ secciones_planta.presentacion.titulo }}</strong><b>{{ secciones_planta.presentacion.total_personalizado|add:1 }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i></button>
+              <div id="collapsePresentacionPlanta" class="collapse show" data-parent="#accordion"><ul class="unit-resource-list">
+                <li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button{% if not identidad_logistica_visible %} active{% endif %}" data-id="video-institucional" data-section-title="{% translate "Presentación" %}"{% if not identidad_logistica_visible %} aria-current="true"{% endif %} data-ui-click="loadInitialUnitVideo"><i class="iconsminds-video"></i><span>{% if video_presentacion_propio %}{% translate "Video de la unidad" %}{% else %}{% translate "Video institucional" %}{% endif %}</span><i class="simple-icon-arrow-right"></i></button></li>
+              </ul>{% if secciones_planta.presentacion.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.presentacion.carpetas_personalizadas %}</div>{% endif %}{% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=secciones_planta.presentacion.agregar %}</div>
+            </div>
+            {% endif %}
+            {% if secciones_planta.unidad and not secciones_planta.unidad.oculta %}
+            <div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.unidad.titulo }}">
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseDatosPlanta" aria-expanded="false" aria-controls="collapseDatosPlanta"><span data-seccion="{{ secciones_planta.unidad.numero }}"><i class="fas fa-info-circle"></i></span><strong>{{ secciones_planta.unidad.titulo }}</strong><b>{{ secciones_planta.unidad.total_personalizado|add:2|add:conoce_la_unidad }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i></button>
+              <div id="collapseDatosPlanta" class="collapse" data-parent="#accordion"><ul class="unit-resource-list">{% if conoce_la_unidad %}<li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="conoce-unidad" data-section-title="{% translate "Conoce la unidad" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'conoce_unidad' unidad.slug %}" data-ui-arg1="conoce-unidad.html" data-ui-arg2="false"><i class="fas fa-book-open"></i><span>{% translate "Conoce la unidad" %}</span><i class="simple-icon-arrow-right"></i></button></li>{% endif %}<li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="datos-unidad" data-section-title="{% translate "Ficha de la unidad" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'ficha_unidad' unidad.slug %}" data-ui-arg1="ficha-unidad.html" data-ui-arg2="false"><i class="fas fa-id-card"></i><span>{% translate "Identidad, contacto y equipo técnico" %}</span><i class="simple-icon-arrow-right"></i></button></li><li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="ubicacion-unidad" data-section-title="{% translate "Ubicación" %}" data-ui-click="abrirUbicacion" data-ui-arg0="{% url 'ubicacion_unidad' unidad.slug %}"><i class="fas fa-map-marker-alt"></i><span>{% translate "Ubicación y cómo llegar" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>{% if secciones_planta.unidad.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.unidad.carpetas_personalizadas %}</div>{% endif %}{% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=secciones_planta.unidad.agregar %}</div>
+            </div>
+            {% endif %}
+            {% if secciones_planta.interior and not secciones_planta.interior.oculta %}
+            {% if interior.total or secciones_planta.interior.carpetas_personalizadas or puede_gestionar_unidad or identidad_logistica_visible %}{# Vacía, solo la ve quien la completa. #}
+            <div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.interior.titulo }}">
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseInteriorPlanta" aria-expanded="false" aria-controls="collapseInteriorPlanta"><span data-seccion="{{ secciones_planta.interior.numero }}"><i class="fas fa-drafting-compass"></i></span><strong>{{ secciones_planta.interior.titulo }}</strong><b>{{ interior.total|add:secciones_planta.interior.total_personalizado|add:identidad_logistica_visible }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i></button>
+              <div id="collapseInteriorPlanta" class="collapse" data-parent="#accordion">{% if interior.total or puede_gestionar_unidad or identidad_logistica_visible %}<ul class="unit-resource-list">{% if identidad_logistica_visible %}<li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button active" data-id="logistica-identidad" data-section-title="{% translate "Laboratorio por dentro" %}" aria-current="true" data-ui-click="replaceContent" data-ui-arg0="{% url 'logistica_identidad' unidad.slug %}" data-ui-arg1="logistica-identidad.html" data-ui-arg2="false"><i class="fas fa-project-diagram"></i><span>{% translate "Áreas, asignaturas y rutas de aprendizaje" %}</span><i class="simple-icon-arrow-right"></i></button></li>{% endif %}{% if interior.plano_y_video %}<li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="planta-interior" data-section-title="{{ secciones_planta.interior.titulo }}" data-ui-click="loadIntegratedSection" data-ui-arg0="planta-interior"><i class="fas fa-map-marked-alt"></i><span>{% translate "Plano y recorrido en video" %}</span><i class="simple-icon-arrow-right"></i></button></li>{% endif %}{% if interior.medios or puede_gestionar_unidad %}<li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="galeria-interior" data-section-title="{% translate "Fotos y videos" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'galeria_interior' unidad.slug %}" data-ui-arg1="galeria-interior.html" data-ui-arg2="false"><i class="fas fa-images"></i><span>{% translate "Fotos y videos por área" %}</span><i class="simple-icon-arrow-right"></i></button></li>{% endif %}{% if interior.recorrido.url %}<li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="recorrido-360" data-section-title="{% translate "Recorrido 360°" %}" {% if interior.recorrido.zip %} data-ui-click="handleZipResource" data-ui-arg0="{{ interior.recorrido.url }}" data-ui-arg1="recorrido-360" data-ui-arg2="{{ interior.recorrido.url }}" data-ui-arg3="false" {% else %} data-ui-click="replaceContent" data-ui-arg0="{{ interior.recorrido.url }}" data-ui-arg1="recorrido-360.html" data-ui-arg2="false" {% endif %}><i class="fas fa-street-view"></i><span>{% translate "Recorrido 360°" %}</span><i class="simple-icon-arrow-right"></i></button></li>{% elif puede_gestionar_unidad %}<li class="unit-resource-empty">{% if interior.recorrido.pendiente %}«{{ interior.recorrido.pendiente }}» {% translate "está cargado, pero para mostrar el recorrido 360° necesita visibilidad pública, la verificación de seguridad marcada y, si está en una carpeta, que esa carpeta esté activa." %}{% else %}{% translate "Recorrido 360°: cargue el ZIP que exporta su programa en los recursos de la unidad, con el tipo «Recorrido 360°»." %}{% endif %}</li>{% endif %}</ul>{% endif %}{% if secciones_planta.interior.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.interior.carpetas_personalizadas %}</div>{% endif %}{% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=secciones_planta.interior.agregar %}</div>
+            </div>
+            {% endif %}
+            {% endif %}
+            {% if secciones_planta.normativa and not secciones_planta.normativa.oculta %}
+            {% if secciones_planta.normativa.carpetas_personalizadas or puede_gestionar_unidad %}{# Vacía, solo la ve quien la completa. #}
+            <div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.normativa.titulo }}">
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseNormativaPlanta" aria-expanded="false" aria-controls="collapseNormativaPlanta"><span data-seccion="{{ secciones_planta.normativa.numero }}"><i class="fas fa-balance-scale"></i></span><strong>{{ secciones_planta.normativa.titulo }}</strong><b>{{ secciones_planta.normativa.total_personalizado }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i></button>
+              <div id="collapseNormativaPlanta" class="collapse" data-parent="#accordion">{% if secciones_planta.normativa.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.normativa.carpetas_personalizadas %}</div>{% else %}<p class="unit-resource-empty">{% translate "Contenido pendiente de publicación por la unidad." %}</p>{% endif %}{% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=secciones_planta.normativa.agregar %}</div>
+            </div>
+            {% endif %}
+            {% endif %}
+            {% if secciones_planta.repositorio and not secciones_planta.repositorio.oculta %}
+            <div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.repositorio.titulo }}">
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseRepositorioPlanta" aria-expanded="false" aria-controls="collapseRepositorioPlanta"><span data-seccion="{{ secciones_planta.repositorio.numero }}"><i class="fas fa-folder-open"></i></span><strong>{{ secciones_planta.repositorio.titulo }}</strong><b>{{ secciones_planta.repositorio.total_personalizado|add:1 }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i></button>
+              <div id="collapseRepositorioPlanta" class="collapse" data-parent="#accordion"><ul class="unit-resource-list"><li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button" data-id="repositorio-institucional" data-section-title="{% translate "Repositorio y descargas" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'repositorio_unidad' unidad.slug %}" data-ui-arg1="repositorio-institucional.html" data-ui-arg2="false" data-ui-resource="repositorio-institucional"><i class="fas fa-archive"></i><span>{% translate "Repositorio institucional" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>{% if secciones_planta.repositorio.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.repositorio.carpetas_personalizadas %}</div>{% endif %}{% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=secciones_planta.repositorio.agregar %}</div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="unit-folder unit-folder--builtin" aria-label="{% translate "Presentación institucional" %}">
+              <ul class="unit-resource-list"><li class="unit-resource-item"><button type="button" class="recurso-btn project-detail-resource-button active" data-id="video-institucional" aria-current="true" data-ui-click="loadInitialUnitVideo"><i class="iconsminds-video"></i><span>{% translate "Video institucional" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>
+            </div>
+            {% endif %}
+            {% endif %}
+            {% if modulo.mostrar_herramientas_reserva %}
+            {% if secciones_planta %}
+            {% if configuracion_operativa.reservas_equipos or configuracion_operativa.reservas_espacios or configuracion_operativa.solicitudes_servicio %}
+            {% include 'portal/pages/unidades/detalle/reservas_secciones.html' with herramientas_reserva_habilitadas=True %}
+            {% else %}
+            {% include 'portal/pages/unidades/detalle/reservas_secciones.html' with herramientas_reserva_habilitadas=False %}
+            {% endif %}
+            {% else %}
+            {% if configuracion_operativa.reservas_equipos or configuracion_operativa.reservas_espacios or configuracion_operativa.solicitudes_servicio %}
+            <div class="reserva-section unit-folder">
+              <button class="project-detail-folder-toggle" type="button" data-toggle="collapse" data-target="#collapseReserva" aria-expanded="true">
+                <i class="iconsminds-calendar-4"></i><span>{% translate "Reservar la unidad" %}</span><i class="simple-icon-arrow-down"></i>
+              </button>
+              <div id="collapseReserva" class="collapse show" data-parent="#accordion">
+                <ul class="unit-resource-list">
+                  <li><button type="button" class="recurso-btn project-detail-resource-button" data-id="reservar-unidad" data-ui-click="abrirModalEquipos"><i class="iconsminds-calendar-4"></i><span>{% translate "Abrir sistema de reservas" %}</span></button></li>
+                  <li><button type="button" class="recurso-btn project-detail-resource-button" data-id="mis-reservas" data-ui-click="verMisReservas"><i class="iconsminds-profile"></i><span>{% translate "Mis reservas" %}</span></button></li>
+                  {% if oferta_visitas.acepta %}<li><button type="button" class="recurso-btn project-detail-resource-button" data-id="visitas-unidad" title="{% translate "Recorridos guiados para grupos e instituciones" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'oferta_visitas' unidad.slug %}" data-ui-arg1="visitas-unidad.html" data-ui-arg2="false" data-ui-resource="visitas-unidad"><i class="iconsminds-conference"></i><span>{% translate "Visitas a la unidad" %}</span><i class="simple-icon-arrow-right"></i></button></li>{% endif %}
+                  {% if request.user.is_authenticated %}<li><a class="recurso-btn project-detail-resource-button" data-id="guias-practica" href="{% url 'lista_guias_practica' unidad.slug %}"><i class="iconsminds-notepad"></i><span>{% translate "Mis guías de práctica" %}</span><i class="simple-icon-arrow-right"></i></a></li>{% endif %}
+                  {% if tiene_sesiones_programadas %}<li><a class="recurso-btn project-detail-resource-button" data-id="sesiones-programadas" href="{% url 'mis_sesiones' unidad.slug %}"><i class="iconsminds-calendar-4"></i><span>{% translate "Mis sesiones programadas" %}</span><i class="simple-icon-arrow-right"></i></a></li>{% endif %}
+                  {% if puede_gestionar_unidad %}<li><a class="recurso-btn project-detail-resource-button" data-id="gestionar-laboratorio" href="{% url 'gestion_unidad' unidad.slug %}" data-ui-click="abrirGestionLaboratorio"><i class="iconsminds-gears"></i><span>{{ unidad.etiqueta_gestion }}</span><i class="simple-icon-arrow-right"></i></a></li>{% endif %}
+                  {% if reglamento_data.activo %}<li><button type="button" class="recurso-btn project-detail-resource-button" data-id="reglamento-unidad" data-ui-click="loadReglasReservas"><i class="iconsminds-file"></i><span>{% translate "Reglamento de uso" %}</span></button></li>{% endif %}
+                </ul>
+                {% if requisitos_ingreso %}<div class="unit-access-requirements"><strong><i class="fas fa-id-badge" aria-hidden="true"></i> {% translate "Para ingresar a la unidad" %}</strong><ul>{% for requisito in requisitos_ingreso %}<li><span>{{ requisito.nombre }}{% if not requisito.obligatorio %} <small>{% translate "(opcional)" %}</small>{% endif %}</span><small>{{ requisito.tipo_display }} · {{ requisito.aplica_display }}{% if requisito.vigencia_dias %} {% translate "· vigencia de" %} {{ requisito.vigencia_dias }} {% translate "días" %}{% endif %}</small></li>{% endfor %}</ul></div>{% endif %}
+              </div>
+            </div>
+            {% endif %}
+            {% endif %}
+            {% endif %}
+
+            {% if not secciones_planta and modulo.clave == guias_modulo_clave and guias_actividad_reserva %}
+            <div class="unit-folder unit-folder--activity-guides">
+              <button class="project-detail-folder-toggle" type="button" data-toggle="collapse" data-target="#collapseGuiasActividad" aria-expanded="true" aria-controls="collapseGuiasActividad">
+                <i class="fas fa-book-open"></i><span>{% translate "Guías publicadas" %}</span><i class="simple-icon-arrow-down"></i>
+              </button>
+              <div id="collapseGuiasActividad" class="collapse show" data-parent="#accordion">
+                <ul class="unit-resource-list">
+                  {% for guia in guias_actividad_reserva %}
+                  <li class="unit-resource-item">
+                    <button type="button" class="recurso-btn project-detail-resource-button" data-id="guia-actividad-{{ guia.pk }}" title="Abrir {{ guia.actividad.nombre }}" data-ui-click="replaceContent" data-ui-arg0="{% url 'ver_guia_actividad' guia.pk %}?preview=pdf" data-ui-arg1="guia-practica-{{ guia.pk }}-v{{ guia.numero_version }}.pdf" data-ui-arg2="false" data-ui-resource="guia-actividad-{{ guia.pk }}">
+                      <i class="fas fa-file-pdf"></i><span class="unit-resource-name"><strong>{{ guia.actividad.nombre|truncatechars:30 }}</strong></span><i class="simple-icon-arrow-right"></i>
+                    </button>
+                    {% if guia.permite_descarga %}<a class="unit-resource-download" href="{% url 'ver_guia_actividad' guia.pk %}?download=1" download title="Descargar {{ guia.actividad.nombre }}"><i class="fas fa-download"></i></a>{% endif %}
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+            {% endif %}
+
+            {% for carpeta in aula.carpetas %}{% if carpeta.modulo == modulo.clave %}
+            <div class="unit-folder unit-folder--aula{% if carpeta.seccion or carpeta.propia %} unit-folder--section{% endif %}" aria-label="{{ carpeta.titulo }}">
+              {% if carpeta.seccion or carpeta.propia %}
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapse{{ carpeta.id }}" aria-expanded="{% if carpeta.abierta %}true{% else %}false{% endif %}" aria-controls="collapse{{ carpeta.id }}">
+                <span data-seccion="{{ carpeta.numero }}"><i class="{{ carpeta.icono }}"></i></span><strong>{{ carpeta.titulo }}</strong><b>{{ carpeta.total }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+              </button>
+              <div id="collapse{{ carpeta.id }}" class="collapse{% if carpeta.abierta %} show{% endif %}" data-parent="#accordion">
+              {% else %}
+              <button class="project-detail-folder-toggle" type="button" data-toggle="collapse" data-target="#collapse{{ carpeta.id }}" aria-expanded="{% if carpeta.abierta %}true{% else %}false{% endif %}" aria-controls="collapse{{ carpeta.id }}">
+                <i class="{{ carpeta.icono }}"></i><span>{{ carpeta.titulo }}</span><i class="simple-icon-arrow-down"></i>
+              </button>
+              <div id="collapse{{ carpeta.id }}" class="collapse{% if carpeta.abierta %} show{% endif %}" data-parent="#accordion">
+              {% endif %}
+                {% if carpeta.pendiente %}<p class="unit-resource-empty">{{ carpeta.mensaje }}</p>{% else %}<div class="unit-resource-groups" id="grupos{{ carpeta.id }}">
+                  {% for grupo in carpeta.grupos %}
+                  {% if grupo.nombre %}
+                  <section class="unit-resource-subfolder">
+                    <button class="unit-resource-group-toggle" type="button" data-toggle="collapse" data-target="#collapse{{ grupo.id }}" aria-expanded="{% if grupo.abierta %}true{% else %}false{% endif %}" aria-controls="collapse{{ grupo.id }}">
+                      <i class="fas fa-folder"></i><span>{{ grupo.nombre }}</span><i class="simple-icon-arrow-down"></i>
+                    </button>
+                    <div id="collapse{{ grupo.id }}" class="collapse{% if grupo.abierta %} show{% endif %}" data-parent="#grupos{{ carpeta.id }}">
+                      <ul class="unit-resource-list">
+                  {% else %}<ul class="unit-resource-list">{% endif %}
+                  {% for boton in grupo.botones %}
+                  <li class="unit-resource-item">
+                    <button type="button" class="recurso-btn project-detail-resource-button" data-id="{{ boton.id }}" data-url="{{ boton.url }}" data-nombre="{{ boton.nombre }}" title="{{ boton.titulo }}" data-ui-click="replaceContent" data-ui-arg0="{{ boton.url }}" data-ui-arg1="{{ boton.id }}.{% if boton.url|slice:'-4:' == '.pdf' %}pdf{% else %}html{% endif %}" data-ui-arg2="false" data-ui-resource="{{ boton.id }}">
+                      {% if boton.imagen %}<img class="unit-resource-thumb" src="{{ boton.imagen }}" alt="" loading="lazy">{% else %}<i class="{{ boton.icono }}"></i>{% endif %}<span class="unit-resource-name"><strong>{{ boton.nombre|truncatechars:38 }}</strong>{% if boton.subtitulo %}<small>{{ boton.subtitulo|truncatechars:48 }}</small>{% endif %}</span>{% if puede_gestionar_unidad and boton.estado %}<i class="unit-content-status is-{{ boton.estado }}" title="{{ boton.estado|capfirst }}"></i>{% endif %}<i class="simple-icon-arrow-right"></i>
+                    </button>
+                  </li>
+                  {% endfor %}
+                  </ul>
+                  {% if grupo.nombre %}</div></section>{% endif %}
+                  {% endfor %}
+                </div>{% endif %}
+                {% if carpeta.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=carpeta.carpetas_personalizadas %}</div>{% endif %}
+                {% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=carpeta.agregar %}
+              </div>
+            </div>
+            {% endif %}{% endfor %}
+
+            {% if secciones_planta.guias and modulo.clave == guias_modulo_clave and not secciones_planta.guias.oculta %}{% if total_guias_publicadas or secciones_planta.guias.carpetas_personalizadas or puede_gestionar_unidad %}
+            <div class="unit-folder unit-folder--section unit-folder--activity-guides">
+              <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseGuiasPlanta" aria-expanded="false" aria-controls="collapseGuiasPlanta"><span data-seccion="{{ secciones_planta.guias.numero }}"><i class="fas fa-book-open"></i></span><strong>{{ secciones_planta.guias.titulo }}</strong><b>{{ total_guias_publicadas|add:secciones_planta.guias.total_personalizado }}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i></button>
+              <div id="collapseGuiasPlanta" class="collapse" data-parent="#accordion">{% if guias_por_familia %}<div class="unit-resource-groups" id="gruposGuiasPlanta">
+                {% for grupo in guias_por_familia %}
+                <section class="unit-resource-subfolder"><button class="unit-resource-group-toggle" type="button" data-toggle="collapse" data-target="#collapseGuiasGrupo{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapseGuiasGrupo{{ forloop.counter }}"><i class="fas fa-folder"></i><span>{{ grupo.nombre }}</span><i class="simple-icon-arrow-down"></i></button><div id="collapseGuiasGrupo{{ forloop.counter }}" class="collapse{% if forloop.first %} show{% endif %}" data-parent="#gruposGuiasPlanta"><ul class="unit-resource-list">
+                {% for guia in grupo.guias %}
+                <li class="unit-resource-item">
+                  <button type="button" class="recurso-btn project-detail-resource-button" data-id="guia-actividad-{{ guia.pk }}" title="Abrir {{ guia.actividad.nombre }}" data-ui-click="replaceContent" data-ui-arg0="{% url 'ver_guia_actividad' guia.pk %}?preview=pdf" data-ui-arg1="guia-practica-{{ guia.pk }}-v{{ guia.numero_version }}.pdf" data-ui-arg2="false" data-ui-resource="guia-actividad-{{ guia.pk }}">
+                    <i class="fas fa-file-pdf"></i><span class="unit-resource-name"><strong>{{ guia.titulo|truncatechars:34 }}</strong><small>{{ guia.actividad.nombre|truncatechars:42 }}</small></span>{% if puede_gestionar_unidad %}<i class="unit-content-status is-publicada" title="{% translate "Publicada" %}"></i>{% endif %}<i class="simple-icon-arrow-right"></i>
+                  </button>
+                  {% if guia.permite_descarga %}<a class="unit-resource-download" href="{% url 'ver_guia_actividad' guia.pk %}?download=1" download title="Descargar {{ guia.actividad.nombre }}"><i class="fas fa-download"></i></a>{% endif %}
+                </li>
+                {% endfor %}
+                </ul></div></section>
+                {% endfor %}
+              </div>{% endif %}{% if secciones_planta.guias.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.guias.carpetas_personalizadas %}</div>{% elif not guias_por_familia %}<p class="unit-resource-empty">{% translate "Contenido pendiente de publicación por la unidad." %}</p>{% endif %}</div>
+            </div>
+            {% endif %}{% endif %}
+
+            {% for carpeta in carpetas_publicas %}
+              {% if carpeta.modulo_config_id == modulo.id %}
+              {# En plantas, una carpeta con sección numerada ya se muestra dentro de ella. #}
+              {% if not secciones_planta or modulo.clave != 'informacion-general' and not carpeta.seccion_planta %}
+              {% include 'portal/pages/unidades/detalle/carpeta_recurso.html' with carpeta=carpeta %}
+              {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% include 'portal/pages/unidades/detalle/includes/agregar_en_menu.html' with acciones=modulo.agregar %}
+            {% if nueva_seccion_url %}<a class="unit-new-section" href="{{ nueva_seccion_url }}?modulo={{ modulo.pk }}" data-editar-ficha data-editar-titulo="{% translate 'Nueva sección' %}"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Nueva sección con plantilla" %}</a>{% endif %}
+          </div>
+          {% empty %}<p class="unit-resource-empty">{% translate "No hay módulos configurados para esta unidad." %}</p>{% endfor %}
+        </div>
+      </section>
+
+      <section class="unit-panel unit-panel--operations">
+        <h2>{% translate "Información de la unidad" %}</h2>
+        <dl>
+          <div><dt><i class="simple-icon-organization"></i> {% translate "Dependencia académica" %}</dt><dd>{% firstof unidad.facultad unidad.centro_vinculado 'Facultad por registrar' %}{% if unidad.carreras %}<small>{{ unidad.carreras }}</small>{% endif %}</dd></div>
+          <div><dt><i class="simple-icon-graduation"></i> {% translate "Área de conocimiento" %}</dt><dd>{{ unidad.get_area_conocimiento_display|default:'Por registrar'|ui }}</dd></div>
+          <div><dt><i class="simple-icon-layers"></i> {% translate "Modo de operación" %}</dt><dd>{% with tipos=unidad.tipos_laboratorio.all %}{% if tipos %}{{ tipos|join:', ' }}{% else %}{% translate "Por registrar" %}{% endif %}{% endwith %}</dd></div>
+          {% if unidad.categorias.exists %}<div><dt><i class="simple-icon-grid"></i> {% translate "Subáreas" %}</dt><dd>{{ unidad.categorias.all|join:', ' }}</dd></div>{% endif %}
+          <div><dt><i class="simple-icon-tag"></i> {% translate "Código" %}</dt><dd>{{ unidad.codigo|default:'Por asignar' }}</dd></div>
+          <div><dt><i class="simple-icon-user"></i> {% translate "Responsable" %}</dt><dd>{% firstof unidad.administrador.get_full_name unidad.administrador.username 'Por asignar' %}{% firstof unidad.contacto_email unidad.administrador.email as contacto %}{% if contacto %}<small>{{ contacto }}</small>{% endif %}</dd></div>
+          <div><dt><i class="simple-icon-location-pin"></i> {% translate "Ubicación" %}</dt><dd>{{ unidad.espacio_completo|default:'Por registrar' }}{% if unidad.direccion %}<small>{{ unidad.direccion }}</small>{% endif %}{% if unidad.tiene_coordenadas %}<button type="button" class="unit-map-link" data-ui-click="abrirUbicacion" data-ui-arg0="{% url 'ubicacion_unidad' unidad.slug %}"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% translate "Ver en el mapa" %}</button>{% endif %}</dd></div>
+          <div><dt><i class="simple-icon-clock"></i> {% translate "Horario" %}</dt><dd>{{ horario_operacion_resumen|default:unidad.horario_atencion|default:'Consultar disponibilidad' }}</dd></div>
+          <div><dt><i class="simple-icon-people"></i> {% translate "Capacidad" %}</dt><dd>{% if unidad.capacidad_personas %}{{ unidad.capacidad_personas }} personas{% else %}{% translate "Por registrar" %}{% endif %}</dd></div>
+          <div><dt><i class="simple-icon-check"></i> {% translate "Estado" %}</dt><dd><span class="unit-status {% if unidad.activo %}is-active{% endif %}">{% if unidad.activo %}{% translate "Disponible" %}{% else %}{% translate "No disponible" %}{% endif %}</span></dd></div>
+          {% if unidad.centro_vinculado %}<div><dt><i class="simple-icon-organization"></i> {% translate "Centro vinculado" %}</dt><dd>{{ unidad.centro_vinculado }}</dd></div>{% endif %}
+        </dl>
+      </section>
+
+      {% if relaciones_unidad or centros_id_integran %}
+      <section class="unit-panel unit-panel--relaciones">
+        <h2>{% translate "Unidades relacionadas" %}</h2>
+        {% if centros_id_integran %}<div class="relaciones-unidad__grupo" style="--color: #0f5c63"><p class="relaciones-unidad__titulo" role="heading" aria-level="3"><i class="simple-icon-energy"></i> {% translate "Se integra al Centro I+D" %}</p><ul>{% for centro in centros_id_integran %}<li><a href="{{ centro.url }}"><strong>{{ centro.nombre }}</strong>{% if centro.estado %} <em>{{ centro.estado }}</em>{% endif %}<small>{% if centro.componentes %}{% for componente in centro.componentes %}{{ componente.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}{% else %}{{ centro.forma }}{% endif %}</small></a></li>{% endfor %}</ul></div>{% endif %}
+        {% include 'portal/pages/unidades/detalle/relaciones_unidad.html' with grupos=relaciones_unidad %}
+        {% if relaciones_unidad %}<a class="unit-panel__enlace" href="{% url 'red_unidades' %}?unidad={{ unidad.slug }}"><i class="simple-icon-share"></i> {% translate "Ver en la red de unidades" %}</a>{% endif %}
+      </section>
+      {% endif %}
+
+      <section class="unit-panel unit-panel--metrics">
+        <div><i class="iconsminds-microscope"></i><span>{% translate "Equipos disponibles" %}</span><strong>{{ total_equipos }}</strong></div>
+        <div><i class="iconsminds-check"></i><span>{% translate "Unidades registradas" %}</span><strong>{{ total_unidades_equipo }}</strong></div>
+        <div><i class="iconsminds-optimization"></i><span>{% translate "Software instalado" %}</span><strong>{{ total_software }}</strong></div>
+        <div><i class="simple-icon-eye"></i><span>{% translate "Visitas" %}</span><strong>{{ unidad.visitas }}</strong></div>
+      </section>
+
+    </aside>
+  </main>
+
+  <div class="modal fade" id="recursoRestringidoModal" tabindex="-1" role="dialog" aria-labelledby="recursoRestringidoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document"><div class="modal-content">
+      <div class="modal-header restricted-modal-header"><h5 class="modal-title" id="recursoRestringidoModalLabel"><i class="simple-icon-lock"></i> {% translate "Acceso restringido" %}</h5><button type="button" class="close text-white" data-dismiss="modal" aria-label="{% translate "Cerrar" %}"><span aria-hidden="true">{% translate "×" %}</span></button></div>
+      <div class="modal-body text-center restricted-modal-body">
+        <i class="simple-icon-lock restricted-modal-icon"></i><h4 class="text-danger my-3">{% translate "Recurso de acceso restringido" %}</h4>
+        <div class="alert alert-warning"><strong>{% translate "Recurso:" %}</strong> <span id="nombreRecursoRestringido"></span></div>
+        <p class="text-muted">{% translate "Este contenido requiere permisos de la comunidad universitaria. Solicita acceso al responsable de la unidad." %}</p>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline-primary" data-ui-click="solicitarAcceso"><i class="iconsminds-mail"></i> {% translate "Solicitar acceso" %}</button><button type="button" class="btn btn-secondary" data-dismiss="modal">{% translate "Cerrar" %}</button></div>
+    </div></div>
+  </div>
+
+  {% include 'portal/pages/unidades/detalle/modales/reserva_equipos.html' %}
+  {% include 'portal/pages/unidades/detalle/modales/mis_reservas.html' %}
+  {% if puede_gestionar_unidad %}{% include 'portal/pages/unidades/detalle/modales/gestion_laboratorio.html' %}{% endif %}
+  {{ reglamento_data|json_script:"unitRegulationData" }}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'portal/js/components/visor_pdf.js' %}?v=20261018-ancho-100"></script>
+<script src="{% static 'portal/js/pages/unidades/detalle/gestor_contenido.js' %}?v=20261020-reparacion-egresos-3"></script>
+<script src="{% static 'portal/js/pages/unidades/detalle/pestanas_modulos.js' %}?v=20261011-logistica-paso1-v1"></script>
+<script src="{% static 'portal/js/pages/unidades/reservas/utilidades_reservas.js' %}?v=20261008-seguridad-v1"></script>
+<script src="{% static 'portal/js/pages/unidades/reservas/modal_mis_reservas.js' %}?v=20261110-agendas-v2"></script>
+{% if puede_gestionar_unidad %}
+<script src="{% static 'portal/js/pages/unidades/gestion_cursos_panel.js' %}?v=20261011-catalogo-v1"></script>
+<script src="{% static 'portal/js/pages/unidades/responsables_busqueda.js' %}?v=20261011-2"></script>
+<script src="{% static 'portal/js/pages/unidades/catalogos_busqueda.js' %}?v=20261011-1"></script>
+<script src="{% static 'portal/js/pages/unidades/panel_gestion.js' %}?v=20261110-agendas-v2"></script>
+<script src="{% static 'portal/js/pages/unidades/inventario_gestion.js' %}?v=20261022-visibilidad-2"></script>
+<script src="{% static 'portal/js/pages/unidades/gestion_modal.js' %}?v=20261011-navegacion-v2"></script>
+{% endif %}
+<script src="{% static 'portal/js/pages/unidades/detalle/detalle_unidad.js' %}?v=20261007-enlace-seccion-v1"></script>
+<script src="{% static 'portal/js/pages/unidades/detalle/enlace_seccion.js' %}?v=20261007-enlace-seccion-v1"></script>
+<script src="{% static 'portal/js/components/portada_tecnologica.js' %}?v=20261003-portadas-v3"></script>
+{% if nueva_seccion_url or ediciones %}<script src="{% static 'portal/js/components/edicion_en_ficha.js' %}?v=20261003-altas-v1"></script>{% endif %}
+{% endblock %}

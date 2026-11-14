@@ -1,0 +1,225 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block breadcrumbs %}
+<ul class="grp-horizontal-list">
+  <li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li>
+  <li><a href="{{ editor_url }}">{{ unidad.nombre }}</a></li>
+  <li>{% translate "Contenidos de la ficha" %}</li>
+</ul>
+{% endblock %}
+{% block content %}
+<div class="tablero-planta contenidos-ficha">
+  <header class="tablero-planta__cabecera">
+    <div>
+      <p class="tablero-planta__antetitulo">{% translate "Contenidos de la ficha" %}</p>
+      <h1>{{ unidad.nombre }}</h1>
+      <p>{% translate "El menú de la ficha pública tal como lo recorre el visitante, en el mismo orden: cada pestaña con sus secciones, y dentro de cada una sus carpetas y archivos. Los nombres se cambian escribiendo sobre ellos y el interruptor muestra u oculta." %}</p>
+    </div>
+    <nav class="tablero-planta__accesos">
+      <a href="{{ unidad.get_absolute_url }}" target="_blank" rel="noopener">{% translate "Ver ficha pública" %}</a>
+      <a href="{{ editor_url }}">{% translate "Editor de la unidad" %}</a>
+      {% if tablero_url %}<a href="{{ tablero_url }}">{% translate "Tablero" %}</a>{% endif %}
+    </nav>
+  </header>
+
+  <section class="contenidos-ficha__guia" aria-label="{% translate 'Cómo funciona' %}">
+    <article>
+      <h2>{% translate "Pestañas" %}</h2>
+      <p>{% if es_planta %}{% translate "Las comunes a todas las unidades de este tipo se renombran u ocultan; ocultar no borra nada. Además se crean pestañas propias, que se eliminan cuando quedan vacías." %}{% else %}{% translate "Los grupos del menú. Se crean, renombran, ocultan y, vacíos, se eliminan." %}{% endif %}</p>
+    </article>
+    {% if es_planta %}
+    <article>
+      <h2>{% translate "Secciones" %}</h2>
+      <p>{% blocktranslate with total=total_secciones tipo=tipo_unidad %}Las {{ total }} secciones numeradas son las mismas en cada {{ tipo }} y se llenan solas con lo que se registra. Bajo cada una, «Se edita en» lleva al bloque exacto del editor o a su lista.{% endblocktranslate %}</p>
+    </article>
+    <article>
+      <h2>{% translate "Subcarpetas automáticas" %}</h2>
+      <p>{% translate "Las que la plataforma arma sola, como cada área en las fichas de equipo o el escáner. Se renombran, ordenan u ocultan, y también cada elemento; el área o el equipo se conserva." %}</p>
+    </article>
+    {% endif %}
+    <article>
+      <h2>{% translate "Carpetas y archivos propios" %}</h2>
+      <p>{% translate "El material que la unidad publica. Las carpetas se crean, renombran, ordenan, mueven, ocultan o, vacías, se eliminan, con un nivel de subcarpetas. Cada archivo se renombra u oculta aquí y se edita completo en el editor." %}</p>
+    </article>
+  </section>
+
+  {% if faltantes %}
+  <section class="tablero-planta__avisos">
+    <p><strong>{% translate "Faltan pestañas comunes:" %}</strong> {{ faltantes|join:", " }}. {% translate "Sus secciones no se pueden mostrar hasta que la unidad tenga esas pestañas." %}</p>
+  </section>
+  {% endif %}
+
+  <nav class="contenidos-ficha__indice" aria-label="{% translate 'Ir a una pestaña' %}">
+    {% if archivos_sin_ruta or sin_ubicar %}<a href="#sin-ruta" class="is-aviso">{% translate "Sin ruta" %} ({{ total_sin_ruta }})</a>{% endif %}
+    {% if cabecera %}<a href="#cabecera">{% translate "Cabecera" %}</a>{% endif %}
+    {% for pestana in pestanas %}<a href="#{{ pestana.ancla }}"{% if not pestana.modulo.activo %} class="is-oculta"{% endif %}>{{ pestana.modulo.nombre }}</a>{% endfor %}
+    {% if en_fichas %}<a href="#en-fichas">{% translate "Dentro de fichas" %}</a>{% endif %}
+    {% if internos %}<a href="#uso-interno">{% translate "Uso interno" %}</a>{% endif %}
+    {% if puede_editar %}<a href="#nueva-pestana">{% translate "+ Nueva pestaña" %}</a>{% endif %}
+  </nav>
+
+  {% if archivos_sin_ruta or sin_ubicar %}
+  <section class="contenidos-ficha__pestana is-aviso" id="sin-ruta">
+    <header class="contenidos-ficha__cabeza"><div class="contenidos-ficha__titulo">
+      <span class="contenidos-ficha__marca">{% translate "Revisar" %}</span>
+      <h2>{% translate "Sin ruta: no aparece en ninguna parte" %}</h2>
+      <small>{% translate "Información cargada que hoy no se ve en la ficha. Dele un destino, o elimínela si ya no sirve." %}</small>
+    </div></header>
+    {% if archivos_sin_ruta %}
+    <h3 class="contenidos-ficha__subtitulo">{% translate "Archivos sin carpeta" %}</h3>
+    <ul class="arbol">
+      {% for archivo in archivos_sin_ruta %}
+      <li id="archivo-{{ archivo.pk }}">
+        <div class="arbol__nodo is-archivo">
+          {% include "admin/unidades/contenidos_icono.html" with tipo='archivo' %}
+          <strong class="arbol__nombre">{{ archivo.nombre }}</strong>
+          <ul class="contenidos-ficha__estados">
+            <li class="is-pendiente">{% translate "Sin carpeta y fuera del repositorio" %}{% if archivo.falta %}: {% translate "le falta" %} {{ archivo.falta|join:", " }}{% endif %}</li>
+            {% for aviso in archivo.ruta.avisos %}<li>{{ aviso }}</li>{% endfor %}
+          </ul>
+          <div class="contenidos-ficha__acciones">
+            <a class="arbol__enlace" href="{{ editor_url }}#recurso-editor-{{ archivo.pk }}">{% translate "Abrir en el editor" %}</a>
+            {% if puede_editar and carpetas_con_ruta %}
+            <details class="arbol__mas">
+              <summary>{% translate "Llevar a una carpeta" %}</summary>
+              <div class="arbol__menu"><form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+                <input type="hidden" name="accion" value="asignar_carpeta"><input type="hidden" name="recurso" value="{{ archivo.pk }}"><input type="hidden" name="volver" value="sin-ruta">
+                <label>{% translate "Carpeta" %} <select name="carpeta" required><option value="">—</option>{% for clave, ruta in carpetas_con_ruta %}<option value="{{ clave }}">{{ ruta }}</option>{% endfor %}</select></label>
+                <button type="submit">{% translate "Llevar" %}</button>
+              </form></div>
+            </details>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if sin_ubicar %}
+    <h3 class="contenidos-ficha__subtitulo">{% translate "Carpetas sin ubicar" %}</h3>
+    <p class="contenidos-ficha__nota">{% if es_planta %}{% translate "Con «Más › Mover» se llevan a una sección o a una pestaña propia, con todo lo que tienen." %}{% else %}{% translate "Con «Más › Mover» se llevan a una pestaña, con todo lo que tienen." %}{% endif %}</p>
+    <ul class="arbol">{% for carpeta in sin_ubicar %}{% include "admin/unidades/contenidos_carpeta.html" %}{% endfor %}</ul>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if cabecera %}
+  <section class="contenidos-ficha__pestana" id="cabecera">
+    <header class="contenidos-ficha__cabeza"><div class="contenidos-ficha__titulo">
+      <span class="contenidos-ficha__marca">{% translate "Sobre las pestañas" %}</span>
+      <h2>{% translate "Cabecera de la ficha" %}</h2>
+      <small>{% translate "Nombre, descripción, imagen, clasificación y visitas, arriba de todo." %}</small>
+    </div></header>
+    {% include "admin/unidades/contenidos_fuentes.html" with fuentes=cabecera %}
+  </section>
+  {% endif %}
+
+  {% for pestana in pestanas %}
+  <section class="contenidos-ficha__pestana{% if not pestana.modulo.activo %} is-oculta{% endif %}" id="{{ pestana.ancla }}">
+    <header class="contenidos-ficha__cabeza">
+      <div class="contenidos-ficha__titulo">
+        <span class="contenidos-ficha__marca">{% translate "Pestaña" %} {{ forloop.counter }}{% if pestana.propia %} · {% translate "propia" %}{% endif %}{% if pestana.modulo.mostrar_herramientas_reserva %} · {% translate "con el sistema de reservas" %}{% endif %}</span>
+        {% if puede_editar %}{% translate "Nombre de la pestaña" as etiqueta %}{% include "admin/unidades/contenidos_nombre.html" with accion='renombrar_pestana' campo1='modulo' valor1=pestana.modulo.pk nombre=pestana.modulo.nombre volver=pestana.ancla clase='arbol-nombre--pestana' etiqueta=etiqueta campo2='' campo3='' vacio=False marcador='' maximo=120 %}{% else %}<h2>{{ pestana.modulo.nombre }}</h2>{% endif %}
+        {% if pestana.comun and pestana.comun != pestana.modulo.nombre %}<small>{% translate "Nombre común:" %} {{ pestana.comun }}</small>{% endif %}
+      </div>
+      <div class="contenidos-ficha__acciones">
+        {% if puede_editar %}
+        {% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_pestana' campo1='modulo' valor1=pestana.modulo.pk activo=pestana.modulo.activo volver=pestana.ancla campo2='' campo3='' %}
+        {% if pestana.eliminable %}
+        <details class="arbol__mas is-peligro">
+          <summary>{% translate "Eliminar" %}</summary>
+          <div class="arbol__menu"><form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+            <input type="hidden" name="accion" value="eliminar_pestana"><input type="hidden" name="modulo" value="{{ pestana.modulo.pk }}"><input type="hidden" name="volver" value="nueva-pestana">
+            <span>{% translate "No tiene carpetas. Se elimina para siempre." %}</span>
+            <button type="submit" class="is-peligro">{% translate "Eliminar pestaña" %}</button>
+          </form></div>
+        </details>
+        {% endif %}
+        {% else %}<ul class="contenidos-ficha__estados">{% if pestana.modulo.activo %}<li class="is-visible">{% translate "Visible" %}</li>{% else %}<li class="is-oculta">{% translate "Oculta" %}</li>{% endif %}</ul>{% endif %}
+      </div>
+    </header>
+    {% if not pestana.modulo.activo %}<p class="contenidos-ficha__nota">{% translate "Esta pestaña está oculta: nada de lo que contiene se ve en la ficha, aunque esté visible." %}</p>
+    {% elif pestana.modulo.mostrar_herramientas_reserva %}<p class="contenidos-ficha__nota">{% translate "Ocultarla también retira de la ficha el sistema de reservas." %}</p>{% endif %}
+
+    {% for seccion in pestana.secciones %}
+    <article class="contenidos-ficha__seccion{% if seccion.oculta %} is-oculta{% endif %}" id="{{ seccion.ancla }}">
+      <header class="contenidos-ficha__cabeza">
+        <span class="contenidos-ficha__numero">{{ seccion.numero }}</span>
+        <div class="contenidos-ficha__titulo">
+          {% if puede_editar %}{% translate "Nombre de la sección en esta unidad" as etiqueta %}{% include "admin/unidades/contenidos_nombre.html" with accion='renombrar_seccion' campo1='numero' valor1=seccion.numero nombre=seccion.titulo volver=seccion.ancla clase='arbol-nombre--seccion' etiqueta=etiqueta campo2='' campo3='' vacio=False marcador='' maximo=120 %}{% else %}<h3>{{ seccion.titulo }}</h3>{% endif %}
+          {% if seccion.titulo != seccion.comun %}<small>{% translate "Nombre común:" %} {{ seccion.comun }}</small>{% endif %}
+          <p class="contenidos-ficha__origen"><strong>{% translate "Contenido automático:" %}</strong> {{ seccion.origen }}</p>
+          {% include "admin/unidades/contenidos_fuentes.html" with fuentes=seccion.fuentes %}
+        </div>
+        <ul class="contenidos-ficha__estados">
+          {% if seccion.oculta %}<li class="is-oculta">{% translate "Oculta" %}</li>
+          {% elif seccion.automatico %}<li class="is-visible">{% blocktranslate count total=seccion.automatico %}{{ total }} elemento automático{% plural %}{{ total }} elementos automáticos{% endblocktranslate %}</li>
+          {% elif seccion.automatico == 0 %}<li class="is-pendiente">{% translate "Sin contenido automático todavía" %}</li>{% endif %}
+          {% if seccion.carpetas %}<li>{% blocktranslate count total=seccion.carpetas|length %}{{ total }} carpeta propia{% plural %}{{ total }} carpetas propias{% endblocktranslate %}</li>{% endif %}
+        </ul>
+        {% if puede_editar %}
+        <div class="contenidos-ficha__acciones">
+          {% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_seccion' campo1='numero' valor1=seccion.numero activo=seccion.oculta|yesno:",1" volver=seccion.ancla campo2='' campo3='' %}
+          {% if seccion.oculta or seccion.titulo != seccion.comun or seccion.ajustada %}
+          <form method="post">{% csrf_token %}
+            <input type="hidden" name="accion" value="restablecer_seccion"><input type="hidden" name="numero" value="{{ seccion.numero }}"><input type="hidden" name="volver" value="{{ seccion.ancla }}">
+            <button type="submit" class="is-secundario" title="{% translate 'Nombre común, visible y subcarpetas automáticas como vienen' %}">{% translate "Restablecer" %}</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endif %}
+      </header>
+      <ul class="arbol">
+        {% if seccion.grupos %}{% include "admin/unidades/contenidos_automaticos.html" %}{% endif %}
+        {% for carpeta in seccion.carpetas %}{% include "admin/unidades/contenidos_carpeta.html" %}{% endfor %}
+        {% if puede_editar %}<li class="arbol__agregar">{% translate "+ Nueva carpeta en esta sección" as rotulo %}{% include "admin/unidades/contenidos_nueva.html" with destino=seccion.destino volver=seccion.ancla rotulo=rotulo padre='' %}</li>{% endif %}
+      </ul>
+    </article>
+    {% endfor %}
+    {% if pestana.propias or puede_editar %}<h3 class="contenidos-ficha__subtitulo">{% translate "Secciones con plantilla" %}</h3>
+    {% include "admin/unidades/contenidos_secciones_propias.html" %}{% endif %}
+
+    {% if not pestana.secciones %}
+    <ul class="arbol">
+      {% for carpeta in pestana.carpetas %}{% include "admin/unidades/contenidos_carpeta.html" %}{% empty %}<li class="contenidos-ficha__nota">{% translate "Todavía no tiene carpetas." %}</li>{% endfor %}
+      {% if puede_editar %}<li class="arbol__agregar">{% translate "+ Nueva carpeta en esta pestaña" as rotulo %}{% include "admin/unidades/contenidos_nueva.html" with destino=pestana.destino volver=pestana.ancla rotulo=rotulo padre='' %}</li>{% endif %}
+    </ul>
+    {% endif %}
+  </section>
+  {% endfor %}
+
+  {% if puede_editar %}
+  <details class="contenidos-ficha__nueva contenidos-ficha__nueva--pestana" id="nueva-pestana">
+    <summary>{% if es_planta %}{% translate "+ Nueva pestaña propia" %}{% else %}{% translate "+ Nueva pestaña" %}{% endif %}</summary>
+    <form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+      <input type="hidden" name="accion" value="nueva_pestana"><input type="hidden" name="volver" value="nueva-pestana">
+      <label>{% translate "Nombre" %} <input type="text" name="nombre" maxlength="120" required></label>
+      <button type="submit">{% translate "Crear pestaña" %}</button>
+    </form>
+  </details>
+  {% endif %}
+
+  {% if en_fichas %}
+  <section class="contenidos-ficha__pestana" id="en-fichas">
+    <header class="contenidos-ficha__cabeza"><div class="contenidos-ficha__titulo">
+      <h2>{% translate "Carpetas dentro de fichas" %}</h2>
+      <small>{% translate "Se ven dentro de la ficha de su producto, proceso o equipo, no en el menú." %}</small>
+    </div></header>
+    <ul class="arbol">{% for carpeta in en_fichas %}{% include "admin/unidades/contenidos_carpeta.html" %}{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if internos %}
+  <section class="contenidos-ficha__pestana is-interno" id="uso-interno">
+    <header class="contenidos-ficha__cabeza"><div class="contenidos-ficha__titulo">
+      <span class="contenidos-ficha__marca">{% translate "Fuera de la ficha" %}</span>
+      <h2>{% translate "Uso interno" %}</h2>
+      <small>{% translate "Bloques del editor que no se muestran en la ficha pública: ordenan el trabajo de la unidad." %}</small>
+    </div></header>
+    {% include "admin/unidades/contenidos_fuentes.html" with fuentes=internos %}
+  </section>
+  {% endif %}
+</div>
+<script src="{% static 'admin/js/contenidos_ficha.js' %}?v=20261003-arbol-v1" defer></script>
+{% endblock %}

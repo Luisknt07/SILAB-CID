@@ -1,0 +1,21 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{{ titulo_seccion }}{% endblock %}
+{% block encabezado %}{{ titulo_seccion }}{% endblock %}
+{% block subtitulo %}{% translate "Lo que el observatorio publica para explicar sus datos a quien decide" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Publicadas" %}</dt><dd>{{ publicaciones|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{{ titulo_seccion }}{% endblock %}
+{% block contenido %}
+{% for publicacion in publicaciones %}
+<section class="unit-report__section">
+  <header><span>{{ publicacion.get_tipo_display|upper }}{% if publicacion.periodo %} · {{ publicacion.periodo }}{% endif %}</span><small>{{ publicacion.fecha_publicada|date:"d/m/Y" }}</small></header>
+  <h3>{% if publicacion.archivo %}<a href="{{ publicacion.archivo.url }}"{% if publicacion.archivo.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{{ publicacion.titulo }}" data-pdf-descarga="{{ publicacion.archivo.url }}"{% else %} download{% endif %}>{{ publicacion.titulo }}</a>{% elif publicacion.enlace %}<a href="{{ publicacion.enlace }}" target="_blank" rel="noopener noreferrer">{{ publicacion.titulo }}</a>{% else %}{{ publicacion.titulo }}{% endif %}{% include 'portal/pages/unidades/includes/editar.html' with clave='publicacion_observatorio' pk=publicacion.pk titulo=publicacion.titulo %}</h3>
+  {% if publicacion.resumen %}<p>{{ publicacion.resumen }}</p>{% endif %}
+  {% with indicadores=publicacion.indicadores.all %}{% if indicadores %}<p><small>{% translate "Indicadores:" %} {% for indicador in indicadores %}<a href="{% url 'indicador_observatorio' unidad.slug indicador.codigo %}">{{ indicador.nombre }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</small></p>{% endif %}{% endwith %}
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "Todavía no hay publicaciones de este tipo." %}</p>
+{% endfor %}
+{% translate "Nueva publicación" as titulo_nuevo %}{% translate "Agregar una publicación" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='publicacion_observatorio' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

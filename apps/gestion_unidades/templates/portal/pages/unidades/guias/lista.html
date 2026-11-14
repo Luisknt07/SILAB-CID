@@ -1,0 +1,80 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+{% endblock %}
+{% block portal_content %}
+<section class="guide-shell">
+  <header class="guide-hero">
+    <div>
+      <span class="guide-eyebrow">{% translate "DOCUMENTACIÓN DE PRÁCTICAS" %}</span>
+      <h1>{% if es_operador %}{% translate "Guías de práctica de la unidad" %}{% else %}{% translate "Mis guías de práctica" %}{% endif %}</h1>
+      <p>{{ unidad.nombre }} {% translate "· aquí se crean, se corrigen y se consulta el historial de versiones" %}</p>
+    </div>
+    <div class="guide-hero__actions">
+      <a class="guide-btn guide-btn--ghost" href="{{ unidad.get_absolute_url }}">{% translate "Volver a la unidad" %}</a>
+      {% if puede_crear %}<a class="guide-btn guide-btn--gold" href="{% url 'nueva_guia_practica' unidad.slug %}">{% translate "+ Nueva guía" %}</a>{% endif %}
+    </div>
+  </header>
+
+  {% if not puede_crear %}
+  <p class="guide-note" role="status">{% translate "Para crear guías nuevas necesitas verificación docente vigente o autorización de prácticas en esta unidad." %} <a href="{% url 'profile' %}">{% translate "Revisar mi perfil" %}</a></p>
+  {% endif %}
+
+  <div class="guide-toolbar">
+    <div>
+      <span class="guide-eyebrow">{% translate "DOCUMENTOS REGISTRADOS" %}</span>
+      <h2>{% if mostrar_historial %}{% translate "Todas las versiones" %}{% else %}{% translate "Versiones vigentes" %}{% endif %}</h2>
+    </div>
+    <div class="guide-toolbar__filters">
+      <form method="get" class="guide-filter">
+        {% if mostrar_historial %}<input type="hidden" name="historial" value="1">{% endif %}
+        <label for="estado">{% translate "Estado" %}</label>
+        <select id="estado" name="estado" data-ui-change="submit-form">
+          <option value="">{% translate "Todos los estados" %}</option>
+          {% for value, label in estados %}<option value="{{ value }}"{% if estado == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </form>
+      {% if mostrar_historial %}
+        <a class="guide-btn guide-btn--soft" href="?{% if estado %}estado={{ estado|urlencode }}{% endif %}">{% translate "Mostrar solo vigentes" %}</a>
+      {% else %}
+        <a class="guide-btn guide-btn--outline" href="?historial=1{% if estado %}&amp;estado={{ estado|urlencode }}{% endif %}">{% translate "Ver historial de versiones" %}</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="guide-list">
+    {% for ficha in fichas %}
+      {% with guia=ficha.guia %}
+      <article class="guide-card">
+        <div class="guide-card__number">V{{ guia.numero_version|stringformat:'02d' }}</div>
+        <div class="guide-card__main">
+          <div class="guide-card__meta">
+            <span>{{ guia.codigo_guia|default:guia.actividad.codigo|default:'SIN CÓDIGO' }}</span>
+            <span class="guide-status guide-status--{{ guia.estado_publicacion }}">{{ guia.get_estado_publicacion_display|ui }}</span>
+            {% if guia.es_vigente %}<span class="guide-status guide-status--vigente">{% translate "Versión vigente" %}</span>{% endif %}
+          </div>
+          <h3>{{ guia.titulo }}</h3>
+          <p>{{ guia.actividad.get_proposito_codigo_display|ui }} · {{ guia.actividad.get_subtipo_actividad_display|ui }}</p>
+          <small>{% translate "Responsable:" %} {{ guia.contenido.docente_responsable|default:guia.actividad.responsable|default:'No registrado' }} {% translate "· Actualizada" %} {{ guia.actualizado_en|date:'d/m/Y H:i' }}</small>
+          <small class="guide-card__origin">{% if ficha.reserva %}<i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Solicitud" %} {{ ficha.reserva.codigo_reserva|default:ficha.reserva.pk }} · {{ ficha.reserva.fecha|date:'d/m/Y' }}{% else %}<i class="fas fa-file-signature" aria-hidden="true"></i> {% translate "Sin solicitud asociada" %}{% endif %}</small>
+          {% if guia.observaciones_revision %}<div class="guide-note"><strong>{% translate "Observación:" %}</strong> {{ guia.observaciones_revision }}</div>{% endif %}
+        </div>
+        <div class="guide-card__actions">
+          <a class="guide-btn guide-btn--primary" href="{{ ficha.destino.url }}"><i class="fas {{ ficha.destino.icono }}" aria-hidden="true"></i> {{ ficha.destino.texto }}</a>
+          {% if ficha.puede_editar %}<a class="guide-btn guide-btn--outline" href="{% url 'editar_guia_practica' unidad.slug guia.pk %}">{% translate "Corregir" %}</a>{% endif %}
+        </div>
+      </article>
+      {% endwith %}
+    {% empty %}
+      <div class="guide-empty">
+        <span>▤</span>
+        <h3>{% translate "Todavía no has escrito guías" %}</h3>
+        <p>{% translate "La guía de una reserva docente se completa al solicitarla y aparece aquí. También puedes escribir una antes de reservar." %}</p>
+        {% if puede_crear %}<a class="guide-btn guide-btn--primary" href="{% url 'nueva_guia_practica' unidad.slug %}">{% translate "Crear la primera guía" %}</a>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

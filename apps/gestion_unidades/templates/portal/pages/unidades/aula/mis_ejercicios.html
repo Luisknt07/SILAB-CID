@@ -1,0 +1,27 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Mis ejercicios" %}{% endblock %}
+{% block encabezado %}{% translate "Mis ejercicios" %}{% endblock %}
+{% block subtitulo %}{% translate "Cada uno con su propia escala: el simulador te da los números, tú das la respuesta" %}{% endblock %}
+{% block pie %}{% translate "Ejercicios del aula" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Asignados" %}</dt><dd>{{ filas|length }}</dd></div><div><dt>{% translate "Por entregar" %}</dt><dd>{{ pendientes|length }}</dd></div>{% endblock %}
+{% block barra %}<div>{% if ver_documento_url %}<a href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="Mis ejercicios · {{ unidad.nombre }}">{% translate "Ver el documento" %}</a><a class="is-primary" href="{{ descargar_documento_url }}">{% translate "Descargar documento" %}</a>{% endif %}</div>{% endblock %}
+{% block contenido %}
+<section class="unit-report__context"><span>{% translate "CÓMO SE RESUELVE" %}</span><h2>{% translate "Abre el simulador con tus datos y responde" %}</h2><p>{% translate "Cada ejercicio te toca con una escala distinta a la de tus compañeros. Abre el simulador que el ejercicio indica, lee los resultados a tu escala y escribe las respuestas. La plataforma las compara con el mismo motor que la planta usa para producir, con la tolerancia que fijó el docente." %}</p></section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "EJERCICIOS ASIGNADOS" %}</span><small>{{ filas|length }} {% translate "en esta unidad" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Ejercicio" %}</th><th>{% translate "Proceso y escala" %}</th><th>{% translate "Simulador" %}</th><th>{% translate "Entrega" %}</th><th>{% translate "Estado" %}</th><th>{% translate "Nota" %}</th><th></th></tr></thead><tbody>
+    {% for fila in filas %}<tr>
+      <td><strong>{{ fila.intento.ejercicio.nombre }}</strong><br><small>{{ fila.intento.ejercicio.codigo }}{% if fila.intento.ejercicio.reserva %} · {{ fila.intento.ejercicio.reserva.codigo_reserva }}{% endif %}</small></td>
+      <td>{{ fila.intento.ejercicio.receta.nombre_publico }}<br><small>{% translate "×" %} {{ fila.intento.factor|floatformat:"-3" }} {% translate "corridas base" %}</small></td>
+      <td>{{ fila.intento.ejercicio.get_simulador_display|ui }}</td>
+      <td>{% if fila.intento.ejercicio.fecha_limite %}{{ fila.intento.ejercicio.fecha_limite|date:"d/m/Y" }}{% if fila.intento.ejercicio.vencido and fila.intento.estado == 'asignado' %}<br><small class="aula-falta">{% translate "plazo vencido" %}</small>{% endif %}{% else %}{% translate "Sin plazo" %}{% endif %}</td>
+      <td>{% if fila.intento.estado == 'calificado' %}<span class="aula-ok">{% translate "Entregado" %}</span>{% else %}<span class="aula-aviso">{% translate "Por entregar" %}</span>{% endif %}</td>
+      <td>{% if fila.intento.puntaje is not None %}<strong>{{ fila.intento.puntaje|floatformat:"-2" }}</strong> / {{ fila.intento.ejercicio.puntaje|floatformat:"-2" }}<br><small>{{ fila.intento.aciertos }} de {{ fila.intento.preguntas_totales }} correctas</small>{% else %}—{% endif %}</td>
+      <td><a class="aula-cta" href="{{ fila.url }}">{% if fila.intento.estado == 'calificado' %}{% translate "Ver" %}{% else %}{% translate "Resolver" %}{% endif %}</a></td>
+    </tr>{% empty %}<tr><td colspan="7">{% translate "Todavía no tienes ejercicios asignados en esta unidad. Aparecen cuando el docente los asigna a la sesión en la que participas." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

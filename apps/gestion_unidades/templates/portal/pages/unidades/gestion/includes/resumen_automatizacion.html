@@ -1,0 +1,12 @@
+<section class="control-documental-resumen" aria-label="Control automático del expediente">
+  <div class="control-documental-resumen__cabecera"><div><h3>Control automático de documentos</h3><p>La unidad corrige faltantes; Dirección atiende decisiones y excepciones.</p></div>
+  <div class="control-documental-resumen__acciones">{% if permitir_automatizar and not solo_lectura %}<form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}"><input type="hidden" name="accion" value="automatizar">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<button type="submit">Comprobar y validar automáticamente</button></form>{% endif %}{% if escenario_ideal_disponible %}<a class="control-documental-resumen__secundario" href="{% url 'escenario_ideal_laboratorio' unidad.slug %}?anio={{ anio }}&amp;corte={{ corte }}">Ver escenario ideal de prueba</a>{% endif %}</div></div>
+  <div class="control-documental-resumen__cifras">
+    <span><b>{{ control_resumen.automatico|default:0 }}</b> controles correctos</span>
+    <span><b>{{ control_resumen.pendientes_unidad|default:0 }}</b> pendientes de la unidad</span>
+    <span><b>{{ control_resumen.pendientes_direccion|default:0 }}</b> pendientes de Dirección</span>
+    <span><b>{{ control_resumen.revisados_humano|default:0 }}</b> evaluados por Dirección</span>
+    <span><b>{{ control_resumen.sin_analizar|default:0 }}</b> sin analizar</span>
+  </div>
+  <small>Un control correcto no equivale a una nota de 100 %. El resultado identifica si lo calculó el sistema o lo evaluó Dirección.</small>
+</section>

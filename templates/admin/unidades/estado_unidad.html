@@ -1,0 +1,62 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block breadcrumbs %}
+<ul class="grp-horizontal-list">
+  <li><a href="{% url 'admin:index' %}#{{ opts.app_label }}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+  <li><a href="{{ editor_url }}">{{ unidad.nombre }}</a></li>
+  <li>{% translate "Estado de la unidad" %}</li>
+</ul>
+{% endblock %}
+{% block content %}
+<div class="tablero-planta estado-pagina">
+  <header class="tablero-planta__cabecera">
+    <div>
+      <p class="tablero-planta__antetitulo">{% translate "Estado de la unidad" %}</p>
+      <h1>{{ unidad.nombre }}</h1>
+      <p class="estado-unidad {% if unidad.activo %}is-activa{% else %}is-desactivada{% endif %}"><span>{% if unidad.activo %}{% translate "Activa: se ve en el portal." %}{% else %}{% translate "Desactivada: no aparece en el portal." %}{% endif %}</span></p>
+    </div>
+    <nav class="tablero-planta__accesos"><a href="{{ editor_url }}">{% translate "Volver al editor" %}</a></nav>
+  </header>
+
+  <section class="estado-pagina__opcion">
+    {% if unidad.activo %}
+    <h2>{% translate "Desactivar la unidad" %}</h2>
+    <p>{% translate "Es la forma de retirarla. Deja de aparecer en el portal: su ficha pública, el catálogo y las reservas desde la ficha. Todo lo suyo se conserva —equipos, reservas pasadas, prácticas, expediente, archivos y auditoría— y se reactiva cuando se quiera." %}</p>
+    {% else %}
+    <h2>{% translate "Reactivar la unidad" %}</h2>
+    <p>{% translate "Vuelve a aparecer en el portal con todo lo que tenía." %}</p>
+    {% endif %}
+    {% if puede_cambiar %}
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="accion" value="{% if unidad.activo %}desactivar{% else %}reactivar{% endif %}">
+      <button type="submit" class="estado-pagina__boton">{% if unidad.activo %}{% translate "Desactivar la unidad" %}{% else %}{% translate "Reactivar la unidad" %}{% endif %}</button>
+    </form>
+    {% else %}
+    <p class="estado-pagina__nota">{% translate "Solo la administración institucional desactiva o reactiva una unidad." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="estado-pagina__opcion">
+    <h2>{% translate "Eliminar la unidad" %}</h2>
+    {% if historial %}
+    <p>{% translate "No se puede eliminar: tiene historial que se perdería con ella. Para retirarla, desactívela." %}</p>
+    <ul class="estado-pagina__historial">
+      {% for nombre, total in historial %}<li><b>{{ total }}</b> {{ nombre|capfirst }}</li>{% endfor %}
+    </ul>
+    {% elif puede_eliminar %}
+    <p>{% translate "No tiene historial: solo la configuración con la que nació (pestañas, horario, reglamento). Se puede eliminar; se borra para siempre." %}</p>
+    <details class="estado-pagina__confirmar">
+      <summary>{% translate "Eliminar la unidad" %}</summary>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="accion" value="eliminar">
+        <p>{% blocktranslate with nombre=unidad.nombre %}Se eliminará «{{ nombre }}». No se puede deshacer.{% endblocktranslate %}</p>
+        <button type="submit" class="estado-pagina__boton is-peligro">{% translate "Eliminar definitivamente" %}</button>
+      </form>
+    </details>
+    {% else %}
+    <p>{% translate "No tiene historial, pero solo quien administra toda la plataforma puede eliminar una unidad." %}</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

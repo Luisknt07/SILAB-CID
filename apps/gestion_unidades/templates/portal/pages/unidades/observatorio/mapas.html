@@ -1,0 +1,21 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Comparación territorial" %}{% endblock %}
+{% block encabezado %}{% translate "Mapas y comparación territorial" %}{% endblock %}
+{% block subtitulo %}{% translate "Cada indicador desagregado, territorio por territorio, con su último valor" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Indicadores" %}</dt><dd>{{ comparaciones|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Comparación territorial" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% for comparacion in comparaciones %}
+<section class="unit-report__section">
+  <header><span>{{ comparacion.indicador.nombre|upper }}</span><small>{{ comparacion.indicador.unidad_medida }} · {{ comparacion.indicador.fuente }}</small></header>
+  <ul class="obs-barras">{% for fila in comparacion.filas %}<li{% if fila.nombre == comparacion.indicador.territorio_principal %} class="is-principal"{% endif %}><span>{{ fila.nombre }}</span><span class="obs-barras__pista"><span style="width: {{ fila.ancho }}%"></span></span><strong>{{ fila.texto }}</strong><small>{{ fila.valor.periodo }}</small></li>{% endfor %}</ul>
+  <p><a href="{% url 'indicador_observatorio' unidad.slug comparacion.indicador.codigo %}">{% translate "Ver la ficha y la serie completa" %} →</a></p>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "Todavía no hay indicadores con datos por territorio." %}</p>
+{% endfor %}
+<p class="unit-report__notice">{% translate "Los visores cartográficos del observatorio se publican como carpetas propias en esta sección." %}</p>
+{% endblock %}

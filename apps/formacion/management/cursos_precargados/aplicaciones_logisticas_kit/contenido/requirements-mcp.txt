@@ -1,0 +1,3 @@
+# Opcional: instalar sólo para la unidad de conexión MCP.
+-r requirements.txt
+mcp==2.3.0

@@ -1,0 +1,83 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'portal/css/components/mejora_seguimiento.css' %}?v=20261018-integracion-1">
+{% if cumplimiento.filas or cumplimiento.requiere_mejora or cumplimiento.informe or tramite_mejora %}
+<section class="seguimiento-mejora" id="{% if seguimiento_en_modal %}seguimiento-detalle-{{ unidad.pk }}{% elif seguimiento_en_admin %}resultado-seguimiento-{{ unidad.pk }}{% else %}resultado-seguimiento{% endif %}" aria-labelledby="seguimiento-mejora-titulo-{{ unidad.pk }}">
+  <header class="seguimiento-mejora__cabecera"><span class="seguimiento-mejora__paso">4</span><div><h2 id="seguimiento-mejora-titulo-{{ unidad.pk }}">Resultado y mejora continua</h2><p>El informe de mejora se tramita cuando el resultado lo requiere; no es una entrega periódica adicional.</p></div></header>
+  {% if cumplimiento.filas %}
+  <div class="seguimiento-mejora__resumen">
+    <article class="seguimiento-mejora__resultado"><h3>Resultado del cierre</h3>{% if progreso_general.resultado_porcentaje is not None %}<strong>{{ progreso_general.resultado_porcentaje|floatformat:2 }} %</strong>{% else %}<strong class="is-pendiente">Pendiente</strong>{% endif %}<span>{{ cumplimiento.etiqueta }}</span><p>{{ cumplimiento.motivo }}</p><small>Mínimo institucional: {{ cumplimiento.minimo }} %. Los documentos administrativos no agregan puntos.</small></article>
+    <article class="seguimiento-mejora__uso"><h3>Actividad del período</h3><dl>{% for etiqueta, valor in cumplimiento.actividad_metricas %}<div><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% empty %}<div><dt>Medición</dt><dd>Pendiente</dd></div>{% endfor %}</dl>{% if not cumplimiento.periodo_iniciado %}<p>Período futuro: aún no se exige actividad.</p>{% elif cumplimiento.sin_uso and cumplimiento.actividad_perfil_pendiente %}<p>Actividad propia pendiente de medición; no se presume inactividad.</p>{% elif cumplimiento.sin_uso_al_cierre %}<p class="is-alerta">Sin actividad acreditada al cierre. Justifica la situación y define las acciones correspondientes.</p>{% elif cumplimiento.sin_uso %}<p>Sin actividad acreditada al corte; el seguimiento es provisional mientras el período siga abierto.</p>{% endif %}</article>
+  </div>
+  {% if cumplimiento.requiere_mejora %}<div class="seguimiento-mejora__causa"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i><div><strong>Requiere un plan de mejora</strong><p>{% if cumplimiento.bajo_minimo %}El resultado está por debajo del mínimo institucional. {% endif %}{% if cumplimiento.sin_uso_al_cierre %}No se acredita actividad de la unidad al cierre. {% endif %}Documenta la causa y las evidencias; asigna acciones con responsable y plazo. La dependencia competente registra la decisión.</p></div></div>{% endif %}
+  {% endif %}
+  {% if cumplimiento.requiere_mejora or cumplimiento.informe or tramite_mejora %}
+  <div class="seguimiento-mejora__informe" data-documento-mejora><div><h3>Informe de mejora continua</h3><p>{% if mejora_antecedente %}Antecedente archivado. {% endif %}Se conservan el informe, sus destinatarios y las decisiones. El anexo de acciones de mejora respalda el cierre y no sustituye este trámite.</p></div><div class="seguimiento-mejora__botones">
+    {% if cumplimiento.informe and not documento_integrado %}<a class="documento-accion is-pdf" href="{% url 'recurso_unidad' cumplimiento.informe.pk %}" data-ver-pdf data-pdf-descarga="{% url 'recurso_unidad' cumplimiento.informe.pk %}?download=1" data-pdf-titulo="{{ cumplimiento.informe.nombre }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver informe v{{ cumplimiento.informe.version }}</a>{% endif %}
+    {% if not cumplimiento.informe and tramite_mejora.recurso_id and not documento_integrado %}<a class="documento-accion is-pdf" href="{% url 'recurso_unidad' tramite_mejora.recurso_id %}" data-ver-pdf data-pdf-descarga="{% url 'recurso_unidad' tramite_mejora.recurso_id %}?download=1" data-pdf-titulo="{{ tramite_mejora.recurso.nombre }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver informe v{{ tramite_mejora.recurso.version }}</a>{% endif %}
+    {% if not solo_lectura and cumplimiento.requiere_mejora and not tramite_mejora.remitido_en %}<form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<button name="accion" value="mejora">{% if cumplimiento.informe %}Actualizar informe{% else %}Generar informe de mejora{% endif %}</button></form>{% endif %}
+  </div></div>{% endif %}
+  {% if tramite_mejora %}
+<div class="seguimiento-mejora__tramite">
+  {% if mejora_antecedente %}<p class="seguimiento-mejora__causa">Antecedente archivado; no acredita una causa actual de mejora obligatoria.</p>{% endif %}
+  <p><strong>{% if mejora_antecedente %}Antecedente conservado{% else %}{{ tramite_mejora.estado }}{% endif %}</strong> · v{{ tramite_mejora.recurso.version }}
+    </p>
+  {% if tramite_mejora.remitido_en %}
+  <p>{% translate "Remitido a" %} {{ tramite_mejora.dependencia }} · {{ tramite_mejora.remitido_en|date:'d/m/Y H:i' }}.
+    {% translate "Destinatarios" %}: {% for destinatario in tramite_mejora.destinatarios %}{{ destinatario.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+  {% elif direccion_mejora and not mejora_antecedente %}
+  <p>{% translate "La remisión registra la entrega dentro del sistema. Requiere dependencia y receptores activos." %}</p>
+  <form class="seguimiento-mejora__formulario" method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">
+    {% include 'portal/pages/unidades/gestion/includes/mejora_datos.html' %}
+    <button name="accion" value="remitir_mejora">{% translate "Remitir a la dependencia" %}</button>
+  </form>
+  {% endif %}
+  {% if tramite_mejora.recibido_en %}
+  <p>{% translate "Recepción registrada por" %} {{ tramite_mejora.recibido_por }} · {{ tramite_mejora.recibido_en|date:'d/m/Y H:i' }}.</p>
+  {% elif receptor_mejora %}
+  <form class="seguimiento-mejora__formulario" method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">
+    {% include 'portal/pages/unidades/gestion/includes/mejora_datos.html' %}
+    <button name="accion" value="recibir_mejora">{% translate "Registrar recepción" %}</button>
+  </form>
+  {% endif %}
+  {% if tramite_mejora.decidido_en %}
+  <p><strong>{{ tramite_mejora.get_decision_display }}</strong> · {{ tramite_mejora.decidido_por }} · {{ tramite_mejora.decidido_en|date:'d/m/Y H:i' }}</p>
+  <p>{{ tramite_mejora.motivo|linebreaksbr }}</p>
+  {% elif receptor_mejora and tramite_mejora.recibido_en %}
+  <form class="seguimiento-mejora__formulario" method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">
+    {% include 'portal/pages/unidades/gestion/includes/mejora_datos.html' %}
+    <label>{% translate "Decisión" %}<select name="decision" required>{% for valor, etiqueta in decisiones_mejora %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}</select></label>
+    <label>{% translate "Motivo de la resolución" %}<textarea name="motivo" required maxlength="4000"></textarea></label>
+    <p>{% translate "La resolución queda registrada; los cambios operativos de la unidad se tramitan por separado." %}</p>
+    <button name="accion" value="decidir_mejora">{% translate "Registrar resolución" %}</button>
+  </form>
+  {% endif %}
+  {% for tarea in acciones_mejora %}
+  <article class="seguimiento-mejora__accion">
+    <h4>{{ tarea.descripcion }}</h4>
+    <p>{{ tarea.responsable }} · {% translate "Plazo" %}: {{ tarea.vence_el|date:'d/m/Y' }} · {% if tarea.cerrada_en %}{% translate "Cerrada" %}{% elif tarea.vence_el < hoy %}{% translate "Vencida" %}{% else %}{% translate "Pendiente" %}{% endif %}</p>
+    <ul>{% for avance in tarea.seguimientos.all %}<li>{{ avance.creado_en|date:'d/m/Y H:i' }} · {{ avance.creado_por }}: {{ avance.detalle|linebreaksbr }}{% if avance.cierre %} · {% translate "Cierre verificado" %}{% endif %}</li>{% empty %}<li>{% translate "Sin avances registrados." %}</li>{% endfor %}</ul>
+    {% if tarea.puede_avanzar %}
+    <form class="seguimiento-mejora__formulario" method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">
+      {% include 'portal/pages/unidades/gestion/includes/mejora_datos.html' %}
+      <input type="hidden" name="tarea" value="{{ tarea.pk }}">
+      <label>{% translate "Avance y evidencia de cumplimiento" %}<textarea name="detalle" required maxlength="4000"></textarea></label>
+      {% if direccion_mejora or receptor_mejora %}<label><input type="checkbox" name="cierre" value="1">{% translate "Verificar cumplimiento y cerrar la acción" %}</label>{% endif %}
+      <button name="accion" value="seguir_mejora">{% translate "Registrar seguimiento" %}</button>
+    </form>
+    {% endif %}
+  </article>
+  {% endfor %}
+  {% if responsables_mejora %}
+  <form class="seguimiento-mejora__formulario" method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">
+    {% include 'portal/pages/unidades/gestion/includes/mejora_datos.html' %}
+    <h4>{% translate "Nueva acción de mejora" %}</h4>
+    <label>{% translate "Acción requerida" %}<textarea name="descripcion" required maxlength="4000"></textarea></label>
+    <label>{% translate "Responsable" %}<select name="responsable" required>{% for persona in responsables_mejora %}<option value="{{ persona.pk }}">{{ persona.get_full_name|default:persona.username }}</option>{% endfor %}</select></label>
+    <label>{% translate "Plazo" %}<input type="date" name="vence_el" min="{{ hoy|date:'Y-m-d' }}" required></label>
+    <button name="accion" value="crear_accion_mejora">{% translate "Asignar acción" %}</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+</section>
+{% endif %}

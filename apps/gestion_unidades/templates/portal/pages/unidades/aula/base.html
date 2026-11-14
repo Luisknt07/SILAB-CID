@@ -1,0 +1,230 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'portal/css/components/medios_recurso.css' %}?v=20261021-medios-1">
+  <title>{% block titulo %}{% translate "Aula" %}{% endblock %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/aula_moderna.css' %}?v=20261004-aula-v2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .aula-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 14px; align-items: end; margin: 0 0 18px; padding: 14px 16px; border: 1px solid var(--institucion-primario-suave, #dbe7df); border-radius: 6px; background: #f7faf8; }
+    .aula-form label { display: grid; gap: 4px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--institucion-texto, #1f3d2f); }
+    .aula-form input, .aula-form select, .aula-form textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: 7px 9px; border: 1px solid #c9d8cf; border-radius: 4px; font: inherit; font-size: 13px; letter-spacing: 0; text-transform: none; background: #fff; }
+    .aula-form small { font-weight: 500; letter-spacing: 0; text-transform: none; color: #6b7a73; }
+    .aula-form button { justify-self: start; padding: 9px 16px; border: 0; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font: inherit; font-weight: 700; white-space: nowrap; cursor: pointer; }
+    .aula-form__wide { grid-column: 1 / -1; }
+    .unit-report__toolbar a.is-active { font-weight: 800; text-decoration: underline; }
+    .unit-report__toolbar button.aula-citar { padding: 7px 12px; border: 1px solid #b9cdc1; border-radius: 4px; background: #fff; color: var(--institucion-texto, #173b2c); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .aula-relacionadas { display: flex; align-items: center; gap: 7px; margin: -4px 0 16px; padding: 9px 12px; border: 1px solid var(--institucion-primario-suave, #d8e6de); border-radius: 6px; background: #f7faf8; overflow-x: auto; }
+    .aula-relacionadas > strong { flex: 0 0 auto; color: var(--institucion-texto, #173b2c); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .aula-relacionadas a { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 6px 9px; border: 1px solid var(--institucion-primario-suave, #cbdcd2); border-radius: 999px; background: #fff; color: var(--institucion-texto, #1f5d46); font-size: 10.5px; font-weight: 700; text-decoration: none; }
+    .aula-relacionadas a small { color: #788c82; font-weight: 600; }
+    .aula-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    .aula-falta { color: #a12c2c; font-weight: 700; }
+    .aula-aviso { color: var(--institucion-acento-tinta, #a35d00); font-weight: 700; }
+    .aula-barra { display: block; width: 100%; height: 6px; border-radius: 3px; background: var(--institucion-primario-suave, #e1eae5); overflow: hidden; }
+    .aula-barra span { display: block; height: 100%; background: var(--institucion-primario, #2f6b4f); }
+    .aula-barra span.is-over { background: #a12c2c; }
+    .aula-lista { margin: 0; padding-left: 18px; }
+    .aula-lista li { margin: 2px 0; }
+    .aula-cta-fila { margin: 18px 0; }
+    .aula-cta { display: inline-block; padding: 10px 18px; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font-weight: 700; text-decoration: none; }
+    .aula-variables { display: grid; gap: 8px; margin-top: 4px; }
+    .aula-variables > p { margin: 0; color: #4a5c53; font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .aula-grupo { border: 1px solid var(--institucion-primario-suave, #d6e3da); border-radius: 6px; background: #fff; }
+    .aula-grupo[open] { border-color: var(--institucion-primario, #2f6b4f); }
+    .aula-grupo > summary { padding: 8px 11px; color: var(--institucion-texto, #1f3d2f); font-size: 11.5px; font-weight: 800; cursor: pointer; list-style: none; }
+    .aula-grupo > summary::-webkit-details-marker { display: none; }
+    .aula-grupo > summary::before { content: '▸ '; color: var(--institucion-texto, #2f6b4f); }
+    .aula-grupo[open] > summary::before { content: '▾ '; }
+    .aula-grupo > summary small { display: block; margin-top: 2px; color: #6b7a73; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .aula-grupo > summary b { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #f6eccd; color: var(--institucion-acento-tinta, #8a681b); font-size: 9.5px; letter-spacing: .06em; }
+    .aula-grupo__campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 14px; padding: 4px 11px 12px; }
+    .aula-grupo__campos label.is-movido input { border-color: var(--institucion-acento, #a97909); background: #fffdf5; }
+    .aula-grupo__campos label.is-movido > span { color: var(--institucion-acento-tinta, #8a681b); }
+    .aula-reset { align-self: center; color: var(--institucion-texto, #1f3d2f); font-size: 12px; font-weight: 700; }
+    .repositorio-ficha header { display:flex; justify-content:space-between; align-items:center; }
+    .repositorio-subir { color:var(--institucion-texto, #17624a); font-size:11px; font-weight:800; text-decoration:none; }
+    .repositorio-lista { display:grid; gap:8px; }
+    .repositorio-lista article { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px 12px; border:1px solid var(--institucion-primario-suave, #dbe7df); border-radius:7px; background:#fff; }
+    .repositorio-lista article>i { display:grid; width:34px; height:34px; place-items:center; border-radius:7px; background:var(--institucion-primario-suave, #eaf5f0); color:var(--institucion-texto, #17624a); }
+    .repositorio-lista strong,.repositorio-lista p,.repositorio-lista small { display:block; margin:0; }
+    .repositorio-lista p { margin:2px 0; color:#50675c; font-size:11.5px; }
+    .repositorio-lista small { color:#71867b; font-size:10px; }
+    .repositorio-acciones { display:flex; gap:5px; }
+    .repositorio-acciones a { padding:6px 9px; border:1px solid #c7d9d0; border-radius:4px; color:var(--institucion-texto, #17624a); font-size:10.5px; font-weight:800; text-decoration:none; }
+    .aula-form button.is-suave { background: #fff; border: 1px solid var(--institucion-primario, #2f6b4f); color: var(--institucion-texto, #1f3d2f); }
+    .aula-borrar { padding: 4px 10px; border: 1px solid #d8b3b3; border-radius: 4px; background: #fdf3f3; color: #a12c2c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .aula-guardar form { margin: 0; }
+    .indice-procesos { display:grid; gap:8px; }
+    .indice-procesos h3 { margin-bottom:2px; }
+    .indice-procesos__cuerpo { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:8px; padding:2px 11px 12px; }
+    .indice-procesos__cuerpo article { display:grid; grid-template-columns:28px minmax(0,1fr); gap:8px; padding:10px; border:1px solid var(--institucion-primario-suave, #dce8e1); border-radius:6px; background:#f9fbfa; }
+    .indice-procesos__cuerpo article>i { color:#0c8797; margin-top:2px; text-align:center; }
+    .indice-procesos__cuerpo strong,.indice-procesos__cuerpo p,.indice-procesos__cuerpo small { display:block; margin:0; }
+    .indice-procesos__cuerpo p { margin:2px 0; color:#50675c; font-size:11.5px; }
+    .indice-procesos__cuerpo small { color:#71867b; font-size:10px; }
+    .indice-procesos__acciones { grid-column:1/-1; display:flex; gap:7px; }
+    .indice-procesos__acciones a { padding:7px 10px; border:1px solid #bad1c5; border-radius:4px; color:var(--institucion-texto, #155d47); font-size:10.5px; font-weight:800; text-decoration:none; }
+    @media print { .aula-form, .aula-guardar, .aula-borrar { display: none; } }
+
+    .saber-ruta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 20px; }
+    .saber-ruta article { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 10px; min-height: 82px; padding: 13px; border: 1px solid var(--institucion-primario-suave, #d5e4db); border-top: 4px solid #17889a; border-radius: 8px; background: #fff; }
+    .saber-ruta article:not(:last-child)::after { content: '›'; position: absolute; right: -10px; top: 28px; z-index: 1; color: #16879a; font-size: 24px; font-weight: 900; }
+    .saber-ruta b { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: #e8f6f7; color: #08788a; font-size: 12px; }
+    .saber-ruta strong { display: block; color: var(--institucion-texto, #123024); font-size: 13px; }
+    .saber-ruta span { display: block; margin-top: 4px; color: #60776b; font-size: 11px; line-height: 1.45; }
+    .saber-bases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .saber-base { padding: 15px; border: 1px solid var(--institucion-primario-suave, #d8e6de); border-left: 4px solid #17889a; border-radius: 8px; background: #fff; }
+    .saber-base h4 { margin: 0 0 8px; color: var(--institucion-texto, #123024); font-size: 14px; }
+    .saber-base h4 i { margin-right: 7px; color: #08788a; }
+    .saber-formula { display: block; margin: 8px 0; padding: 10px 12px; border-radius: 5px; background: var(--institucion-primario-suave, #ecf6f3); color: var(--institucion-texto, #123c31); font: 700 13px/1.5 Consolas, monospace; }
+    .saber-base dl { display: grid; gap: 7px; margin: 10px 0 0; }
+    .saber-base dt { color: var(--institucion-acento-tinta, #8a681b); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .saber-base dd { margin: 1px 0 0; color: #53685e; font-size: 11px; line-height: 1.5; }
+    @media (max-width: 900px) { .saber-ruta, .saber-bases { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .saber-ruta, .saber-bases { grid-template-columns: 1fr; } .saber-ruta article::after { display: none; } }
+
+    .doc-general { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(200px, .9fr) minmax(180px, 1fr); align-items: center; gap: 14px; }
+    .doc-general__lado { display: grid; gap: 6px; }
+    .doc-general__lado.is-derecha { justify-items: end; text-align: right; }
+    .doc-general__linea { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px; width: 100%; padding: 6px 10px; border: 1px solid var(--institucion-primario-suave, #cfe0d5); border-left: 3px solid var(--institucion-primario, #2f6b4f); border-radius: 5px; background: #fff; font-size: 11.5px; }
+    .doc-general__lado.is-derecha .doc-general__linea { border-left: 0; border-right: 3px solid var(--institucion-primario, #2f6b4f); }
+    .doc-general__linea b { color: var(--institucion-texto, #123024); font-weight: 800; }
+    .doc-general__linea i { display: block; margin-top: 1px; color: #5f7a6c; font-size: 10px; font-style: normal; font-weight: 500; }
+    .doc-general__linea span { color: var(--institucion-texto, #1f3d2f); font-weight: 800; white-space: nowrap; }
+    .doc-general__linea.is-base { border-color: var(--institucion-acento, #a97909); border-left-color: #a97909; background: #fffdf5; }
+    .doc-general__linea.is-merma, .doc-general__lado.is-derecha .doc-general__linea.is-merma { border-color: #e3bcbc; border-right-color: #a12c2c; background: #fdf3f3; }
+    .doc-general__linea.is-merma b, .doc-general__linea.is-merma span { color: #a12c2c; }
+    .doc-general__caja { display: grid; gap: 4px; padding: 18px 16px; border: 2px solid var(--institucion-primario, #2f6b4f); border-radius: 10px; background: var(--institucion-primario-suave, #eef4f0); text-align: center; }
+    .doc-general__caja strong { color: var(--institucion-texto, #123024); font-size: 14px; line-height: 1.25; }
+    .doc-general__caja span { color: #5f7a6c; font-size: 11px; }
+    .doc-general__caja em { color: var(--institucion-acento-tinta, #a97909); font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .doc-general__cierre { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; padding: 9px 12px; border-radius: 6px; background: var(--institucion-fondo, #f4faf6); color: var(--institucion-texto, #1f3d2f); font-size: 11.5px; }
+    .doc-general__cierre.is-descuadre { background: #fdf3f3; color: #a12c2c; }
+    .doc-general__cierre b { font-weight: 800; }
+    .doc-general__fuera { margin-top: 10px; color: #5f7a6c; font-size: 11px; line-height: 1.6; }
+    .doc-general__fuera b { color: var(--institucion-texto, #1f3d2f); }
+    @media (max-width: 820px) { .doc-general { grid-template-columns: 1fr; } .doc-general__lado.is-derecha { justify-items: start; text-align: left; } }
+  .doc-flujo { display: grid; gap: 10px; }
+  .doc-fila { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(230px, 1.3fr) minmax(150px, 1fr); align-items: center; gap: 10px; }
+  .doc-entradas, .doc-salidas { display: grid; gap: 5px; }
+  .doc-entradas { justify-items: end; text-align: right; }
+  .doc-chip { display: inline-flex; align-items: baseline; gap: 5px; max-width: 100%; padding: 4px 9px; border: 1px solid var(--institucion-primario-suave, #cfe0d5); border-radius: 999px; background: var(--institucion-fondo, #f4faf6); color: var(--institucion-texto, #1f3d2f); font-size: 11px; line-height: 1.35; }
+  .doc-chip b { font-weight: 800; }
+  .doc-chip small { color: #5f7a6c; }
+  .doc-chip.is-merma { border-color: #e3bcbc; background: #fdf3f3; color: #a12c2c; }
+  .doc-chip.is-merma small { color: #a12c2c; }
+  .doc-etapa { display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--institucion-primario-suave, #dbe7df); border-left: 4px solid var(--institucion-primario, #2f6b4f); border-radius: 8px; background: #fff; }
+  .doc-etapa.is-critica { border-left-color: #a12c2c; background: #fffaf9; }
+  .doc-etapa.is-control { border-left-color: #b8860b; background: #fffcf3; }
+  .doc-etapa.is-control em { color: #8a6207; }
+  .control-etapa { display: inline-block; padding: 1px 6px; border-radius: 3px; background: #b8860b; color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .control-etapa.is-pcc { background: #a12c2c; }
+  .doc-etapa i { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 9px; background: var(--institucion-primario-suave, #eef4f0); color: var(--institucion-texto, #2f6b4f); font-size: 16px; }
+  .doc-etapa.is-critica i { background: #fbeeed; color: #a12c2c; }
+  .doc-etapa strong { display: block; color: var(--institucion-texto, #123024); font-size: 13px; line-height: 1.25; }
+  .doc-etapa span { display: block; margin-top: 2px; color: #5f7a6c; font-size: 11px; line-height: 1.4; }
+  .doc-etapa em { display: block; margin-top: 3px; color: #a12c2c; font-size: 11px; font-style: normal; font-weight: 700; }
+  .doc-masa { display: flex; align-items: center; justify-content: center; gap: 6px; color: #5f7a6c; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .doc-masa b { color: var(--institucion-texto, #1f3d2f); font-size: 12px; }
+  .doc-op { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding: 13px 15px; border: 1px solid var(--institucion-primario-suave, #dbe7df); border-radius: 8px; background: #fff; }
+  .doc-op > i { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 10px; background: var(--institucion-primario-suave, #eef4f0); color: var(--institucion-texto, #2f6b4f); font-size: 18px; }
+  .doc-op h4 { margin: 0 0 2px; color: var(--institucion-texto, #123024); font-size: 14px; }
+  .doc-op .doc-familia { color: var(--institucion-acento-tinta, #a97909); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  .doc-op p { margin: 6px 0 0; color: #4a5c53; font-size: 12px; line-height: 1.6; }
+  .doc-op dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 14px; margin: 9px 0 0; }
+  .doc-op dt { color: var(--institucion-texto, #1f3d2f); font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  .doc-op dd { margin: 2px 0 0; color: #4a5c53; font-size: 11.5px; line-height: 1.5; }
+  .doc-op .doc-etapas-op { margin-top: 8px; color: #5f7a6c; font-size: 11px; }
+  @media print { .doc-fila { break-inside: avoid; } .doc-op { break-inside: avoid; } }
+  @media (max-width: 820px) { .doc-fila { grid-template-columns: 1fr; } .doc-entradas { justify-items: start; text-align: left; } }
+
+  /* Mapa en tarjetas, el mismo patrón del «Mapa del editor» del administrador: icono redondo de color,
+     título con su etiqueta, una línea de detalle y el contador a la derecha. */
+  .aula-mapa { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 0 18px; padding: 0; border: 1px solid var(--institucion-primario-suave, #dbe7df); border-radius: 8px; background: #fff; list-style: none; overflow: hidden; }
+  .aula-mapa > li { --tono: var(--institucion-primario, #2f6b4f); --tinta-icono: #fff; border-bottom: 1px solid var(--institucion-primario-suave, #e3ebe7); break-inside: avoid; }
+  .aula-mapa > li:nth-child(odd) { border-right: 1px solid var(--institucion-primario-suave, #e3ebe7); }
+  .aula-mapa > li:only-child { grid-column: 1 / -1; border-right: 0; }
+  .aula-mapa > li:nth-child(7n+1) { --tono: #2f7fc1; }
+  .aula-mapa > li:nth-child(7n+2) { --tono: #1c9aa6; }
+  .aula-mapa > li:nth-child(7n+3) { --tono: var(--institucion-primario, #2f6b4f); }
+  .aula-mapa > li:nth-child(7n+4) { --tono: var(--institucion-acento, #e2b23a); --tinta-icono: var(--institucion-texto, #1f3d2f); }
+  .aula-mapa > li:nth-child(7n+5) { --tono: #d35a4a; }
+  .aula-mapa > li:nth-child(7n+6) { --tono: #c24f86; }
+  .aula-mapa > li:nth-child(7n+7) { --tono: #6c5aa6; }
+  .aula-mapa__item { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; height: 100%; box-sizing: border-box; padding: 12px 14px; border-left: 4px solid transparent; color: inherit; text-decoration: none; }
+  a.aula-mapa__item:hover, a.aula-mapa__item:focus-visible { border-left-color: var(--tono); background: var(--institucion-fondo, #f4faf6); }
+  .aula-mapa__icono { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; background: var(--tono); color: var(--tinta-icono); font-size: 16px; }
+  .aula-mapa__texto { min-width: 0; }
+  .aula-mapa__texto strong { display: block; color: var(--institucion-texto, #123024); font-size: 13.5px; line-height: 1.3; }
+  .aula-mapa__texto em { display: inline-block; margin: 3px 4px 0 0; padding: 1px 7px; border: 1px solid var(--institucion-primario-suave, #d6e3da); border-radius: 10px; color: #5f7a6c; font-size: 10.5px; font-style: normal; font-weight: 600; }
+  .aula-mapa__texto em.is-vivo { border-color: var(--tono); color: var(--institucion-texto, #123024); }
+  .aula-mapa__texto small { display: block; margin-top: 3px; color: #5f7a6c; font-size: 11.5px; line-height: 1.45; }
+  .aula-mapa__cuenta { min-width: 26px; padding: 2px 8px; border: 1px solid var(--institucion-primario-suave, #d6e3da); border-radius: 12px; color: var(--institucion-texto, #1f3d2f); font-size: 11px; font-weight: 700; text-align: center; white-space: nowrap; }
+  .aula-mapa__cuenta small { display: block; color: #71867b; font-size: 9px; font-weight: 600; }
+  @media (max-width: 720px) { .aula-mapa { grid-template-columns: 1fr; } .aula-mapa > li:nth-child(odd) { border-right: 0; } }
+  </style>
+  {% include 'portal/components/marco_incrustado.html' %}
+{% include 'portal/components/navegacion/idiomas_assets.html' %}
+{% include 'portal/components/paleta_institucional.html' %}
+{% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="unit-report-page aula-moderna">
+  <main class="unit-report">
+    <header class="unit-report__masthead{% if foto_portada %} con-foto{% endif %}"{% if foto_portada %} style="--aula-foto: url('{{ foto_portada }}')"{% endif %}>
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· AULA" %}</span>
+        <h1>{% block encabezado %}{% endblock %}</h1>
+        <small>{% block subtitulo %}{% endblock %}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>{% block datos %}{% endblock %}<div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Aula de la unidad" %}">
+      <a class="es-navegacion" href="{{ volver_url }}" target="_top">{% translate "← Volver a la unidad" %}</a>
+      {% block barra %}<div>
+        {% if acciones_proceso %}{% for item in acciones_proceso %}<a class="accion-proceso{% if item.activa %} is-active{% endif %}" href="{{ item.url }}"{% if item.activa %} aria-current="page"{% endif %}>{{ item.nombre }}</a>{% endfor %}{% else %}{% for item in simuladores %}<a class="es-navegacion{% if item.clave == simulador %} is-active{% endif %}" href="{{ item.url }}"{% if item.clave == simulador %} aria-current="page"{% endif %}>{{ item.nombre }}</a>{% endfor %}{% endif %}
+        {% if datos_csv_url %}<a href="{{ datos_csv_url }}" download>{% translate "Datos (CSV)" %}</a>{% endif %}
+        {% if operar_url %}<a href="{{ operar_url }}" target="_top" title="{% translate "Abrir el módulo donde esto se opera" %}">{% translate "Operar en la consola" %}</a>{% endif %}
+        {% if mis_simulaciones_url %}<a class="es-navegacion" href="{{ mis_simulaciones_url }}">{% translate "Mis simulaciones" %}</a>{% endif %}
+        {% if cita %}<button class="aula-citar" type="button" data-cita="{{ cita|escape }}"><i class="fas fa-quote-right" aria-hidden="true"></i> {% translate "Citar" %}</button><span class="sr-only" aria-live="polite" data-cita-estado></span>{% endif %}
+        {% if ver_documento_url %}<a href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="Documento · {{ unidad.nombre }}">{% translate "Ver el documento" %}</a>
+        <a class="is-primary" href="{{ descargar_documento_url }}" download>{% translate "Descargar documento" %}</a>{% endif %}
+      </div>{% endblock %}
+    </section>
+
+    {% if fichas_relacionadas %}<nav class="aula-relacionadas" aria-label="{% translate "Fichas relacionadas" %}"><strong>{% translate "Relacionado con" %}</strong>{% for ficha in fichas_relacionadas %}<a href="{{ ficha.url }}" title="Abrir {{ ficha.tipo|lower }}: {{ ficha.nombre }}"><i class="{{ ficha.icono }}" aria-hidden="true"></i><span>{{ ficha.nombre }}</span><small>{{ ficha.tipo }}</small></a>{% endfor %}</nav>{% endif %}
+
+    {% if referencia %}<section class="unit-report__context"><span>{% translate "DATOS DE LA RESERVA" %}</span><h2>{{ referencia.etiqueta }}</h2><p>{% translate "El simulador toma el proceso y la materia prima pedidos en la reserva; cambia los valores para comparar escenarios." %}</p></section>{% endif %}
+
+    {% block contenido %}{% endblock %}
+
+    {% if puede_guardar %}{% include 'portal/pages/unidades/aula/includes/guardar_simulacion.html' %}{% endif %}
+
+    {% include 'portal/pages/unidades/repositorio/includes/adjuntos_ficha.html' %}
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% block pie %}{% translate "Simulación del aula" %}{% endblock %} · {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+  <script>
+  document.addEventListener('click', async function (event) {
+    const boton = event.target.closest('[data-cita]');
+    if (!boton) return;
+    const cita = boton.dataset.cita;
+    try { await navigator.clipboard.writeText(cita); }
+    catch (_error) {
+      const area = document.createElement('textarea'); area.value = cita; document.body.appendChild(area);
+      area.select(); document.execCommand('copy'); area.remove();
+    }
+    boton.innerHTML = window.interfaz.html`<i class="fas fa-check" aria-hidden="true"></i> Cita copiada`;
+    const estado = document.querySelector('[data-cita-estado]'); if (estado) estado.textContent = gettext('Cita copiada');
+  });
+  </script>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+</body>
+</html>

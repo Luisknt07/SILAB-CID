@@ -1,0 +1,35 @@
+# Bienvenida: tu ruta para crear una aplicación logística
+
+Narración original sintetizada en español (Microsoft Sabina, es-MX).
+
+## 1. Tu primera aplicación logística
+
+Bienvenido al curso Desarrollo de Aplicaciones Logísticas con Inteligencia Artificial. Aquí transformarás una necesidad de inventarios y operaciones en un prototipo que puedas utilizar, explicar y comprobar. En este video conocerás la ruta del curso y cómo avanzar paso a paso.
+
+## 2. Puedes empezar desde cero
+
+Este curso es introductorio. Está dirigido a estudiantes, egresados de Logística y carreras afines, y personas interesadas en digitalizar operaciones. No necesitas experiencia previa en programación. Trabajarás con una plantilla, instrucciones sencillas y cambios pequeños que puedas entender.
+
+## 3. Una ruta de cinco unidades
+
+La ruta tiene cinco unidades y cuarenta horas. Primero defines el problema y diseñas la aplicación. Después preparas las herramientas. Luego construyes funciones logísticas, trabajas con datos y una conexión de inteligencia artificial, y finalmente pruebas y presentas tu proyecto.
+
+## 4. Aprender con un caso concreto
+
+Nuestro caso es Andina Distribución, una organización ficticia. Su almacén registra productos, entradas, salidas y existencias. Aprenderás a impedir una salida sin stock y a conservar el historial de cada operación. Todos los datos de práctica son ficticios; no cargues información real de empresas o personas.
+
+## 5. Así se estudia cada unidad
+
+En cada unidad sigue este recorrido: lee la explicación, mira los videos de apoyo, descarga los archivos y practica. Comprueba lo que obtienes antes de continuar. Los pasos están organizados como una guía de consulta: puedes volver a ellos cuando lo necesites. Guarda evidencias y entrega las actividades solicitadas.
+
+## 6. Comprueba antes de avanzar
+
+Los cuestionarios requieren al menos setenta por ciento y permiten tres intentos. Lee la retroalimentación y revisa la explicación antes de volver a intentar. Las entregas y el proyecto final reciben revisión docente. Presenta resultados esperados y obtenidos, y explica las decisiones que tomaste. Las condiciones completas están en el aula.
+
+## 7. IA que ayuda; datos que se verifican
+
+La inteligencia artificial ayuda a comprender y desarrollar. No necesitas contratar un plan de doscientos dólares para realizar el curso. Usarás las alternativas disponibles y una plantilla que funciona sin inteligencia artificial. La conexión preparada mediante MCP sólo consulta existencias. Siempre contrasta su respuesta con los registros; no modifica el inventario.
+
+## 8. Pausa, pregunta y continúa
+
+Si un paso falla, pausa el video y vuelve a la guía. Anota qué hiciste y qué mensaje apareció. Busca ayuda en el espacio de acompañamiento del aula y conserva una versión anterior antes de cambiar archivos. Ahora abre la primera unidad y comienza con el problema logístico que quieres resolver.

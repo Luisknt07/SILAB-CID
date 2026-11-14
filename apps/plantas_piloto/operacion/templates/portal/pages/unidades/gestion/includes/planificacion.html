@@ -1,0 +1,171 @@
+
+{% load i18n idiomas %}
+        <section class="unit-console__view" data-management-view="planificacion" role="tabpanel" hidden>
+          <div class="unit-console__report-actions"><div><span>{% translate "PLANIFICACIÓN" %}</span><strong>{% translate "De la demanda al abastecimiento: plan de ventas, agregado por familia, Plan Maestro, materiales y capacidad." %}</strong></div><div>{% if puede_operar_planificacion %}<button type="button" data-agenda-operation-open="plan_ventas"><i class="fas fa-chart-line"></i> {% translate "Nuevo plan de ventas" %}</button><button type="button" data-agenda-operation-open="plan_maestro"><i class="fas fa-plus"></i> {% translate "Nuevo plan maestro" %}</button><button type="button" data-agenda-operation-open="pedido_abastecimiento"><i class="fas fa-truck"></i> {% translate "Nuevo pedido" %}</button>{% endif %}{% if plan_vigente %}<a href="{{ plan_url }}?formato=pdf" data-ver-pdf><i class="fas fa-file-alt"></i> {% translate "Ver el plan" %}</a>{% endif %}</div></div>
+          <div class="unit-console__metrics">
+            <article><span>{% translate "Corridas del plan" %}</span><strong>{{ lineas_plan|length }}</strong><small>{% if plan_vigente %}{{ plan_vigente.desde|date:"d/m/Y" }} a {{ plan_vigente.hasta|date:"d/m/Y" }}{% else %}{% translate "sin plan del período" %}{% endif %}</small></article>
+            <article><span>{% translate "Insumos por pedir" %}</span><strong>{{ materiales_faltantes|length }}</strong><small>de {{ materiales_plan|length }} {% translate "que el plan consume" %}</small></article>
+            <article><span>{% translate "Días excedidos" %}</span><strong>{{ dias_excedidos|length }}</strong><small>{% translate "más horas de proceso que de jornada" %}</small></article>
+            <article><span>{% translate "Entregas por recibir" %}</span><strong>{{ entregas_pendientes|length }}</strong><small>{{ entregas_atrasadas|length }} atrasadas</small></article>
+          </div>
+
+          {% if plan_ventas_vigente %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "DEMANDA Y PLAN DE VENTAS" %} {{ plan_ventas_vigente.codigo }}</span><h3>{{ plan_ventas_vigente.nombre }}</h3><p>{{ plan_ventas_vigente.get_estado_display|ui }} · {{ plan_ventas_vigente.desde|date:"d/m/Y" }} a {{ plan_ventas_vigente.hasta|date:"d/m/Y" }} · {{ plan_ventas_vigente.get_periodicidad_display|ui }} · {{ plan_ventas_vigente.get_metodo_display|ui }}{% if plan_ventas_vigente.plan_maestro %} · {% translate "Plan Maestro" %} {{ plan_ventas_vigente.plan_maestro.codigo }}{% endif %}</p></div><div>{% if puede_operar_planificacion %}<button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="plan_ventas_accion" data-field-registro_id="{{ plan_ventas_vigente.pk }}"><i class="fas fa-bolt"></i> {% translate "Acciones" %}</button>{% if plan_ventas_vigente.estado == 'borrador' %}<button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="linea_plan_ventas" data-field-plan_id="{{ plan_ventas_vigente.pk }}" data-field-periodo_inicio="{{ plan_ventas_vigente.desde|date:'Y-m-d' }}" data-field-periodo_fin="{{ plan_ventas_vigente.hasta|date:'Y-m-d' }}"><i class="fas fa-plus"></i> {% translate "Demanda" %}</button><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="plan_ventas" data-field-registro_id="{{ plan_ventas_vigente.pk }}" data-field-nombre="{{ plan_ventas_vigente.nombre }}" data-field-desde="{{ plan_ventas_vigente.desde|date:'Y-m-d' }}" data-field-hasta="{{ plan_ventas_vigente.hasta|date:'Y-m-d' }}" data-field-periodicidad="{{ plan_ventas_vigente.periodicidad }}" data-field-metodo="{{ plan_ventas_vigente.metodo }}" data-field-plan_maestro_id="{{ plan_ventas_vigente.plan_maestro_id|default:'' }}" data-field-observaciones="{{ plan_ventas_vigente.observaciones }}"><i class="fas fa-pen"></i> {% translate "Editar" %}</button>{% endif %}{% endif %}</div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Período" %}</th><th>{% translate "Producto" %}</th><th>{% translate "Histórico" %}</th><th>{% translate "Pronóstico" %}</th><th>{% translate "Compromisos" %}</th><th>{% translate "Docencia" %}</th><th>{% translate "Ajuste" %}</th><th>{% translate "Planificado" %}</th><th>{% translate "Valor" %}</th>{% if puede_operar_planificacion and plan_ventas_vigente.estado == 'borrador' %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for linea in lineas_plan_ventas %}<tr>
+              <td><strong>{{ linea.periodo_inicio|date:"d/m" }}–{{ linea.periodo_fin|date:"d/m/Y" }}</strong></td>
+              <td>{{ linea.producto.nombre }}<br><small>{{ linea.receta.nombre }}</small></td>
+              <td>{{ linea.historico_promedio|floatformat:"-3" }}</td>
+              <td>{{ linea.pronostico|floatformat:"-3" }}</td>
+              <td>{{ linea.compromisos|floatformat:"-3" }}</td>
+              <td>{{ linea.docencia|floatformat:"-3" }}</td>
+              <td>{{ linea.ajuste_manual|floatformat:"-3" }}</td>
+              <td><strong>{{ linea.cantidad_planificada|floatformat:"-3" }} {{ linea.producto.unidad_medida }}</strong><br><small>{{ linea.demanda_no_comprometida|floatformat:"-3" }} {% translate "de demanda abierta" %}</small></td>
+              <td>${{ linea.valor_estimado|floatformat:2 }}</td>
+              {% if puede_operar_planificacion and plan_ventas_vigente.estado == 'borrador' %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="linea_plan_ventas" data-field-registro_id="{{ linea.pk }}" data-field-plan_id="{{ plan_ventas_vigente.pk }}" data-field-receta_id="{{ linea.receta_id }}" data-field-periodo_inicio="{{ linea.periodo_inicio|date:'Y-m-d' }}" data-field-periodo_fin="{{ linea.periodo_fin|date:'Y-m-d' }}" data-field-pronostico="{{ linea.pronostico|floatformat:'-3u' }}" data-field-ajuste_manual="{{ linea.ajuste_manual|floatformat:'-3u' }}" data-field-observaciones="{{ linea.observaciones }}"><i class="fas fa-pen"></i> {% translate "Editar" %}</button></td>{% endif %}
+            </tr>{% empty %}<tr><td colspan="10"><div class="unit-console__empty"><strong>{% translate "Aún no hay demanda calculada" %}</strong><span>{% translate "Usa Acciones para calcular el promedio de ventas y traer compromisos y docencia." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+
+          <article class="unit-console__card">
+            <header><div><span>{% translate "PLAN AGREGADO" %}</span><h3>{% translate "Carga equivalente por familia" %}</h3><p>{% translate "Convierte cada producto a la materia prima base declarada por su receta y consolida el horizonte sin crear otra receta ni mover inventario." %}</p></div><div><span class="unit-console__status">{{ familias_planificadas }} {% translate "familias" %}</span><span class="unit-console__status">${{ valor_plan_ventas|floatformat:2 }}</span></div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Período" %}</th><th>{% translate "Familia" %}</th><th>{% translate "Productos" %}</th><th>{% translate "Materia prima equivalente" %}</th><th>{% translate "Valor estimado" %}</th></tr></thead><tbody>
+            {% for item in plan_agregado %}<tr>
+              <td>{{ item.periodo_inicio|date:"d/m" }}–{{ item.periodo_fin|date:"d/m/Y" }}</td>
+              <td><strong>{{ item.familia_nombre }}</strong></td>
+              <td>{% for linea in item.productos %}{{ linea.producto.nombre }}: {{ linea.cantidad_planificada|floatformat:"-3" }} {{ linea.producto.unidad_medida }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
+              <td><strong>{{ item.equivalente_base|floatformat:"-3" }} {{ item.unidad_base }}</strong></td>
+              <td>${{ item.valor_estimado|floatformat:2 }}</td>
+            </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Sin plan agregado" %}</strong><span>{% translate "Aparece cuando el plan de ventas tiene demanda por producto." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+          {% else %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "DEMANDA Y PLAN DE VENTAS" %}</span><h3>{% translate "El horizonte todavía no tiene demanda planificada" %}</h3><p>{% translate "Crea un plan de ventas, calcula la previsión y vincúlalo con el Plan Maestro del mismo período." %}</p></div></header>
+            <div class="unit-console__empty"><strong>{% translate "Sin plan de ventas" %}</strong><span>{% translate "La previsión usa ventas históricas, encargos y docencia; coordinación conserva el ajuste final." %}</span></div>
+          </article>
+          {% endif %}
+
+          {% if plan_vigente %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "PLAN MAESTRO" %} {{ plan_vigente.codigo }}</span><h3>{{ plan_vigente.nombre }}</h3><p>{{ plan_vigente.get_estado_display|ui }} · {{ plan_vigente.desde|date:"d/m/Y" }} a {{ plan_vigente.hasta|date:"d/m/Y" }}{% if plan_vigente.responsable %} · {% translate "responsable:" %} {{ plan_vigente.responsable.nombre_publico }}{% endif %}{% if plan_vigente.observaciones %} · {{ plan_vigente.observaciones|truncatechars:140 }}{% endif %}</p></div><div>{% if puede_operar_planificacion %}<button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="plan_accion" data-field-registro_id="{{ plan_vigente.pk }}"><i class="fas fa-bolt"></i> {% translate "Acciones" %}</button><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="linea_plan" data-field-plan_id="{{ plan_vigente.pk }}" data-field-fecha="{{ plan_vigente.desde|date:'Y-m-d' }}"><i class="fas fa-plus"></i> {% translate "Corrida" %}</button><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="plan_maestro" data-field-registro_id="{{ plan_vigente.pk }}" data-field-nombre="{{ plan_vigente.nombre }}" data-field-desde="{{ plan_vigente.desde|date:'Y-m-d' }}" data-field-hasta="{{ plan_vigente.hasta|date:'Y-m-d' }}" data-field-estado="{{ plan_vigente.estado }}" data-field-observaciones="{{ plan_vigente.observaciones }}" data-field-responsable_id="{{ plan_vigente.responsable_id|default:'' }}"><i class="fas fa-pen"></i> {% translate "Editar" %}</button>{% endif %}</div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Día" %}</th><th>{% translate "Proceso" %}</th><th>{% translate "Escala" %}</th><th>{% translate "Producto esperado" %}</th><th>{% translate "Origen" %}</th><th>{% translate "Orden" %}</th>{% if puede_operar_planificacion %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for linea in lineas_plan %}<tr>
+              <td><strong>{{ linea.fecha|date:"D d/m" }}</strong><br><small>{{ linea.horas|floatformat:"-2" }} {% translate "h de proceso" %}</small></td>
+              <td>{{ linea.receta.nombre }}{% if linea.observaciones %}<br><small>{{ linea.observaciones }}</small>{% endif %}</td>
+              <td>{% translate "×" %} {{ linea.factor|floatformat:"-3" }}</td>
+              <td>{{ linea.cantidad|floatformat:"-3" }} {{ linea.producto.unidad_medida }} de {{ linea.producto.nombre|lower }}</td>
+              <td><span class="unit-console__status">{{ linea.get_origen_display|ui }}</span></td>
+              <td>{% if linea.orden %}<a href="{% url 'erp_planta' unidad.slug %}?view=produccion">{{ linea.orden.codigo }}</a><br><small>{{ linea.orden.get_estado_display|ui }}</small>{% else %}<small>{% translate "sin orden todavía" %}</small>{% endif %}</td>
+              {% if puede_operar_planificacion %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="linea_plan" data-field-registro_id="{{ linea.pk }}" data-field-plan_id="{{ plan_vigente.pk }}" data-field-receta_id="{{ linea.receta_id }}" data-field-fecha="{{ linea.fecha|date:'Y-m-d' }}" data-field-factor="{{ linea.factor|floatformat:'-3u' }}" data-field-origen="{{ linea.origen }}" data-field-observaciones="{{ linea.observaciones }}"><i class="fas fa-pen"></i> {% translate "Editar" %}</button></td>{% endif %}
+            </tr>{% empty %}<tr><td colspan="7"><div class="unit-console__empty"><strong>{% translate "El plan todavía no tiene corridas" %}</strong><span>{% translate "Desde «Acciones» trae la demanda ya comprometida, o añade las corridas de reposición una por una." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+
+          {% if demanda_sin_planificar %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "DEMANDA SIN PLANIFICAR" %}</span><h3>{% translate "Lo comprometido que el plan todavía no recoge" %}</h3><p>{% translate "Encargos aceptados y prácticas programadas del período que no tienen su corrida en el plan." %}</p></div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Día" %}</th><th>{% translate "Proceso" %}</th><th>{% translate "Escala" %}</th><th>{% translate "Quién lo pidió" %}</th><th>{% translate "Origen" %}</th></tr></thead><tbody>
+            {% for item in demanda_sin_planificar %}<tr>
+              <td>{{ item.fecha|date:"D d/m/Y" }}</td>
+              <td>{{ item.receta.nombre }}<br><small>{{ item.reserva.codigo_reserva }}</small></td>
+              <td>{% translate "×" %} {{ item.factor|floatformat:"-3" }}</td>
+              <td>{{ item.reserva.nombre_solicitante|default:item.reserva.usuario.username }}</td>
+              <td>{% if item.origen == 'maquila' %}{% translate "Encargo de un cliente" %}{% else %}{% translate "Práctica programada" %}{% endif %}</td>
+            </tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+          {% endif %}
+
+          <div class="unit-console__split">
+            <article class="unit-console__card">
+              <header><div><span>CAPACIDAD</span><h3>{% translate "Carga de cada día" %}</h3><p>{% translate "Horas de proceso del plan frente a las horas de jornada declaradas." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Día" %}</th><th>{% translate "Corridas" %}</th><th>{% translate "Horas" %}</th><th>{% translate "Jornada" %}</th><th>{% translate "Carga" %}</th></tr></thead><tbody>
+              {% for fila in carga_plan %}<tr>
+                <td><strong>{{ fila.fecha|date:"D d/m" }}</strong></td>
+                <td>{{ fila.corridas }}</td>
+                <td>{{ fila.horas|floatformat:"-2" }} h</td>
+                <td>{{ fila.disponibles|floatformat:"-2" }} h</td>
+                <td><span class="unit-console__status{% if fila.semaforo == 'holgado' %} is-confirmada{% elif fila.semaforo == 'ajustado' %} is-pendiente{% else %} is-rechazada{% endif %}">{{ fila.porcentaje }} %</span></td>
+              </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Sin días que medir" %}</strong><span>{% translate "La carga aparece cuando el plan tiene corridas o la unidad declara sus jornadas." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+            <article class="unit-console__card">
+              <header><div><span>{% translate "EXPLOSIÓN DE MATERIALES" %}</span><h3>{% translate "Qué falta y cuándo pedirlo" %}</h3><p>{% translate "Lo que las recetas piden, menos lo que hay en bodega y lo que viene en camino, sin tocar el stock de seguridad." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Insumo" %}</th><th>{% translate "Pide el plan" %}</th><th>{% translate "En camino" %}</th><th>{% translate "Falta" %}</th><th>{% translate "Pedir antes de" %}</th></tr></thead><tbody>
+              {% for item in materiales_plan %}<tr>
+                <td><strong>{{ item.consumible.nombre }}</strong><br><small>{{ item.consumible.codigo }} {% translate "· plazo" %} {{ item.plazo }} {% translate "día" %}{{ item.plazo|pluralize }}</small></td>
+                <td>{{ item.requerido_total|floatformat:"-3" }} {{ item.consumible.unidad_medida }}</td>
+                <td>{% if item.en_camino_total %}{{ item.en_camino_total|floatformat:"-3" }}{% else %}—{% endif %}</td>
+                <td>{% if item.falta_total %}<span class="unit-console__status is-rechazada">{{ item.falta_total|floatformat:"-3" }}</span>{% else %}<span class="unit-console__status is-confirmada">cubierto</span>{% endif %}</td>
+                <td>{% if item.pedir_antes_de %}{{ item.pedir_antes_de|date:"d/m/Y" }}<br><small>{% translate "se necesita el" %} {{ item.primera_falta|date:"d/m" }}</small>{% else %}—{% endif %}</td>
+              </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Sin materiales que explotar" %}</strong><span>{% translate "La explosión sale de las recetas de las corridas del plan." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+          </div>
+          {% else %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "PLAN MAESTRO" %}</span><h3>{% translate "El período todavía no tiene plan" %}</h3><p>{% translate "Un plan maestro reúne las corridas del período, calcula lo que hay que pedir y enciende el semáforo de la capacidad." %}</p></div></header>
+            <div class="unit-console__empty"><strong>{% translate "Sin plan del período" %}</strong><span>{% translate "Crea el plan con «Nuevo plan» y trae la demanda ya comprometida." %}</span></div>
+          </article>
+          {% endif %}
+
+          <article class="unit-console__card">
+            <header><div><span>{% translate "ABASTECIMIENTO" %}</span><h3>{% translate "Pedidos y sus entregas" %}</h3><p>{% translate "Un pedido puede llegar en varias entregas: la leche cruda llega el día que se procesa, y cada entrega recibida entra al inventario con su lote." %}</p></div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Pedido" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Entregas" %}</th><th>{% translate "Estado" %}</th>{% if puede_operar_planificacion %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for pedido in pedidos_abastecimiento %}<tr>
+              <td><strong>{{ pedido.codigo }}</strong><br><small>{{ pedido.fecha_pedido|date:"d/m/Y" }}{% if pedido.proveedor %} · {{ pedido.proveedor }}{% endif %}{% if pedido.plan %} · {{ pedido.plan.codigo }}{% endif %}{% if pedido.orden_compra %} · <a href="{% url 'orden_compra' unidad.slug pedido.orden_compra_id %}?formato=pdf" data-ver-pdf title="{% translate "Orden de compra del pedido" %}">{{ pedido.orden_compra.codigo }}</a>{% endif %}</small></td>
+              <td>{{ pedido.consumible.nombre }}</td>
+              <td>{{ pedido.cantidad|floatformat:"-3" }} {{ pedido.consumible.unidad_medida }}<br><small>recibido {{ pedido.cantidad_recibida|floatformat:"-3" }}{% if pedido.costo_unitario %} · ${{ pedido.costo_total|floatformat:2 }}{% endif %}</small></td>
+              <td><div class="unit-console__tag-list">{% for entrega in pedido.entregas.all %}{% if entrega.recibida %}<span>{{ entrega.fecha|date:"d/m" }} <small>{{ entrega.cantidad|floatformat:"-3" }} {% translate "· recibida" %}{% if entrega.lote_codigo %} {% translate "· lote" %} {{ entrega.lote_codigo }}{% endif %}</small></span>{% elif puede_operar_planificacion %}<button type="button" data-agenda-operation-open="entrega_pedido" data-field-registro_id="{{ entrega.pk }}" data-field-cantidad="{{ entrega.cantidad|floatformat:'-3u' }}" aria-label="Recibir la entrega del {{ entrega.fecha|date:'d/m/Y' }}">{{ entrega.fecha|date:"d/m" }} <small>{{ entrega.cantidad|floatformat:"-3" }}{% if entrega.atrasada %} {% translate "· atrasada" %}{% endif %}</small></button>{% else %}<span>{{ entrega.fecha|date:"d/m" }} <small>{{ entrega.cantidad|floatformat:"-3" }}</small></span>{% endif %}{% empty %}<small>{% translate "Sin entregas programadas" %}</small>{% endfor %}</div></td>
+              <td><span class="unit-console__status{% if pedido.estado == 'recibido' %} is-confirmada{% elif pedido.estado == 'borrador' %} is-pendiente{% endif %}">{{ pedido.get_estado_display|ui }}</span></td>
+              {% if puede_operar_planificacion %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="pedido_abastecimiento" data-field-registro_id="{{ pedido.pk }}" data-field-consumible_id="{{ pedido.consumible_id }}" data-field-proveedor="{{ pedido.proveedor|default_if_none:'' }}" data-field-cantidad="{{ pedido.cantidad|floatformat:'-3u' }}" data-field-costo_unitario="{% if pedido.costo_unitario %}{{ pedido.costo_unitario|floatformat:'-4u' }}{% endif %}" data-field-fecha_pedido="{{ pedido.fecha_pedido|date:'Y-m-d' }}" data-field-fecha_entrega_prevista="{{ pedido.fecha_entrega_prevista|date:'Y-m-d' }}" data-field-estado="{{ pedido.estado }}" data-field-observaciones="{{ pedido.observaciones }}"><i class="fas fa-pen"></i> {% translate "Editar" %}</button></td>{% endif %}
+            </tr>{% empty %}<tr><td colspan="6"><div class="unit-console__empty"><strong>{% translate "Sin pedidos abiertos" %}</strong><span>{% translate "La explosión de materiales sugiere los pedidos del plan; también se registran a mano." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+
+          <article class="unit-console__card">
+            <header><div><span>{% translate "COMPRAS" %}</span><h3>{% translate "Órdenes de compra" %}</h3><p>{% translate "Los pedidos en borrador de un mismo proveedor salen en una sola orden con número, lista para enviarse; sus pedidos pasan a «enviado» y cuentan como existencia en camino." %}</p></div>{% if puede_operar_planificacion and pedidos_por_emitir %}<button type="button" data-agenda-operation-open="orden_compra"><i class="fas fa-file-signature"></i> {% translate "Emitir órdenes" %} ({{ pedidos_por_emitir }})</button>{% endif %}</header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Orden" %}</th><th>{% translate "Proveedor" %}</th><th>{% translate "Pedidos" %}</th><th>{% translate "Total" %}</th><th>{% translate "Estado" %}</th>{% if puede_operar_planificacion %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for orden in ordenes_compra %}<tr>
+              <td><a href="{% url 'orden_compra' unidad.slug orden.pk %}?formato=pdf" data-ver-pdf><strong>{{ orden.codigo }}</strong></a><br><small>{{ orden.fecha_emision|date:"d/m/Y" }}</small></td>
+              <td>{{ orden.proveedor.nombre }}</td>
+              <td>{% for pedido in orden.pedidos.all %}{% if pedido.estado != 'cancelado' %}<div>{{ pedido.consumible.nombre }}</div>{% endif %}{% endfor %}</td>
+              <td>${{ orden.total|floatformat:2 }}</td>
+              <td><span class="unit-console__status{% if orden.estado == 'recibida' %} is-confirmada{% elif orden.estado == 'emitida' %} is-pendiente{% endif %}">{{ orden.get_estado_display|ui }}</span></td>
+              {% if puede_operar_planificacion %}<td>{% if orden.estado == 'emitida' or orden.estado == 'confirmada' %}<button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="orden_compra_estado" data-field-registro_id="{{ orden.pk }}" data-field-codigo_orden_compra="{{ orden.codigo }} · {{ orden.proveedor.nombre }}"><i class="fas fa-pen"></i> {% translate "Gestionar" %}</button>{% endif %}</td>{% endif %}
+            </tr>{% empty %}<tr><td colspan="6"><div class="unit-console__empty"><strong>{% translate "Sin órdenes de compra" %}</strong><span>{% translate "Asigna un proveedor a los pedidos en borrador y emite sus órdenes." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+
+          <article class="unit-console__card">
+            <header><div><span>{% translate "PROVEEDORES" %}</span><h3>{% translate "Evaluación de proveedores" %}</h3><p>{% translate "Cada proveedor de la planta con sus entregas a tiempo y sus controles de recepción: confiable con al menos 90 % a tiempo y sin rechazos; crítico por debajo de 75 % o con más de un rechazo. Es la lista de proveedores aprobados que piden las BPM y la ISO 9001 (8.4)." %}</p></div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Proveedor" %}</th><th>{% translate "Pedidos" %}</th><th>{% translate "Comprado" %}</th><th>{% translate "Entregas a tiempo" %}</th><th>{% translate "Recepción" %}</th><th>{% translate "Calificación" %}</th>{% if puede_operar_planificacion %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for fila in evaluacion_proveedores %}<tr>
+              <td><strong>{{ fila.proveedor.nombre }}</strong>{% if fila.proveedor.ruc or fila.proveedor.telefono %}<br><small>{{ fila.proveedor.ruc }}{% if fila.proveedor.ruc and fila.proveedor.telefono %} · {% endif %}{{ fila.proveedor.telefono }}</small>{% endif %}{% if not fila.proveedor.activo %}<br><small>{% translate "Inactivo" %}</small>{% endif %}</td>
+              <td>{{ fila.pedidos }}</td>
+              <td>${{ fila.comprado|floatformat:2 }}</td>
+              <td>{% if fila.recibidas %}{{ fila.a_tiempo }} de {{ fila.recibidas }} · {{ fila.a_tiempo_pct }} %{% else %}—{% endif %}</td>
+              <td>{% if fila.controles %}{{ fila.rechazos }} {% translate "no conforme" %}{{ fila.rechazos|pluralize }} {% translate "de" %} {{ fila.controles }}{% else %}{% translate "sin controles" %}{% endif %}</td>
+              <td><span class="unit-console__status{% if fila.calificacion == 'confiable' %} is-confirmada{% elif fila.calificacion == 'observacion' %} is-pendiente{% elif fila.calificacion == 'critico' %} is-cancelada{% endif %}">{{ fila.calificacion_nombre }}</span></td>
+              {% if puede_operar_planificacion %}<td>{% if not sesion_erp %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="proveedor" data-field-registro_id="{{ fila.proveedor.pk }}" data-field-nombre="{{ fila.proveedor.nombre }}" data-field-ruc="{{ fila.proveedor.ruc }}" data-field-contacto="{{ fila.proveedor.contacto }}" data-field-telefono="{{ fila.proveedor.telefono }}" data-field-email="{{ fila.proveedor.email }}" data-field-direccion="{{ fila.proveedor.direccion }}" data-field-rubro="{{ fila.proveedor.rubro }}" data-field-observaciones="{{ fila.proveedor.observaciones }}" data-field-activo="{{ fila.proveedor.activo|yesno:'true,false' }}" aria-label="Editar {{ fila.proveedor.nombre }}"><i class="fas fa-pen"></i></button>{% endif %}</td>{% endif %}
+            </tr>{% empty %}<tr><td colspan="7"><div class="unit-console__empty"><strong>{% translate "Sin proveedores todavía" %}</strong><span>{% translate "Cada pedido registra a su proveedor, y aquí se evalúa con sus entregas." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+
+          {% if planes_maestros|length > 1 %}
+          <article class="unit-console__card">
+            <header><div><span>HISTORIAL</span><h3>{% translate "Los planes de la unidad" %}</h3><p>{% translate "Cada plan guarda sus corridas, sus pedidos y la carga que tuvo el período." %}</p></div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Plan" %}</th><th>{% translate "Período" %}</th><th>{% translate "Corridas" %}</th><th>{% translate "Estado" %}</th><th></th></tr></thead><tbody>
+            {% for plan in planes_maestros %}<tr>
+              <td><strong>{{ plan.codigo }}</strong><br><small>{{ plan.nombre }}</small></td>
+              <td>{{ plan.desde|date:"d/m/Y" }} a {{ plan.hasta|date:"d/m/Y" }}</td>
+              <td>{{ plan.lineas.count }}</td>
+              <td><span class="unit-console__status{% if plan.estado == 'firme' %} is-confirmada{% elif plan.estado == 'borrador' %} is-pendiente{% endif %}">{{ plan.get_estado_display|ui }}</span></td>
+              <td><a class="unit-console__row-action unit-console__row-action--text" href="{% url 'plan_maestro' unidad.slug plan.pk %}?formato=pdf" data-ver-pdf><i class="fas fa-file-alt"></i> {% translate "Ver" %}</a></td>
+            </tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+          {% endif %}
+        </section>

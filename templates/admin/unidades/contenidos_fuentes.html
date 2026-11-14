@@ -1,0 +1,4 @@
+{% load i18n %}{% if fuentes %}<div class="contenidos-ficha__fuentes">
+  <span>{% translate "Se edita en:" %}</span>
+  <ul>{% for fuente in fuentes %}<li class="is-{{ fuente.tipo }}"><a href="{{ fuente.url }}" title="{{ fuente.donde }}"{% if fuente.tipo == 'panel' %} target="_blank" rel="noopener"{% endif %}>{{ fuente.nombre }}</a>{% if fuente.estado %}<small>{{ fuente.estado }}</small>{% endif %}{% if fuente.nuevo and puede_editar %}<a class="contenidos-ficha__nuevo" href="{{ fuente.nuevo }}" title="{% translate 'Nuevo' %}">+</a>{% endif %}</li>{% endfor %}</ul>
+</div>{% endif %}

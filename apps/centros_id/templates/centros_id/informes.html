@@ -1,0 +1,36 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n %}
+{% block title %}{{ reporte.title }} | {{ identidad_producto.nombre_corto }}{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'centros_id/informes.css' %}">{% endblock %}
+{% block portal_content %}
+<main class="cid-reportes">
+  <header class="cid-reportes__cabecera">
+    <div><p class="cid-reportes__ceja">{% translate 'Centro de reportes · Investigación y Desarrollo' %}</p><h1>{{ reporte.title }}</h1><p>{{ reporte.scope }} · {% translate 'Generado' %} {{ reporte.generated_at|date:'d/m/Y H:i' }}</p></div>
+    <a class="cid-reportes__boton" href="{% url 'centros_id' %}">{% translate 'Ver Centros I+D' %}</a>
+  </header>
+  {% url 'reporte_institucional' as reportes_unidades_url %}
+  <nav class="cid-reportes__dominios" aria-label="{% translate 'Dominios de reportes' %}"><strong>{% translate 'Centros I+D' %}</strong>{% if reporte.macro and reportes_unidades_url %}<a href="{{ reportes_unidades_url }}">{% translate 'Laboratorios, unidades y cursos' %}</a>{% endif %}</nav>
+  <form method="get" class="cid-reportes__filtros" data-cid-reportes-filtros>
+    <label for="cid-categoria">{% translate 'Contenido' %}<select id="cid-categoria" name="categoria">{% for clave,nombre in reporte.categories %}<option value="{{ clave }}"{% if reporte.filters.categoria == clave %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label for="cid-centro">{% translate 'Centro autorizado' %}<select id="cid-centro" name="centro"><option value="">{% if reporte.macro %}{% translate 'Todos los Centros I+D' %}{% else %}{% translate 'Mis centros asignados' %}{% endif %}</option>{% for pk,nombre in reporte.center_options %}<option value="{{ pk }}"{% if reporte.filters.centro == pk %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label for="cid-anio">{% translate 'Año calendario' %}<input type="number" id="cid-anio" name="anio" min="1" max="9999" value="{{ reporte.filters.anio|default_if_none:'' }}" placeholder="{% translate 'Todos los años' %}"></label>
+    <label for="cid-q">{% translate 'Buscar en el contenido' %}<input type="search" id="cid-q" name="q" maxlength="200" value="{{ reporte.filters.q }}"></label>
+    {% if reporte.state_options %}<label for="cid-estado">{% translate 'Estado registrado' %}<select name="estado" id="cid-estado"><option value="">{% translate 'Todos los estados' %}</option>{% for clave,nombre in reporte.state_options %}<option value="{{ clave }}"{% if reporte.filters.estado == clave %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>{% endif %}
+    {% if reporte.filters.categoria == 'produccion' %}<label for="cid-tipo">{% translate 'Tipo de resultado' %}<select name="tipo_resultado" id="cid-tipo"><option value="">{% translate 'Todos los tipos' %}</option>{% for clave,nombre in reporte.result_types %}<option value="{{ clave }}"{% if reporte.filters.tipo_resultado == clave %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>{% endif %}
+    <div class="cid-reportes__acciones"><button class="cid-reportes__boton cid-reportes__boton--principal" type="submit">{% translate 'Aplicar filtros' %}</button><a href="{% url 'reportes_centros_id' %}">{% translate 'Limpiar' %}</a></div>
+    {% if reporte.more_centers or reporte.filters.centro_q %}<label for="cid-centro-q">{% translate 'Buscar entre más centros' %}<input type="search" name="centro_q" id="cid-centro-q" maxlength="100" value="{{ reporte.filters.centro_q }}"><small>{% translate 'Se muestran hasta 200 opciones. Aplica la búsqueda y selecciona un centro; el informe global conserva todos los autorizados.' %}</small></label>{% endif %}
+  </form>
+  <section class="cid-reportes__metricas" aria-label="{% translate 'Indicadores del alcance seleccionado' %}">
+    {% for metrica in reporte.metrics %}<article><h2>{{ metrica.nombre }}</h2><strong>{{ metrica.valor }}</strong><p>{{ metrica.unidad }}</p><small>{{ metrica.periodo }}</small></article>{% endfor %}
+  </section>
+  <section class="cid-reportes__datos">
+    <header><div><h2>{{ reporte.sections.0.titulo }}</h2><p>{{ reporte.pagination.count }} {% translate 'filas encontradas. La descarga incluye todas las filas filtradas; máximo 5.000 por exportación.' %}</p></div><div class="cid-reportes__descargas"><a class="cid-reportes__boton" href="{{ pdf_url }}" data-ver-pdf data-pdf-titulo="{{ reporte.title }}" data-pdf-descarga="{{ pdf_url }}&amp;descargar=1">{% translate 'Ver reporte' %}</a>{% for texto,url in exportaciones %}<a class="cid-reportes__boton" href="{{ url }}" download>{% if texto == 'Descargar PDF' %}{% translate 'Descargar documento' %}{% else %}{{ texto }}{% endif %}</a>{% endfor %}</div></header>
+    <div class="cid-reportes__tabla" tabindex="0" role="region" aria-label="{{ reporte.sections.0.titulo }}">
+      <table><caption>{{ reporte.scope }} · {% if reporte.filters.anio %}{{ reporte.filters.anio }}{% else %}{% translate 'Todos los años registrados' %}{% endif %}</caption><thead><tr>{% for columna in reporte.sections.0.headers %}<th scope="col">{{ columna }}</th>{% endfor %}</tr></thead><tbody>{% for fila in reporte.sections.0.rows %}<tr>{% for valor in fila %}<td>{{ valor }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ reporte.sections.0.headers|length }}">{% translate 'No hay registros para estos filtros. Los datos no registrados no se consideran logros.' %}</td></tr>{% endfor %}</tbody></table>
+    </div>
+    <nav class="cid-reportes__paginacion" aria-label="{% translate 'Páginas del reporte' %}">{% if anterior_url %}<a class="cid-reportes__boton" href="{{ anterior_url }}">{% translate 'Anterior' %}</a>{% endif %}<span>{% translate 'Página' %} {{ reporte.pagination.number }} / {{ reporte.pagination.num_pages }}</span>{% if siguiente_url %}<a class="cid-reportes__boton" href="{{ siguiente_url }}">{% translate 'Siguiente' %}</a>{% endif %}</nav>
+  </section>
+  <aside class="cid-reportes__notas"><h2>{% translate 'Cómo interpretar el informe' %}</h2><ul>{% for nota in reporte.notes %}<li>{{ nota }}</li>{% endfor %}</ul><p>{% translate 'Las autorizaciones se verifican también en cada descarga. El reporte no modifica registros ni muestra diagnósticos, nombres de solicitantes o notas internas.' %}</p></aside>
+</main>
+{% endblock %}
+{% block extra_scripts %}{{ block.super }}<script src="{% static 'centros_id/informes.js' %}" defer></script>{% endblock %}

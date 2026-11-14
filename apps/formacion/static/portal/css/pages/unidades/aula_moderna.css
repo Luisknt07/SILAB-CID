@@ -1,0 +1,107 @@
+/* Las páginas del aula (procesos, productos, materiales, servicios, capacidad, calidad, software, insumos…)
+   con el diseño de «Conoce la unidad» y de las páginas de área: portada oscura con foto, barra de acciones
+   flotante, cifras en tarjetas y secciones en tarjetas redondeadas. Solo en pantalla: el documento impreso
+   y el PDF conservan su formato institucional. */
+
+@media screen {
+    body.aula-moderna {
+        --aula-oscuro: var(--institucion-oscuro, #173b2c);
+        --aula-primario: var(--institucion-primario, #1f6b46);
+        --aula-amarillo: var(--institucion-panel-carpeta, #ffce00);
+        --aula-suave: var(--institucion-primario-suave, #e3eee8);
+        --aula-gris: #5b6d64;
+        --aula-lado: clamp(16px, 4.5vw, 64px);
+        background: #f5f7f6;
+    }
+    .aula-moderna .unit-report { width: 100%; margin: 0; padding: 0 0 40px; border: 0; background: transparent; box-shadow: none; }
+    .aula-moderna .unit-report > *:not(.unit-report__masthead) { margin-left: var(--aula-lado); margin-right: var(--aula-lado); }
+
+    /* Portada: el encabezado del documento como portada oscura, con la foto de la unidad de fondo. */
+    .aula-moderna .unit-report__masthead { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 22px; min-height: 260px; padding: 42px var(--aula-lado) 86px; overflow: hidden; border: 0; background: linear-gradient(120deg, var(--aula-oscuro), var(--aula-primario)); color: #fff; }
+    .aula-moderna .unit-report__masthead.con-foto { background: linear-gradient(90deg, rgba(var(--institucion-oscuro-rgb, 23, 59, 44), .95) 0%, rgba(var(--institucion-oscuro-rgb, 23, 59, 44), .8) 50%, rgba(var(--institucion-oscuro-rgb, 23, 59, 44), .35) 100%), var(--aula-foto) center / cover no-repeat; }
+    .aula-moderna .unit-report__masthead::after { content: ''; position: absolute; right: -80px; bottom: -130px; width: 320px; height: 320px; border: 44px solid var(--aula-amarillo); border-radius: 50%; opacity: .15; pointer-events: none; }
+    .aula-moderna .unit-report__brandmark { display: none; }
+    .aula-moderna .unit-report__masthead > div:nth-child(2) { position: relative; z-index: 1; }
+    .aula-moderna .unit-report__masthead > div:nth-child(2) > span { color: var(--aula-amarillo); font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .aula-moderna .unit-report__masthead h1 { margin: 8px 0 10px; color: #fff; font-size: clamp(28px, 3.6vw, 46px); font-weight: 800; line-height: 1.08; }
+    .aula-moderna .unit-report__masthead small { display: block; max-width: 760px; padding-left: 14px; border-left: 4px solid var(--aula-amarillo); color: rgba(255, 255, 255, .92); font-size: clamp(14px, 1.4vw, 17px); font-weight: 600; line-height: 1.45; }
+    .aula-moderna .unit-report__masthead p { margin-top: 12px; color: rgba(255, 255, 255, .75); font-size: 13px; font-weight: 600; }
+    .aula-moderna .unit-report__masthead dl { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: 0; padding: 0; border: 0; }
+    .aula-moderna .unit-report__masthead dl > div { margin: 0 !important; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 14px; background: rgba(255, 255, 255, .08); backdrop-filter: blur(4px); }
+    .aula-moderna .unit-report__masthead dt { color: var(--aula-amarillo); font-size: 9.5px; letter-spacing: .08em; }
+    .aula-moderna .unit-report__masthead dd { color: #fff; font-size: 13px; }
+
+    /* Barra de acciones flotante sobre el borde de la portada. */
+    .aula-moderna .unit-report__toolbar { position: relative; z-index: 2; margin-top: -46px; margin-bottom: 22px; padding: 12px 16px; border: 0; border-radius: 18px; background: #fff; box-shadow: 0 14px 32px rgba(0, 0, 0, .1); }
+    .aula-moderna .unit-report__toolbar a, .aula-moderna .unit-report__toolbar button { padding: 8px 14px; border: 1px solid #d5e2db; border-radius: 999px; background: #fff; color: var(--aula-oscuro); font-size: 12px; font-weight: 700; transition: border-color .2s, background .2s, transform .2s; }
+    .aula-moderna .unit-report__toolbar a:hover, .aula-moderna .unit-report__toolbar button:hover { border-color: var(--aula-primario); background: var(--aula-suave); transform: translateY(-1px); }
+    .aula-moderna .unit-report__toolbar a.is-active { border-color: var(--aula-oscuro); background: var(--aula-oscuro); color: #fff; text-decoration: none; }
+    .aula-moderna .unit-report__toolbar .is-primary { border-color: var(--aula-amarillo); background: var(--aula-amarillo); color: var(--aula-oscuro); }
+    .aula-moderna .unit-report__toolbar > a.es-navegacion { border-color: transparent; background: var(--aula-suave); }
+
+    .aula-moderna .aula-relacionadas { margin-top: 0; margin-bottom: 20px; padding: 10px 14px; border: 0; border-radius: 16px; background: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .05); }
+
+    /* Contexto, cifras y secciones en tarjetas. */
+    .aula-moderna .unit-report__context { position: relative; margin-bottom: 20px; padding: 22px 24px; border: 0; border-left: 5px solid var(--aula-amarillo); border-radius: 18px; background: #fff; box-shadow: 0 10px 26px rgba(0, 0, 0, .06); }
+    .aula-moderna .unit-report__context > span { color: var(--aula-primario); letter-spacing: .16em; }
+    .aula-moderna .unit-report__context h2 { margin: 6px 0; color: var(--aula-oscuro); font-size: clamp(20px, 2vw, 26px); font-weight: 800; }
+    .aula-moderna .unit-report__context p { color: var(--aula-gris); font-size: 14px; line-height: 1.6; }
+    .aula-moderna .unit-report__summary { gap: 14px; border: 0; }
+    .aula-moderna .unit-report__summary article { padding: 18px 20px; border: 0 !important; border-radius: 18px; box-shadow: 0 10px 26px rgba(0, 0, 0, .06); }
+    .aula-moderna .unit-report__summary article::before { left: 20px; width: 46px; height: 4px; border-radius: 0 0 4px 4px; background: var(--aula-amarillo); }
+    .aula-moderna .unit-report__summary strong { margin: 6px 0 4px; color: var(--aula-oscuro); font-size: clamp(19px, 2vw, 28px); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+    .aula-moderna .unit-report__summary small { color: var(--aula-gris); font-size: 11.5px; }
+    .aula-moderna .unit-report__section { margin-top: 22px; overflow: hidden; border: 0; border-radius: 18px; background: #fff; box-shadow: 0 10px 26px rgba(0, 0, 0, .06); }
+    .aula-moderna .unit-report__section > header { padding: 14px 20px; border-bottom: 3px solid var(--aula-amarillo); background: var(--aula-oscuro); }
+    .aula-moderna .unit-report__section > header span { font-size: 12px; letter-spacing: .14em; }
+    .aula-moderna .unit-report__section > header small { color: rgba(255, 255, 255, .75); font-size: 10.5px; }
+    .aula-moderna .unit-report__section > :not(header):not(.unit-report__table-wrap) { margin-left: 4px; margin-right: 4px; }
+    .aula-moderna .unit-report__table { font-size: 12.5px; }
+    .aula-moderna .unit-report__table th { padding: 12px 14px; border-bottom: 1px solid #e3ebe7; background: #f7faf8; color: var(--aula-oscuro); font-size: 11.5px; letter-spacing: .02em; }
+    .aula-moderna .unit-report__table td { padding: 12px 14px; border-bottom: 1px solid #edf1ef; }
+    .aula-moderna .unit-report__table tbody tr:nth-child(even) { background: #fbfcfc; }
+    .aula-moderna .unit-report__table tbody tr:hover { background: #f3f8f5; }
+    .aula-moderna .unit-report__table td small { font-size: 10.5px; }
+    .aula-moderna .unit-report__table--matrix { font-size: 10px; }
+
+    /* Índices en tarjetas (el «Mapa del editor») y formularios de los simuladores. */
+    .aula-moderna .aula-mapa { gap: 0; border: 0; border-radius: 18px; box-shadow: 0 10px 26px rgba(0, 0, 0, .06); }
+    .aula-moderna .aula-mapa__item { padding: 16px 18px; }
+    .aula-moderna .aula-mapa__texto strong { font-size: 14px; }
+    .aula-moderna .aula-form { padding: 18px 20px; border: 0; border-radius: 18px; background: #fff; box-shadow: 0 10px 26px rgba(0, 0, 0, .06); }
+    .aula-moderna .aula-form input, .aula-moderna .aula-form select, .aula-moderna .aula-form textarea { padding: 9px 11px; border-radius: 10px; }
+    .aula-moderna .aula-form button { padding: 10px 18px; border-radius: 999px; }
+    .aula-moderna .aula-cta { border-radius: 999px; }
+    .aula-moderna .doc-etapa, .aula-moderna .doc-op, .aula-moderna .saber-ruta article, .aula-moderna .saber-base,
+    .aula-moderna .indice-procesos__cuerpo article, .aula-moderna .repositorio-lista article { border-radius: 14px; }
+
+    .aula-moderna .unit-report__footer { margin-top: 30px; padding-top: 14px; border-top: 1px solid #dfe8e3; color: var(--aula-gris); }
+}
+
+@media screen and (max-width: 820px) {
+    .aula-moderna .unit-report__masthead { grid-template-columns: 1fr; padding-bottom: 80px; }
+    .aula-moderna .unit-report__masthead dl { justify-content: flex-start; }
+    .aula-moderna .unit-report__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Software en tarjetas: logo, para qué sirve, licencia, áreas y equipos donde está instalado. */
+.aula-programas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 0; padding: 16px; list-style: none; }
+.aula-programa { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid #e3ebe7; border-radius: 16px; background: #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .04); }
+.aula-programa__cabecera { display: flex; align-items: center; gap: 12px; }
+.aula-programa__cabecera strong { display: block; color: var(--institucion-texto, #173b2c); font-size: 14.5px; line-height: 1.3; }
+.aula-programa__cabecera small { color: #71867b; font-size: 10.5px; }
+.aula-programa__logo { display: grid; flex: 0 0 auto; place-items: center; width: 48px; height: 48px; overflow: hidden; border-radius: 12px; background: #f4f8f6; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06); }
+.aula-programa__logo img { width: 36px; height: 36px; object-fit: contain; }
+.aula-programa p { margin: 0; color: #50675c; font-size: 12.5px; line-height: 1.5; }
+.aula-programa__datos { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.aula-programa__datos li { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; background: var(--institucion-primario-suave, #e3eee8); color: var(--institucion-texto, #173b2c); font-size: 11px; font-weight: 700; }
+.aula-programa__grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.aula-programa__grupo > span { width: 100%; color: var(--institucion-primario, #1f6b46); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.aula-programa__grupo a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid #d5e2db; border-radius: 999px; color: var(--institucion-texto, #173b2c); font-size: 11px; font-weight: 600; text-decoration: none; }
+.aula-programa__grupo a:hover { border-color: var(--institucion-primario, #1f6b46); background: #f3f8f5; }
+.aula-programa__sitio { align-self: flex-start; margin-top: auto; color: var(--institucion-primario, #1f6b46); font-size: 12px; font-weight: 800; text-decoration: none; }
+
+/* Insumos con su foto o el ícono de su clase. */
+.aula-miniatura { display: inline-grid; flex: 0 0 auto; place-items: center; width: 44px; height: 44px; overflow: hidden; border-radius: 10px; background: #f4f8f6; color: var(--institucion-primario, #1f6b46); font-size: 18px; vertical-align: middle; }
+.aula-miniatura img { width: 100%; height: 100%; object-fit: cover; }
+.aula-con-miniatura { display: flex; align-items: center; gap: 10px; }

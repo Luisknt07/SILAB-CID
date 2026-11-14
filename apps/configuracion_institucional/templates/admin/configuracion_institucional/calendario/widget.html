@@ -1,0 +1,11 @@
+{% load i18n %}<div data-calendario-widget
+data-code="{% translate 'Código estable' %}" data-name="{% translate 'Nombre' %}" data-type="{% translate 'Tipo de período' %}"
+data-ordinary="{% translate 'Período académico ordinario' %}" data-extra="{% translate 'Período académico extraordinario' %}" data-inter="{% translate 'Interperíodo institucional' %}"
+data-active-cycles="{% translate 'Ciclos activos' %}" data-history-cycles="{% translate 'Ciclos históricos' %}"
+data-active-scopes="{% translate 'Ámbitos activos' %}" data-history-scopes="{% translate 'Ámbitos históricos' %}"
+data-add="{% translate 'Agregar' %}" data-remove="{% translate 'Quitar de la propuesta' %}" data-retire="{% translate 'Retirar como histórico' %}"
+data-operation="{% translate 'Selección automática' %}" data-default="{% translate 'Ámbito predeterminado' %}"
+data-min="{% translate 'Mínimo de semanas' %}" data-max="{% translate 'Máximo de semanas' %}" data-weeks="{% translate 'Semanas predeterminadas' %}">
+<div class="catalogo-editor" data-calendario-editor hidden></div>
+<details data-calendario-json open><summary>{% translate "Configuración JSON" %}</summary><p>{% translate "Si la propuesta es inválida, corrige el JSON. No se recortan ni publican datos automáticamente." %}</p>{% include "django/forms/widgets/textarea.html" %}</details>
+<noscript><p>{% translate "Sin JavaScript puedes editar la configuración JSON y guardar el borrador." %}</p></noscript></div>

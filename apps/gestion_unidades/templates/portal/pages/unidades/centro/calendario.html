@@ -1,0 +1,19 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Calendario productivo" %}{% endblock %}
+{% block encabezado %}{% translate "Calendario productivo" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué hace cada eje en cada temporada: para planificar prácticas, visitas y cosechas" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Ejes" %}</dt><dd>{{ ejes|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Calendario productivo" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+{% for eje in ejes %}
+<section class="unit-report__section">
+  <h2><i class="{{ eje.icono }}" aria-hidden="true"></i> <a href="{% url 'eje_centro' unidad.slug eje.codigo %}">{{ eje.titulo }}</a></h2>
+  <ol class="centro-temporadas">{% for cuando, que in eje.temporadas %}<li><strong>{{ cuando }}</strong><p>{{ que }}</p></li>{% endfor %}</ol>
+</section>
+{% empty %}
+<p>{% translate "Los ejes del centro todavía no registran su calendario." %}</p>
+{% endfor %}
+{% endblock %}

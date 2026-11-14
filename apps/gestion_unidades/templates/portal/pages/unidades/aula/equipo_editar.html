@@ -1,0 +1,105 @@
+{% load static i18n %}{% if not fragmento %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Editar" %} {{ tipo.nombre }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipo_editar.css' %}?v=20261009-editor-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce editor">
+  <header class="editor__barra">
+    <div><span>{% translate "Editar la ficha del equipo" %}</span><h1>{{ tipo.nombre }} <small>{{ unidad_equipo.codigo_unidad }}</small></h1></div>
+    <a href="{{ ficha_url }}" class="editor__volver"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Volver a la ficha sin guardar" %}</a>
+  </header>
+{% endif %}
+  <form method="post" enctype="multipart/form-data" class="editor__cuerpo{% if solo %} is-una-seccion{% endif %}" action="{% url 'editar_equipo_ficha' unidad.slug unidad_equipo.codigo_unidad %}" novalidate data-editor-ficha>
+    {% csrf_token %}
+    <input type="hidden" name="seccion" value="{{ solo }}">
+    <input type="hidden" name="volver_a" value="{{ solo|default:'identidad' }}">
+    {% if fragmento %}<input type="hidden" name="fragmento" value="1">{% endif %}
+    {% if not solo %}<nav class="editor__indice" aria-label="{% translate "Secciones" %}">
+      {% for clave, seccion in secciones.items %}{% if clave == 'unidad' or edita_modelo %}<a href="#{{ clave }}"><i class="{{ seccion.1 }}" aria-hidden="true"></i> {{ seccion.0 }}</a>{% endif %}{% endfor %}
+      <button type="submit" class="editor__guardar"><i class="fas fa-save" aria-hidden="true"></i> {% translate "Guardar los cambios" %}</button>
+    </nav>{% endif %}
+    <div class="editor__secciones">
+      {% if form_unidad.errors or form_modelo.errors or errores_videos %}<p class="editor__error" role="alert"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> {% translate "Revisa los campos marcados: no se guardó nada." %}</p>{% endif %}
+
+      {% if form_unidad %}<section class="editor__tarjeta" id="unidad">
+        <header><h2>{% translate "Esta unidad" %} <small>{{ unidad_equipo.codigo_unidad }}</small></h2><p>{% translate "Lo propio de este equipo físico: sus códigos, dónde está, su estado y su mantenimiento." %}</p></header>
+        <div class="editor__campos">{% for campo in form_unidad %}<div class="editor__campo{% if campo.name == 'espacios_asociados' %} is-ancho{% endif %}{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% elif campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}</div>{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if form_modelo %}{% with f=form_modelo %}
+      {% for error in f.non_field_errors %}<p class="editor__mensaje">{{ error }}</p>{% endfor %}
+      {% if 'nombre' in f.fields %}<section class="editor__tarjeta" id="modelo">
+        <header><h2>{% translate "Modelo" %} <small>{{ tipo.codigo }}</small></h2><p>{% translate "Común a" %} {{ unidades_del_modelo }} {% translate "unidad" %}{{ unidades_del_modelo|pluralize:"es" }}{% translate ": lo que cambies aquí se ve en todas sus fichas." %}</p></header>
+        <div class="editor__campos">{% for campo in f %}{% if campo.name in 'nombre marca modelo origen_datos_tecnicos' %}<div class="editor__campo{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endif %}{% endfor %}</div>
+        <p class="editor__nota">{% translate "Elige «Levantamiento validado en planta» cuando la unidad haya confirmado los datos técnicos: la ficha deja de mostrarlos como valores de referencia." %}</p>
+        {% include 'portal/pages/unidades/includes/editor_referencia_comercial.html' with formulario=f %}
+      </section>{% endif %}
+
+      {% if 'otras_especificaciones' in f.fields %}<section class="editor__tarjeta" id="especificaciones">
+        <header><h2>{% translate "Especificaciones técnicas" %}</h2><p>{% translate "Las de la plantilla de su tipo de producto, en este orden. Lo vacío no se publica." %}</p></header>
+        <div class="editor__campos">{% for campo in f %}{% if campo.name|slice:":6" == "espec_" %}<div class="editor__campo"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}</div>{% endif %}{% endfor %}
+          <div class="editor__campo is-ancho"><label for="{{ f.otras_especificaciones.id_for_label }}">{{ f.otras_especificaciones.label }}</label>{{ f.otras_especificaciones }}<small>{{ f.otras_especificaciones.help_text }}</small></div></div>
+      </section>{% endif %}
+
+      {% if 'accesorios_incluidos_texto' in f.fields %}<section class="editor__tarjeta" id="componentes">
+        <header><h2>{% translate "Componentes" %}</h2><p>{% translate "Lo que viene con el equipo, lo que lo complementa y lo que se cambia o se gasta, con su cantidad y cómo se usa." %}</p></header>
+        {% if f.precargado_de_familia %}<p class="editor__aviso"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Precargado con la referencia de su tipo de equipo. Revísalo, corrige lo que no corresponda y guarda: quedará aprobado como propio de este modelo." %}</p>{% endif %}
+        <div class="editor__campos">{% for campo in f %}{% if campo.name in 'accesorios_incluidos_texto accesorios_opcionales_texto repuestos_texto' %}<div class="editor__campo is-ancho"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}<small>{{ campo.help_text }}</small></div>{% endif %}{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if 'modos_texto' in f.fields %}<section class="editor__tarjeta" id="funcionamiento">
+        <header><h2>{% translate "Cómo funciona" %}</h2><p>{% translate "Cada modo de uso (autónomo, conectado a una PC…) con para qué se usa así y lo que necesita, incluida la computadora recomendada." %}</p></header>
+        {% if f.modos_de_familia %}<p class="editor__aviso"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Precargado con la referencia de su tipo de equipo: al guardar queda aprobado como propio." %}</p>{% endif %}
+        <div class="editor__campo is-ancho"><label for="{{ f.modos_texto.id_for_label }}">{{ f.modos_texto.label }}</label>{{ f.modos_texto }}<small>{{ f.modos_texto.help_text }}</small></div>
+      </section>{% endif %}
+
+      {% if 'descripcion' in f.fields %}<section class="editor__tarjeta" id="descripcion">
+        <header><h2>{% translate "Descripción y uso" %}</h2><p>{% translate "Qué es, para qué se usa y los cuidados que se marcan antes de usarlo." %}</p></header>
+        <div class="editor__campos">{% for campo in f %}{% if campo.name in 'descripcion uso_publico instrucciones_publicas' %}<div class="editor__campo is-ancho"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}</div>{% endif %}{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if 'imagen' in f.fields %}<section class="editor__tarjeta" id="imagenes">
+        <header><h2>{% translate "Imágenes" %}</h2><p>{% translate "La imagen principal de la ficha y las fotos del equipo y de sus componentes." %}</p></header>
+        <div class="editor__principal">
+          <figure>{% if tipo.imagen %}<img src="{{ tipo.imagen.url }}" alt="">{% elif tipo.imagen_catalogo %}<img src="{% static tipo.imagen_catalogo %}" alt=""><figcaption>{% translate "Foto de referencia: súbela propia para reemplazarla." %}</figcaption>{% else %}<span aria-hidden="true"><i class="fas fa-image"></i></span>{% endif %}</figure>
+          <div class="editor__campo{% if f.imagen.errors %} con-error{% endif %}"><label for="{{ f.imagen.id_for_label }}">{% translate "Nueva imagen principal" %}</label><input type="file" name="{{ f.imagen.html_name }}" id="{{ f.imagen.id_for_label }}" accept="image/png,image/jpeg,image/webp">{% if f.imagen.errors %}<small class="editor__mensaje">{{ f.imagen.errors|join:" " }}</small>{% else %}<small>{% translate "JPG, PNG o WebP. Se muestra completa, sin recortes." %}</small>{% endif %}</div>
+        </div>
+        {% if fotos %}<h3>{% translate "Fotos actuales" %}</h3>
+        <div class="editor__fotos">{% for foto in fotos %}<article>
+          {% if foto.url %}<img src="{{ foto.url }}" alt="">{% else %}<span aria-hidden="true"><i class="fas fa-image"></i></span>{% endif %}
+          <input name="titulo_foto_{{ foto.pk }}" value="{{ foto.titulo }}" maxlength="160" placeholder="{% translate "Qué muestra" %}" aria-label="{% translate "Qué muestra" %}">
+          <select name="tipo_foto_{{ foto.pk }}" aria-label="{% translate "Tipo" %}">{% for codigo, nombre in foto.TIPOS %}<option value="{{ codigo }}"{% if codigo == foto.tipo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select>
+          <label class="editor__borrar"><input type="checkbox" name="borrar_foto_{{ foto.pk }}"> {% translate "Quitar" %}</label>
+        </article>{% endfor %}</div>{% endif %}
+        <h3>{% translate "Agregar fotos" %}</h3>
+        <div class="editor__fotos-nuevas">{% for nueva in fotos_nuevas %}<div class="editor__fila{% if nueva.errors %} con-error{% endif %}">{{ nueva.imagen }}{{ nueva.titulo }}{{ nueva.tipo }}{% if nueva.errors %}<small class="editor__mensaje">{% for campo in nueva %}{{ campo.errors|join:" " }}{% endfor %}</small>{% endif %}</div>{% endfor %}</div>
+        <p class="editor__nota">{% translate "Para la foto de un componente, escribe su nombre en «Qué muestra» (por ejemplo, «Controles táctiles»): la ficha la coloca junto a él." %}</p>
+      </section>{% endif %}
+
+      {% if 'ficha_tecnica' in f.fields %}<section class="editor__tarjeta" id="documentos">
+        <header><h2>{% translate "Documentos" %}</h2><p>{% translate "La ficha técnica del fabricante y el manual de operación, en PDF." %}</p></header>
+        <div class="editor__campos">{% for campo in f %}{% if campo.name in 'ficha_tecnica manual_operacion' %}<div class="editor__campo{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endif %}{% endfor %}</div>
+      </section>{% endif %}
+      {% endwith %}{% endif %}
+
+      {% if edita_videos %}<section class="editor__tarjeta" id="videos">
+        <header><h2>{% translate "Videos de manejo" %}</h2><p>{% translate "Los de este modelo, en el orden de la ficha. Si no tiene, la ficha muestra los de su tipo de equipo." %}</p></header>
+        {% if videos_de_referencia %}<p class="editor__aviso"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Precargados con los videos de su tipo de equipo: al guardar quedan como propios de este modelo." %}</p>{% endif %}
+        <div class="editor__campo is-ancho{% if errores_videos %} con-error{% endif %}"><label for="videos">{% translate "Un video por línea: enlace de YouTube | título | canal" %}</label><textarea id="videos" name="videos" rows="5" data-editor-videos data-tercero="{% translate 'Canal' %}">{{ texto_videos }}</textarea>{% for error in errores_videos %}<small class="editor__mensaje">{{ error }}</small>{% endfor %}</div>
+      </section>{% endif %}
+
+      {% if not edita_modelo %}<section class="editor__tarjeta"><p class="editor__aviso"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "La ficha técnica de este modelo es común a unidades que no gestionas; solo puedes editar los datos de esta unidad." %}</p></section>{% endif %}
+      <div class="editor__pie">{% if fragmento %}<button type="button" class="editor__cancelar" data-cerrar-edicion>{% translate "Cancelar" %}</button>{% else %}<a href="{{ ficha_url }}">{% translate "Cancelar" %}</a>{% endif %}<button type="submit" class="editor__guardar"><i class="fas fa-save" aria-hidden="true"></i> {% translate "Guardar los cambios" %}</button></div>
+    </div>
+  </form>
+{% if not fragmento %}<script src="{% static 'portal/js/components/editor_videos.js' %}?v=20261003-videos-v1" defer></script>
+</body>
+</html>{% endif %}

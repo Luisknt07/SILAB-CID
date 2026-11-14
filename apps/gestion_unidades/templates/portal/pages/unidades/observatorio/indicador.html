@@ -1,0 +1,57 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{{ indicador.nombre }}{% endblock %}
+{% block encabezado %}{{ indicador.nombre }}{% endblock %}
+{% block subtitulo %}{{ indicador.pregunta|default:indicador.definicion|truncatechars:160 }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Último valor" %}</dt><dd>{{ fila.ultimo_texto }} {{ indicador.unidad_medida }}</dd></div><div><dt>{% translate "Periodo" %}</dt><dd>{{ fila.ultimo.periodo|default:"—" }}</dd></div><div><dt>{% translate "Periodicidad" %}</dt><dd>{{ indicador.get_periodicidad_display }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Ficha del indicador" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% include 'portal/pages/unidades/includes/editar.html' with clave='indicador_observatorio' pk=indicador.pk titulo=indicador.nombre %}
+{% if fila.alerta %}<p class="unit-report__notice"><span class="obs-alerta"><i class="fas fa-bell" aria-hidden="true"></i> {% translate "Alerta" %}</span> {{ indicador.mensaje_alerta|default:_("El último valor salió del rango esperado.") }}</p>{% endif %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "FICHA METODOLÓGICA" %}</span></header>
+  <dl class="obs-ficha">
+    <dt>{% translate "Definición" %}</dt><dd>{{ indicador.definicion }}</dd>
+    {% if indicador.pregunta %}<dt>{% translate "Qué pregunta responde" %}</dt><dd>{{ indicador.pregunta }}</dd>{% endif %}
+    {% if indicador.formula %}<dt>{% translate "Fórmula o método" %}</dt><dd>{{ indicador.formula }}</dd>{% endif %}
+    <dt>{% translate "Unidad de medida" %}</dt><dd>{{ indicador.unidad_medida }}</dd>
+    <dt>{% translate "Fuente" %}</dt><dd>{{ indicador.fuente }} ({{ indicador.get_tipo_fuente_display|lower }}){% if indicador.url_fuente %} · <a href="{{ indicador.url_fuente }}" target="_blank" rel="noopener noreferrer">{% translate "ver la fuente" %}</a>{% endif %}</dd>
+    <dt>{% translate "Periodicidad" %}</dt><dd>{{ indicador.get_periodicidad_display }}</dd>
+    {% if indicador.desagregacion %}<dt>{% translate "Desagregación" %}</dt><dd>{{ indicador.desagregacion }}</dd>{% endif %}
+    {% if indicador.umbral_bajo is not None or indicador.umbral_alto is not None %}<dt>{% translate "Umbrales de alerta" %}</dt><dd>{% if indicador.umbral_bajo is not None %}{% translate "bajo" %} {{ indicador.umbral_bajo|floatformat:"-2" }}{% endif %}{% if indicador.umbral_bajo is not None and indicador.umbral_alto is not None %} · {% endif %}{% if indicador.umbral_alto is not None %}{% translate "alto" %} {{ indicador.umbral_alto|floatformat:"-2" }}{% endif %} {{ indicador.unidad_medida }}</dd>{% endif %}
+    {% if indicador.limitaciones %}<dt>{% translate "Limitaciones" %}</dt><dd>{{ indicador.limitaciones }}</dd>{% endif %}
+  </dl>
+</section>
+
+<div class="obs-descargas"><a href="{% url 'datos_csv_indicador_observatorio' unidad.slug indicador.codigo %}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar la serie en CSV" %}</a></div>
+
+{% if comparacion %}
+<section class="unit-report__section">
+  <header><span>{% translate "COMPARACIÓN POR TERRITORIO" %}</span><small>{% translate "Último valor de cada uno" %}</small></header>
+  <ul class="obs-barras">{% for fila in comparacion %}<li{% if fila.nombre == indicador.territorio_principal %} class="is-principal"{% endif %}><span>{{ fila.nombre }}</span><span class="obs-barras__pista"><span style="width: {{ fila.ancho }}%"></span></span><strong>{{ fila.texto }} {{ indicador.unidad_medida }}</strong><small>{{ fila.valor.periodo }}</small></li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% for territorio in territorios %}
+<section class="unit-report__section">
+  <header><span>{{ territorio.nombre|upper }}</span><small>{{ territorio.valores|length }} {% translate "valor" %}{{ territorio.valores|length|pluralize:"es" }}</small></header>
+  {% if territorio.puntos %}<figure class="obs-serie"><svg class="obs-grafico" viewBox="0 0 560 120" preserveAspectRatio="none" role="img" aria-label="{% translate "Serie del indicador" %} · {{ territorio.nombre }}"><polyline points="{{ territorio.puntos }}"/></svg>
+    <figcaption><span>{% translate "Mín." %} {{ territorio.minimo }} · {% translate "máx." %} {{ territorio.maximo }} {{ indicador.unidad_medida }}</span><span>{{ territorio.desde }} → {{ territorio.hasta }}</span></figcaption></figure>{% endif %}
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Periodo" %}</th><th>{% translate "Valor" %}</th><th>{% translate "Nota" %}</th></tr></thead><tbody>
+    {% for valor in territorio.valores reversed %}<tr><td>{{ valor.periodo }}</td><td><strong>{{ valor.valor_legible }}</strong> {{ indicador.unidad_medida }}{% if valor.provisional %} <small>({% translate "provisional" %})</small>{% endif %}{% include 'portal/pages/unidades/includes/editar.html' with clave='valor_indicador' pk=valor.pk titulo=valor.periodo %}</td><td>{{ valor.nota|default:"—" }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "Este indicador todavía no tiene valores publicados." %}</p>
+{% endfor %}
+{% translate "Nuevo valor" as titulo_nuevo %}{% translate "Agregar un valor" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='valor_indicador' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo padre=indicador.pk %}</p>
+
+{% if publicaciones %}
+<section class="unit-report__section">
+  <header><span>{% translate "PUBLICACIONES QUE LO USAN" %}</span></header>
+  <ul class="aula-lista">{% for publicacion in publicaciones %}<li>{{ publicacion.get_tipo_display }}: {% if publicacion.archivo %}<a href="{{ publicacion.archivo.url }}"{% if publicacion.archivo.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{{ publicacion.titulo }}" data-pdf-descarga="{{ publicacion.archivo.url }}"{% else %} download{% endif %}>{{ publicacion.titulo }}</a>{% elif publicacion.enlace %}<a href="{{ publicacion.enlace }}" target="_blank" rel="noopener noreferrer">{{ publicacion.titulo }}</a>{% else %}{{ publicacion.titulo }}{% endif %} · {{ publicacion.fecha_publicada|date:"d/m/Y" }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

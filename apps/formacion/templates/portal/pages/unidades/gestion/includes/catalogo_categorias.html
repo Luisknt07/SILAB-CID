@@ -1,0 +1,2 @@
+{% load i18n %}
+{% if recursos_categorias %}<nav class="catalogo-recursos__categorias catalogo-categorias" aria-label="{% translate 'Categorías del catálogo' %}">{% for categoria in recursos_categorias %}<a class="catalogo-recursos__categoria{% if categoria.seleccionada %} is-activa{% endif %}" href="{{ categoria.url }}" data-management-load{% if categoria.seleccionada %} aria-current="page"{% endif %}><i class="fas fa-layer-group" aria-hidden="true"></i><span>{{ categoria.nombre }}</span><b>{{ categoria.cantidad }}</b></a>{% endfor %}</nav>{% endif %}

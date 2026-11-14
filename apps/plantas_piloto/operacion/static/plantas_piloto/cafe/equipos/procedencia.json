@@ -1,0 +1,311 @@
+{
+  "fecha": "2026-10-14",
+  "imagenes": [
+    {
+      "archivo": "actividad-agua.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/actividad-agua.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 65478,
+      "sha256": "cc12bd945199d0b5083dcfbd7cf1da442e090c7fda034d2ecc70f3f0c38ef24a"
+    },
+    {
+      "archivo": "bodega.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/bodega.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 166590,
+      "sha256": "b21f1af835aca8b87e796270955334fd346a212addc5c77062949c07f9f43349"
+    },
+    {
+      "archivo": "catacion.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/catacion.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 146866,
+      "sha256": "6565ac627ed1ed7cb95348702a05d3a61c3031e9dcc073615d6d06037af21e74"
+    },
+    {
+      "archivo": "cereza.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/cereza.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Harald Ulver · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:Freshly_picked_coffee_beans_-_Tanzania.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1280,
+      "alto": 853,
+      "bytes": 91228,
+      "sha256": "3f2a2e0280f62d84e12aab8f7e6faf25e5cf4a33a34c42f16c3902baccaf008b"
+    },
+    {
+      "archivo": "desmucilaginador.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/desmucilaginador.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 159720,
+      "sha256": "81080ec4fc4761400c50ee972b883b31de6146baf88196d43774388b61599a0b"
+    },
+    {
+      "archivo": "despedradora.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/despedradora.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 120726,
+      "sha256": "649143822758ea6fe10d6437bd28e338377aeecb1235713d73a2c6b24af68390"
+    },
+    {
+      "archivo": "despulpado.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/despulpado.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Harald Ulver · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:Coffee_Pulping_Machine_with_Washing_Tank_-_Tanzania.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1280,
+      "alto": 1922,
+      "bytes": 586488,
+      "sha256": "42922c1c744b441fb703df35982c128cddc5e8f83cf08fecb439636701ef577d"
+    },
+    {
+      "archivo": "empacadora.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/empacadora.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 138798,
+      "sha256": "98541e3438132c3f916bc92231a834e2105eae70690cbf10abb240882ee44510"
+    },
+    {
+      "archivo": "fermentacion.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/fermentacion.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 187354,
+      "sha256": "74211730127eb09a48357b623966a369c9219eb9125474e78f37d238c184ee7a"
+    },
+    {
+      "archivo": "molino.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/molino.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 77868,
+      "sha256": "3fb16747f9e2b95e01c07c7e83694cd1d0157431be51f6e2949e2bf4b097984a"
+    },
+    {
+      "archivo": "muestreo.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/muestreo.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 119748,
+      "sha256": "dc9a84b0293d79efa3e7c6b972184f7792e5e706395cdd30d943d318a98f45af"
+    },
+    {
+      "archivo": "secado.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/secado.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Harald Ulver · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:Coffee_Bean_Drying_Table_-_Tanzania.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1280,
+      "alto": 853,
+      "bytes": 459688,
+      "sha256": "8295a6a22bb244df424ace784dfb2035f2bd1826c31fa6bd2b2622d4b387a170"
+    },
+    {
+      "archivo": "seleccion.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/seleccion.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Harald Ulver · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:Coffee_Bean_Manual_Sorting_-_Tanzania.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1280,
+      "alto": 852,
+      "bytes": 243412,
+      "sha256": "de88b139b9c5f1200e6f03984f4664c4b09adc7646465b909fc471993800e903"
+    },
+    {
+      "archivo": "silo.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/silo.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 52242,
+      "sha256": "2c3135b33442441de6fbc16472af6c5f79f4d51ca2fac7ceee3dfbb787415cf1"
+    },
+    {
+      "archivo": "tamices.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/tamices.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 118204,
+      "sha256": "89933b224716de5553e2a7f98aafddaecadb9502363c040eab4be62fa8fe48a1"
+    },
+    {
+      "archivo": "tolva.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/tolva.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 94680,
+      "sha256": "249b3a1a4f767109d3da28add1bb563ec0abbfcc4fa0f74694949759727b06bf"
+    },
+    {
+      "archivo": "tostador.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/tostador.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Coffea · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:Chinook25Kg1C_coffee_roaster.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 800,
+      "alto": 794,
+      "bytes": 89378,
+      "sha256": "67b4d956c438fefa71c7d5a415c95632d541120c9d4eed29119545b68878562f"
+    },
+    {
+      "archivo": "trillado.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/trillado.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Vincent Mugaba · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:Coffee_hulling.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1280,
+      "alto": 853,
+      "bytes": 458736,
+      "sha256": "637b130d3aa32e5b84763714429cb98adc5e66cfcb609de21500f3f9e956e2b9"
+    },
+    {
+      "archivo": "trilladora.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/trilladora.webp",
+      "origen": "image_gen integrado",
+      "credito": "Ilustración referencial generada con IA · no es una fotografía de la planta",
+      "fuente": "",
+      "licencia": "",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1200,
+      "alto": 900,
+      "bytes": 121414,
+      "sha256": "caf84ad041b468e0f9c18061d0a36f9ad8c034a6e27a59355368641e19e94c80"
+    },
+    {
+      "archivo": "verde.webp",
+      "ruta_estatica": "plantas_piloto/cafe/equipos/verde.webp",
+      "origen": "Wikimedia Commons",
+      "credito": "Harald Ulver · CC BY-SA 4.0 · Wikimedia Commons · imagen reducida/convertida a WebP",
+      "fuente": "https://commons.wikimedia.org/wiki/File:High_Quality_Coffee_Beans_Closeup_-_Tanzania.jpg",
+      "licencia": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "transformacion": "Reducción hasta 1200 px y conversión a WebP; se conserva la imagen original fuera del repositorio",
+      "ancho": 1280,
+      "alto": 853,
+      "bytes": 131878,
+      "sha256": "69b6199d01fcb8a8f5c4fc45a631e4ea90d95fa43af2a39a7d4539afb6061de3"
+    }
+  ],
+  "prompts": "prompts.json",
+  "videos": {
+    "solar": [
+      "n95my9Zy59s",
+      "Manejo del café en el secado solar",
+      "Cenicafé FNC",
+      "Muestra cuidados del secado solar. El lote se libera mediante mediciones y procedimiento aprobado."
+    ],
+    "trilla": [
+      "JIe7XqLPKKI",
+      "Compacta trilladora de café Pinhalense",
+      "COMERSA TRADING",
+      "Demostración de una línea de trilla; su modelo y capacidad no se atribuyen a la planta."
+    ],
+    "trilla-integrada": [
+      "BtUxrqUS2k0",
+      "Trilladora conjugada Pinhalense",
+      "COMERSA TRADING",
+      "Permite reconocer limpieza, separación y trilla integradas; comparar con el flujo de la unidad."
+    ],
+    "tueste": [
+      "UaSO05HMSYc",
+      "Tueste por receta y control de perfil",
+      "Probat USA",
+      "Demostración del registro y ajuste de una receta de tueste. Cada equipo requiere su propio perfil probado."
+    ],
+    "grano": [
+      "GM1qh3_FG4k",
+      "Empaque de café en grano con válvula",
+      "Rovema GmbH",
+      "Demuestra dosificación, formación y sellado de bolsas. Presentaciones de la unidad: 250, 500 y 1.000 g."
+    ],
+    "molido": [
+      "a1yCE276EAo",
+      "Línea automatizada de empaque de café molido",
+      "Rovema GmbH",
+      "Demostración de alimentación, dosificación y empaque, sin atribuir rendimiento comercial a la planta."
+    ],
+    "cva": [
+      "RFkj2Y4yc2Q",
+      "Evaluación del Café de la SCA: introducción",
+      "Specialty Coffee Association",
+      "Introducción en español a Coffee Value Assessment; declarar el protocolo empleado al evaluar cada lote."
+    ]
+  },
+  "nota": "Recursos referenciales de terceros y generados con IA. Las marcas de las demostraciones no acreditan equipamiento instalado. Los medios propios subidos por la unidad tienen prioridad."
+}

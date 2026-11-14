@@ -1,0 +1,147 @@
+{% load static i18n idiomas %}
+<details class="observatory-experience" id="experiencia-observatorios" data-unit-experience data-observatory-experience>
+  <summary class="obs-experience__toggle">
+    <span class="obs-experience__toggle-icon"><i class="iconsminds-binocular"></i></span>
+    <span class="obs-experience__toggle-copy">
+      <small>{% translate "Inteligencia territorial" %}</small>
+      <b id="observatory-experience-title">{% translate "Conoce y aprovecha nuestros observatorios" %}</b>
+      <em>{% translate "Ruta, recursos, acceso y videotutorial" %}</em>
+    </span>
+    <span class="obs-experience__toggle-action"><small class="is-closed">{% translate "Ver contenido" %}</small><small class="is-open">{% translate "Ocultar contenido" %}</small><i class="simple-icon-arrow-down"></i></span>
+  </summary>
+
+  <div class="obs-experience__collapsible" id="observatory-experience-content" data-obs-library-content>
+    <header class="obs-experience__heading">
+      <div>
+        <span><i class="iconsminds-binocular"></i> {% translate "Inteligencia territorial" %}</span>
+        <h2>{% translate "Del dato a decisiones con impacto" %}</h2>
+      </div>
+      <p>{% translate "Descubre cómo aprovechar los observatorios UPEC para consultar información, interpretar indicadores y transformar evidencia en acciones para el territorio." %}</p>
+    </header>
+
+  <div class="obs-overview">
+    <article class="obs-panel obs-about">
+      <span class="obs-panel__index">01</span>
+      <div class="obs-panel__icon"><i class="iconsminds-binocular"></i></div>
+      <h3>{% translate "¿Qué es un observatorio UPEC?" %}</h3>
+      <p>{% translate "Una unidad especializada que monitorea, analiza e interpreta información relevante del territorio con rigor académico y tecnológico." %}</p>
+      <ul class="obs-check-list">
+        <li><i class="simple-icon-check"></i> {% translate "Información confiable y actualizada" %}</li>
+        <li><i class="simple-icon-check"></i> {% translate "Enfoque territorial y multidisciplinario" %}</li>
+        <li><i class="simple-icon-check"></i> {% translate "Conocimiento útil para la acción" %}</li>
+      </ul>
+    </article>
+
+    <article class="obs-panel obs-route">
+      <span class="obs-panel__eyebrow">{% translate "Ruta de aprovechamiento" %}</span>
+      <div class="obs-route__steps" role="tablist" aria-label="{% translate "Ruta de aprovechamiento del observatorio" %}">
+        <button class="is-active" type="button" role="tab" aria-selected="true" data-obs-step="1" data-title="{% translate "Explora el observatorio" %}" data-copy="Selecciona el observatorio relacionado con tu área de interés y reconoce sus fuentes de información." data-result="Define tu necesidad"><span>1</span><i class="iconsminds-binocular"></i><b>{% translate "Explora" %}</b></button>
+        <button type="button" role="tab" aria-selected="false" data-obs-step="2" data-title="{% translate "Consulta indicadores y mapas" %}" data-copy="Navega tableros, mapas interactivos, series históricas y fichas temáticas." data-result="Encuentra evidencia"><span>2</span><i class="simple-icon-magnifier"></i><b>{% translate "Consulta" %}</b></button>
+        <button type="button" role="tab" aria-selected="false" data-obs-step="3" data-title="{% translate "Analiza resultados" %}" data-copy="Compara periodos, identifica patrones y comprende los datos dentro de su contexto territorial." data-result="Comprende tendencias"><span>3</span><i class="iconsminds-line-chart-1"></i><b>{% translate "Analiza" %}</b></button>
+        <button type="button" role="tab" aria-selected="false" data-obs-step="4" data-title="{% translate "Descarga o visualiza reportes" %}" data-copy="Accede a informes técnicos, boletines, bases abiertas y visualizaciones listas para usar." data-result="Obtén recursos"><span>4</span><i class="simple-icon-cloud-download"></i><b>{% translate "Descarga" %}</b></button>
+        <button type="button" role="tab" aria-selected="false" data-obs-step="5" data-title="{% translate "Aplica el conocimiento" %}" data-copy="Usa la información en clases, proyectos, políticas públicas, vinculación o gestión institucional." data-result="Toma decisiones"><span>5</span><i class="iconsminds-network"></i><b>{% translate "Aplica" %}</b></button>
+      </div>
+      <div class="obs-route__detail" aria-live="polite">
+        <span data-obs-step-number>01</span>
+        <div><small data-obs-step-result>{% translate "Define tu necesidad" %}</small><h4 data-obs-step-title>{% translate "Explora el observatorio" %}</h4><p data-obs-step-copy>{% translate "Selecciona el observatorio relacionado con tu área de interés y reconoce sus fuentes de información." %}</p></div>
+        <div class="obs-route__progress"><i data-obs-progress></i></div>
+      </div>
+    </article>
+
+    <article class="obs-panel obs-purpose">
+      <span class="obs-panel__index">03</span>
+      <div class="obs-panel__icon is-outline"><i class="iconsminds-target"></i></div>
+      <h3>{% translate "¿Para qué sirven?" %}</h3>
+      <ul class="obs-check-list">
+        <li><i class="simple-icon-check"></i> {% translate "Monitorear fenómenos y tendencias" %}</li>
+        <li><i class="simple-icon-check"></i> {% translate "Apoyar proyectos y políticas" %}</li>
+        <li><i class="simple-icon-check"></i> {% translate "Fortalecer la investigación" %}</li>
+        <li><i class="simple-icon-check"></i> {% translate "Generar evidencia territorial" %}</li>
+        <li><i class="simple-icon-check"></i> {% translate "Impulsar innovación y vinculación" %}</li>
+      </ul>
+    </article>
+  </div>
+
+  <section class="obs-library" aria-labelledby="obs-library-title">
+    <header class="obs-library__heading">
+      <div><span>{% translate "Contenido conectado" %}</span><h3 id="obs-library-title">{% translate "Explora lo que encontrarás dentro" %}</h3></div>
+      <p>{% translate "Selecciona una miniatura para consultar sus recursos y utiliza el videotutorial para conocer la navegación del observatorio." %}</p>
+    </header>
+
+    <div class="obs-resource-showcase">
+      <div class="obs-coverflow" data-obs-coverflow aria-label="{% translate "Recursos interactivos del observatorio" %}">
+        <button class="obs-coverflow__control is-prev" type="button" data-coverflow-prev aria-label="{% translate "Recurso anterior" %}"><i class="simple-icon-arrow-left"></i></button>
+        <div class="obs-card-grid" data-coverflow-track>
+      <button class="obs-content-card" type="button" data-open-resource data-kicker="Territorio y contexto" data-title="{% translate "Mapas interactivos" %}" data-copy="Consulta información geoespacial actualizada, combina capas temáticas y reconoce relaciones entre población, ambiente, infraestructura y producción." data-metric="Capas por territorio y periodo" data-icon="iconsminds-map2" data-image="{% static 'img/generated/observatorios/mapas-territoriales.webp' %}" data-list="Mapas base y cartografía temática|Filtros por territorio y periodo|Comparación de capas e indicadores" data-use="Úsalos para localizar fenómenos, priorizar zonas de intervención y contextualizar resultados de investigación.">
+        <span class="obs-content-card__media"><img src="{% static 'img/generated/observatorios/mapas-territoriales.webp' %}" alt="{% translate "Investigador consultando mapas territoriales digitales" %}" loading="lazy"><i class="iconsminds-map2"></i><small>{% translate "Por territorio" %}</small></span>
+        <span class="obs-content-card__body"><small>{% translate "Territorio y contexto" %}</small><b>{% translate "Mapas interactivos" %}</b><span>{% translate "Explora información geoespacial y capas temáticas." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+      </button>
+
+      <button class="obs-content-card" type="button" data-open-resource data-kicker="Métricas comparables" data-title="{% translate "Tableros e indicadores" %}" data-copy="Interpreta métricas clave mediante visualizaciones dinámicas, comparaciones territoriales y series temporales preparadas para el análisis." data-metric="Indicadores con ficha metodológica" data-icon="iconsminds-line-chart-1" data-image="{% static 'img/generated/observatorios/tableros-indicadores.webp' %}" data-list="Indicadores clave y fichas técnicas|Series históricas y comparaciones|Filtros dinámicos y visualizaciones" data-use="Permiten detectar tendencias, contrastar periodos y sustentar decisiones con evidencia cuantitativa.">
+        <span class="obs-content-card__media"><img src="{% static 'img/generated/observatorios/tableros-indicadores.webp' %}" alt="{% translate "Equipo analizando tableros e indicadores territoriales" %}" loading="lazy"><i class="iconsminds-line-chart-1"></i><small>{% translate "Con ficha" %}</small></span>
+        <span class="obs-content-card__body"><small>{% translate "Métricas comparables" %}</small><b>{% translate "Tableros e indicadores" %}</b><span>{% translate "Compara resultados, periodos y tendencias clave." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+      </button>
+
+      <button class="obs-content-card" type="button" data-open-resource data-kicker="Evidencia publicada" data-title="{% translate "Reportes y boletines" %}" data-copy="Accede a informes técnicos, boletines periódicos y síntesis ejecutivas que traducen los datos en hallazgos comprensibles y accionables." data-metric="Publicaciones con calendario" data-icon="iconsminds-file-clipboard-file---text" data-image="{% static 'img/generated/observatorios/reportes-boletines.webp' %}" data-list="Informes técnicos especializados|Boletines de coyuntura territorial|Síntesis ejecutivas descargables" data-use="Son recursos listos para clases, proyectos, formulación de políticas y procesos institucionales.">
+        <span class="obs-content-card__media"><img src="{% static 'img/generated/observatorios/reportes-boletines.webp' %}" alt="{% translate "Analista revisando reportes técnicos territoriales" %}" loading="lazy"><i class="iconsminds-file-clipboard-file---text"></i><small>{% translate "Periódicos" %}</small></span>
+        <span class="obs-content-card__body"><small>{% translate "Evidencia publicada" %}</small><b>{% translate "Reportes y boletines" %}</b><span>{% translate "Revisa hallazgos, análisis y publicaciones técnicas." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+      </button>
+
+      <button class="obs-content-card" type="button" data-open-resource data-kicker="Seguimiento continuo" data-title="{% translate "Alertas y tendencias" %}" data-copy="Identifica cambios relevantes y señales tempranas mediante seguimiento continuo de variables ambientales, productivas y sociales." data-metric="Monitoreo continuo" data-icon="iconsminds-bell" data-image="{% static 'img/generated/observatorios/alertas-tendencias.webp' %}" data-list="Alertas sobre cambios relevantes|Seguimiento de variables críticas|Tendencias y señales emergentes" data-use="Ayudan a anticipar escenarios, orientar respuestas y mantener informados a investigadores y tomadores de decisiones.">
+        <span class="obs-content-card__media"><img src="{% static 'img/generated/observatorios/alertas-tendencias.webp' %}" alt="{% translate "Centro de monitoreo de alertas territoriales" %}" loading="lazy"><i class="iconsminds-bell"></i><small>{% translate "En seguimiento" %}</small></span>
+        <span class="obs-content-card__body"><small>{% translate "Seguimiento continuo" %}</small><b>{% translate "Alertas y tendencias" %}</b><span>{% translate "Reconoce cambios, eventos y señales emergentes." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+      </button>
+
+      <button class="obs-content-card" type="button" data-open-resource data-kicker="Datos reutilizables" data-title="{% translate "Bases de datos abiertas" %}" data-copy="Trabaja con conjuntos de datos depurados, series históricas y registros estructurados para investigación, docencia y desarrollo de nuevas soluciones." data-metric="Series descargables en CSV" data-icon="iconsminds-data-storage" data-image="{% static 'img/generated/observatorios/bases-datos.webp' %}" data-list="Conjuntos de datos documentados|Series históricas reutilizables|Formatos preparados para análisis" data-use="Facilitan análisis propios, ejercicios académicos, modelos predictivos y proyectos de innovación basada en datos.">
+        <span class="obs-content-card__media"><img src="{% static 'img/generated/observatorios/bases-datos.webp' %}" alt="{% translate "Especialista gestionando bases de datos territoriales" %}" loading="lazy"><i class="iconsminds-data-storage"></i><small>{% translate "Abiertos" %}</small></span>
+        <span class="obs-content-card__body"><small>{% translate "Datos reutilizables" %}</small><b>{% translate "Bases de datos abiertas" %}</b><span>{% translate "Descarga registros y series para nuevos análisis." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+      </button>
+
+      <button class="obs-content-card" type="button" data-open-resource data-kicker="Métodos y guías" data-title="{% translate "Documentación técnica" %}" data-copy="Comprende cómo se producen los indicadores mediante metodologías, fichas técnicas, glosarios y guías que aseguran un uso responsable de la información." data-metric="Fuentes y métodos documentados" data-icon="iconsminds-open-book" data-image="{% static 'img/generated/observatorios/documentacion-metodologias.webp' %}" data-list="Metodologías y marcos conceptuales|Fichas técnicas de indicadores|Glosarios y guías de interpretación" data-use="Permite validar fuentes, interpretar correctamente cada variable y reproducir procesos de análisis con transparencia.">
+        <span class="obs-content-card__media"><img src="{% static 'img/generated/observatorios/documentacion-metodologias.webp' %}" alt="{% translate "Equipo organizando metodologías y documentación técnica" %}" loading="lazy"><i class="iconsminds-open-book"></i><small>{% translate "Métodos" %}</small></span>
+        <span class="obs-content-card__body"><small>{% translate "Métodos y guías" %}</small><b>{% translate "Documentación técnica" %}</b><span>{% translate "Conoce fuentes, metodologías y criterios de uso." %}</span><em>{% translate "Ver contenido" %} <i class="simple-icon-arrow-right"></i></em></span>
+      </button>
+        </div>
+        <div class="obs-coverflow__dots" data-coverflow-dots aria-label="{% translate "Seleccionar recurso" %}"></div>
+        <button class="obs-coverflow__control is-next" type="button" data-coverflow-next aria-label="{% translate "Recurso siguiente" %}"><i class="simple-icon-arrow-right"></i></button>
+      </div>
+
+      <article class="obs-panel obs-tutorial">
+        <div class="obs-panel__title"><span>04</span><div><small>{% translate "Aprendizaje autónomo" %}</small><h3>{% translate "Cómo leer un observatorio" %}</h3></div></div>
+        <ul class="obs-check-list">
+          <li><i class="simple-icon-check"></i> {% translate "Empieza por los indicadores clave: el último valor y su tendencia." %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Abre la ficha metodológica para saber qué mide, cómo se calcula y de dónde sale el dato." %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Revisa las alertas: avisan cuando un valor sale del rango esperado." %}</li>
+          <li><i class="simple-icon-check"></i> {% translate "Lee los boletines y descarga las series en CSV para tu propio análisis." %}</li>
+        </ul>
+      </article>
+    </div>
+
+  <div class="obs-support-grid">
+    <article class="obs-panel obs-access">
+      <div class="obs-panel__title"><span>02</span><div><small>{% translate "Proceso guiado" %}</small><h3>{% translate "¿Cómo acceder?" %}</h3></div></div>
+      <div class="obs-access__flow">
+        <button class="is-active" type="button" aria-pressed="true"><span>1</span><i class="simple-icon-login"></i><b>{% translate "Ingresa" %}</b><small>{% translate "Selecciona un observatorio" %}</small></button>
+        <button type="button" aria-pressed="false"><span>2</span><i class="iconsminds-map2"></i><b>{% translate "Explora" %}</b><small>{% translate "Mapas y tableros" %}</small></button>
+        <button type="button" aria-pressed="false"><span>3</span><i class="iconsminds-data-center"></i><b>{% translate "Consulta" %}</b><small>{% translate "Reportes e indicadores" %}</small></button>
+        <button type="button" aria-pressed="false"><span>4</span><i class="simple-icon-cloud-download"></i><b>{% translate "Descarga" %}</b><small>{% translate "Datos y boletines" %}</small></button>
+        <button type="button" aria-pressed="false"><span>5</span><i class="iconsminds-conference"></i><b>{% translate "Aplica" %}</b><small>{% translate "Clases y proyectos" %}</small></button>
+      </div>
+      {% if unidades %}<a class="obs-access__cta" href="{{ unidades.0.get_absolute_url }}"><span>{% translate "Ingresar al observatorio disponible" %}</span><i class="simple-icon-arrow-right"></i></a>{% endif %}
+    </article>
+  </div>
+  </section>
+
+  </div>
+
+  <dialog class="obs-resource-dialog" data-obs-resource-dialog>
+    <button class="obs-dialog-close" type="button" data-close-resource aria-label="{% translate "Cerrar detalle" %}"><i class="simple-icon-close"></i></button>
+    <div class="obs-resource-dialog__media"><img data-dialog-resource-image src="{% static 'img/generated/observatorios/mapas-territoriales.webp' %}" alt=""><span><i data-dialog-resource-icon class="iconsminds-map2"></i><b data-dialog-resource-metric>{% translate "Capas por territorio y periodo" %}</b></span></div>
+    <div class="obs-resource-dialog__body">
+      <small data-dialog-resource-kicker>{% translate "Territorio y contexto" %}</small><h3 data-dialog-resource-title>{% translate "Mapas interactivos" %}</h3><p data-dialog-resource-copy></p>
+      <div class="obs-resource-dialog__columns"><section><h4>{% translate "¿Qué incluye?" %}</h4><ul data-dialog-resource-list></ul></section><section><h4>{% translate "¿Cómo puedes aprovecharlo?" %}</h4><p data-dialog-resource-use></p></section></div>
+      {% if unidades %}<a href="{{ unidades.0.get_absolute_url }}">{% translate "Explorar observatorio" %} <i class="simple-icon-arrow-right"></i></a>{% endif %}
+    </div>
+  </dialog>
+
+</details>

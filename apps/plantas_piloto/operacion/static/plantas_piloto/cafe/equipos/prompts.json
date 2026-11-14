@@ -1,0 +1,21 @@
+{
+  "modo": "Herramienta integrada image_gen; una generación por imagen",
+  "tipo": "Conjunto resumido de instrucciones de generación",
+  "uso": "Imágenes referenciales de funciones y tipos de equipamiento del café; no fotografías de instalaciones universitarias",
+  "criterios_comunes": "Aspecto fotográfico de catálogo técnico, composición horizontal 4:3, materiales y conexiones verosímiles, iluminación natural o de estudio, sin personas, marcas, logotipos ni texto; sin afirmar modelo o capacidad instalada.",
+  "imagenes": {
+    "silo.webp": "Silo vertical de acero inoxidable con fondo cónico, tapa de inspección y compuerta de descarga protegida, en una línea de café.",
+    "fermentacion.webp": "Tres tanques abiertos de acero inoxidable para microlotes de café despulpado, con tapas, válvulas de drenaje y puntos de muestreo en un beneficiadero.",
+    "molino.webp": "Molino de café por muelas, tolva de alimentación, carcasa metálica, ajuste de molienda y descarga hacia un recipiente; café tostado visible.",
+    "tolva.webp": "Tolva rectangular de recepción de café seco y elevador de cangilones con transmisión protegida, vinculados a una línea de preparación de café verde.",
+    "empacadora.webp": "Empacadora industrial vertical de café en grano o molido, dosificación, formación de bolsa y sellado; presentaciones de 250, 500 y 1000 g sin marcas.",
+    "actividad-agua.webp": "Analizador de actividad de agua de sobremesa, cámara abierta y cápsulas de muestra con café verde y material preparado para medición.",
+    "muestreo.webp": "Divisor de muestras por canales y calador de granos con ranuras, recipientes de fracciones y café verde sobre mesa de laboratorio.",
+    "catacion.webp": "Laboratorio de calidad de café con tazas iguales de catación, cucharas, hervidores, balanza de precisión, molino y tostador de muestras.",
+    "bodega.webp": "Bodega organizada de café empacado, bolsas selladas y cajas sobre estanterías; sacos de café separados sobre pallets y pasillo libre.",
+    "trilladora.webp": "Trilladora de café seco con tolva, cámara mecánica cerrada, transmisión protegida, salidas separadas de almendra y cáscara y colector de polvo.",
+    "despedradora.webp": "Despedradora de café verde con mesa inclinada, cubierta protegida, ventilador y dos salidas diferenciadas de granos y piedras.",
+    "desmucilaginador.webp": "Desmucilaginador mecánico vertical de café, columna de fricción, aporte de agua y salidas de pergamino lavado y efluente.",
+    "tamices.webp": "Tamizador de laboratorio con pila de tamices metálicos, mallas intercambiables, sujeciones y café verde para clasificación de muestra."
+  }
+}

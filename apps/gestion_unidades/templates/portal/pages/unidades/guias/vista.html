@@ -1,0 +1,88 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260925-acciones">
+{% endblock %}
+{% block portal_content %}
+<section class="guide-shell">
+  <header class="guide-hero guide-hero--compact guide-no-print">
+    <div>
+      <span class="guide-eyebrow">{% translate "VISTA HTML INSTITUCIONAL" %}</span>
+      <h1>{{ guia.titulo }}</h1>
+      <p>{{ unidad.nombre }} {% translate "· Versión" %} {{ guia.numero_version }}</p>
+    </div>
+    <div class="guide-hero__actions">
+      <a data-panel-back class="guide-btn guide-btn--ghost" href="{% if comprobante_url %}{{ comprobante_url }}{% else %}{% url 'lista_guias_practica' unidad.slug %}{% endif %}">{% translate "Volver" %}</a>
+      {% if puede_editar %}<a class="guide-btn guide-btn--gold" href="{% url 'editar_guia_practica' unidad.slug guia.pk %}">{% translate "Editar guía" %}</a>{% endif %}
+      <a class="guide-btn guide-btn--outline" href="{% url 'ver_guia_actividad' guia.pk %}?preview=pdf" data-ver-pdf data-pdf-titulo="{{ guia.titulo }}" {% if puede_descargar %}data-pdf-descarga="{% url 'ver_guia_actividad' guia.pk %}?download=1"{% else %}data-pdf-sin-descarga{% endif %}>{% translate "Ver documento" %}</a>
+      {% if comprobante_url or puede_archivar or puede_versionar or version_en_trabajo and es_operador %}
+      <details class="guide-actions-more">
+        <summary class="guide-btn guide-btn--ghost">{% translate "Más opciones" %}</summary>
+        <div class="guide-actions-more__items">
+      {% if comprobante_url %}<a class="guide-btn guide-btn--outline" href="{{ comprobante_url }}">{% translate "Ver solicitud" %} {{ reserva_fuente.codigo_reserva }}</a>{% endif %}
+      {% if version_en_trabajo and es_operador and guia.estado_publicacion == 'publicada' %}<a class="guide-btn guide-btn--outline" href="{% url 'editar_guia_practica' unidad.slug version_en_trabajo.pk %}">{% translate "Continuar la versión" %} {{ version_en_trabajo.numero_version }} {% translate "en trabajo" %}</a>{% endif %}
+      {% if puede_versionar %}
+      <form method="post" action="{% url 'cambiar_estado_guia_practica' guia.pk %}" class="guide-inline-form">
+        {% csrf_token %}
+        <button class="guide-btn guide-btn--gold" name="accion" value="nueva_version">{% translate "Crear nueva versión" %}</button>
+      </form>
+      {% endif %}
+      {% if puede_archivar %}
+      <form method="post" action="{% url 'cambiar_estado_guia_practica' guia.pk %}" class="guide-inline-form" data-ui-submit="confirm" data-ui-message="¿Archivar esta versión? Se conservará en la trazabilidad.">
+        {% csrf_token %}
+        <button class="guide-btn guide-btn--ghost" name="accion" value="archivar">{% translate "Archivar" %}</button>
+      </form>
+      {% endif %}
+        </div>
+      </details>
+      {% endif %}
+    </div>
+  </header>
+  {% if guardado %}<div class="guide-alert guide-alert--success guide-no-print">{% translate "Los cambios se guardaron correctamente." %}</div>{% endif %}
+  {% if reserva_fuente and guia.estado_publicacion == 'borrador' %}<div class="guide-alert guide-alert--warning guide-no-print"><strong>{% translate "La reserva continúa pendiente:" %}</strong> {% translate "completa la guía y usa “Enviar a revisión” para que el laboratorio pueda evaluarla." %}</div>{% endif %}
+  {% if reserva_fuente and guia.estado_publicacion == 'revision' %}<div class="guide-alert guide-alert--warning guide-no-print"><strong>{% translate "Guía enviada a revisión:" %}</strong> {% translate "la reserva podrá aprobarse cuando el responsable del laboratorio apruebe esta versión." %}</div>{% endif %}
+  {% if reserva_fuente and guia.estado_publicacion == 'publicada' %}<div class="guide-alert guide-alert--success guide-no-print"><strong>{% translate "Documentación aprobada:" %}</strong> {% translate "esta guía ya habilita la decisión operativa de la reserva." %}</div>{% endif %}
+  {% if guia.observaciones_revision %}<div class="guide-alert guide-alert--warning guide-no-print"><strong>{% translate "Observación de revisión:" %}</strong> {{ guia.observaciones_revision }}</div>{% endif %}
+
+  {% include 'portal/pages/unidades/guias/includes/documento.html' with modo='lectura' %}
+
+  <section class="guide-certified guide-no-print" aria-label="{% translate "Firma electrónica certificada" %}">
+    <div>
+      <span class="guide-eyebrow">{% translate "FIRMA ELECTRÓNICA CERTIFICADA · FirmaEC" %}</span>
+      {% if guia.archivo_firmado %}
+      <h2>{% translate "Versión firmada cargada" %}</h2>
+      <p>{{ guia.firma_certificada_resumen }} {% translate "· cargada por" %} {{ guia.firmado_por.get_full_name|default:guia.firmado_por.username }} el {{ guia.firmado_en|date:'d/m/Y H:i' }}{% translate ". La descarga entrega este archivo." %}</p>
+      {% elif guia.estado_publicacion == 'publicada' %}
+      <h2>{% translate "Opcional: firma con certificado acreditado" %}</h2>
+      <p>{% translate "Las firmas internas ya validan la guía dentro de la plataforma. Si necesitas validez externa, descarga el PDF aprobado, fírmalo con FirmaEC (o tu certificado acreditado en Ecuador) y carga aquí el archivo firmado; se comprueba que contenga la firma y se guarda su huella." %}</p>
+      {% elif guia.estado_publicacion == 'revision' %}
+      <h2>{% translate "Firma la guía antes de la aprobación" %}</h2>
+      <p>{% translate "Abre «Ver documento» y descarga el documento desde el visor. Fírmalo con FirmaEC o tu certificado acreditado y carga aquí el archivo firmado para su revisión." %}</p>
+      {% else %}
+      <h2>{% translate "Disponible al enviar a revisión" %}</h2>
+      <p>{% translate "Cuando envíes la guía a revisión podrás descargar el PDF, firmarlo con FirmaEC y cargar la versión firmada; después el laboratorio la aprobará." %}</p>
+      {% endif %}
+    </div>
+    {% if reserva_para_firmar and not guia.archivo_firmado %}
+    <p class="guide-certified__redirect"><i class="fas fa-external-link-alt" aria-hidden="true"></i> {% translate "La versión firmada se carga desde la reserva" %} {{ reserva_para_firmar.codigo_reserva|default:reserva_para_firmar.pk }}{% translate ", en la pestaña «Guía de práctica» de tu expediente." %}</p>
+    {% endif %}
+    {% if puede_cargar_firmada %}
+    <form method="post" action="{% url 'subir_guia_firmada' guia.pk %}" enctype="multipart/form-data" class="guide-certified__form">
+      {% csrf_token %}
+      <label><span>{% translate "PDF firmado" %}</span><input type="file" name="archivo_firmado" accept="application/pdf" required></label>
+      <button class="guide-btn guide-btn--primary">{% if guia.archivo_firmado %}{% translate "Reemplazar versión firmada" %}{% else %}{% translate "Cargar versión firmada" %}{% endif %}</button>
+    </form>
+    {% endif %}
+  </section>
+
+  {% if es_operador and guia.estado_publicacion == 'revision' %}
+  <form method="post" action="{% url 'cambiar_estado_guia_practica' guia.pk %}" class="guide-review guide-no-print">
+    {% csrf_token %}
+    <div><span class="guide-eyebrow">{% translate "DECISIÓN DOCUMENTAL" %}</span><h2>{% translate "Revisión y aprobación" %}</h2><p>{% translate "La observación es obligatoria cuando devuelves la guía al autor." %}</p></div>
+    <textarea name="observacion" rows="3" placeholder="{% translate "Observaciones o condiciones de aprobación" %}"></textarea>
+    <div><button class="guide-btn guide-btn--danger" name="accion" value="rechazar">{% translate "Devolver con observaciones" %}</button><button class="guide-btn guide-btn--primary" name="accion" value="aprobar">{% translate "Aprobar y publicar" %}</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

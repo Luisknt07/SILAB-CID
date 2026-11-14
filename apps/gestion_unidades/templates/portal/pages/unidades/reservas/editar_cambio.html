@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas %}
+
+{% block title %}{% translate "Proponer cambios ·" %} {{ reserva.codigo_reserva }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cambio_reserva.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<main class="reservation-change-page">
+  <header class="reservation-change-hero">
+    <div>
+      <span>{% translate "CAMBIO CONTROLADO DE RESERVA" %}</span>
+      <h1>{% translate "Preparar propuesta de cambios" %}</h1>
+      <p>{{ reserva.laboratorio.nombre }} · {{ reserva.codigo_reserva|default:'Reserva registrada' }}</p>
+    </div>
+    <a href="{% url 'laboratorio_detalle' reserva.laboratorio.slug %}#mis-reservas"><i class="fas fa-arrow-left"></i> {% translate "Volver a mis reservas" %}</a>
+  </header>
+
+  <section class="reservation-change-summary">
+    <div><small>{% translate "RESERVA VIGENTE" %}</small><strong>{{ reserva.titulo_solicitud }}</strong><span>{{ reserva.fecha|date:'d/m/Y' }} · {{ reserva.hora_inicio|time:'H:i' }}–{{ reserva.hora_fin|time:'H:i' }}</span></div>
+    <div><small>{% translate "ESTADO DEL CAMBIO" %}</small><strong>{{ solicitud.get_estado_display|ui }}</strong><span>{% translate "La reserva original no se modifica mientras preparas esta propuesta." %}</span></div>
+    {% if solicitud.autorizacion_vence_en %}<div><small>{% translate "VENTANA AUTORIZADA" %}</small><strong>{% translate "Hasta" %} {{ solicitud.autorizacion_vence_en|date:'d/m/Y H:i' }}</strong><span>{% translate "Después de esa fecha deberás pedir una nueva autorización." %}</span></div>{% endif %}
+  </section>
+
+  {% if error %}<div class="reservation-change-message is-error"><i class="fas fa-exclamation-circle"></i><span>{{ error }}</span></div>{% endif %}
+  {% if solicitud.estado == 'enviada' %}
+    <div class="reservation-change-message is-info"><i class="fas fa-hourglass-half"></i><span>{% translate "Tu propuesta ya fue enviada. El laboratorio debe comprobar disponibilidad, insumos y condiciones antes de aplicarla." %}</span></div>
+    {% if diferencias %}<section class="reservation-change-diff"><h2><i class="fas fa-list-ul"></i> {% translate "Lo que propusiste" %}</h2><ul>{% for item in diferencias %}<li><b>{{ item.etiqueta }}</b><span>{{ item.anterior }}</span><i class="fas fa-long-arrow-alt-right"></i><strong>{{ item.nuevo }}</strong></li>{% endfor %}</ul></section>{% endif %}
+  {% elif solicitud.estado == 'aprobada' %}
+    <div class="reservation-change-message is-success"><i class="fas fa-check-circle"></i><span>{% translate "Los cambios fueron aprobados y constan en la revisión" %} {{ solicitud.revision_aplicada.numero }} {% translate "del expediente." %}</span></div>
+  {% elif solicitud.puede_editar %}
+  <form method="post" class="reservation-change-form" id="reservationChangeForm">
+    {% csrf_token %}
+    <section class="reservation-change-reason">
+      <span>{% translate "SOLICITUD AUTORIZADA" %}</span>
+      <h2>{% translate "Motivo informado al laboratorio" %}</h2>
+      <p>{{ solicitud.motivo_solicitud }}</p>
+      <div>
+        <strong>{% translate "Puedes modificar:" %}</strong>
+        {% for campo in solicitud.campos_autorizados_display %}<em>{{ campo }}</em>{% endfor %}
+      </div>
+    </section>
+
+    {% if 'fecha_horario' in solicitud.campos_autorizados %}
+    <fieldset>
+      <legend><b>01</b><span>{% translate "Fecha y horario" %}<small>{% translate "Se validará nuevamente contra la jornada y las reservas existentes." %}</small></span></legend>
+      <div class="reservation-change-grid is-three">
+        <label>{% translate "Fecha" %}<input type="date" name="fecha" value="{{ datos.fecha }}" required></label>
+        <label>{% translate "Hora de inicio" %}<input type="time" name="hora_inicio" value="{{ datos.hora_inicio }}" step="3600" required></label>
+        <label>{% translate "Hora de finalización" %}<input type="time" name="hora_fin" value="{{ datos.hora_fin }}" step="3600" required></label>
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if 'actividad' in solicitud.campos_autorizados %}
+    <fieldset>
+      <legend><b>02</b><span>{% translate "Actividad y necesidad" %}<small>{% translate "Describe el alcance real para que la revisión técnica sea verificable." %}</small></span></legend>
+      <div class="reservation-change-grid">
+        <label class="is-wide">{% translate "Título de la solicitud" %}<input type="text" name="titulo_solicitud" maxlength="255" value="{{ datos.titulo_solicitud }}" required></label>
+        <label>{% translate "Motivo o necesidad" %}<textarea name="motivo" rows="4">{{ datos.motivo }}</textarea></label>
+        <label>{% translate "Descripción técnica" %}<textarea name="descripcion_proyecto" rows="4">{{ datos.descripcion_proyecto }}</textarea></label>
+        <label class="is-wide">{% translate "Requisitos especiales" %}<textarea name="requisitos_especiales" rows="3">{{ datos.requisitos_especiales }}</textarea></label>
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if 'participantes' in solicitud.campos_autorizados %}
+    <fieldset>
+      <legend><b>03</b><span>{% translate "Participantes" %}<small>{% translate "El solicitante principal siempre cuenta como una persona." %}</small></span></legend>
+      <div class="reservation-change-options">
+        {% for usuario in usuarios %}
+        <label><input type="checkbox" name="participantes_ids" value="{{ usuario.pk }}"{% if usuario.pk in seleccion.participantes %} checked{% endif %}><span><strong>{{ usuario.get_full_name|default:usuario.username }}</strong><small>{{ usuario.email|default:'Sin correo' }}</small></span></label>
+        {% empty %}<p>{% translate "No hay otros usuarios institucionales disponibles." %}</p>{% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if 'equipos' in solicitud.campos_autorizados %}
+    <fieldset>
+      <legend><b>04</b><span>{% translate "Equipos" %}<small>{% translate "Selecciona unidades físicas concretas; su disponibilidad se comprobará al aprobar." %}</small></span></legend>
+      <div class="reservation-change-options">
+        {% for equipo in equipos %}<label><input type="checkbox" name="unidades_ids" value="{{ equipo.pk }}"{% if equipo.pk in seleccion.equipos %} checked{% endif %}><span><strong>{{ equipo.equipo.nombre }}</strong><small>{{ equipo.codigo_unidad }} · {{ equipo.ubicacion_especifica|default:'Ubicación por confirmar' }}</small></span></label>{% empty %}<p>{% translate "No hay equipos activos." %}</p>{% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if 'software' in solicitud.campos_autorizados or 'espacios' in solicitud.campos_autorizados or 'servicios' in solicitud.campos_autorizados %}
+    <fieldset>
+      <legend><b>05</b><span>{% translate "Otros recursos" %}<small>{% translate "Solo se muestran recursos activos de este laboratorio." %}</small></span></legend>
+      <div class="reservation-change-resource-columns">
+        {% if 'software' in solicitud.campos_autorizados %}<section><h3>{% translate "Software" %}</h3>{% for item in software %}<label><input type="checkbox" name="software_ids" value="{{ item.pk }}"{% if item.pk in seleccion.software %} checked{% endif %}><span>{{ item.nombre }} {{ item.version }}</span></label>{% empty %}<p>{% translate "Sin software activo." %}</p>{% endfor %}</section>{% endif %}
+        {% if 'espacios' in solicitud.campos_autorizados %}<section><h3>{% translate "Espacios" %}</h3>{% for item in espacios %}<label><input type="checkbox" name="espacios_ids" value="{{ item.pk }}"{% if item.pk in seleccion.espacios %} checked{% endif %}><span>{{ item.nombre }}</span></label>{% empty %}<p>{% translate "Sin espacios reservables." %}</p>{% endfor %}</section>{% endif %}
+        {% if 'servicios' in solicitud.campos_autorizados %}<section><h3>{% translate "Servicios" %}</h3>{% for item in servicios %}<label><input type="checkbox" name="servicios_ids" value="{{ item.pk }}"{% if item.pk in seleccion.servicios %} checked{% endif %}><span>{{ item.nombre }}</span></label>{% empty %}<p>{% translate "Sin servicios activos." %}</p>{% endfor %}</section>{% endif %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% if 'insumos' in solicitud.campos_autorizados %}
+    <fieldset>
+      <legend><b>06</b><span>{% translate "Insumos y cantidades solicitadas" %}<small>{% translate "La unidad indicada junto a cada ficha es la que debes digitar." %}</small></span></legend>
+      <div class="reservation-change-supplies">
+        {% for item in consumibles %}
+        <article data-change-supply="{{ item.pk }}">
+          <label class="reservation-change-supplies__check"><input type="checkbox" name="consumibles_ids" value="{{ item.pk }}"{% if item.pk in seleccion.consumibles %} checked{% endif %}><span><strong>{{ item.nombre }}</strong><small>{{ item.codigo }} {% translate "· disponible" %} {{ item.stock_total }} {{ item.unidad_medida|default:'unidades' }}</small></span></label>
+          <label>{% translate "Cantidad (" %}{{ item.unidad_medida|default:'unidades' }})<input type="number" min="0.001" step="0.001" name="consumible_{{ item.pk }}_cantidad"></label>
+          <label>{% translate "Estimación" %}<select name="consumible_{{ item.pk }}_metodo"><option value="estimacion">{% translate "Indicada por el solicitante" %}</option><option value="simulacion">{% translate "Calculada con software" %}</option><option value="revision">{% translate "Por calcular en revisión técnica" %}</option></select></label>
+        </article>
+        {% empty %}<p>{% translate "No hay insumos visibles para reserva." %}</p>{% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    <footer>
+      <p><i class="fas fa-shield-alt"></i><span><strong>{% translate "Envío sujeto a aprobación." %}</strong> {% translate "El cambio no altera la reserva confirmada hasta que el laboratorio lo valide." %}</span></p>
+      <div><a href="{% url 'laboratorio_detalle' reserva.laboratorio.slug %}#mis-reservas">{% translate "Cancelar" %}</a><button type="submit"><i class="fas fa-paper-plane"></i> {% translate "Enviar propuesta" %}</button></div>
+    </footer>
+  </form>
+  {% else %}
+    <div class="reservation-change-message is-error"><i class="fas fa-lock"></i><span>{% translate "Esta solicitud no dispone de una ventana de edición activa." %}</span></div>
+  {% endif %}
+  {% if puede_retirar %}
+  <form method="post" action="{{ retirar_url }}" class="reservation-change-withdraw" data-ui-submit="confirm" data-ui-message="¿Retirar tu solicitud de cambio? La reserva vigente no se modifica.">
+    {% csrf_token %}
+    <p><i class="fas fa-undo"></i><span><strong>{% translate "¿Ya no necesitas el cambio?" %}</strong> {% translate "Puedes retirar la solicitud: la reserva vigente no se modifica y podrás pedir otro cambio después." %}</span></p>
+    <button type="submit">{% translate "Retirar solicitud" %}</button>
+  </form>
+  {% endif %}
+</main>
+
+{{ datos|json_script:"reservationChangeData" }}
+<script>
+(() => {
+  const node = document.getElementById('reservationChangeData');
+  if (!node) return;
+  const data = JSON.parse(node.textContent || '{}');
+  const supplies = new Map((data.consumibles || []).map(item => [String(item.id), item]));
+  document.querySelectorAll('[data-change-supply]').forEach(row => {
+    const item = supplies.get(row.dataset.changeSupply);
+    const amount = row.querySelector('input[type="number"]');
+    const method = row.querySelector('select');
+    if (amount && item?.cantidad_solicitada !== null && item?.cantidad_solicitada !== undefined) amount.value = item.cantidad_solicitada;
+    if (method && item?.metodo_estimacion) method.value = item.metodo_estimacion;
+    const check = row.querySelector('input[type="checkbox"]');
+    const sync = () => { if (amount) amount.required = Boolean(check?.checked) && method?.value !== 'revision'; };
+    check?.addEventListener('change', sync);
+    method?.addEventListener('change', sync);
+    sync();
+  });
+})();
+</script>
+{% endblock %}

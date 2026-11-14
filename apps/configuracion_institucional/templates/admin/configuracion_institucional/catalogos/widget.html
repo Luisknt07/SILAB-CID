@@ -1,0 +1,11 @@
+{% load i18n %}
+<div class="catalogo-editor" data-code-label="{% translate 'Código estable' %}" data-name-label="{% translate 'Nombre visible' %}" data-faculty-label="{% translate 'Dependencia' %}" data-remove-label="{% translate 'Retirar de la propuesta' %}" data-retire-label="{% translate 'Pasar a histórica' %}" data-choose-label="{% translate 'Selecciona una dependencia' %}">
+  <textarea name="{{ widget.name }}"{% include 'django/forms/widgets/attrs.html' %} class="catalogo-json">{% if widget.value != None %}{{ widget.value }}{% endif %}</textarea>
+  <div class="catalogo-editor-guiado" hidden>
+    <fieldset data-group="facultades" data-max="201"><legend>{% translate "Dependencias institucionales" %}</legend><p>{% translate "Facultades, escuelas o áreas internas. La opción externo se conserva." %}</p><div class="catalogo-filas"></div><button type="button" data-add="facultades">{% translate "Agregar dependencia" %}</button></fieldset>
+    <fieldset data-group="carreras" data-max="2000"><legend>{% translate "Carreras académicas" %}</legend><p>{% translate "Cada carrera pertenece a una dependencia interna." %}</p><div class="catalogo-filas"></div><button type="button" data-add="carreras">{% translate "Agregar carrera" %}</button></fieldset>
+    <fieldset data-group="carreras_historicas" data-max="2000"><legend>{% translate "Carreras y clasificaciones históricas" %}</legend><p>{% translate "Se conservan para consultar registros anteriores; no se ofrecen como carreras nuevas." %}</p><div class="catalogo-filas"></div><button type="button" data-add="carreras_historicas">{% translate "Agregar referencia histórica" %}</button></fieldset>
+    <fieldset><legend>{% translate "¿Qué tipos de usuario requieren una carrera?" %}</legend><div class="catalogo-tipos">{% for codigo, etiqueta in tipos_catalogo %}<label><input type="checkbox" data-tipo="{{ codigo }}"> {{ etiqueta }}</label>{% endfor %}</div><p>{% translate "Esta clasificación no concede grupos, permisos ni pertenencia institucional." %}</p></fieldset>
+  </div>
+  <noscript><p>{% translate "Sin JavaScript puedes editar el catálogo en el campo de texto. Su estructura y referencias se validan antes de guardar." %}</p></noscript>
+</div>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="titulo descripcion"><title id="titulo">Una operación, una comprobación</title><desc id="descripcion">La pantalla informa; el servidor valida; el historial deja evidencia</desc>
+<rect x="0" y="0" width="1200" height="144" rx="0" fill="#122d2a"/>
+<text x="42" y="38" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#ffda50">APLICACIONES LOGÍSTICAS CON IA</text>
+<text x="42" y="85" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">Una operación, una comprobación</text>
+<text x="42" y="131" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#c9ded6">La pantalla informa; el servidor valida; el historial deja evidencia</text>
+<rect x="40" y="190" width="350" height="210" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="40" y="190" width="8" height="210" rx="3" fill="#24623c"/>
+<circle cx="80" cy="230" r="21" fill="#24623c"/>
+<text x="71" y="236" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">1</text>
+<text x="115" y="235" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#24623c">Producto</text>
+<text x="64" y="299" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Un código único y una</text>
+<text x="64" y="330" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">unidad definida.</text>
+<rect x="425" y="190" width="350" height="210" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="425" y="190" width="8" height="210" rx="3" fill="#087c87"/>
+<circle cx="465" cy="230" r="21" fill="#087c87"/>
+<text x="456" y="236" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">2</text>
+<text x="500" y="235" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#087c87">Movimiento</text>
+<text x="449" y="299" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Entrada o salida, cantidad y</text>
+<text x="449" y="330" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">motivo.</text>
+<rect x="810" y="190" width="350" height="210" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="810" y="190" width="8" height="210" rx="3" fill="#3266af"/>
+<circle cx="850" cy="230" r="21" fill="#3266af"/>
+<text x="841" y="236" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">3</text>
+<text x="885" y="235" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#3266af">Validación</text>
+<text x="834" y="299" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Permiso, cantidad positiva y</text>
+<text x="834" y="330" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">saldo suficiente.</text>
+<line x1="393" y1="294" x2="420" y2="294" stroke="#24623c" stroke-width="4" stroke-linecap="round"/>
+<polygon points="420,294 408,287 408,301" fill="#24623c"/>
+<line x1="778" y1="294" x2="805" y2="294" stroke="#24623c" stroke-width="4" stroke-linecap="round"/>
+<polygon points="805,294 793,287 793,301" fill="#24623c"/>
+<rect x="235" y="445" width="350" height="205" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="235" y="445" width="8" height="205" rx="3" fill="#7451ac"/>
+<circle cx="275" cy="485" r="21" fill="#7451ac"/>
+<text x="266" y="491" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">4</text>
+<text x="310" y="490" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#7451ac">Guardar juntos</text>
+<text x="259" y="554" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Saldo e historial cambian en</text>
+<text x="259" y="585" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">una misma operación.</text>
+<rect x="620" y="445" width="350" height="205" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="620" y="445" width="8" height="205" rx="3" fill="#24623c"/>
+<circle cx="660" cy="485" r="21" fill="#24623c"/>
+<text x="651" y="491" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">5</text>
+<text x="695" y="490" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#24623c">Verificar</text>
+<text x="644" y="554" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Compara mensaje,</text>
+<text x="644" y="585" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">existencia e historial.</text>
+<line x1="588" y1="547" x2="615" y2="547" stroke="#24623c" stroke-width="4" stroke-linecap="round"/>
+<polygon points="615,547 603,540 603,554" fill="#24623c"/>
+<line x1="40" y1="704" x2="1160" y2="704" stroke="#d4e1db" stroke-width="2" stroke-linecap="round"/>
+<text x="42" y="739" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#4c6662">Caso docente Andina Distribución · Datos ficticios · Aprende, prueba y comprueba</text>
+</svg>

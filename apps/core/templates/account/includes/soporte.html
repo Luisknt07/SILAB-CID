@@ -1,0 +1,4 @@
+{% load i18n %}
+{% if identidad_institucion.correo %}
+<p class="auth-note">{% translate "Si necesitas ayuda, escribe a" %} <a href="mailto:{{ identidad_institucion.correo }}">{{ identidad_institucion.correo }}</a>.</p>
+{% endif %}

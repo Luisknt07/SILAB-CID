@@ -1,0 +1,60 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}La puerta de entrada del centro, con los bloques de Laboratorios: el formulario (o la invitación a entrar), qué pasa
+después paso a paso y el estado de las solicitudes de quien las envió.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "La puerta de entrada del centro: un reto, un servicio del portafolio, el acceso a un área, una capacitación o una visita. Elige la necesidad para completar solo los datos pertinentes; podrás consultar su expediente privado." %}</p>{% endblock %}
+
+{% block contenido %}
+<section class="conoce__seccion area__primera" id="nueva">
+  <nav class="cv-chips" aria-label="{% translate 'Tipo de solicitud' %}">{% for clave, nombre in tipos_solicitud %}<a class="cv-chip{% if tipo_seleccionado == clave %} is-activo{% endif %}" href="{{ solicitar_url }}?tipo={{ clave }}">{{ nombre }}</a>{% endfor %}</nav>
+  <p class="ficha__nota">{% if mostrar_recursos %}<a href="{% url 'seccion_centro_id' centro.slug 'recursos' %}">{% translate 'Consultar equipos, espacios y herramientas' %}</a>{% endif %}{% if c.oferta_vinculada.cursos %} · <a href="{% url 'seccion_centro_id' centro.slug 'oportunidades' %}">{% translate 'Ver cursos y ediciones' %}</a>{% endif %}</p>
+  {% if tipo_seleccionado == 'capacitacion' %}<p class="ficha__nota">{% translate 'Esta solicitud consulta formación a medida; no es una matrícula a un curso.' %}</p>{% endif %}
+  {% if referencias %}<p class="ficha__nota"><strong>{% translate "Consulta relacionada con:" %}</strong> {% for referencia in referencias %}{{ referencia }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+  {% if messages %}{% for mensaje in messages %}<p class="cv-aviso"><i class="fas fa-check-circle" aria-hidden="true"></i> {{ mensaje }}</p>{% endfor %}{% endif %}
+  <div class="cv-solicitar">
+    {% if sin_oferta %}
+    <article class="ficha__bloque">
+      <header><h2>{% if tipo_seleccionado == 'uso' %}{% translate "No hay recursos habilitados para solicitar uso" %}{% else %}{% translate "No hay servicios que reciban solicitudes actualmente" %}{% endif %}</h2></header>
+      <p>{% translate "Puedes plantear tu necesidad al centro para que evalúe cómo atenderla." %}</p>
+      <a class="ficha__boton" href="{{ solicitar_url }}?tipo=reto">{% translate "Plantear una necesidad" %}</a>
+    </article>
+    {% elif formulario %}
+    <article class="ficha__bloque ficha__bloque--creacion" data-aparecer>
+      <header><i class="fas fa-paper-plane" aria-hidden="true"></i><h2>{% translate "Nueva solicitud" %}</h2></header>
+      <form class="cv-form" method="post">
+        {% csrf_token %}
+        {% for campo in formulario %}{% if campo.is_hidden %}{{ campo }}{{ campo.errors }}{% else %}<label class="{% if campo.name == 'problema' or campo.name == 'titulo' or campo.name == 'resultado_esperado' %}is-ancho{% endif %}{% if campo.errors %} tiene-error{% endif %}"><span>{{ campo.label }}{% if campo.field.required %} <b>*</b>{% endif %}</span>{{ campo }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}{{ campo.errors }}</label>{% endif %}{% endfor %}
+        {% if formulario.non_field_errors %}<div class="is-ancho">{{ formulario.non_field_errors }}</div>{% endif %}
+        <div class="is-ancho cv-form__acciones"><button class="ficha__boton" type="submit"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% translate "Enviar la solicitud" %}</button><small>{% translate "El centro la evalúa y te responde en esta misma página." %}</small></div>
+      </form>
+    </article>
+    {% else %}
+    <article class="ficha__bloque ficha__bloque--creacion" data-aparecer>
+      <header><i class="fas fa-sign-in-alt" aria-hidden="true"></i><h2>{% translate "Para enviar una solicitud, inicia sesión" %}</h2></header>
+      <p class="ficha__areas">{% translate "Las solicitudes quedan a nombre de quien las envía: así el centro puede responderte, confirmarte fechas y entregarte resultados. Si eres de una empresa, un GAD, una asociación u otra institución, crea tu cuenta y elige el perfil externo." %}</p>
+      <div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ entrar_url }}" target="_top"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> {% translate "Iniciar sesión o crear una cuenta" %}</a></div>
+    </article>
+    {% endif %}
+    <aside class="ficha__bloque" data-aparecer>
+      <header><i class="fas fa-route" aria-hidden="true"></i><h2>{% translate "Qué pasa después" %}</h2></header>
+      <ol class="area__mini-flujo cv-ruta-lateral">{% for nombre, detalle in ruta %}<li><b>{{ forloop.counter }}</b><span><strong>{{ nombre }}</strong><small>{{ detalle }}</small></span></li>{% endfor %}</ol>
+      {% if etapas %}<p class="ficha__nota"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "Un reto que se convierte en proyecto sigue además la ruta del centro:" %} <a class="cv-enlace-area" href="{% url 'seccion_centro_id' centro.slug 'como_trabaja' %}">{% translate "del reto a la solución transferida" %}</a>.</p>{% endif %}
+    </aside>
+  </div>
+</section>
+
+{% if request.user.is_authenticated %}
+<section class="conoce__seccion" id="mis-solicitudes">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Seguimiento" %}</span><h2>{% translate "Mis solicitudes a este centro" %}</h2></header>
+  {% if mis_solicitudes %}
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Recibida" %}</th><th scope="col">{% translate "Solicitud" %}</th><th scope="col">{% translate "Estado" %}</th><th scope="col">{% translate "Horario confirmado" %}</th><th scope="col">{% translate "Respuesta del centro" %}</th></tr></thead><tbody>
+    {% for solicitud in mis_solicitudes %}<tr><td>{{ solicitud.creada|date:"d/m/Y" }}</td><td><a href="{% url 'solicitud_detalle_centro_id' centro.slug solicitud.pk %}"><strong>{{ solicitud.titulo }}</strong></a><small class="cv-mudo">{{ solicitud.referencia }}</small><small class="cv-mudo">{{ solicitud.get_tipo_display }}{% if solicitud.servicio %} · {{ solicitud.servicio }}{% endif %}{% if solicitud.componente %} · {{ solicitud.componente }}{% endif %}{% if solicitud.proyecto %} · {{ solicitud.proyecto }}{% endif %}{% if solicitud.desarrollo %} · {{ solicitud.desarrollo }}{% endif %}{% if solicitud.finalidad %} · {{ solicitud.get_finalidad_display }}{% endif %}</small></td><td><span class="ficha__rol">{{ solicitud.get_estado_display }}</span></td><td>{% if solicitud.inicio_reservado %}{{ solicitud.zona.nombre|default:"" }}<small class="cv-mudo">{{ solicitud.inicio_reservado|date:"d/m/Y H:i" }} – {{ solicitud.fin_reservado|date:"H:i" }}</small>{% elif solicitud.fecha_preferida %}<small class="cv-mudo">{% translate "pedida para el" %} {{ solicitud.fecha_preferida|date:"d/m/Y" }}</small>{% else %}—{% endif %}</td><td>{{ solicitud.respuesta|default:"—"|linebreaksbr }}{% if solicitud.entregable %}<small class="cv-mudo"><i class="fas fa-box-open" aria-hidden="true"></i> {{ solicitud.entregable }}</small>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<p class="ficha__nota"><i class="fas fa-inbox" aria-hidden="true"></i> {% translate "Todavía no has enviado solicitudes a este centro." %}</p>{% endif %}
+  {% include 'centros_id/visor/_paginacion.html' with paginacion=paginacion_solicitudes %}
+</section>
+{% endif %}
+
+{% if gestor %}<section class="conoce__seccion"><p class="ficha__nota"><i class="fas fa-sliders-h" aria-hidden="true"></i> {% translate "Atiende las solicitudes desde el panel del centro:" %} <a class="cv-enlace-area" href="{% url 'gestion_centro_id' centro.slug %}?panel=solicitudes&amp;tipo=solicitudes" target="_top">{% translate "ver la bandeja" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p></section>{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+<section class="pac-cobertura" aria-label="Necesidades según las áreas de la unidad">
+  <header><h4>Qué necesita cada área</h4><p>El sistema contrasta la dotación registrada con las funciones y procesos de cada área. Las propuestas requieren confirmar la necesidad y sus alternativas.</p></header>
+  <div class="pac-cobertura__desplazamiento"><table>
+    <thead><tr><th>Área y función</th><th>Equipos actuales</th><th>Referencia para revisar la dotación</th><th>Qué falta comprobar</th></tr></thead>
+    <tbody>{% for area in contraste.areas %}<tr>
+      <th scope="row">{{ area.nombre }}{% if not area.activa %}<small>Área inactiva</small>{% endif %}<p>{{ area.funcion|striptags|default:'Función del área pendiente de registrar.' }}</p>{% if area.fuente_funcion %}<small>{{ area.fuente_funcion }}</small>{% endif %}</th>
+      <td><strong>{{ area.equipos_actuales }}</strong> con área principal<small>{{ area.equipos_disponibles }} de ellos disponibles</small><small>{{ area.equipos_asociados }} vinculados en total{% if area.equipos_compartidos %} · {{ area.equipos_compartidos }} compartidos{% endif %}</small></td>
+      <td>{% if area.referencias %}<strong>{{ area.referencias|length }}</strong> referencias en la ficha y los procesos.<small>{{ area.referencias_vinculadas }} con vínculo registrado · {{ area.referencias_por_verificar }} por verificar</small>{% else %}Complete la dotación de referencia de la ficha y los equipos requeridos por sus procesos.{% endif %}{% if area.sugerencias %}<ul>{% for propuesta in area.sugerencias %}<li>{{ propuesta.item }}</li>{% endfor %}</ul><small>Son propuestas para revisar, no compras confirmadas. Su sustento se consulta en «Propuestas por área».</small>{% endif %}</td>
+      <td>{% if area.sugerencias %}<p><strong>{{ area.sugerencias|length }}</strong> propuesta{{ area.sugerencias|pluralize:'s' }} para revisar en esta área.</p>{% endif %}{% for aviso in area.avisos %}<p>{{ aviso }}</p>{% empty %}<p>Confirmar prestaciones, demanda simultánea y uso compartido antes de definir cantidades.</p>{% endfor %}</td>
+    </tr>{% empty %}<tr><td colspan="4">Registra las áreas y sus funciones para fundamentar la dotación necesaria.</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <p class="pac-ficha__ayuda">Una referencia sin vínculo no confirma una carencia. Las horas de los equipos no equivalen a la ocupación del área; los cierres incompletos deben verificarse.</p>
+</section>

@@ -1,0 +1,21 @@
+{% extends "admin/change_list.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'configuracion_institucional/paleta_editor.css' %}?v=20260920-tonos-encima-v216">{% endblock %}
+{% block content_title %}
+  {{ block.super }}
+  <section class="institution-revision-route">
+    <h2>{% translate "Cómo se cambia la presentación" %}</h2>
+    <ol>
+      <li>{% translate "Pulsa “Añadir presentación institucional”. El formulario llega con los datos vigentes: cambia solo lo que necesites." %}</li>
+      <li>{% translate "Guardar crea un borrador. El portal no cambia todavía." %}</li>
+      <li>{% translate "En la fila del borrador pulsa “Revisar y publicar”, comprueba lo propuesto y confirma. Desde ese momento el portal y los documentos nuevos usan esa presentación." %}</li>
+    </ol>
+    <p>
+      {% translate "Solo una presentación está “En uso”. Publicar otra la reemplaza: no hay que desactivar nada." %}
+      {% translate "Para volver a una presentación anterior, pulsa “Restaurar esta presentación” en su fila." %}
+    </p>
+    <p>
+      {% translate "Las revisiones no se editan ni se eliminan: son el historial de lo que estuvo publicado y de quién lo publicó. Para cambiar datos de una revisión, usa “Crear revisión desde estos datos” y publica la copia." %}
+    </p>
+  </section>
+{% endblock %}

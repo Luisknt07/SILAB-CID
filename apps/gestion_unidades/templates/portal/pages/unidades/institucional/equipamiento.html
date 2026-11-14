@@ -1,0 +1,63 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Equipamiento institucional" %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipamiento_institucional.css' %}?v=20261005-institucional-v1">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce institucional">
+  <header class="conoce__portada institucional__portada">
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Dirección y compras" %}</span>
+      <h1>{% translate "Equipamiento institucional" %}</h1>
+      <p class="conoce__lema">{% translate "El mismo producto en todas las unidades: cuántos hay, dónde están, cuánto se usaron en el último año y qué conviene hacer antes de comprar más." %}</p>
+      <div class="conoce__portada-acciones">
+        <a class="conoce__boton is-principal" href="{% url 'lector_equipos' %}"><i class="fas fa-barcode" aria-hidden="true"></i> {% translate "Lector de equipos" %}</a>
+        <a class="conoce__boton" href="?{% if dependencia %}dependencia={{ dependencia }}&amp;{% endif %}{% if busqueda %}q={{ busqueda|urlencode }}&amp;{% endif %}formato=csv"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar CSV" %}</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "Resumen" %}">
+    <div><i class="fas fa-layer-group" aria-hidden="true"></i><strong>{{ resumen.familias }}</strong><span>{% translate "Familias de producto" %}</span></div>
+    <div><i class="fas fa-cubes" aria-hidden="true"></i><strong>{{ resumen.equipos }}</strong><span>{% translate "Equipos activos" %}</span></div>
+    <div><i class="fas fa-share-alt" aria-hidden="true"></i><strong>{{ resumen.compartidas }}</strong><span>{% translate "Familias en varias unidades" %}</span></div>
+    <div><i class="fas fa-hourglass-half" aria-hidden="true"></i><strong>{{ resumen.subutilizadas }}</strong><span>{% translate "Familias con poco o ningún uso" %}</span></div>
+    <div><i class="fas fa-barcode" aria-hidden="true"></i><strong>{{ resumen.sin_codigo_bien }}</strong><span>{% translate "Equipos sin código de bodega" %}</span></div>
+  </section>
+
+  <form class="institucional__filtros" method="get">
+    <label>{% translate "Dependencia" %}<select name="dependencia" data-ui-change="submit-form"><option value="">{% translate "Todas" %}</option>{% for clave, nombre in dependencias %}<option value="{{ clave }}"{% if clave == dependencia %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Buscar familia" %}<input type="search" name="q" value="{{ busqueda }}" placeholder="{% translate "Por ejemplo: visores, impresoras, balanzas" %}"></label>
+    <button type="submit" class="conoce__boton is-principal"><i class="fas fa-search" aria-hidden="true"></i> {% translate "Filtrar" %}</button>
+    <p>{% translate "Las horas proceden de cierres completos y equipos realmente utilizados. La ausencia de registros requiere verificación." %} <a href="{% url 'admin:recursos_unidadequipo_transparencia' %}">{% translate "Consultar uso, alertas y política de seguimiento" %}</a></p>
+  </form>
+
+  <section class="conoce__seccion">
+    <ul class="institucional__familias">
+      {% for familia in familias %}
+      <li class="institucional__familia is-{{ familia.estado }}">
+        <a href="{{ familia.url }}">
+          <span class="institucional__foto">{% if familia.imagen %}<img src="{{ familia.imagen }}" alt="" loading="lazy">{% else %}<i class="{{ familia.icono }}" aria-hidden="true"></i>{% endif %}</span>
+          <span class="institucional__datos">
+            <span class="institucional__grupo">{{ familia.grupo|default:"" }}</span>
+            <strong>{{ familia.nombre }}</strong>
+            <span class="institucional__cuenta"><b>{{ familia.total }}</b> {% translate "equipos" %} · {{ familia.unidades|length }} {% translate "unidad" %}{{ familia.unidades|length|pluralize:"es" }} · {{ familia.horas }} h</span>
+            <span class="institucional__reparto">{% for unidad in familia.unidades|slice:":5" %}<em class="is-{{ unidad.estado }}" title="{{ unidad.horas }} h en el último año">{{ unidad.unidad.nombre|truncatechars:34 }} <b>{{ unidad.total }}</b></em>{% endfor %}{% if familia.unidades|length > 5 %}<em>+{{ familia.unidades|length|add:"-5" }}</em>{% endif %}</span>
+            <span class="institucional__diagnostico">{{ familia.etiqueta }}{% if familia.sin_codigo_bien %} · {{ familia.sin_codigo_bien }} {% translate "sin código de bodega" %}{% endif %}</span>
+            {% if familia.recomendacion %}<span class="institucional__recomendacion"><i class="fas fa-lightbulb" aria-hidden="true"></i> {{ familia.recomendacion }}</span>{% endif %}
+          </span>
+        </a>
+      </li>
+      {% empty %}
+      <li class="ficha__nota">{% translate "No hay equipos con esos filtros." %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+</body>
+</html>

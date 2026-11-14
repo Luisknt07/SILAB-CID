@@ -1,0 +1,96 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Cursos, capacitaciones y eventos" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261011-catalogo-v2">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce ficha area cursos-catalogo">
+  <a class="cursos-catalogo__saltar" href="#oferta">{% translate "Ir a las actividades" %}</a>
+  <header class="cursos-catalogo__cabecera">
+    <div class="cursos-catalogo__presentacion">
+      <span class="conoce__antetitulo">{{ unidad.nombre }}</span>
+      <h1>{% translate "Cursos, capacitaciones y eventos" %}</h1>
+      <p>{% translate "Encuentra tu próxima actividad de formación, en esta plataforma o con instituciones colaboradoras." %}</p>
+    </div>
+    <div class="cursos-catalogo__cabecera-acciones">
+      <span class="cursos-catalogo__total"><i class="fas fa-layer-group" aria-hidden="true"></i>{% blocktranslate count total=total_cursos %}{{ total }} actividad{% plural %}{{ total }} actividades{% endblocktranslate %}</span>
+      {% if puede_crear %}<a class="cursos-catalogo__boton is-principal" href="{% url 'nuevo_curso' unidad.slug %}" data-editar-ficha data-editar-titulo="{% translate 'Nueva actividad' %}"><i class="fas fa-plus" aria-hidden="true"></i>{% translate "Nueva actividad" %}</a>{% endif %}
+    </div>
+  </header>
+
+  <main class="cursos-catalogo__cuerpo" id="cursos">
+    <form class="cursos-catalogo__filtros" method="get" action="{% url 'cursos_unidad' unidad.slug %}#oferta" role="search" aria-label="{% translate 'Buscar cursos, capacitaciones y eventos' %}">
+      <div class="cursos-catalogo__buscador">
+        <label for="buscar-actividad">{% translate "¿Qué te gustaría aprender?" %}</label>
+        <div class="cursos-catalogo__buscar-campo"><i class="fas fa-search" aria-hidden="true"></i><input id="buscar-actividad" name="q" type="search" value="{{ filtros.q }}" maxlength="160" placeholder="{% translate 'Buscar por nombre, tema u organizador' %}"></div>
+      </div>
+      <div class="cursos-catalogo__filtro">
+        <label for="categoria-actividad">{% translate "Categoría" %}</label>
+        <select id="categoria-actividad" name="categoria"><option value="">{% translate "Todas las categorías" %}</option>{% for valor, etiqueta in opciones_categorias %}<option value="{{ valor }}"{% if filtros.categoria == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
+      </div>
+      <div class="cursos-catalogo__filtro">
+        <label for="modalidad-actividad">{% translate "Modalidad" %}</label>
+        <select id="modalidad-actividad" name="modalidad"><option value="">{% translate "Todas las modalidades" %}</option>{% for valor, etiqueta in opciones_modalidades %}<option value="{{ valor }}"{% if filtros.modalidad == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
+      </div>
+      <div class="cursos-catalogo__filtro">
+        <label for="plataforma-actividad">{% translate "Plataforma" %}</label>
+        <select id="plataforma-actividad" name="origen"><option value="">{% translate "Todas las plataformas" %}</option>{% for valor, etiqueta in opciones_origenes %}<option value="{{ valor }}"{% if filtros.origen == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
+      </div>
+      <div class="cursos-catalogo__filtro">
+        <label for="anio-actividad">{% translate "Año de la edición" %}</label>
+        <select id="anio-actividad" name="anio"><option value="">{% translate "Todos los años" %}</option>{% for cada_anio in anios %}<option value="{{ cada_anio }}"{% if filtros.anio|stringformat:'s' == cada_anio|stringformat:'s' %} selected{% endif %}>{{ cada_anio }}</option>{% endfor %}</select>
+      </div>
+      {% if opciones_estados %}<div class="cursos-catalogo__filtro">
+        <label for="estado-actividad">{% translate "Publicación" %}</label>
+        <select id="estado-actividad" name="estado"><option value="">{% translate "Todos los estados" %}</option>{% for valor, etiqueta in opciones_estados %}<option value="{{ valor }}"{% if filtros.estado == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
+      </div>{% endif %}
+      <div class="cursos-catalogo__filtrar-acciones"><button class="cursos-catalogo__boton is-principal" type="submit"><i class="fas fa-filter" aria-hidden="true"></i>{% translate "Aplicar filtros" %}</button>{% if hay_filtros %}<a class="cursos-catalogo__limpiar" href="{% url 'cursos_unidad' unidad.slug %}#cursos">{% translate "Limpiar filtros" %}</a>{% endif %}</div>
+    </form>
+
+    <section class="cursos-catalogo__oferta" id="oferta" aria-labelledby="oferta-titulo">
+      <header class="cursos-catalogo__resultados">
+        <div><h2 id="oferta-titulo">{% translate "Explora la oferta" %}</h2><p>{% if total_filtrado %}{% translate "Mostrando" %} {{ pagina.start_index }}–{{ pagina.end_index }} {% translate "de" %} {{ total_filtrado }} {% translate "actividades" %}{% else %}{% translate "Sin resultados" %}{% endif %}{% if hay_filtros %} · {% translate "Filtros aplicados" %}{% endif %}</p></div>
+        {% if opciones_estados %}<p class="cursos-catalogo__vista-gestion"><i class="fas fa-user-shield" aria-hidden="true"></i>{% translate "Vista de administración" %}<span>{% translate "Los borradores e inactivos solo son visibles para gestores." %}</span></p>{% endif %}
+      </header>
+      <div class="cursos-catalogo__grid">
+        {% for curso in cursos %}
+        <article class="curso-catalogo{% if curso.es_externo %} is-externo{% endif %}{% if not curso.publicado or not curso.activo %} is-pendiente{% endif %}" aria-labelledby="actividad-{{ curso.pk }}">
+          <div class="curso-catalogo__contenido">
+            <header class="curso-catalogo__cabecera"><span class="curso-catalogo__icono">{% if curso.imagen %}<img src="{{ curso.imagen.url }}" alt="" loading="lazy" decoding="async">{% else %}<i class="{{ curso.icono_catalogo }}" aria-hidden="true"></i>{% endif %}</span><div><span class="curso-catalogo__categoria">{{ curso.get_clasificacion_display }}</span><span class="curso-catalogo__origen">{% if curso.es_externo %}<i class="fas fa-external-link-alt" aria-hidden="true"></i>{% translate "Plataforma externa" %}{% else %}<i class="fas fa-university" aria-hidden="true"></i>{% translate "En esta plataforma" %}{% endif %}</span></div></header>
+            <h3 id="actividad-{{ curso.pk }}"><a href="{% if curso.ficha_catalogo_url %}{{ curso.ficha_catalogo_url }}{% else %}{% url 'curso_unidad' unidad.slug curso.codigo %}{% endif %}">{{ curso.nombre }}</a></h3>
+            {% if curso.lema %}<p class="curso-catalogo__descripcion">{{ curso.lema }}</p>{% elif curso.descripcion %}<p class="curso-catalogo__descripcion">{{ curso.descripcion|striptags|truncatewords:28 }}</p>{% endif %}
+            <ul class="curso-catalogo__datos"><li><i class="fas fa-laptop" aria-hidden="true"></i>{{ curso.modalidad_corta }}</li>{% if curso.duracion_horas %}<li><i class="far fa-clock" aria-hidden="true"></i>{{ curso.duracion_horas }} {% translate "horas" %}</li>{% endif %}</ul>
+            <dl class="curso-catalogo__organiza"><div><dt>{% translate "Organiza" %}</dt><dd>{{ curso.organizador_catalogo|default:unidad.nombre }}</dd></div>{% if curso.participacion_catalogo %}<div><dt>{% translate "Participación de la unidad" %}</dt><dd>{{ curso.participacion_catalogo }}</dd></div>{% endif %}</dl>
+            {% if curso.estado_catalogo %}<p class="curso-catalogo__estado is-{{ curso.estado_catalogo_clave }}"><span aria-hidden="true"></span>{{ curso.estado_catalogo }}</p>{% endif %}
+            {% if curso.es_externo and curso.dominio_externo %}<p class="curso-catalogo__dominio"><i class="fas fa-globe" aria-hidden="true"></i>{{ curso.dominio_externo }}</p>{% endif %}
+          </div>
+          <footer class="curso-catalogo__acciones">
+            {% if curso.es_externo %}{% if curso.url_externa_segura and curso.activo %}<a class="cursos-catalogo__boton is-principal" href="{{ curso.url_externa_segura }}" target="_blank" rel="noopener noreferrer">{% translate "Ir al sitio externo" %}<i class="fas fa-external-link-alt" aria-hidden="true"></i><span class="cursos-catalogo__sr">{% translate "(se abre en otra pestaña)" %}</span></a>{% else %}<span class="curso-catalogo__enlace-pendiente"><i class="fas fa-link" aria-hidden="true"></i>{% if not curso.activo %}{% translate "Actividad desactivada" %}{% else %}{% translate "Enlace pendiente de confirmar" %}{% endif %}</span>{% endif %}<a class="curso-catalogo__informacion" href="{{ curso.ficha_catalogo_url }}">{% translate "Ver información" %}</a>{% else %}<a class="cursos-catalogo__boton is-principal" href="{% url 'curso_unidad' unidad.slug curso.codigo %}">{% translate "Ver actividad" %}<i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+            {% if curso.editor_catalogo_url %}<a class="curso-catalogo__editar" href="{{ curso.editor_catalogo_url }}"><i class="fas fa-pen" aria-hidden="true"></i>{% translate "Editar" %}<span class="cursos-catalogo__sr">{{ curso.nombre }}</span></a>{% endif %}
+          </footer>
+        </article>
+        {% empty %}
+        <div class="cursos-catalogo__vacio"><span><i class="fas fa-search" aria-hidden="true"></i></span><h3>{% if hay_filtros %}{% translate "No encontramos actividades con estos filtros" %}{% else %}{% translate "La próxima oportunidad está por llegar" %}{% endif %}</h3><p>{% if hay_filtros %}{% translate "Prueba otra categoría, plataforma o año, o amplía tu búsqueda." %}{% else %}{% translate "Las actividades publicadas por la unidad aparecerán aquí, organizadas por categoría." %}{% endif %}</p>{% if hay_filtros %}<a class="cursos-catalogo__boton" href="{% url 'cursos_unidad' unidad.slug %}#cursos">{% translate "Ver todas las actividades" %}</a>{% endif %}</div>
+        {% endfor %}
+      </div>
+      {% if pagina.paginator.num_pages > 1 %}<nav class="cursos-catalogo__paginacion" aria-label="{% translate 'Páginas de actividades' %}"><p>{% translate "Página" %} <strong>{{ pagina.number }}</strong> {% translate "de" %} <strong>{{ pagina.paginator.num_pages }}</strong></p><div>{% if pagina.has_previous %}<a class="cursos-catalogo__boton" href="?{% if consulta_paginacion %}{{ consulta_paginacion }}&amp;{% endif %}pagina={{ pagina.previous_page_number }}#oferta"><i class="fas fa-arrow-left" aria-hidden="true"></i>{% translate "Anterior" %}</a>{% endif %}{% if pagina.has_next %}<a class="cursos-catalogo__boton" href="?{% if consulta_paginacion %}{{ consulta_paginacion }}&amp;{% endif %}pagina={{ pagina.next_page_number }}#oferta">{% translate "Siguiente" %}<i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}</div></nav>{% endif %}
+    </section>
+
+    {% if catalogo %}<section class="cursos-catalogo__reservas" id="catalogo" aria-labelledby="reservas-titulo">
+      <header><div><span class="conoce__antetitulo">{% translate "A medida en la unidad" %}</span><h2 id="reservas-titulo">{% translate "Capacitaciones con reserva" %}</h2><p>{% translate "Solicita una sesión de estas actividades directamente con la unidad." %}</p></div><a class="cursos-catalogo__boton" href="{{ reservar_url }}" target="_top">{% translate "Solicitar reserva" %}<i class="fas fa-arrow-right" aria-hidden="true"></i></a></header>
+      <div class="cursos-catalogo__reservas-grid">{% for actividad in catalogo %}<article class="curso-reserva"><span class="curso-reserva__tipo"><i class="fas fa-calendar-check" aria-hidden="true"></i>{{ actividad.get_subtipo_actividad_display }}</span><h3>{{ actividad.nombre }}</h3>{% if actividad.descripcion %}<p>{{ actividad.descripcion|striptags|truncatewords:24 }}</p>{% endif %}{% if actividad.responsable %}<p><strong>{% translate "Responsable:" %}</strong> {{ actividad.responsable }}</p>{% endif %}{% if actividad.proxima_sesion %}<p class="curso-reserva__fecha">{% translate "Próxima sesión:" %} <strong>{{ actividad.proxima_sesion.fecha|date:'d/m/Y' }} · {{ actividad.proxima_sesion.hora_inicio|time:'H:i' }}</strong></p>{% else %}<p class="curso-reserva__fecha">{% translate "Coordina la fecha con la unidad" %}</p>{% endif %}{% include 'portal/pages/unidades/includes/editar.html' with clave='actividad_curso' pk=actividad.pk titulo=actividad.nombre %}</article>{% endfor %}</div>
+      {% if catalogo_pagina.paginator.num_pages > 1 %}<nav class="cursos-catalogo__paginacion" aria-label="{% translate 'Páginas de capacitaciones con reserva' %}"><p>{% translate "Mostrando" %} {{ catalogo_pagina.start_index }}–{{ catalogo_pagina.end_index }} {% translate "de" %} {{ catalogo_total }} · {% translate "Página" %} {{ catalogo_pagina.number }} {% translate "de" %} {{ catalogo_pagina.paginator.num_pages }}</p><div>{% if catalogo_pagina.has_previous %}<a class="cursos-catalogo__boton" href="?{% if consulta_paginacion_reservas %}{{ consulta_paginacion_reservas }}&amp;{% endif %}pagina_reservas={{ catalogo_pagina.previous_page_number }}#catalogo"><i class="fas fa-arrow-left" aria-hidden="true"></i>{% translate "Anterior" %}</a>{% endif %}{% if catalogo_pagina.has_next %}<a class="cursos-catalogo__boton" href="?{% if consulta_paginacion_reservas %}{{ consulta_paginacion_reservas }}&amp;{% endif %}pagina_reservas={{ catalogo_pagina.next_page_number }}#catalogo">{% translate "Siguiente" %}<i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}</div></nav>{% endif %}
+    </section>{% endif %}
+  </main>
+  {% include 'portal/pages/unidades/includes/editar_guion.html' %}
+</body>
+</html>

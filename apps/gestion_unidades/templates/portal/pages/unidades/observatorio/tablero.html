@@ -1,0 +1,58 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{{ tablero.titulo }}{% endblock %}
+{% block encabezado %}{{ tablero.titulo }}{% endblock %}
+{% block subtitulo %}{{ tablero.descripcion|default:_("Indicadores del observatorio que se leen juntos") }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Indicadores" %}</dt><dd>{{ paneles|length }}</dd></div><div><dt>{% translate "Vista" %}</dt><dd>{{ tablero.get_vista_display|truncatechars:28 }}</dd></div>{% if tablero.linea %}<div><dt>{% translate "Línea" %}</dt><dd>{{ tablero.linea.titulo }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Tablero del observatorio" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<style>
+  .obs-tablero { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin: 0 0 16px; padding: 0; list-style: none; }
+  .obs-tablero > li { padding: 14px; border: 1px solid #d5e2da; border-radius: 8px; background: #fff; }
+  .obs-tablero > li.is-rojo { box-shadow: inset 5px 0 0 #c0392b; } .obs-tablero > li.is-ambar { box-shadow: inset 5px 0 0 #e0a526; } .obs-tablero > li.is-verde { box-shadow: inset 5px 0 0 #2e8b57; }
+  .obs-tablero h3 { margin: 0 0 4px; font-size: 14px; }
+  .obs-tablero .obs-grafico { height: 120px; }
+  .obs-tablero table { width: 100%; font-size: 12px; border-collapse: collapse; }
+  .obs-tablero td { padding: 2px 4px; border-top: 1px solid #eef3f0; }
+  .obs-tablero.is-mapa { grid-template-columns: 1fr; }
+</style>
+<div class="obs-descargas"><a href="{% url 'datos_csv_observatorio' unidad.slug %}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar los datos de este tablero (CSV)" %}</a>{% if tablero.linea %}<a href="{% url 'linea_observatorio' unidad.slug tablero.linea.codigo %}"><i class="{{ tablero.linea.icono }}" aria-hidden="true"></i> {{ tablero.linea.titulo }}</a>{% endif %}</div>
+
+{% if tablero.vista == 'comparacion' %}
+{% for comparacion in comparaciones %}
+<section class="unit-report__section">
+  <header><span>{{ comparacion.indicador.nombre|upper }}</span><small>{{ comparacion.indicador.unidad_medida }} · {% translate "último valor de cada territorio" %}</small></header>
+  <ul class="obs-barras">{% for fila in comparacion.filas %}<li{% if fila.nombre == comparacion.indicador.territorio_principal %} class="is-principal"{% endif %}><span>{{ fila.nombre }}</span><span class="obs-barras__pista"><span style="width: {{ fila.ancho }}%"></span></span><strong>{{ fila.texto }}</strong><small>{{ fila.valor.periodo }}</small></li>{% endfor %}</ul>
+</section>
+{% empty %}<p class="unit-report__notice">{% translate "Ningún indicador de este tablero tiene valores por territorio todavía." %}</p>{% endfor %}
+
+{% elif tablero.vista == 'mapa' %}
+<ul class="obs-tablero is-mapa">{% for panel in paneles %}{% with fila=panel.fila mapa=panel.mapa %}<li>
+  <h3><a href="{% url 'indicador_observatorio' unidad.slug fila.indicador.codigo %}">{{ fila.indicador.nombre }}</a></h3>
+  {% if mapa %}<figure class="obs-mapa"><svg viewBox="{{ mapa.vista }}" role="img" aria-label="{% translate "Mapa de los cantones del Carchi" %}: {{ fila.indicador.nombre }}">{% for canton in mapa.cantones %}<path d="{{ canton.trazo }}"{% if canton.tono is not None %} class="t{{ canton.tono }}"{% endif %}><title>{{ canton.nombre }}: {{ canton.texto }} {{ fila.indicador.unidad_medida }}</title></path>{% endfor %}</svg>
+    <div><table aria-label="{% translate "Valor por cantón" %}">{% for canton in mapa.cantones %}<tr><td>{{ canton.nombre }}</td><td><strong>{{ canton.texto }}</strong> {% if canton.valor %}{{ fila.indicador.unidad_medida }}{% endif %}</td></tr>{% endfor %}</table>
+    <figcaption>{% translate "De" %} {{ mapa.minimo }} {% translate "(tono claro) a" %} {{ mapa.maximo }} {% translate "(tono oscuro)" %} · {% translate "periodo" %} {{ mapa.periodos }}. {{ mapa.credito }}</figcaption></div></figure>
+  {% else %}<p class="unit-report__notice">{% translate "Este indicador todavía no tiene valores de al menos tres cantones." %}</p>{% endif %}
+  <small>{{ fila.indicador.fuente }}</small>
+</li>{% endwith %}{% endfor %}</ul>
+
+{% else %}
+<ul class="obs-tablero">{% for panel in paneles %}{% with fila=panel.fila grafico=panel.grafico %}<li class="is-{{ panel.color }}">
+  <h3><a href="{% url 'indicador_observatorio' unidad.slug fila.indicador.codigo %}">{{ fila.indicador.nombre }}</a></h3>
+  {% if tablero.vista == 'semaforo' %}<span class="obs-semaforo is-{{ panel.color }}">{{ panel.estado }}</span>{% endif %}
+  {% if fila.ultimo %}
+  <div class="obs-indicador__valor"><strong>{{ fila.ultimo_texto }}</strong><span>{{ fila.indicador.unidad_medida }} · {{ fila.ultimo.periodo }}{% if fila.ultimo.provisional %} ({% translate "provisional" %}){% endif %}</span></div>
+  {% if fila.cambio_texto %}<span class="obs-cambio{% if fila.favorable is True %} is-favorable{% elif fila.favorable is False %} is-desfavorable{% endif %}">{% if fila.direccion == 'sube' %}▲{% elif fila.direccion == 'baja' %}▼{% else %}={% endif %} {{ fila.cambio_texto }} {% translate "frente a" %} {{ fila.anterior.periodo }}</span>{% endif %}
+  {% if tablero.vista == 'semaforo' %}{% if fila.indicador.vigilado %}<p style="margin:6px 0 0;font-size:12px">{% translate "Criterio" %}: {% if fila.indicador.umbral_bajo is not None %}{% translate "alerta bajo" %} {{ fila.indicador.umbral_bajo|floatformat:"-2" }}{% endif %}{% if fila.indicador.umbral_alto is not None %} {% translate "alerta sobre" %} {{ fila.indicador.umbral_alto|floatformat:"-2" }}{% endif %}{% if fila.indicador.alerta_variacion is not None %} {% translate "alerta si empeora más de" %} {{ fila.indicador.alerta_variacion|floatformat:"-1" }} %{% endif %}</p>{% endif %}
+  {% else %}
+  {% if grafico.puntos %}<figure class="obs-serie"><svg class="obs-grafico" viewBox="0 0 520 150" preserveAspectRatio="none" role="img" aria-label="{% translate "Serie de" %} {{ fila.indicador.nombre }}"><polyline points="{{ grafico.puntos }}"/></svg><figcaption><span>{% translate "Mín." %} {{ grafico.minimo }} · {% translate "máx." %} {{ grafico.maximo }}</span><span>{{ grafico.desde }} → {{ grafico.hasta }}</span></figcaption></figure>{% endif %}
+  <table aria-label="{% translate "Últimos valores" %}">{% for valor in grafico.valores reversed %}<tr><td>{{ valor.periodo }}</td><td>{{ valor.valor_legible }} {{ fila.indicador.unidad_medida }}</td></tr>{% endfor %}</table>
+  {% endif %}
+  {% else %}<p class="unit-report__notice">{% translate "Sin datos publicados todavía." %}</p>{% endif %}
+  <small>{{ fila.indicador.fuente }}</small>
+</li>{% endwith %}{% empty %}<li>{% translate "El tablero todavía no tiene indicadores." %}</li>{% endfor %}</ul>
+{% endif %}
+{% include 'portal/pages/unidades/includes/editar.html' with clave='tablero_observatorio' pk=tablero.pk titulo=tablero.titulo %}
+{% endblock %}

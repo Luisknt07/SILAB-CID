@@ -1,0 +1,10 @@
+{% if archivos_documento %}
+<section id="archivos-documento" class="citt-revision">
+  <header><div><small>ARCHIVOS DEL DOCUMENTO</small><h2 class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ archivos_documento.nombre_documental }}</span></h2><p>{{ archivos_documento.unidad.nombre }} · {{ archivos_documento.etiqueta_corte }}</p></div></header>
+  {% include 'portal/pages/unidades/gestion/includes/expediente_versiones.html' with documento=archivos_documento %}
+  {% if user.is_superuser and archivos_documento.recurso_id %}
+    {% url 'admin:reportes-cumplimiento-expediente' as retirar_post_url %}
+    {% include 'portal/pages/unidades/gestion/includes/expediente_retirar.html' with documento=archivos_documento en_admin_archivos=True %}
+  {% endif %}
+</section>
+{% endif %}

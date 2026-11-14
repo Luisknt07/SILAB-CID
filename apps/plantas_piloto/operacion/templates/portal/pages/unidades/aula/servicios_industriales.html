@@ -1,0 +1,30 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Servicios industriales" %}{% endblock %}
+{% block encabezado %}{% translate "Servicios industriales de la planta" %}{% endblock %}
+{% block subtitulo %}{% translate "Energía, vapor, agua, aire, frío y efluentes de los equipos y procesos" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Servicios" %}</dt><dd>{{ servicios_planta.con_datos }}</dd></div><div><dt>{% translate "Equipos" %}</dt><dd>{{ servicios_planta.total_equipos }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Servicios industriales" %}{% endblock %}
+{% block contenido %}
+{% if servicios_planta.de_referencia %}<p class="unit-report__notice">{% blocktranslate count total=servicios_planta.de_referencia %}{{ total }} equipo trae valores de referencia, por verificar en planta: sirven para validar el dimensionamiento, no reemplazan el levantamiento.{% plural %}{{ total }} equipos traen valores de referencia, por verificar en planta: sirven para validar el dimensionamiento, no reemplazan el levantamiento.{% endblocktranslate %}</p>{% endif %}
+{% for servicio in servicios_planta.servicios %}
+<section class="unit-report__section">
+  <header><span><i class="{{ servicio.icono }}" aria-hidden="true"></i> {{ servicio.nombre|upper }}</span><small>{{ servicio.total|default:_("sin datos declarados") }}</small></header>
+  <p class="unit-report__notice">{{ servicio.nota }}</p>
+  {% if servicio.filas %}
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details">
+    {% if servicio.clave == 'efluentes' %}
+    <thead><tr><th>{% translate "Proceso" %}</th><th>{% translate "Descarga" %}</th><th>{% translate "Por corrida base" %}</th><th>{% translate "Corrida base" %}</th></tr></thead><tbody>
+      {% for fila in servicio.filas %}<tr><td><strong>{{ fila.proceso }}</strong></td><td>{{ fila.unidades }}</td><td>{{ fila.valor }}</td><td>{{ fila.subtotal }}</td></tr>{% endfor %}
+    </tbody>
+    {% else %}
+    <thead><tr><th>{% translate "Equipo" %}</th><th>{% translate "Unidades" %}</th><th>{% if servicio.clave == 'frio' %}{% translate "Capacidad" %}{% else %}{% translate "Por unidad" %}{% endif %}</th><th>{% if servicio.clave == 'frio' %}{% translate "Potencia" %}{% else %}{% translate "Total" %}{% endif %}</th></tr></thead><tbody>
+      {% for fila in servicio.filas %}<tr><td><strong>{{ fila.equipo.nombre }}</strong>{% if fila.equipo.origen_datos_tecnicos == 'referencia' %}<br><small>{% translate "valor de referencia" %}</small>{% endif %}</td><td>{{ fila.unidades }}</td><td>{{ fila.valor }}</td><td>{{ fila.subtotal }}</td></tr>{% endfor %}
+    </tbody>
+    {% endif %}
+  </table></div>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

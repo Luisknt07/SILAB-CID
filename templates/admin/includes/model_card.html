@@ -1,0 +1,20 @@
+{% load i18n %}<article id="model-{{ model.object_name|lower }}">
+  <div class="citt-admin-model-card__icon" aria-hidden="true">
+    {% if app.slug == 'reportes' %}
+      {% if 'cumplimiento' in model.admin_url or 'expediente' in model.admin_url %}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4H5v17h14V4h-4M9 3h6v4H9zM8 13l3 3 5-6"/></svg>
+      {% elif 'estadisticas' in model.admin_url or 'uso' in model.admin_url %}
+      {% include "admin/includes/category_icon.html" with icon="reports" %}
+      {% else %}
+      {% include "admin/includes/category_icon.html" with icon="file" %}
+      {% endif %}
+    {% else %}{% include "admin/includes/category_icon.html" with icon=grupo.icon|default:app.icon %}{% endif %}
+  </div>
+  <div class="citt-admin-model-card__copy">
+    <strong>{% if model.admin_url %}<a href="{{ model.admin_url }}" {% if model.navegacion_directa %}data-panel-direct{% endif %}>{{ model.name }}</a>{% else %}{{ model.name }}{% endif %}</strong>
+    <span>{% if model.descripcion %}{{ model.descripcion }}{% else %}{% translate "Consulta, administra y da seguimiento a sus registros." %}{% endif %}</span>
+  </div>
+  {% if model.add_url %}<div class="citt-admin-model-card__actions">
+    <a href="{{ model.add_url }}" class="is-add" title="{% translate "Agregar" %} {{ model.name }}"><span aria-hidden="true">+</span> {% translate "Nuevo" %}</a>
+  </div>{% endif %}
+</article>

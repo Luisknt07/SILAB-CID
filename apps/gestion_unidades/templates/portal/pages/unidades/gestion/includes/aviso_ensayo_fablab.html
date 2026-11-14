@@ -1,0 +1,7 @@
+{% if ensayo_fablab %}
+<p role="note" data-ensayo-fablab style="display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .7rem;margin:0 0 .7rem;padding:.5rem .75rem;border:1px solid #cad6df;border-left:4px solid #426b86;border-radius:5px;background:#fff;color:#304f64;font-size:.85rem;line-height:1.35">
+  <strong>Revisión de casos parciales · {{ ensayo_fablab.periodo }}</strong>
+  <span>Fecha actual {{ ensayo_fablab.fecha_corte|date:'d/m/Y' }} · registros identificados de prueba</span>
+  {% for slug, nombre in ensayo_fablab.casos %}<a href="/gestion/unidades/{{ slug }}/expediente/?anio=2026&amp;corte=B">{{ nombre }}</a>{% endfor %}
+</p>
+{% endif %}

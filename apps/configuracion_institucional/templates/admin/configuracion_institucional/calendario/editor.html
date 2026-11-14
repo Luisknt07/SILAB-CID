@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}{% load i18n %}
+{% block extrahead %}{{ block.super }}{{ media }}{% endblock %}
+{% block breadcrumbs %}<ul class="grp-horizontal-list"><li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li><li><a href="{{ volver_url }}">{% translate "Política de calendario" %}</a></li><li>{% translate "Crear revisión" %}</li></ul>{% endblock %}
+{% block content %}<section class="catalogo-institucional-panel grp-module">
+<p>{% translate "Guardar crea un borrador. Los cambios se aplican solo después de revisar y publicar con autorización." %}</p>
+<p>{% translate "Conserva los códigos y tipos existentes. Retira ciclos y ámbitos como históricos para mantener sus referencias." %}</p>
+<p>{% translate "Los ámbitos de operación cambian la selección automática futura. La política no cambia fechas oficiales, períodos, semanas ni reservas existentes." %}</p>
+<form method="post" novalidate>{% csrf_token %}{{ form.non_field_errors }}
+<div class="catalogo-titulo">{{ form.titulo.label_tag }}{{ form.titulo }}{{ form.titulo.errors }}</div>
+{{ form.contenido.label_tag }}{{ form.contenido.errors }}{{ form.contenido }}
+<div class="catalogo-acciones"><button type="submit">{% translate "Guardar borrador" %}</button><a href="{{ volver_url }}">{% translate "Volver" %}</a></div>
+</form></section>{% endblock %}

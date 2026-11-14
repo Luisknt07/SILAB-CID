@@ -1,0 +1,932 @@
+{
+  "titulo": "FabLabs comparables y verificación de impresoras 3D",
+  "fecha_corte": "2026-10-21",
+  "alcance": "Investigación de fuentes institucionales y de fabricantes. Sin consultas ni cambios en la base de datos o en la aplicación.",
+  "metodo": {
+    "fuentes": "Universidades, Fab Foundation/Fab Academy, MIT CBA, Aalto, Fab Lab Barcelona y fabricantes. No se utilizan reseñas comerciales ni comentarios de usuarios como evidencia técnica.",
+    "clasificacion": "Básico, ampliación y experimental son una interpretación funcional de esta investigación; no son categorías de compra obligatoria ni certificación de la institución citada.",
+    "vigencia": "Una noticia histórica acredita lo declarado en esa fecha; una página pública no acredita por sí sola existencia física, estado, cantidad actual ni licencia vigente.",
+    "seguridad": "Las fichas comparables no sustituyen manuales, evaluación local, formación, fichas de seguridad de materiales ni autorización institucional.",
+    "cantidades": "No se deducen cantidades de compra, sustitución u obsolescencia a partir de equipos publicados por terceros. Se requieren inventario validado, uso, demanda, mantenimiento y capacidad real de la unidad."
+  },
+  "fuentes": [
+    {
+      "id": "EC-ESPOL",
+      "institucion": "ESPOL · Asiri Labs",
+      "pais": "Ecuador",
+      "fecha_publicacion": "2022-06-30",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.espol.edu.ec/es/noticias/asiri-labs-un-espacio-para-aprender-haciendo-reabre-sus-puertas-en-espol",
+      "verificacion": "Página oficial consultada",
+      "hechos": "Taller multidisciplinario con impresión 3D y router CNC en funcionamiento en 2022; formación práctica y talleres, con coordinación de Diseño de Productos y personal del taller.",
+      "limite": "La cortadora láser y la termoformadora se anunciaban como próximas; esta noticia no demuestra que actualmente estén instaladas. No publica un inventario actualizado ni procedimiento detallado de reserva."
+    },
+    {
+      "id": "EC-ESPE",
+      "institucion": "ESPE Santo Domingo · DCCO-SS",
+      "pais": "Ecuador",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://santodomingo.espe.edu.ec/laboratorios-dcco-ss/",
+      "verificacion": "Contenido oficial indexado; apertura directa agotó tiempo de respuesta",
+      "hechos": "Presenta un FabLab de diseño y prototipado de objetos físicos a pequeña escala con impresoras 3D y atención académica mediante responsables de laboratorio y personal técnico.",
+      "limite": "No confirma modelos, cantidades ni máquinas láser/CNC. Contiene una visión con horizonte 2025, que no debe tratarse como meta actual sin actualización institucional."
+    },
+    {
+      "id": "EC-UTPL",
+      "institucion": "UTPL · Fab Lab",
+      "pais": "Ecuador",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://investigacion.utpl.edu.ec/laboratorio/fab-lab",
+      "verificacion": "Contenido oficial indexado; apertura directa devolvió error del servidor",
+      "hechos": "Laboratorio de diseño y fabricación digital a pequeña y mediana escala vinculado a formación en Arquitectura y Artes, investigación, titulación y proyectos con empresas; apoyo de expertos y colaboración.",
+      "limite": "No se dispone de catálogo público actualizado de máquinas. Los laboratorios de electrónica, robótica y CAD/CAM del directorio UTPL son otras instalaciones y no deben agregarse automáticamente al inventario del FabLab."
+    },
+    {
+      "id": "EC-UCUENCA",
+      "institucion": "Universidad de Cuenca · Ingeniería Industrial",
+      "pais": "Ecuador",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.ucuenca.edu.ec/noticias/nuevos-laboratorios-transforman-la-formacion-en-ingenieria-industrial/",
+      "verificacion": "Noticia oficial indexada; contexto de equipamiento 2022–2023, fecha exacta no confirmada",
+      "hechos": "Fabricación Digital reúne impresión y escaneo 3D, láser y CNC. Industria 4.0 incorpora automatización y tecnologías inmersivas; Manufactura Flexible tiene una celda con CNC, robot, fresa y torno. Se mencionan software y capacitación docente.",
+      "limite": "Son tres laboratorios distintos. La inversión citada en la noticia corresponde al conjunto, no al presupuesto de un FabLab. No acredita que un laboratorio inicial deba disponer de todos esos procesos."
+    },
+    {
+      "id": "EC-UCACUE",
+      "institucion": "Universidad Católica de Cuenca · FabLab",
+      "pais": "Ecuador",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.ucacue.edu.ec/fablab/",
+      "verificacion": "Catálogo oficial consultado; fecha de actualización no publicada",
+      "hechos": "Publica FDM, resina, CNC de gran formato y escritorio, láser, escáner, Arduino/Raspberry Pi, robótica educativa, impresión/corte y UV. Relaciona software de diseño Autodesk/Adobe y formación por grupos.",
+      "limite": "Hay errores que impiden copiar la ficha sin validación: dimensiones de CNC de escritorio/mini expresadas en metros y PVC/vinilo incluido en la lista del láser. No trasladar esas unidades ni autorizar materiales por esta lista; contrastar manual y SDS. Publicación de software no prueba licencia vigente."
+    },
+    {
+      "id": "EC-EPN",
+      "institucion": "Escuela Politécnica Nacional · FabLab FIS",
+      "pais": "Ecuador",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.epn.edu.ec/entrega-de-equipos-a-fablab/",
+      "verificacion": "Noticia oficial indexada",
+      "hechos": "Informa entrega de equipamiento de fabricación digital y sublimación al FabLab de la Facultad de Ingeniería de Sistemas.",
+      "limite": "La información recuperada no permite verificar un inventario actual por modelo ni cantidades. Sirve para identificar integración de fabricación digital y procesos gráficos, no para justificar una dotación idéntica."
+    },
+    {
+      "id": "EC-UARTES",
+      "institucion": "Universidad de las Artes · Fab.Lab",
+      "pais": "Ecuador",
+      "fecha_publicacion": "2021-04-01",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.uartes.edu.ec/sitio/blog/2021/04/01/direccion-de-produccion-y-escuelas-uartes-se-capacitan-sobre-equipamiento-del-fab-lab/",
+      "verificacion": "Noticia oficial consultada",
+      "hechos": "Documenta capacitación de personal de Producción, Artes Visuales y Cine sobre equipamiento recibido, incluyendo impresión 3D, termoformado, robótica/Arduino y realidad virtual.",
+      "limite": "Referencia histórica y especializada en artes; no demuestra disponibilidad actual. Acredita la formación de operadores como parte del despliegue, no solamente la adquisición de máquinas."
+    },
+    {
+      "id": "EC-UPEC",
+      "institucion": "UPEC · FabLab",
+      "pais": "Ecuador",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://fablab.upec.edu.ec/",
+      "verificacion": "Oferta pública institucional indexada",
+      "hechos": "Presenta servicios de impresión 3D, corte láser/vinilo, CNC, sublimación, gigantografía, laminado, diseño y electrónica, junto a espacios de realidad virtual y MediaLab.",
+      "limite": "Es la oferta pública, no un acta de inventario ni prueba de operatividad. Debe contrastarse con el registro físico, los estados técnicos, las licencias y las actividades verificadas de la unidad."
+    },
+    {
+      "id": "INT-FOUNDATION",
+      "institucion": "Fab Foundation · Getting Started / Fab Charter",
+      "pais": "Red internacional",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://fabfoundation.org/getting-started/",
+      "verificacion": "Página oficial consultada",
+      "hechos": "Describe capacidades compartidas de diseño/fabricación: láser, impresión 3D, fresado de precisión, router y electrónica programable. Vincula acceso comunitario, documentación, colaboración y responsabilidades de seguridad, limpieza y mantenimiento.",
+      "limite": "Es una referencia de capacidades de la red, no una norma de compra pública ni lista mínima de marcas. El inventario de referencia enlazado evoluciona."
+    },
+    {
+      "id": "INT-INVENTORY",
+      "institucion": "Fab Inventory",
+      "pais": "Red internacional",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://inventory.fabcloud.io/",
+      "verificacion": "Interfaz oficial enlazada por Fab Foundation consultada",
+      "hechos": "Publica una interfaz de inventario con filtros, cantidades, descripción y precios de referencia.",
+      "limite": "Las filas se cargan dinámicamente y no quedaron verificadas en esta consulta. No se extrajeron cantidades, precios ni un total para un supuesto laboratorio estándar."
+    },
+    {
+      "id": "INT-AALTO",
+      "institucion": "Aalto University · FabLab",
+      "pais": "Finlandia",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://studios.aalto.fi/fablab/",
+      "verificacion": "Directorio oficial consultado",
+      "hechos": "Catálogo por procesos: FDM Prusa/Ultimaker, SLA Formlabs, láser Epilog Fusion Pro 48 de 80 W, corte/impresión Roland, CNC grande y fresado PCB, electrónica y termoformado. Exige introducción y permiso por máquina antes de reservar mediante TakeOut; ofrece asesoría y formación. Distingue uso de máquina y cobro de materiales/costos internos.",
+      "limite": "El listado no acredita estado instantáneo. Stock de materiales no equivale a autorización para usarlos en todas las máquinas. Una guía antigua de otro Epilog no debe sustituir la ficha de este modelo."
+    },
+    {
+      "id": "INT-AALTO-ORIENT",
+      "institucion": "Aalto University · FabLab Orientation",
+      "pais": "Finlandia",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://studios.aalto.fi/product/fablab-orientation/",
+      "verificacion": "Página oficial consultada",
+      "hechos": "La orientación conduce a introducciones específicas, permiso de uso y reserva; acompaña una oferta de formación en fabricación digital y proyectos.",
+      "limite": "Una experiencia previa externa no sustituye automáticamente la introducción local. No copiar horarios ni reglas de acceso sin adaptación institucional."
+    },
+    {
+      "id": "INT-AALTO-LASER",
+      "institucion": "Aalto University · Guía Epilog Legend 36EXT",
+      "pais": "Finlandia",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://studios.aalto.fi/userguide/laser-cutter-epilog-legend-36ext/",
+      "verificacion": "Guía oficial consultada",
+      "hechos": "Guía de una máquina de 60 W y cama 914×610 mm: demostración inicial, reserva, preparación vectorial y advertencia sobre PVC. Relaciona Illustrator y archivos AI/SVG/DXF/PDF.",
+      "limite": "Corresponde a otro equipo que el Fusion Pro de 80 W del directorio actual. No extrapolar espesores, potencia ni materiales a modelos diferentes."
+    },
+    {
+      "id": "INT-BCN-RULES",
+      "institucion": "IAAC / Fab Lab Barcelona · SuperLab",
+      "pais": "España",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://rules.fablabbcn.org/",
+      "verificacion": "Protocolo institucional consultado; calendario interno de referencia histórica",
+      "hechos": "Zonifica láser/3D, CNC/polvo, electrónica y áreas restringidas. Reserva por máquina después de formación, prueba y alta del usuario; supervisión según área. Registra préstamos y responsables, exige comunicar daños y limpiar tras cada uso; trata inspección y mantenimiento de equipos con materiales peligrosos.",
+      "limite": "Las reglas particulares de cupos, horarios, pagos y responsabilidad jurídica no se transfieren a UPEC. La limpieza por uso y el mantenimiento técnico son actividades diferentes."
+    },
+    {
+      "id": "INT-BCN-CLAB",
+      "institucion": "Fab Lab Barcelona · CLAB",
+      "pais": "España / cooperación europea",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://fablabbcn.org/projects/clab",
+      "verificacion": "Proyecto institucional consultado",
+      "hechos": "Investiga fabricación circular y educación: adaptación abierta de extrusión de pastas, biomateriales y sensores ambientales, con documentación para reproducir y aprender.",
+      "limite": "Línea experimental y pedagógica; no demuestra necesidad general de adquirir una impresora especial ni aptitud sanitaria/alimentaria de los prototipos."
+    },
+    {
+      "id": "INT-BCN-TEXTILES",
+      "institucion": "Fab Lab Barcelona · Fab Textiles",
+      "pais": "España",
+      "fecha_publicacion": "2013–actualidad según ficha del proyecto",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://fablabbcn.org/projects/fab-textiles",
+      "verificacion": "Proyecto institucional consultado",
+      "hechos": "Articula fabricación digital con textiles, biomateriales, tecnologías vestibles y diseño circular; vincula formación Fabricademy.",
+      "limite": "Ampliación o investigación especializada según currículo/proyecto local. No tomar las afirmaciones generales de marketing ambiental como indicadores medidos de la unidad."
+    },
+    {
+      "id": "INT-MIT",
+      "institucion": "MIT Center for Bits and Atoms · MAS.865",
+      "pais": "Estados Unidos",
+      "fecha_publicacion": "2024",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://fab.cba.mit.edu/classes/MAS.865/topics/introduction/index.html",
+      "verificacion": "Material académico oficial consultado",
+      "hechos": "Curso de construcción de máquinas para prototipado: componentes, sistemas y proyectos de fabricación de las propias máquinas.",
+      "limite": "Referencia de investigación y formación avanzada, no inventario mínimo ni evidencia de que un robot industrial sea indispensable en todos los FabLabs."
+    },
+    {
+      "id": "INT-ACADEMY2026",
+      "institucion": "Fab Academy · Programa 2026",
+      "pais": "Red internacional",
+      "fecha_publicacion": "2026",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://fabacademy.org/2026/schedule",
+      "verificacion": "Calendario oficial 2026 consultado",
+      "hechos": "Integra CAD, corte, impresión/escaneo 3D, electrónica, mecanizado, programación, sensores, redes, diseño de máquinas, moldeo e integración. Incluye sesiones de sostenibilidad e IA.",
+      "limite": "La presencia de una temática en el programa acredita formación, no demanda de una nueva máquina ni adopción generalizada del mercado."
+    },
+    {
+      "id": "SAFE-EPILOG",
+      "institucion": "Epilog Laser · Seguridad de materiales",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://support.epiloglaser.com/laser-machine/fibermark/usage-and-operation/faq/material-safety-and-your-laser/",
+      "verificacion": "Soporte oficial consultado",
+      "hechos": "Advierte que materiales con cloruros, incluido PVC, pueden desprender humos peligrosos y corroer la máquina; requiere conocer composición y consultar fichas de seguridad.",
+      "limite": "Una lista comercial de materiales de una universidad no prevalece sobre estas restricciones ni sobre el manual específico del equipo."
+    },
+    {
+      "id": "SAFE-EPILOG-MANUAL",
+      "institucion": "Epilog Laser · Manual serie 17000",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.epiloglaser.com/es/assets/downloads/manuals/17000-series_manual.pdf",
+      "verificacion": "Sección de seguridad oficial indexada",
+      "hechos": "Prohíbe procesar PVC/vinilo, operar sin extracción y dejar el láser trabajando sin vigilancia.",
+      "limite": "Referencia de seguridad de ese fabricante. La configuración local debe usar el manual del modelo real y revisión institucional."
+    },
+    {
+      "id": "PR-H2C-BLOG",
+      "institucion": "Bambu Lab · Anuncio H2C",
+      "pais": "Fabricante",
+      "fecha_publicacion": "2025-11-14",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://blog.bambulab.com/bambu-lab-h2c-where-multi-material-vortek-system-meets-engineering-precision/",
+      "verificacion": "Publicación oficial consultada",
+      "hechos": "Vortek intercambia hasta seis hotends inductivos, además del cabezal izquierdo. Anuncia boquilla350°C, cama120°C y cámara65°C; distingue volúmenes nominales individual, dual y combinado.",
+      "limite": "La envolvente combinada y la precisión de movimiento publicitada no equivalen a volumen simultáneo de ambos cabezales ni tolerancia garantizada de una pieza. La condición sin purga no significa cero residuo en toda operación. Usar el manual para límites por cabezal."
+    },
+    {
+      "id": "PR-H2C-MANUAL",
+      "institucion": "Bambu Lab · H2C",
+      "pais": "Fabricante",
+      "fecha_publicacion": "V1.0 · 2026-01",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://csm.bblcdn.com/hub/eff78da43720461787dc8bbe5fa0372d.pdf",
+      "verificacion": "Manual oficial de 185 páginas consultado",
+      "hechos": "Pp90–91: izquierda325×320×320mm; derecha305×320×325mm, desplazada25mm enX; área XY común300×320mm. Pp120–122: TPU95AHF por derecha sinAMS; PET-CF/PPA-CF/PPS-CF por izquierda sinAMS,0.6mm recomendada; secado y compatibilidad dependen del filamento. Pp156–157: mantenimiento mensual de guías y mecanismo de cambio; limpieza trimestral de varias superficies/cámaras.",
+      "limite": "Manual centrado en impresión 3D; opciones dependen del paquete. Debe verificarse firmware, material y boquilla. Láser/cuchilla requieren su documentación independiente. No intercambiar manuales H2C/H2D/X1."
+    },
+    {
+      "id": "PR-H2D-MANUAL",
+      "institucion": "Bambu Lab · H2D",
+      "pais": "Fabricante",
+      "fecha_publicacion": "V1.0 · 2026-02",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://csm.bblcdn.com/hub/4668d0ca43994ff3bff4b37f1a65c2e7.pdf",
+      "verificacion": "Manual oficial de 163 páginas consultado",
+      "hechos": "Pp69–70: izquierda325×320×320mm; derecha325×320×325mm, desplazada25mm enX; XY común300×320mm. Boquilla350°C, cama120°C, cámara65°C. TPU específico sólo derecha; PET-CF/PPA-CF/PPS-CF sólo izquierda. AMS/boquilla/secado tienen restricciones. P148: guíaX y elevación mensuales; varios elementos trimestrales, con mayor frecuencia para uso sostenido de materiales técnicos.",
+      "limite": "350×320×325mm es envolvente conjunta, no capacidad dual uniforme. Manual de impresión; módulos adicionales tienen reglas propias. La versión de firmware puede alterar funciones y debe quedar registrada."
+    },
+    {
+      "id": "PR-X1C-ID",
+      "institucion": "Bambu Lab · Declaración UE X1C",
+      "pais": "Fabricante",
+      "fecha_publicacion": "2022-07-27",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://public-cdn.bambulab.com/portal/euro-compliance/EU_Declaration_of_Conformity_X1C.pdf",
+      "verificacion": "Documento oficial indexado; apertura directa bloqueada",
+      "hechos": "Relaciona el nombre X1-Carbon con el modelo PF001-P, hardwareV8 y softwareV01.00.00.00 de la muestra declarada.",
+      "limite": "Confirma equivalencia de nomenclatura, no identificación de cada activo ni cantidad recibida. Requiere placa, serie y acta."
+    },
+    {
+      "id": "PR-X1C-SPECS",
+      "institucion": "Bambu Lab · X1-Carbon",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://public-cdn.bambulab.com/store/bambulab-X1-carbon-tech-specs.pdf?v=20250906051611",
+      "verificacion": "Ficha oficial indexada; corroborada en tienda oficial japonesa",
+      "hechos": "Volumen nominal256×256×256mm; hotend300°C; cama110°C@220V/120°C@110V; boquilla endurecida0.4mm y filamento1.75mm. BambuStudio; materiales incluyen PLA/PETG/TPU/ABS/ASA/PET y polímeros técnicos compatibles según configuración.",
+      "limite": "500mm/s es velocidad máxima del cabezal, no productividad de piezas. No incluye una cámara con calefacción activa comparable a H2. Compatibilidad de filamento en impresora y en AMS es distinta."
+    },
+    {
+      "id": "PR-X1C-PROFILE",
+      "institucion": "Bambu Lab · BambuStudio",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://github.com/bambulab/BambuStudio/blob/master/resources/profiles/BBL/machine/Bambu%20Lab%20X1%20Carbon%200.4%20nozzle.json",
+      "verificacion": "Perfil oficial de software consultado en rama master",
+      "hechos": "El perfil X1Carbon0.4mm define bed_exclude_area con puntos(0,0),(18,0),(18,28),(0,28): excluye una esquina18×28mm de la cama.",
+      "limite": "Rama mutable: verificar perfil/versión instalada para cada trabajo. Volumen nominal no significa área íntegramente disponible en todo modo."
+    },
+    {
+      "id": "PR-X1C-QSG",
+      "institucion": "Bambu Lab · X1 Combo Quick Start",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://cdn1.bambulab.com/documentation/Quick%20Start%20Guide%20for%20X1%20Combo%26X1-Carbon%20Combo-v1.pdf",
+      "verificacion": "Guía oficial indexada; apertura directa bloqueada",
+      "hechos": "La guía del AMS original advierte contra filamentos blandos como TPU o PVA húmedo, y especifica dimensiones de carrete.",
+      "limite": "No confundir TPU95A convencional con formulaciones TPU paraAMS ni extender esta guía a modelos AMS2Pro/AMSHT sin revisar su matriz de compatibilidad."
+    },
+    {
+      "id": "PR-MEGAS-PRODUCT",
+      "institucion": "Anycubic · Mega S",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://store.anycubic.com/products/anycubic-i3-mega-s",
+      "verificacion": "Producto oficial consultado",
+      "hechos": "FDM210×210×205mm con extrusor Titan y materiales declarados PLA,ABS,HIPS,Wood/TPU; figura agotada al consultar.",
+      "limite": "Agotado no equivale a declaración de fin de soporte, obsolescencia técnica o baja patrimonial. No usar precio de página sin disponibilidad como cotización ejecutable."
+    },
+    {
+      "id": "PR-MEGAS-SUPPORT",
+      "institucion": "Anycubic · Soporte i3 Mega/Mega S",
+      "pais": "Fabricante",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://store.anycubic.com/blogs/news/all-you-need-to-know-about-i3-mega-m-s",
+      "verificacion": "Soporte oficial consultado; enlaza manual del fabricante en Google Drive",
+      "hechos": "Ofrece manuales, firmware y tutoriales de nivelación manual y limpieza de Ultrabase. Mantiene enlaces a Cura15.04.6 y firmware1.1.5.",
+      "limite": "Son descargas heredadas; no deben presentarse como software más reciente. Validar una versión mantenida del laminador con perfil MegaS antes de uso docente."
+    },
+    {
+      "id": "PR-MEGAS-MANUAL",
+      "institucion": "Anycubic · Manual Mega S en inglés",
+      "pais": "Fabricante",
+      "fecha_publicacion": "2019-11-22 · V1.0",
+      "fecha_consulta": "2026-10-21",
+      "url": "https://drive.google.com/file/d/13hGH6_5x4iELyqkURTVaChUewx2xc3V2/view",
+      "verificacion": "Enlace desde soporte oficial; PDF escaneado de43páginas descargado y ficha técnica inspeccionada visualmente",
+      "hechos": "PáginaPDF5:210×210×205mm; boquilla0.4mm/filamento1.75mm; capa0.05–0.3mm; extrusor260°C/cama110°C; impresión20–100mm/s, sugerida60mm/s; ambiente8–40°C. PáginaPDF3: ventilación, prevención de quemaduras/movimiento y precaución durante limpieza.",
+      "limite": "Altura de capa y resolución de posicionamiento no son tolerancia de pieza. Es un diseño abierto con nivelación manual; no asumir cámara caliente, doble material ni integraciónAMS. No equivale a otros modelos Anycubic que comparten parte del nombre."
+    },
+    {
+      "id": "INT-PRECIOUS-PLASTIC",
+      "institucion": "Precious Plastic",
+      "pais": "Red internacional",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://www.preciousplastic.com/machines/basic",
+      "verificacion": "Página oficial consultada",
+      "hechos": "Describe trituración y extrusión de plástico con máquinas abiertas, formación y requisitos de infraestructura.",
+      "limite": "Una extrusora de plástico no garantiza filamento para impresión 3D; requieren control de composición, secado, diámetro y ensayos. No se adoptan precios publicados como presupuesto local."
+    },
+    {
+      "id": "SW-ALICEVISION",
+      "institucion": "AliceVision / Meshroom",
+      "pais": "Proyecto internacional",
+      "fecha_publicacion": null,
+      "fecha_consulta": "2026-10-21",
+      "url": "https://alicevision.org/",
+      "verificacion": "Página oficial consultada",
+      "hechos": "Herramientas abiertas de reconstrucción fotogramétrica, calibración y procesamiento de imágenes; Meshroom ofrece flujos de trabajo de reconstrucción 3D.",
+      "limite": "No acredita instalación, disponibilidad GPU ni exactitud de medición en esta unidad; exige ensayo con escala y comparación dimensional."
+    }
+  ],
+  "matriz_comparables": [
+    {
+      "institucion": "ESPOL · Asiri Labs",
+      "fuentes": [
+        "EC-ESPOL"
+      ],
+      "areas": [
+        "Fabricación aditiva",
+        "Mecanizado"
+      ],
+      "capacidad_publicada": "Impresión3D y routerCNC; láser/termoformado eran próximos en2022.",
+      "nivel_interpretado": "Básico con desarrollo por fases",
+      "operacion": "Talleres coordinados y apoyo técnico.",
+      "software_materiales": "Trabajos en madera, plásticos y metal según proyecto y máquina; software no detallado.",
+      "seguridad_mantenimiento": "Procedimientos específicos no publicados en esta fuente; no presumir autorización para materiales o procesos."
+    },
+    {
+      "institucion": "ESPE Santo Domingo",
+      "fuentes": [
+        "EC-ESPE"
+      ],
+      "areas": [
+        "Diseño",
+        "Fabricación aditiva"
+      ],
+      "capacidad_publicada": "Prototipado físico a pequeña escala e impresión3D.",
+      "nivel_interpretado": "Básico",
+      "operacion": "Responsable de laboratorio y personal técnico.",
+      "software_materiales": "No especificados en la fuente.",
+      "seguridad_mantenimiento": "No publicados; requieren validación local."
+    },
+    {
+      "institucion": "UTPL",
+      "fuentes": [
+        "EC-UTPL"
+      ],
+      "areas": [
+        "Diseño",
+        "Prototipado"
+      ],
+      "capacidad_publicada": "Diseño/fabricación a pequeña y mediana escala orientada a formación, investigación y vinculación.",
+      "nivel_interpretado": "Básico; máquinas no verificadas",
+      "operacion": "Asesoría experta y trabajo colaborativo.",
+      "software_materiales": "Sin especificación técnica pública verificada.",
+      "seguridad_mantenimiento": "No publicados en la ficha recuperada."
+    },
+    {
+      "institucion": "Universidad de Cuenca",
+      "fuentes": [
+        "EC-UCUENCA"
+      ],
+      "areas": [
+        "Fabricación digital",
+        "Automatización",
+        "Manufactura flexible"
+      ],
+      "capacidad_publicada": "Impresión/escaneo3D, láser y CNC; robot, celda y tecnologías inmersivas pertenecen a laboratorios complementarios.",
+      "nivel_interpretado": "Básico + ampliación especializada",
+      "operacion": "Capacitación docente y articulación de asignaturas.",
+      "software_materiales": "Inversión en software declarada sin inventario de licencias.",
+      "seguridad_mantenimiento": "No consta SOP de cada máquina en esta noticia."
+    },
+    {
+      "institucion": "Universidad Católica de Cuenca",
+      "fuentes": [
+        "EC-UCACUE",
+        "SAFE-EPILOG"
+      ],
+      "areas": [
+        "Aditiva",
+        "CNC",
+        "Láser",
+        "Electrónica",
+        "Gráfica"
+      ],
+      "capacidad_publicada": "Catálogo multiproceso de FDM/resina/CNC/láser/escaneo/electrónica y gráfica.",
+      "nivel_interpretado": "Básico + ampliación",
+      "operacion": "Formación y atención por grupos.",
+      "software_materiales": "Diseño Autodesk/Adobe publicado; verificar licencias y compatibilidad por máquina.",
+      "seguridad_mantenimiento": "No reproducir errores de unidades ni el PVC de su lista láser. Verificar SDS, manual y extracción."
+    },
+    {
+      "institucion": "EPN · FIS",
+      "fuentes": [
+        "EC-EPN"
+      ],
+      "areas": [
+        "Fabricación digital",
+        "Gráfica"
+      ],
+      "capacidad_publicada": "Entrega de equipos de fabricación digital y sublimación.",
+      "nivel_interpretado": "Básico + ampliación gráfica",
+      "operacion": "Inventario técnico y reserva actual no recuperados.",
+      "software_materiales": "No especificados con detalle verificable.",
+      "seguridad_mantenimiento": "No inferir permisos ni estado actual de la noticia."
+    },
+    {
+      "institucion": "Universidad de las Artes",
+      "fuentes": [
+        "EC-UARTES"
+      ],
+      "areas": [
+        "Aditiva",
+        "Termoformado",
+        "Electrónica",
+        "Medios inmersivos"
+      ],
+      "capacidad_publicada": "Capacitación sobre impresión3D, termoformado, Arduino/robótica yVR en2021.",
+      "nivel_interpretado": "Básico + ampliación para artes",
+      "operacion": "Formación técnica previa de operadores de varias escuelas.",
+      "software_materiales": "Configuración concreta no publicada.",
+      "seguridad_mantenimiento": "El hito de capacitación no prueba estado o disponibilidad actual."
+    },
+    {
+      "institucion": "UPEC · oferta pública",
+      "fuentes": [
+        "EC-UPEC"
+      ],
+      "areas": [
+        "Aditiva",
+        "Corte",
+        "CNC",
+        "Electrónica",
+        "Gráfica",
+        "Medios"
+      ],
+      "capacidad_publicada": "Servicios multiproceso anunciados públicamente.",
+      "nivel_interpretado": "Capacidad declarada por contrastar con inventario físico",
+      "operacion": "No auditada en esta investigación web.",
+      "software_materiales": "Relacionar al modelo, licencia y existencias reales de cada área.",
+      "seguridad_mantenimiento": "La oferta web no sustituye estado técnico, formación y evidencia de ejecución."
+    },
+    {
+      "institucion": "Aalto University",
+      "fuentes": [
+        "INT-AALTO",
+        "INT-AALTO-ORIENT",
+        "INT-AALTO-LASER"
+      ],
+      "areas": [
+        "Diseño",
+        "Aditiva",
+        "Corte",
+        "CNC/PCB",
+        "Electrónica",
+        "Termoformado"
+      ],
+      "capacidad_publicada": "Catálogo por proceso y modelo con varias máquinas FDM, SLA y fabricación sustractiva.",
+      "nivel_interpretado": "Básico + ampliación según demanda",
+      "operacion": "Inducción y permiso por máquina → reserva → apoyo; materiales separados del tiempo de máquina.",
+      "software_materiales": "Archivos preparados para el proceso; stock y material facturado por proyecto/costo cuando corresponda.",
+      "seguridad_mantenimiento": "Introducción local obligatoria; diferenciar guía de máquina antigua y equipo actual; material aprobado por proceso."
+    },
+    {
+      "institucion": "IAAC / Fab Lab Barcelona",
+      "fuentes": [
+        "INT-BCN-RULES",
+        "INT-BCN-CLAB",
+        "INT-BCN-TEXTILES"
+      ],
+      "areas": [
+        "Láser/3D",
+        "CNC/polvo",
+        "Electrónica",
+        "Bio/ProtoLab",
+        "Robótica"
+      ],
+      "capacidad_publicada": "Procesos separados con accesos restringidos; líneas especializadas de circularidad, biomateriales y textiles.",
+      "nivel_interpretado": "Básico + ampliación + investigación",
+      "operacion": "Formación y evaluación por tecnología, lista de habilitados, reserva, supervisión y préstamos registrados.",
+      "software_materiales": "Archivos listos y plan de fabricación; materiales de proyecto y consumibles controlados.",
+      "seguridad_mantenimiento": "Limpieza tras uso, reporte inmediato de daño, orden de herramientas e inspección técnica; residuos por corriente."
+    },
+    {
+      "institucion": "MIT CBA / Fab Academy / Fab Foundation",
+      "fuentes": [
+        "INT-MIT",
+        "INT-ACADEMY2026",
+        "INT-FOUNDATION"
+      ],
+      "areas": [
+        "Diseño",
+        "Fabricación",
+        "Electrónica",
+        "Integración",
+        "Construcción de máquinas"
+      ],
+      "capacidad_publicada": "Red de capacidades y formación integrada; investigación para construir y adaptar máquinas.",
+      "nivel_interpretado": "Núcleo funcional de aprendizaje + investigación específica",
+      "operacion": "Documentación, colaboración, proyectos y responsabilidades de uso seguro.",
+      "software_materiales": "Herramientas según CAD/CAM/electrónica y proceso; no es una lista única de licencias obligatorias.",
+      "seguridad_mantenimiento": "Usuarios responsables del espacio y equipos; cada proyecto avanzado requiere evaluación y personal competente."
+    }
+  ],
+  "matriz_por_area": [
+    {
+      "area": "Diseño e ingeniería digital",
+      "basico": "CAD2D/3D, preparación de archivos, laminado/CAM y revisión del trabajo",
+      "ampliacion": "Escaneo3D/metrología cuando existan proyectos de ingeniería inversa o verificación",
+      "experimental": "Diseño generativo o simulación con validación del resultado",
+      "software_materiales_relacionados": "CAD, vectorial, laminador, CAM; licencias o alternativas compatibles verificadas",
+      "condicion_antes_de_comprar": "Medir puestos concurrentes, rendimiento de equipos actuales y necesidades de los cursos",
+      "fuentes": [
+        "EC-UCUENCA",
+        "INT-AALTO",
+        "INT-ACADEMY2026"
+      ]
+    },
+    {
+      "area": "Impresión3D por filamento",
+      "basico": "ImpresiónFDM y preparación de modelos con consumibles compatibles",
+      "ampliacion": "Más volumen, doble material o más máquinas sólo ante trabajos, colas y disponibilidad técnica medidos",
+      "experimental": "Extrusión de pastas o adaptación abierta para proyectos de investigación",
+      "software_materiales_relacionados": "Laminador por modelo/boquilla; PLA/PETG u otros sólo con perfil aprobado; secado según filamento",
+      "condicion_antes_de_comprar": "Comparar reparación y uso de equipos existentes; registrar tasa de éxito, horas, material y geometrías que hoy no se pueden producir",
+      "fuentes": [
+        "INT-AALTO",
+        "INT-BCN-CLAB",
+        "PR-H2C-MANUAL",
+        "PR-H2D-MANUAL",
+        "PR-MEGAS-MANUAL"
+      ]
+    },
+    {
+      "area": "Impresión3D en resina y posprocesado",
+      "basico": "No es indispensable para todo FabLab",
+      "ampliacion": "SLA/MSLA para detalle exigido por proyectos específicos; lavado/curado y trazabilidad de consumibles",
+      "experimental": "Resinas especiales sólo dentro de proyecto autorizado",
+      "software_materiales_relacionados": "Laminador del modelo, resina identificada y SDS, equipos y consumibles de posprocesado compatibles",
+      "condicion_antes_de_comprar": "Asegurar espacio, ventilación, formación, manejo de resina/solvente y residuos según manual/SDS; no inferir uso clínico por etiqueta dental",
+      "fuentes": [
+        "EC-UCACUE",
+        "INT-AALTO",
+        "INT-BCN-RULES"
+      ]
+    },
+    {
+      "area": "Corte y grabado / vinilo",
+      "basico": "Capacidad de corte digital con procedimientos y materiales aprobados",
+      "ampliacion": "Mayor formato/potencia o impresión-corte si la demanda local lo justifica",
+      "experimental": "Procesos nuevos deben probarse mediante evaluación de material y máquina",
+      "software_materiales_relacionados": "Vectorial y controlador; separar vinilo para cuchilla de materiales autorizados para láser",
+      "condicion_antes_de_comprar": "Extracción operativa, supervisión, control de incendio, limpieza y lista de materiales con SDS; no admitir PVC por una ficha comparativa",
+      "fuentes": [
+        "INT-FOUNDATION",
+        "INT-AALTO-LASER",
+        "SAFE-EPILOG",
+        "SAFE-EPILOG-MANUAL"
+      ]
+    },
+    {
+      "area": "Mecanizado CNC y taller",
+      "basico": "Proceso sustractivo y herramientas de sujeción/medición acordes al currículo",
+      "ampliacion": "Formato grande, ejes o materiales adicionales con proyectos e infraestructura justificables",
+      "experimental": "Fabricación de máquinas o automatización de procesos",
+      "software_materiales_relacionados": "CAD/CAM, postprocesador validado, fresas y material aptos para la máquina",
+      "condicion_antes_de_comprar": "Evaluar polvo/ruido, extracción, resguardos, sujeción, formación y mantenimiento; no copiar dimensiones erróneas de fichas web",
+      "fuentes": [
+        "INT-FOUNDATION",
+        "INT-AALTO",
+        "INT-BCN-RULES",
+        "INT-MIT"
+      ]
+    },
+    {
+      "area": "Electrónica, PCB y sistemas embebidos",
+      "basico": "Puestos de montaje, medición, programación y prototipado electrónico",
+      "ampliacion": "ProducciónPCB, reflujo, instrumentación o kits adicionales según proyectos concurrentes",
+      "experimental": "Sensores ambientales, máquinas y sistemas conectados de investigación",
+      "software_materiales_relacionados": "DiseñoPCB/IDE, microcontroladores, componentes y consumibles identificados",
+      "condicion_antes_de_comprar": "Comparar kits compartibles y demanda, controlar temperatura/electricidad/humos, confirmar compatibilidad antes de elegir horno o estación",
+      "fuentes": [
+        "INT-AALTO",
+        "INT-BCN-RULES",
+        "INT-BCN-CLAB",
+        "INT-ACADEMY2026"
+      ]
+    },
+    {
+      "area": "Gráfica, textiles y formación",
+      "basico": "Sólo procesos alineados a servicios y asignaturas de la unidad",
+      "ampliacion": "Impresión-corte, sublimación, UV, termoformado o textil cuando haya proyectos y usuarios",
+      "experimental": "Textiles interactivos, biomateriales y nuevas aplicaciones de fabricación",
+      "software_materiales_relacionados": "Vectorial/RIP o software de diseño según máquina; tintas, soportes, películas y consumibles compatibles",
+      "condicion_antes_de_comprar": "No duplicar oferta de otras unidades sin necesidad; revisar uso, espacio, ventilación, costes y formación específicos",
+      "fuentes": [
+        "EC-EPN",
+        "EC-UARTES",
+        "EC-UCACUE",
+        "INT-BCN-TEXTILES"
+      ]
+    },
+    {
+      "area": "Robótica y líneas experimentales",
+      "basico": "No constituye dotación inicial obligatoria",
+      "ampliacion": "Robótica educativa o celda integrada según currículo/proyecto y capacidad técnica",
+      "experimental": "Robots industriales, bioprocesos o fabricación de máquinas con financiación y supervisión específica",
+      "software_materiales_relacionados": "Programación/control, simulación y documentación del proyecto",
+      "condicion_antes_de_comprar": "Plan de uso medible y análisis de riesgos, espacio, protecciones, mantenimiento y operadores competentes",
+      "fuentes": [
+        "EC-UCUENCA",
+        "INT-BCN-RULES",
+        "INT-MIT"
+      ]
+    }
+  ],
+  "impresoras_verificadas": [
+    {
+      "modelo": "Bambu Lab X1-Carbon",
+      "codigo_modelo": "PF001-P",
+      "fuentes": [
+        "PR-X1C-ID",
+        "PR-X1C-SPECS",
+        "PR-X1C-PROFILE",
+        "PR-X1C-QSG"
+      ],
+      "volumen_nominal_mm": [
+        256,
+        256,
+        256
+      ],
+      "restriccion_cama": "Perfil oficial0.4mm excluye esquina18×28mm; revisar versión instalada y laminado.",
+      "temperaturas_maximas_c": {
+        "boquilla": 300,
+        "cama_220v": 110,
+        "cama_110v": 120
+      },
+      "boquilla_incluida_mm": 0.4,
+      "filamento_mm": 1.75,
+      "compatibilidad": "Polímeros según perfil, boquilla y material. La compatibilidad del AMS se verifica aparte; no alimentar TPU blando convencional como si fuera TPU paraAMS.",
+      "software": "BambuStudio; tercerosGCode pueden perder funciones avanzadas.",
+      "mantenimiento": "Consultar guía X1 específica; no aplicar por analogía el plan de lubricación de guías metálicas H2.",
+      "identidad_local": "PF001-P respalda la nomenclatura X1-Carbon. La equivalencia no prueba qué unidades físicas son las recibidas ni su estado."
+    },
+    {
+      "modelo": "Anycubic i3 Mega S",
+      "fuentes": [
+        "PR-MEGAS-PRODUCT",
+        "PR-MEGAS-SUPPORT",
+        "PR-MEGAS-MANUAL"
+      ],
+      "manual": "2019-11-22V1.0",
+      "volumen_nominal_mm": [
+        210,
+        210,
+        205
+      ],
+      "temperaturas_maximas_c": {
+        "boquilla": 260,
+        "cama": 110
+      },
+      "boquilla_incluida_mm": 0.4,
+      "filamento_mm": 1.75,
+      "altura_capa_mm": [
+        0.05,
+        0.3
+      ],
+      "impresion_mm_s": {
+        "rango_manual": [
+          20,
+          100
+        ],
+        "sugerida_manual": 60
+      },
+      "ambiente_c": [
+        8,
+        40
+      ],
+      "compatibilidad": "Manual:PLA/ABS/HIPS/Wood; productoTitan añadeTPU. Cada filamento requiere perfil y condiciones verificadas; no es un sistema de doble material.",
+      "software": "Cura yGCode; las descargasCura15.04.6 del soporte son heredadas.",
+      "mantenimiento": "Nivelación manual y limpiezaUltrabase con guía del fabricante; revisar mecánica, electricidad y repuestos antes de dar de baja.",
+      "disponibilidad_web": "Agotada al consultar; sin declaración de obsolescencia/fin de soporte verificada.",
+      "advertencia": "0.05mm es altura de capa; no tolerancia dimensional garantizada."
+    },
+    {
+      "modelo": "Bambu Lab H2D",
+      "fuentes": [
+        "PR-H2D-MANUAL"
+      ],
+      "manual": "V1.0·2026-02",
+      "volumen_envolvente_conjunta_mm": [
+        350,
+        320,
+        325
+      ],
+      "cabezal_izquierdo": {
+        "xy_desde_mm": [
+          0,
+          0
+        ],
+        "xy_hasta_mm": [
+          325,
+          320
+        ],
+        "altura_max_mm": 320
+      },
+      "cabezal_derecho": {
+        "xy_desde_mm": [
+          25,
+          0
+        ],
+        "xy_hasta_mm": [
+          350,
+          320
+        ],
+        "altura_max_mm": 325
+      },
+      "area_xy_comun_mm": [
+        300,
+        320
+      ],
+      "altura_max_ambos_mm": 320,
+      "temperaturas_maximas_c": {
+        "boquilla": 350,
+        "cama": 120,
+        "camara": 65
+      },
+      "compatibilidad": "TPU específico por derecha; PET-CF/PPA-CF/PPS-CF por izquierda. Revisar tablaAMS, secado, boquillas y mezclas térmicas.",
+      "mantenimiento": "Manualp148: guíaX y elevación mensuales; varios componentes cada3meses, reducir intervalo con uso técnico sostenido.",
+      "advertencia": "Envolvente conjunta no es volumen dual uniforme; piezas>320mm de alto sólo por derecha. Opciones de láser/corte no se presumen incluidas."
+    },
+    {
+      "modelo": "Bambu Lab H2C",
+      "fuentes": [
+        "PR-H2C-BLOG",
+        "PR-H2C-MANUAL"
+      ],
+      "manual": "V1.0·2026-01",
+      "volumen_envolvente_conjunta_mm": [
+        330,
+        320,
+        325
+      ],
+      "cabezal_izquierdo": {
+        "xy_desde_mm": [
+          0,
+          0
+        ],
+        "xy_hasta_mm": [
+          325,
+          320
+        ],
+        "altura_max_mm": 320
+      },
+      "cabezal_derecho": {
+        "xy_desde_mm": [
+          25,
+          0
+        ],
+        "xy_hasta_mm": [
+          330,
+          320
+        ],
+        "altura_max_mm": 325
+      },
+      "area_xy_comun_mm": [
+        300,
+        320
+      ],
+      "altura_max_ambos_mm": 320,
+      "temperaturas_maximas_c": {
+        "boquilla": 350,
+        "cama": 120,
+        "camara": 65
+      },
+      "compatibilidad": "TPU95AHF por derecha/sinAMS; PET-CF/PPA-CF/PPS-CF por izquierda/sinAMS,0.6mm recomendada. Material y boquilla determinan otras restricciones.",
+      "mantenimiento": "Manualpp156–157: guías y mecanismo de cambio mensuales; varias superficies/cámaras trimestrales.",
+      "advertencia": "Seis hotends inductivos intercambiables más izquierdo; multicolor no obliga ni garantiza cero residuo. No interpretar single305 del anuncio como medida de ambos cabezales; priorizar límites geométricos del manual."
+    }
+  ],
+  "lineas_actuales_documentadas": [
+    {
+      "linea": "Multimaterial con cambio de hotend",
+      "evidencia_temporal": "Anuncio H2C2025 y manual2026",
+      "fuentes": [
+        "PR-H2C-BLOG",
+        "PR-H2C-MANUAL"
+      ],
+      "interpretacion": "Mejora posible para piezas que realmente requieren materiales diferentes o soportes específicos. No equivale a sustitución obligatoria de FDM de un material.",
+      "datos_que_faltan_para_compra": "Trabajos multimaterial reales, desperdicio y tiempo medidos frente al equipo actual; costes de hotends, alimentadores y secado."
+    },
+    {
+      "linea": "Circularidad, reutilización y biomateriales",
+      "evidencia_temporal": "ProyectoCLAB y programaFabAcademy2026",
+      "fuentes": [
+        "INT-BCN-CLAB",
+        "INT-ACADEMY2026"
+      ],
+      "interpretacion": "Línea de investigación y aprendizaje sobre materiales, sensores y adaptación de máquinas. No se presenta como proceso industrial maduro ni como tendencia cuantificada del mercado.",
+      "datos_que_faltan_para_compra": "Proyecto, responsable, seguridad de materiales, método de ensayo y entregables; considerar adaptar recursos existentes."
+    },
+    {
+      "linea": "Textiles y fabricación digital integrada",
+      "evidencia_temporal": "FabTextiles2013–actualidad según ficha institucional",
+      "fuentes": [
+        "INT-BCN-TEXTILES"
+      ],
+      "interpretacion": "Especialización en tecnologías vestibles, biomateriales y formación. Su pertinencia depende del currículo y socios locales.",
+      "datos_que_faltan_para_compra": "Asignaturas/proyectos activos, materiales, software, demanda y capacidad de operadores."
+    },
+    {
+      "linea": "Construcción abierta de máquinas e integración",
+      "evidencia_temporal": "MITMAS.8652024 y FabAcademy2026",
+      "fuentes": [
+        "INT-MIT",
+        "INT-ACADEMY2026"
+      ],
+      "interpretacion": "Aprender a diseñar e integrar mecanismos, electrónica y control puede ampliar capacidad sin comprar una máquina completa para cada experimento.",
+      "datos_que_faltan_para_compra": "Plan técnico, repuestos/componentes, validación de seguridad, documentación y mantenimiento del prototipo."
+    },
+    {
+      "linea": "IA como tema formativo",
+      "evidencia_temporal": "Sesión específica enFabAcademy2026",
+      "fuentes": [
+        "INT-ACADEMY2026"
+      ],
+      "interpretacion": "El calendario acredita su inclusión académica; no demuestra necesidad de estaciónGPU, licencia pagada o máquina adicional para cada FabLab.",
+      "datos_que_faltan_para_compra": "Carga de trabajo, programa de enseñanza, datos, herramientas y requisitos de cómputo verificados."
+    }
+  ],
+  "criterios_de_decision_local": [
+    "Validar existencia y placa/serie del activo antes de corregir nombre/modelo o cantidad. Una referencia repetida en catálogo o PDF no es otro activo.",
+    "Registrar por área capacidad operativa actual, material/proceso posible, reserva y ejecución, fallos, reparación y disponibilidad; distinguir horas reservadas de trabajo realmente ejecutado.",
+    "Priorizar seguridad, habilitación y reparación viable antes de expansión; un equipo antiguo operativo no queda obsoleto sólo porque exista un modelo más rápido.",
+    "Justificar reemplazo con diagnóstico, coste de reparación, repuestos/soporte y trabajos que no logra cumplir. Justificar ampliación con demanda no atendida y carga concurrente, no sólo con máximos comerciales.",
+    "Incluir coste de operación: licencias, materiales/consumibles, herramientas, secado, ventilación, extracción, protección, repuestos, mantenimiento, formación y residuos.",
+    "Definir por fases: activar y medir lo existente; cubrir carencias de currículo o seguridad; ampliar capacidad donde haya uso sostenido; abrir experimentación con proyecto, responsable y financiación.",
+    "Todo incremento cuantitativo queda pendiente de evidencia institucional. No se han propuesto cantidades de compra ni precios reales a partir de estas fuentes."
+  ],
+  "alertas_documentales": [
+    {
+      "fuentes": [
+        "EC-ESPOL"
+      ],
+      "alerta": "No convertir equipamiento anunciado para después de2022 en inventario actual confirmado."
+    },
+    {
+      "fuentes": [
+        "EC-UCACUE",
+        "SAFE-EPILOG"
+      ],
+      "alerta": "No copiar unidadesCNC implausibles ni permitirPVC enláser; la ficha pública contiene información que exige contraste técnico."
+    },
+    {
+      "fuentes": [
+        "INT-AALTO",
+        "INT-AALTO-LASER"
+      ],
+      "alerta": "EpilogFusionPro80W y guíaLegend60W son modelos diferentes; no mezclar potencia, cama o espesor."
+    },
+    {
+      "fuentes": [
+        "PR-H2C-BLOG",
+        "PR-H2C-MANUAL",
+        "PR-H2D-MANUAL"
+      ],
+      "alerta": "Distinguir manual/firmware, volumen nominal conjunto y límite por cabezal; H2C yH2D no comparten el mismo ancho derecho."
+    },
+    {
+      "fuentes": [
+        "PR-MEGAS-MANUAL",
+        "PR-X1C-SPECS"
+      ],
+      "alerta": "Altura de capa, precisión de movimiento y velocidad máxima de cabezal no son calidad dimensional, éxito ni productividad de piezas."
+    }
+  ]
+}

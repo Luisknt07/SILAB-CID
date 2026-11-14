@@ -1,0 +1,272 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ linea.titulo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+  <style>
+    .area-obs__credito { position: absolute; right: 16px; top: 12px; z-index: 2; margin: 0; font-size: 11px; color: rgba(255, 255, 255, .88); text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+    .area-obs__credito a { color: inherit; }
+    .area-obs__tabla { width: 100%; border-collapse: collapse; font-size: 13.5px; background: #fff; }
+    .area-obs__tabla th, .area-obs__tabla td { padding: 9px 10px; border-bottom: 1px solid #e3ebe6; text-align: left; vertical-align: top; }
+    .area-obs__tabla th { background: #f3f7f4; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .area-obs__pendiente { margin: 14px 0 0; padding: 12px 14px; border-left: 4px solid var(--institucion-acento, #c9a227); border-radius: 6px; background: #fff8e6; font-size: 13.5px; }
+    .area-obs__columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .area-obs__preguntas { margin-top: 26px; }
+    .area-obs__preguntas-titulo { margin: 26px 0 10px; font-size: 15px; color: var(--institucion-texto, #173b2c); }
+    .area-obs__ficha { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 0; }
+    .area-obs__ficha div { padding: 14px 16px; border: 1px solid #e1e9e4; border-radius: 10px; background: #fff; }
+    .area-obs__ficha dt { margin: 0 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #5f7268; }
+    .area-obs__ficha dd { margin: 0; font-size: 14px; color: var(--institucion-texto, #173b2c); }
+    .area-obs__ruta { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+    .area-obs__via { padding: 18px; border: 1px solid #e1e9e4; border-top: 4px solid #2f7d4f; border-radius: 10px; background: #fff; }
+    .area-obs__via.is-solicitud { border-top-color: #c9a227; }
+    .area-obs__via.is-origen { border-top-color: #7a8790; }
+    .area-obs__via h3 { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; font-size: 16px; color: var(--institucion-texto, #173b2c); }
+    .area-obs__via p { margin: 0 0 10px; font-size: 13.5px; color: #4b5d54; }
+    .area-obs__via ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13.5px; }
+    .area-obs__via li small { display: block; color: #6b7a72; }
+    .area-obs__via a { color: var(--institucion-texto, #173b2c); font-weight: 700; text-decoration: none; }
+    .area-obs__via a:hover { color: var(--institucion-primario, #1d5b3a); text-decoration: underline; }
+    .area-obs__via a i { width: 18px; color: var(--institucion-primario, #1d5b3a); }
+    .area .unit-report__table-wrap { overflow-x: auto; }
+    .area-obs__pasos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 18px 0 0; padding: 0; list-style: none; counter-reset: paso; }
+    .area-obs__pasos li { padding: 12px 14px; border-radius: 10px; background: #f5f7f6; font-size: 13.5px; counter-increment: paso; }
+    .area-obs__pasos li::before { content: counter(paso); display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 6px; border-radius: 50%; background: var(--institucion-primario, #1d5b3a); color: #fff; font-size: 12px; font-weight: 800; }
+    .area-obs__publicos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 0 0 18px; padding: 0; list-style: none; }
+    .area-obs__publicos li { display: flex; gap: 12px; padding: 16px; border: 1px solid #e1e9e4; border-radius: 10px; background: #fff; }
+    .area-obs__publicos i { flex: 0 0 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #eef2f0; color: var(--institucion-primario, #1d5b3a); }
+    .area-obs__publicos strong { display: block; margin-bottom: 4px; color: var(--institucion-texto, #173b2c); }
+    .area-obs__publicos p { margin: 0; font-size: 13.5px; color: #4b5d54; }
+  </style>
+</head>
+<body class="conoce ficha area">
+  <header class="conoce__portada area__portada{% if portada %} con-foto{% else %} area__portada--plano{% endif %}"{% if portada %} style="--conoce-foto: url('{{ portada.imagen.url }}')"{% endif %}>
+    {% if portada.credito %}<p class="area-obs__credito">{% translate "Foto:" %} {% if portada.fuente %}<a href="{{ portada.fuente }}" target="_blank" rel="noopener noreferrer">{{ portada.titulo }} · {{ portada.credito }}</a>{% else %}{{ portada.titulo }} · {{ portada.credito }}{% endif %}</p>{% endif %}
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Eje temático" %} · {{ unidad.nombre_corto|default:unidad.nombre }}</span>{% if puede_editar %}<a class="equipo__editar" href="{% url 'editar_registro' unidad.slug 'linea_observatorio' linea.pk %}" data-editar-ficha data-editar-titulo="{{ linea.titulo }}"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar el eje" %}</a>{% endif %}
+      <h1>{{ linea.titulo }}</h1>
+      <p class="conoce__lema">{{ linea.resumen }}</p>
+      <ul class="conoce__datos">
+        <li><i class="{{ linea.icono }}" aria-hidden="true"></i>{% translate "Eje temático" %}</li>
+        <li><i class="fas fa-chart-line" aria-hidden="true"></i>{{ filas|length }} {% translate "indicadores" %}</li>
+        {% if automaticos %}<li><i class="fas fa-plug" aria-hidden="true"></i>{{ automaticos }} {% translate "se actualizan solos" %}</li>{% endif %}
+      </ul>
+      <div class="conoce__portada-acciones">
+        <a class="conoce__boton is-principal" href="{% url 'solicitudes_observatorio' unidad.slug %}"><i class="fas fa-database" aria-hidden="true"></i> {% translate "Solicitar datos" %}</a>
+        <a class="conoce__boton" href="{% url 'informe_linea_observatorio' unidad.slug linea.codigo %}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver reporte" %}</a>
+        <a class="conoce__boton" href="{% url 'lineas_observatorio' unidad.slug %}"><i class="fas fa-th-large" aria-hidden="true"></i> {% translate "Todos los ejes" %}</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "El eje en cifras" %}">
+    <div data-aparecer><i class="fas fa-chart-line" aria-hidden="true"></i><strong data-contar="{{ filas|length }}">{{ filas|length }}</strong><span>{% translate "Indicadores" %}</span></div>
+    <div data-aparecer><i class="fas fa-th-large" aria-hidden="true"></i><strong data-contar="{{ paneles }}">{{ paneles }}</strong><span>{% translate "Tableros y visores" %}</span></div>
+    <div data-aparecer><i class="fas fa-database" aria-hidden="true"></i><strong data-contar="{{ fuentes|length }}">{{ fuentes|length }}</strong><span>{% translate "Fuentes de datos" %}</span></div>
+    {% if vigilados %}<div data-aparecer><i class="fas fa-bell" aria-hidden="true"></i><strong data-contar="{{ vigilados }}">{{ vigilados }}</strong><span>{% translate "Indicadores vigilados" %}</span></div>
+    {% elif automaticos %}<div data-aparecer><i class="fas fa-plug" aria-hidden="true"></i><strong data-contar="{{ automaticos }}">{{ automaticos }}</strong><span>{% translate "Se actualizan solos" %}</span></div>{% endif %}
+  </section>
+
+  <nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+    <a href="#que-es" data-indice="que-es">{% translate "Qué estudia" %}</a>
+    <a href="#ficha" data-indice="ficha">{% translate "Ficha" %}</a>
+    {% if galeria %}<a href="#galeria" data-indice="galeria">{% translate "Galería" %}</a>{% endif %}
+    {% if linea.lista_productos %}<a href="#ofrece" data-indice="ofrece">{% translate "Qué ofrece" %}</a>{% endif %}
+    {% if videos %}<a href="#videos" data-indice="videos">{% translate "Videos" %}</a>{% endif %}
+    {% if linea.pasos %}<a href="#como-trabaja" data-indice="como-trabaja">{% translate "Cómo trabaja" %}</a>{% endif %}
+    <a href="#datos" data-indice="datos">{% translate "Sus datos" %}</a>
+    {% if tableros or visores %}<a href="#tableros" data-indice="tableros">{% translate "Tableros" %}</a>{% endif %}
+    {% if fuentes or encuestas %}<a href="#fuentes" data-indice="fuentes">{% translate "Fuentes" %}</a>{% endif %}
+    <a href="#obtener" data-indice="obtener">{% translate "Cómo obtenerlos" %}</a>
+    <a href="#quien" data-indice="quien">{% translate "Para quién sirve" %}</a>
+    {% if linea.lista_temas %}<a href="#investigacion" data-indice="investigacion">{% translate "Investigación" %}</a>{% endif %}
+    {% if otras %}<a href="#otras" data-indice="otras">{% translate "Otros ejes" %}</a>{% endif %}
+  </nav>
+
+  <section class="conoce__seccion" id="que-es">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El eje" %}</span><h2>{% translate "Qué estudia y qué aporta" %}</h2></header>
+    <div class="area__explicacion">
+      <article class="ficha__bloque ficha__bloque--creacion" data-aparecer><header><i class="fas fa-lightbulb" aria-hidden="true"></i><h2>{% translate "Qué estudia" %}</h2></header><div class="area__texto">{{ linea.que_estudia|linebreaks }}</div></article>
+      <article class="ficha__bloque" data-aparecer><header><i class="fas fa-hands-helping" aria-hidden="true"></i><h2>{% translate "Qué aporta al Carchi" %}</h2></header><div class="area__texto">{{ linea.por_que_importa|linebreaks }}</div></article>
+    </div>
+    {% if linea.lista_preguntas %}<h3 class="area-obs__preguntas-titulo">{% translate "Preguntas que responde" %}</h3>
+    <ul class="area__puntos area-obs__preguntas" data-aparecer>{% for pregunta in linea.lista_preguntas %}<li><i class="fas fa-question" aria-hidden="true"></i>{{ pregunta }}</li>{% endfor %}</ul>{% endif %}
+  </section>
+
+  <section class="conoce__seccion" id="ficha">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Según sus datos" %}</span><h2>{% translate "Ficha del eje" %}</h2></header>
+    <dl class="area-obs__ficha" data-aparecer>
+      <div><dt>{% translate "Cobertura territorial" %}</dt><dd>{{ ficha.territorios|default:_("Por definir") }}</dd></div>
+      <div><dt>{% translate "Periodo de los datos" %}</dt><dd>{% if ficha.desde %}{{ ficha.desde }}{% if ficha.hasta != ficha.desde %} – {{ ficha.hasta }}{% endif %}{% else %}{% translate "Sin datos todavía" %}{% endif %}</dd></div>
+      <div><dt>{% translate "Valores publicados" %}</dt><dd>{{ ficha.valores }}</dd></div>
+      <div><dt>{% translate "Frecuencia" %}</dt><dd>{{ ficha.periodicidades|default:"—" }}</dd></div>
+      <div><dt>{% translate "Se actualizan solos" %}</dt><dd>{% if automaticos %}{{ automaticos }} {% translate "de" %} {{ filas|length }} {% translate "indicadores" %}{% else %}{% translate "Carga desde la fuente oficial" %}{% endif %}</dd></div>
+      <div><dt>{% translate "Última actualización" %}</dt><dd>{{ ficha.ultima|date:"d/m/Y"|default:"—" }}</dd></div>
+      {% if ficha.indicador_reciente %}<div><dt>{% translate "Dato más reciente" %}</dt><dd><strong>{{ ficha.indicador_reciente.ultimo_texto }} {{ ficha.indicador_reciente.indicador.unidad_medida }}</strong> · {{ ficha.indicador_reciente.indicador.nombre }} ({{ ficha.indicador_reciente.ultimo.periodo }})</dd></div>{% endif %}
+      {% if ficha.alertas %}<div><dt>{% translate "Alertas vigentes" %}</dt><dd>{{ ficha.alertas }}</dd></div>{% endif %}
+    </dl>
+  </section>
+
+  {% if galeria %}
+  <section class="conoce__seccion" id="galeria">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En imágenes" %}</span><h2>{% translate "Galería del eje" %}</h2></header>
+    <div class="area__collage area__collage--{{ galeria|length|stringformat:'s' }}" data-aparecer>
+      {% for imagen in galeria %}<button type="button" class="area__collage-pieza" data-abrir-imagen="{{ forloop.counter0 }}" aria-label="{% translate "Ampliar" %}: {{ imagen.titulo }}">
+        <img src="{{ imagen.imagen.url }}" alt="{{ imagen.titulo }}" loading="lazy">
+        <span class="area__collage-pie"><strong>{{ imagen.titulo }}</strong><small>{{ imagen.credito }}</small></span>
+        <i class="fas fa-expand area__collage-ampliar" aria-hidden="true"></i>
+      </button>{% endfor %}
+    </div>
+    <p class="ficha__nota">{% translate "Fotos de Wikimedia Commons con licencia libre; el crédito y la licencia van en cada imagen." %}</p>
+  </section>
+  {% endif %}
+
+  {% if linea.lista_productos %}
+  <section class="conoce__seccion" id="ofrece">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que entrega" %}</span><h2>{% translate "Qué ofrece el eje" %}</h2></header>
+    <ul class="area__puntos" data-aparecer>{% for producto in linea.lista_productos %}<li><i class="fas fa-check" aria-hidden="true"></i>{{ producto }}</li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if franja and linea.lista_preguntas %}
+  <section class="area__franja" style="--franja: url('{{ franja.imagen.url }}')" aria-label="{% translate "La pregunta del eje" %}">
+    <div class="area__franja-texto" data-aparecer>
+      <span class="conoce__antetitulo">{% translate "La pregunta que responde" %}</span>
+      <p>{{ linea.lista_preguntas.0 }}</p>
+      {% if linea.lista_preguntas|length > 1 %}<p class="area__franja-secundaria">{{ linea.lista_preguntas.1 }}</p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if videos %}
+  <section class="conoce__seccion" id="videos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para entender el tema" %}</span><h2>{% translate "Videos" %}</h2></header>
+    <div class="area__videos" data-videos data-aparecer>
+      <div class="area__video-principal">
+        <button type="button" class="area__video-pantalla" data-reproducir data-video="{{ videos.0.id }}" aria-label="{% translate "Reproducir" %}: {{ videos.0.titulo }}" style="--miniatura: url('https://i.ytimg.com/vi/{{ videos.0.id }}/hqdefault.jpg')">
+          <span class="area__video-play"><i class="fas fa-play" aria-hidden="true"></i></span>
+        </button>
+        <div class="area__video-datos"><strong data-video-titulo>{{ videos.0.titulo }}</strong><small data-video-canal>{{ videos.0.canal }}</small><p data-video-descripcion>{{ videos.0.descripcion }}</p></div>
+      </div>
+      {% if videos|length > 1 %}<ol class="area__video-lista">
+        {% for video in videos %}<li><button type="button" data-elegir-video="{{ video.id }}" data-titulo="{{ video.titulo }}" data-canal="{{ video.canal }}" data-descripcion="{{ video.descripcion }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+          <img src="https://i.ytimg.com/vi/{{ video.id }}/mqdefault.jpg" alt="" loading="lazy"><span><strong>{{ video.titulo }}</strong><small>{{ video.canal }}</small></span>
+        </button></li>{% endfor %}
+      </ol>{% endif %}
+    </div>
+    <p class="ficha__nota">{% translate "Los videos son de sus autores y se cargan desde YouTube solo al reproducirlos." %}</p>
+  </section>
+  {% endif %}
+
+  {% if linea.pasos %}
+  <section class="conoce__seccion" id="como-trabaja">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Del dato a la decisión" %}</span><h2>{% translate "Cómo trabaja el eje" %}</h2></header>
+    <div class="area__diagrama" data-diagrama data-aparecer>
+      <header><i class="fas fa-project-diagram" aria-hidden="true"></i><div><strong>{% translate "Diagrama: cómo trabaja, paso a paso" %}</strong><small>{% translate "Toca cada paso para ver qué pasa en él." %}</small></div></header>
+      <ol class="area__diagrama-pasos">{% for titulo, explicacion in linea.pasos %}<li><button type="button" data-paso="{{ forloop.counter0 }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"><b>{{ forloop.counter }}</b><span>{{ titulo }}</span></button></li>{% endfor %}</ol>
+      {% for titulo, explicacion in linea.pasos %}<div class="area__diagrama-panel" data-panel-paso="{{ forloop.counter0 }}"{% if not forloop.first %} hidden{% endif %}><span>{% translate "Paso" %} {{ forloop.counter }} {% translate "de" %} {{ linea.pasos|length }}</span><strong>{{ titulo }}</strong><p>{{ explicacion }}</p></div>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion" id="datos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Las cifras del eje" %}</span><h2>{% translate "Sus indicadores" %}</h2></header>
+    {% if filas %}<ul class="obs-indicadores" data-aparecer>{% for fila in filas %}{% include 'portal/pages/unidades/observatorio/_tarjeta.html' %}{% endfor %}</ul>
+    {% else %}<p class="ficha__nota">{% translate "El eje todavía no tiene indicadores publicados." %}</p>{% endif %}
+    {% if linea.pendiente %}<p class="area-obs__pendiente"><strong>{% translate "Qué falta y por qué:" %}</strong> {{ linea.pendiente }}</p>{% endif %}
+  </section>
+
+  {% if tableros or visores %}
+  <section class="conoce__seccion" id="tableros">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para verlo junto" %}</span><h2>{% translate "Tableros y visores" %}</h2></header>
+    <ul class="area__otras" data-aparecer>
+      {% for tablero in tableros %}<li><a href="{% url 'tablero_observatorio' unidad.slug tablero.pk %}"><i class="fas fa-{% if tablero.vista == 'mapa' %}map{% elif tablero.vista == 'semaforo' %}traffic-light{% elif tablero.vista == 'comparacion' %}chart-bar{% else %}chart-line{% endif %}" aria-hidden="true"></i><span><strong>{{ tablero.titulo }}</strong><small>{{ tablero.get_vista_display|truncatechars:60 }}</small></span></a></li>{% endfor %}
+      {% for visor in visores %}<li><a href="{% url 'visor_observatorio' unidad.slug visor.pk %}"><i class="fas fa-external-link-square-alt" aria-hidden="true"></i><span><strong>{{ visor.titulo }}</strong><small>{{ visor.institucion|default:visor.get_plataforma_display }}</small></span></a></li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if fuentes or encuestas %}
+  <section class="conoce__seccion" id="fuentes">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "De dónde salen" %}</span><h2>{% translate "Fuentes de sus datos" %}</h2></header>
+    <div class="unit-report__table-wrap" data-aparecer><table class="area-obs__tabla"><thead><tr><th>{% translate "Fuente" %}</th><th>{% translate "Cómo se obtiene" %}</th><th>{% translate "Acceso" %}</th><th>{% translate "Indicadores" %}</th></tr></thead><tbody>
+      {% for item in fuentes %}<tr><td><strong>{% if item.fuente.url %}<a href="{{ item.fuente.url }}" target="_blank" rel="noopener noreferrer">{{ item.fuente.nombre }}</a>{% else %}{{ item.fuente.nombre }}{% endif %}</strong><br><small>{{ item.fuente.institucion }}</small></td><td>{{ item.fuente.get_metodo_display }}</td><td><span class="obs-acceso is-{{ item.fuente.acceso }}">{{ item.fuente.get_acceso_display }}</span></td><td>{% for indicador in item.indicadores %}{{ indicador.nombre }}{% if not forloop.last %}; {% endif %}{% endfor %}</td></tr>{% endfor %}
+      {% for encuesta in encuestas %}<tr><td><strong>{{ encuesta.nombre }}</strong><br><small>{% translate "Levantamiento propio" %}</small></td><td>{{ encuesta.get_etapa_display }}</td><td><span class="obs-acceso">{% translate "Abierto, anonimizado" %}</span></td><td>{{ encuesta.objetivo|truncatewords:16 }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion" id="obtener">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Qué es público y qué se pide" %}</span><h2>{% translate "Cómo obtener y usar sus datos" %}</h2></header>
+    <div class="area-obs__ruta" data-aparecer>
+      <article class="area-obs__via"><h3><i class="fas fa-unlock" aria-hidden="true"></i>{% translate "Libre y gratis" %}</h3>
+        <p>{% translate "Los indicadores publicados del eje, con su ficha y licencia CC BY 4.0. No hace falta cuenta." %}</p>
+        <ul>{% if filas %}<li><a href="{% url 'datos_csv_observatorio' unidad.slug %}?eje={{ linea.codigo }}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Datos del eje en CSV" %}</a></li>
+          <li><a href="{% url 'informe_linea_observatorio' unidad.slug linea.codigo %}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver reporte del eje" %}</a></li>{% endif %}
+          <li><a href="{% url 'fichas_observatorio' unidad.slug %}"><i class="fas fa-book" aria-hidden="true"></i> {% translate "Fichas metodológicas" %}</a></li>
+          <li><a href="{% url 'api_datos_observatorio' unidad.slug %}"><i class="fas fa-code" aria-hidden="true"></i> {% translate "Todo el observatorio en CSV o JSON" %}</a></li></ul></article>
+      <article class="area-obs__via is-solicitud"><h3><i class="fas fa-inbox" aria-hidden="true"></i>{% translate "Se pide al observatorio" %}</h3>
+        <p>{% translate "Desagregaciones que no están publicadas, cruces entre indicadores y análisis para una tesis, una clase o una decisión. Lo que ya existe se entrega gratis; un estudio que crea información nueva puede tener tarifa." %}</p>
+        <ul><li><a href="{% url 'solicitudes_observatorio' unidad.slug %}?tipo=datos"><i class="fas fa-table" aria-hidden="true"></i> {% translate "Pedir datos o series" %}</a></li>
+          <li><a href="{% url 'solicitudes_observatorio' unidad.slug %}?tipo=analisis"><i class="fas fa-chart-pie" aria-hidden="true"></i> {% translate "Pedir un análisis" %}</a></li>
+          <li><a href="{% url 'politica_observatorio' unidad.slug %}"><i class="fas fa-balance-scale" aria-hidden="true"></i> {% translate "Qué se cobra y qué no" %}</a></li></ul></article>
+      <article class="area-obs__via is-origen"><h3><i class="fas fa-external-link-alt" aria-hidden="true"></i>{% translate "En la fuente original" %}</h3>
+        {% if en_origen %}<p>{% translate "Estas fuentes no publican todo en abierto: el observatorio muestra lo que entregan y cita su origen; el detalle se pide a cada institución." %}</p>
+        <ul>{% for fuente in en_origen %}<li>{% if fuente.url %}<a href="{{ fuente.url }}" target="_blank" rel="noopener noreferrer">{{ fuente.nombre }}</a>{% else %}{{ fuente.nombre }}{% endif %}<small>{{ fuente.institucion }} · {{ fuente.get_acceso_display }}</small></li>{% endfor %}</ul>
+        {% else %}<p>{% translate "Todas las fuentes de este eje publican sus datos en abierto: desde la tabla de fuentes se llega al original." %}</p>{% endif %}</article>
+    </div>
+    <ol class="area-obs__pasos" data-aparecer>
+      <li><strong>{% translate "Lee la ficha." %}</strong> {% translate "Qué mide cada indicador, su fórmula y sus limitaciones." %}</li>
+      <li><strong>{% translate "Descarga." %}</strong> {% translate "CSV para Excel o JSON para programas; lo provisional viene marcado." %}</li>
+      <li><strong>{% translate "Cita." %}</strong> {% translate "Fuente:" %} {{ unidad.nombre }}, {% translate "licencia CC BY 4.0." %}</li>
+      <li><strong>{% translate "Pide lo que falte." %}</strong> {% translate "Otro territorio, otro periodo o un cruce: con una solicitud." %}</li>
+    </ol>
+  </section>
+
+  <section class="conoce__seccion" id="quien">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para quién sirve" %}</span><h2>{% translate "Qué le sirve a cada quien" %}</h2></header>
+    {% if para_quien %}<ul class="area-obs__publicos" data-aparecer>{% for item in para_quien %}<li><i class="{{ item.icono }}" aria-hidden="true"></i><div><strong>{{ item.publico }}</strong>{% if item.uso %}<p>{{ item.uso }}</p>{% endif %}</div></li>{% endfor %}</ul>{% endif %}
+    <div class="area-obs__columnas">
+      {% if linea.lista_carreras %}<article class="ficha__bloque" data-aparecer><header><i class="fas fa-graduation-cap" aria-hidden="true"></i><h2>{% translate "Carreras y laboratorios que aportan" %}</h2></header><ul class="area__lista">{% for carrera in linea.lista_carreras %}<li>{{ carrera }}</li>{% endfor %}</ul></article>{% endif %}
+    </div>
+  </section>
+
+  {% if linea.lista_temas %}
+  <section class="conoce__seccion" id="investigacion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para tesis, prácticas y proyectos" %}</span><h2>{% translate "Temas de investigación abiertos" %}</h2></header>
+    <ul class="area__puntos" data-aparecer>{% for tema in linea.lista_temas %}<li><i class="fas fa-search" aria-hidden="true"></i>{{ tema }}</li>{% endfor %}</ul>
+    <p class="ficha__nota"><a href="{% url 'participa_observatorio' unidad.slug %}">{% translate "Cómo sumarse al observatorio" %} →</a></p>
+  </section>
+  {% endif %}
+
+  {% if otras %}
+  <section class="conoce__seccion area__otras-seccion" id="otras">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Sigue recorriendo" %}</span><h2>{% translate "Otros ejes del observatorio" %}</h2></header>
+    <ul class="area__otras" data-aparecer>{% for otra in otras %}<li><a href="{% url 'linea_observatorio' unidad.slug otra.linea.codigo %}"><i class="{{ otra.linea.icono }}" aria-hidden="true"></i><span><strong>{{ otra.linea.titulo }}</strong><small>{{ otra.indicadores }} {% translate "indicadores" %}</small></span></a></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if galeria %}
+  <dialog class="area__visor" data-visor aria-label="{% translate "Galería del eje" %}">
+    <button type="button" class="area__cerrar" data-cerrar-visor aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+    <button type="button" class="area__visor-paso is-anterior" data-visor-paso="-1" aria-label="{% translate "Anterior" %}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+    <figure><img data-visor-imagen src="" alt=""><figcaption><strong data-visor-titulo></strong><small data-visor-rotulo></small><span data-visor-cuenta></span></figcaption></figure>
+    <button type="button" class="area__visor-paso is-siguiente" data-visor-paso="1" aria-label="{% translate "Siguiente" %}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+    <script type="application/json" data-visor-imagenes>[{% for imagen in galeria %}{"url": "{{ imagen.imagen.url|escapejs }}", "titulo": "{{ imagen.titulo|escapejs }}", "rotulo": "{{ imagen.credito|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+  </dialog>
+  {% endif %}
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+  <script src="{% static 'portal/js/pages/unidades/area_unidad.js' %}?v=20261004-area-v4"></script>
+  {% if puede_editar %}<script src="{% static 'portal/js/components/edicion_en_ficha.js' %}?v=20261003-altas-v1"></script>{% endif %}
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

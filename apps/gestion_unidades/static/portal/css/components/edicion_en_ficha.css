@@ -1,0 +1,76 @@
+/* El cuadro de edición dentro de la ficha (equipo o área): ocupa casi toda la pantalla y muestra una sección del
+   editor con sus mismos estilos (equipo_editar.css). */
+.edicion-ficha { width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; overflow: hidden; border: 0; border-radius: 18px; background: #f4f6f5; box-shadow: 0 30px 80px rgba(10, 25, 20, .35); }
+.edicion-ficha::backdrop { background: rgba(10, 25, 20, .55); }
+.edicion-ficha[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.edicion-ficha__cabeza { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #e3e9e6; background: #fff; }
+.edicion-ficha__cabeza strong { flex: 1; color: var(--conoce-oscuro, #173b2c); font-size: 16px; font-weight: 800; }
+.edicion-ficha__completo { color: var(--conoce-primario, #1f6b46); font-size: 12.5px; font-weight: 700; }
+.edicion-ficha__cerrar { flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid #d5e0da; border-radius: 50%; background: #fff; color: #173b2c; font-size: 20px; line-height: 1; cursor: pointer; }
+.edicion-ficha__cuerpo { overflow: auto; padding: 16px; }
+.edicion-ficha__cuerpo .editor__cuerpo { display: block; padding: 0; }
+.edicion-ficha__cargando { margin: 30px; color: #5b6d64; text-align: center; }
+.editor__casilla { display: flex !important; align-items: center; gap: 8px; font-weight: 700; }
+.editor__cancelar { padding: 10px 14px; border: 1px solid #cfdcd5; border-radius: 9px; background: #fff; color: var(--conoce-primario, #1f6b46); font: inherit; font-weight: 700; cursor: pointer; }
+.conoce .equipo__editar { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 5px 11px; border: 1px solid #cfe0d6; border-radius: 999px; background: #fff; color: var(--conoce-primario); font-size: 12px; font-weight: 800; letter-spacing: 0; text-decoration: none; text-transform: none; white-space: nowrap; }
+.conoce .conoce__titulo .equipo__editar { margin: 8px 0 0; }
+.conoce__portada .equipo__editar { margin: 0 0 0 8px; vertical-align: middle; }
+.editor__fila.is-dos { grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr); }
+/* Aviso para completar un área que aún no tiene página. */
+.area__completar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 18px var(--conoce-lado, 24px) 0; padding: 14px 18px; border-left: 5px solid var(--conoce-amarillo, #ffce00); border-radius: 14px; background: #fff8e1; color: #5c4a10; font-size: 14px; }
+.area__completar > i { color: #8a6207; font-size: 18px; }
+.area__completar > span { flex: 1 1 320px; }
+/* Fuera de las páginas «conoce» (por ejemplo, la página de la unidad), el cuadro trae sus propios colores y letra. */
+:where(body:not(.conoce)) .edicion-ficha { --conoce-oscuro: var(--institucion-oscuro, #173b2c); --conoce-primario: var(--institucion-primario, #1f6b46); --conoce-amarillo: var(--institucion-panel-carpeta, #ffce00); --conoce-suave: var(--institucion-primario-suave, #e3eee8); --conoce-texto: var(--institucion-texto, #22352d); --conoce-gris: #5b6d64; color: var(--conoce-texto); font-family: "Poppins", Arial, sans-serif; font-size: 14.5px; line-height: 1.6; }
+:where(body:not(.conoce)) .edicion-ficha *, :where(body:not(.conoce)) .edicion-ficha *::before, :where(body:not(.conoce)) .edicion-ficha *::after { box-sizing: border-box; }
+.edicion-ficha .editor__campo ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.edicion-ficha .editor__campo ul label { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+/* Secciones creadas con plantilla: mismo aspecto que las comunes; lo de muestra u oculto se ve atenuado. */
+.seccion-propia .ficha__cabecera { position: relative; }
+.seccion-propia .ficha__cabecera .equipo__editar { margin-top: 14px; }
+.seccion-propia__portada { margin: 0; }
+.seccion-propia__portada img { display: block; width: min(360px, 100%); max-height: 220px; border-radius: 18px; object-fit: cover; }
+.seccion-propia__intro { margin-bottom: 22px; }
+.seccion-propia__muestra { opacity: .72; outline: 2px dashed #e0b94a; outline-offset: -2px; }
+.seccion-propia__imagen { display: block; width: 100%; max-height: 220px; margin-bottom: 12px; border-radius: 14px; object-fit: cover; }
+.area__actividad footer .equipo__editar, .area__paso-datos .equipo__editar, .seccion-propia__bloque .equipo__editar { margin-left: 0; }
+.area__actividad footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.seccion-propia__bloques { display: grid; gap: 18px; }
+.seccion-propia__bloque.con-imagen { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(220px, 1fr); gap: 22px; align-items: start; }
+.seccion-propia__bloque > img { width: 100%; border-radius: 16px; object-fit: cover; }
+.seccion-propia__bloque h2 { margin: 6px 0 10px; font-size: 20px; }
+.seccion-propia__agregar { margin: 22px 0 0; }
+@media (max-width: 760px) { .seccion-propia__bloque.con-imagen { grid-template-columns: 1fr; } }
+/* En el menú de la unidad, quien coordina agrega una sección con plantilla al final de cada pestaña. */
+.unit-new-section { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0 4px; padding: 10px 12px; border: 1.5px dashed var(--institucion-primario, #1f6b46); border-radius: 12px; background: #fff; color: var(--institucion-primario, #1f6b46) !important; font-size: 13px; font-weight: 800; text-decoration: none !important; }
+.unit-new-section:hover { background: var(--institucion-primario-suave, #e3eee8); }
+/* Las opciones (por ejemplo, la plantilla de una sección nueva) en lista, con su punto a la izquierda. */
+.editor__campo label:has(> input[type="radio"]) { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-weight: 600; cursor: pointer; }
+.editor__campo input[type="radio"] { flex: none; width: 18px !important; height: 18px; margin: 0; accent-color: var(--conoce-primario, #1f6b46); }
+/* Editar en la página: el botón también en las páginas del aula y en los bloques de datos. */
+.unit-report .equipo__editar, .aula-programa .equipo__editar, .ficha__bloque .equipo__editar, .area__novedad .equipo__editar, .ficha__persona .equipo__editar { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 5px 11px; border: 1px solid #cfe0d6; border-radius: 999px; background: #fff; color: var(--institucion-primario, #1f6b46); font-size: 12px; font-weight: 800; line-height: 1.3; text-decoration: none; text-transform: none; letter-spacing: 0; white-space: nowrap; }
+.equipo__editar.is-agregar { border-style: dashed; }
+.unit-report td .equipo__editar { margin: 6px 0 0; }
+.aula-programa .equipo__editar { margin-top: 8px; }
+.ficha__bloque > header .equipo__editar, .area__metodo > header .equipo__editar { margin-left: auto; }
+.registro-agregar { margin: 18px 0 0; }
+.area__metodo dt .equipo__editar { margin-left: 6px; padding: 2px 8px; vertical-align: middle; }
+/* Carpetas propias del menú: renombrar, subir un archivo o crear una subcarpeta sin salir del visualizador. */
+.unit-resource-tools { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+.unit-resource-tools a { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px dashed var(--institucion-primario, #1f6b46); border-radius: 999px; background: #fff; color: var(--institucion-primario, #1f6b46) !important; font-size: 11.5px; font-weight: 800; text-decoration: none !important; }
+.unit-resource-edit { color: var(--institucion-primario, #1f6b46) !important; }
+/* «Agregar» de cada sección del menú: su elemento con su plantilla y una carpeta propia. */
+.unit-resource-tools--seccion { margin: 8px 0 6px; padding: 8px 0 0; border-top: 1px dashed #d5e3db; }
+/* El ícono del botón «Editar» conserva su tamaño de texto aunque la tarjeta dé a sus íconos un círculo o un cuadro. */
+.equipo__editar > i, .unit-resource-tools a > i { display: inline !important; width: auto !important; height: auto !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: inherit !important; font-size: inherit !important; line-height: inherit !important; }
+.conoce__lineas article .equipo__editar { margin: 10px auto 0; }
+
+/* Acciones de edición alineadas con el marco compacto de gestión. */
+.edicion-ficha .editor__pie { flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 6px 0; }
+.edicion-ficha .editor__pie :is(button, a) { min-height: 32px; margin: 0; padding: 5px 10px; font-size: 14px; line-height: 1.4; }
+@media (max-width: 620px) {
+  .edicion-ficha__cabeza { display: grid; grid-template-columns: minmax(0, 1fr) 32px; gap: 4px 8px; }
+  .edicion-ficha__cabeza strong { min-width: 0; grid-column: 1; grid-row: 1; line-height: 1.35; }
+  .edicion-ficha__cerrar { grid-column: 2; grid-row: 1; }
+  .edicion-ficha__completo { grid-column: 1 / -1; grid-row: 2; }
+}

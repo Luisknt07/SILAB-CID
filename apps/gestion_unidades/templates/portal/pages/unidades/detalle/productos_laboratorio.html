@@ -1,0 +1,48 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Productos y servicios" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce ficha area">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{% if seccion %}{% translate "Sección" %} {{ seccion }} · {% endif %}{{ unidad.nombre }}</span>
+      <h1>{% translate "Productos y servicios" %}</h1>
+      <ul class="conoce__datos"><li><i class="fas fa-cube" aria-hidden="true"></i>{{ productos|length }} {% translate "que entrega la unidad" %}</li></ul>
+    </div>
+    <div class="conoce__portada-acciones"><button type="button" class="conoce__boton is-principal" data-accion="reservar"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Solicitar" %}</button></div>
+  </header>
+
+  <section class="conoce__seccion area__primera">
+    {% if productos %}
+    <div class="area__actividades">
+      {% for producto in productos %}<article class="area__actividad" data-aparecer>
+        <header><i class="fas fa-cube" aria-hidden="true"></i><div><span class="ficha__rol">{{ producto.get_tipo_display }}</span>{% if not producto.publico %}<span class="area__estado is-uso">{% translate "Borrador" %}</span>{% endif %}</div></header>
+        <h3>{{ producto.nombre }}</h3>
+        {% if producto.descripcion %}<p>{{ producto.descripcion }}</p>{% endif %}
+        <ul class="ficha__medios">
+          {% if producto.presentacion %}<li><i class="fas fa-box-open" aria-hidden="true"></i>{{ producto.presentacion }}</li>{% endif %}
+          <li><i class="fas fa-balance-scale" aria-hidden="true"></i>{% translate "Se entrega por" %} {{ producto.unidad_medida }}</li>
+        </ul>
+        {% if producto.recetas.all %}<footer><span>{% translate "Proceso:" %} {% for proceso in producto.recetas.all %}<a href="{% url 'proceso_laboratorio' unidad.slug proceso.pk %}">{{ proceso.nombre }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</span></footer>{% endif %}
+        {% include 'portal/pages/unidades/includes/editar.html' with clave='producto' pk=producto.pk titulo=producto.nombre %}
+      </article>{% endfor %}
+    </div>
+    {% else %}
+    <p class="ficha__nota">{% translate "La unidad todavía no publica sus productos y servicios." %}</p>
+    {% endif %}
+    {% translate "Nuevo producto o servicio" as titulo_nuevo %}{% translate "Agregar un producto o servicio" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='producto' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+  </section>
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% load i18n idiomas %}{# Inventario de equipos por área y modelo: buscador, filtros y cada unidad física con sus acciones. #}
+<div class="inventario" data-inventario>
+  {% if inventario_global %}
+  <p>{% translate "Inventario completo de la unidad: activos vigentes, sin bajas ni retirados." %}</p>
+  <div class="inventario__resumen inventario__resumen--global">
+    <article><span>{% translate "Total de activos" %}</span><strong>{{ inventario_global.total }}</strong></article>
+    <article><span>{% translate "Modelos únicos" %}</span><strong>{{ inventario_global.modelos }}</strong></article>
+    <article class="is-ok"><span>{% translate "En servicio" %}</span><strong>{{ inventario_global.en_servicio }}</strong></article>
+    <article class="is-fuera"><span>{% translate "Fuera de servicio" %}</span><strong>{{ inventario_global.fuera }}</strong></article>
+    <article class="is-verificar"><span>{% translate "Por verificar" %}</span><strong>{{ inventario_global.por_verificar }}</strong></article>
+  </div>
+  {% endif %}
+  {% if recursos_navegacion_areas %}
+  <section class="inventario__explorar" aria-label="{% translate 'Explorar equipos por área' %}">
+    <header><strong>{% translate "Explorar por área" %}</strong><small>{% translate "El catálogo incluye las referencias inactivas; el inventario real cuenta solo los activos vigentes." %}</small></header>
+    <nav class="catalogo-categorias catalogo-categorias--areas" aria-label="{% translate 'Áreas del inventario' %}">
+      <a data-management-load href="{{ recursos_todas_areas_url }}"{% if not recursos_area %} aria-current="page"{% endif %}><i class="fas fa-layer-group" aria-hidden="true"></i><span>{% translate "Todas las áreas" %}<small>{{ recursos_total_modelos_todas_areas }} {% translate "modelos" %} · {{ recursos_total_fisicos_todas_areas }} {% translate "registros" %}</small></span></a>
+      {% for area in recursos_navegacion_areas %}<a data-management-load href="{{ area.url }}"{% if area.seleccionada %} aria-current="page"{% endif %}><i class="fas fa-cubes" aria-hidden="true"></i><span>{{ area.nombre }}<small>{{ area.modelos }} {% translate "modelos" %} · {{ area.total }} {% translate "registros" %}{% if not area.activa %} · {% translate "Área inactiva" %}{% endif %}</small></span></a>{% endfor %}
+    </nav>
+  </section>
+  {% endif %}
+  {% if catalogos_remotos %}
+  <p class="inventario__alcance">{% if recursos_area_nombre %}<strong>{{ recursos_area_nombre }}</strong> · {% endif %}{{ recursos_total_modelos }} {% translate "modelos" %} · {{ recursos_total_fisicos }} {% translate "registros que coinciden con los filtros" %}. {% translate "Cada modelo conserva juntos sus registros activos e inactivos. Abre un modelo para administrarlos." %}</p>
+  {% else %}
+  <div class="inventario__resumen">
+    <article><span>{% translate "Áreas" %}</span><strong>{{ inventario_areas|length }}</strong></article>
+    <article><span>{% translate "Modelos únicos" %}</span><strong>{{ inventario_resumen.modelos }}</strong></article>
+    <article><span>{% translate "Equipos existentes" %}</span><strong>{{ inventario_resumen.existentes }}</strong></article>
+    {% if inventario_resumen.inactivos %}<article><span>{% translate "Referencias inactivas" %}</span><strong>{{ inventario_resumen.inactivos }}</strong></article>{% endif %}
+    <article class="is-ok"><span>{% translate "En servicio" %}</span><strong>{{ inventario_resumen.en_servicio }}</strong></article>
+    <article class="is-fuera"><span>{% translate "Fuera de servicio" %}</span><strong>{{ inventario_resumen.fuera }}</strong></article>
+    <article class="is-verificar"><span>{% translate "Por verificar" %}</span><strong>{{ inventario_resumen.por_verificar }}</strong></article>
+    <article class="is-alerta"><span>{% translate "Con alerta de uso" %}</span><strong>{{ inventario_resumen.con_alerta }}</strong></article>
+  </div>
+  {% endif %}
+  <div class="inventario__herramientas">
+    {% if not catalogos_remotos %}<label class="inventario__buscar"><i class="fas fa-search" aria-hidden="true"></i><input type="search" placeholder="{% translate "Buscar por nombre, código del sistema, bodega o serie" %}" data-inventario-buscar aria-label="{% translate "Buscar equipos" %}"></label>
+    <div class="inventario__filtros" role="group" aria-label="{% translate "Filtrar equipos" %}">
+      <button type="button" data-inventario-filtro="" aria-pressed="true">{% translate "Todos" %}</button>
+      <button type="button" data-inventario-filtro="servicio" aria-pressed="false">{% translate "En servicio" %}</button>
+      <button type="button" data-inventario-filtro="fuera" aria-pressed="false">{% translate "Fuera de servicio" %}</button>
+      <button type="button" data-inventario-filtro="verificar" aria-pressed="false">{% translate "Por verificar" %}</button>
+      <button type="button" data-inventario-filtro="alerta" aria-pressed="false">{% translate "Con alerta" %}</button>
+    </div>{% endif %}
+    <button type="button" class="inventario__plegar" data-inventario-plegar>{% translate "Abrir o cerrar todas" %}</button>
+  </div>
+  <p class="inventario__vacio" data-inventario-vacio hidden>{% translate "Ningún equipo coincide con la búsqueda o el filtro." %}</p>
+  {% for area in inventario_areas %}
+  <details class="inventario__area" data-inventario-area data-recursos-detalle="area-{{ area.espacio.pk|default:'sin-area' }}"{% if forloop.first %} open{% endif %}>
+    <summary>
+      <i class="{{ area.icono }}" aria-hidden="true"></i>
+      <span class="inventario__area-nombre"><strong>{{ area.nombre }}</strong>{% if area.codigo %}<small>{{ area.codigo }}</small>{% endif %}{% if catalogos_remotos and recursos_pagina.paginator.num_pages > 1 %}<small>{% translate "Modelos de esta página" %}</small>{% endif %}{% if area.activa == False %}<small>{% translate "Área inactiva" %}</small>{% endif %}</span>
+      <span class="inventario__chips"><b>{{ area.modelos|length }} {% translate "modelo" %}{{ area.modelos|length|pluralize }}</b><b>{{ area.existentes }} {% translate "existentes" %}</b>{% if area.inactivos %}<b>{{ area.inactivos }} {% translate "inactivos" %}</b>{% endif %}<b class="is-ok">{{ area.en_servicio }} {% translate "en servicio" %}</b>{% if area.fuera %}<b class="is-fuera">{{ area.fuera }} {% translate "fuera" %}</b>{% endif %}{% if area.por_verificar %}<b class="is-verificar">{{ area.por_verificar }} {% translate "por verificar" %}</b>{% endif %}{% if area.con_alerta %}<b class="is-alerta">{{ area.con_alerta }} {% translate "con alerta" %}</b>{% endif %}</span>
+    </summary>
+    {% for categoria in area.categorias %}
+    <section class="inventario__categoria" data-inventario-categoria>
+      <h4>{{ categoria.nombre }} <span>{{ categoria.modelos|length }} {% translate "modelo(s)" %} · {{ categoria.existentes }} {% translate "existentes" %}{% if categoria.inactivos %} · {{ categoria.inactivos }} {% translate "inactivos" %}{% endif %}</span></h4>
+    {% for modelo in categoria.modelos %}
+    <details class="inventario__modelo" data-inventario-modelo data-recursos-detalle="area-{{ area.espacio.pk|default:'sin-area' }}-modelo-{{ modelo.tipo.pk }}" data-filtros="{{ modelo.filtros }}">
+      <summary>
+        {% if modelo.tipo.imagen_publica_url %}<img src="{{ modelo.tipo.imagen_publica_url }}" alt="" loading="lazy">{% else %}<span class="inventario__icono" aria-hidden="true"><i class="{{ modelo.tipo.icono|default:'fas fa-cogs' }}"></i></span>{% endif %}
+        <div>
+          <strong>{{ modelo.tipo.nombre }}</strong>
+          <small>{{ modelo.tipo.codigo }}{% if modelo.tipo.marca or modelo.tipo.modelo %} · {{ modelo.tipo.marca|default:"" }} {{ modelo.tipo.modelo|default:"" }}{% endif %}{% if modelo.tipo.familia %} · {{ modelo.tipo.familia.nombre }}{% endif %}</small>
+        </div>
+        <span class="inventario__chips"><b>{{ modelo.total }} {% translate "registro(s)" %}</b><b>{{ modelo.existentes }} {% translate "existentes" %}</b>{% if modelo.inactivos %}<b>{{ modelo.inactivos }} {% translate "inactivos" %}</b>{% endif %}<b class="is-ok">{{ modelo.en_servicio }} {% translate "en servicio" %}</b>{% if modelo.fuera %}<b class="is-fuera">{{ modelo.fuera }} {% translate "fuera" %}</b>{% endif %}{% if modelo.por_verificar %}<b class="is-verificar">{{ modelo.por_verificar }} {% translate "por verificar" %}</b>{% endif %}</span>
+      {% if modelo.total == 1 and puede_operar_recursos %}{% with equipo=modelo.unidades.0 %}{% if equipo.laboratorio_id == unidad.pk %}<span class="inventario__control-modelo">{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='recursos' entidad='equipo' registro=equipo.pk activo=equipo.activa modo='activos' confirmar='' %}{% include 'portal/pages/unidades/gestion/includes/ciclo_recurso_botones.html' with tipo='equipo' registro=equipo.pk activo=equipo.activa %}</span>{% endif %}{% endwith %}{% else %}<small>Abrir unidades para administrar</small>{% endif %}</summary>
+      {% include 'portal/pages/unidades/gestion/includes/recursos_vinculados_modelo.html' with vinculos=modelo.vinculos %}
+      <table class="inventario__unidades">
+        <thead><tr><th scope="col">{% translate "Código del sistema" %}</th><th scope="col">{% translate "Bodega" %}</th><th scope="col">{% translate "Serie" %}</th><th scope="col">{% translate "Estado" %}</th><th scope="col">{% translate "Existencia" %}</th><th scope="col"><span class="sr-only">{% translate "Acciones" %}</span></th></tr></thead>
+        <tbody>{% for equipo in modelo.unidades %}<tr data-inventario-unidad{% if not equipo.en_inventario_real %} class="is-inactivo"{% endif %} data-filtros="{{ equipo.filtros }}" data-texto="{{ modelo.tipo.nombre|lower }} {{ equipo.codigo_unidad|lower }} {{ equipo.codigo_bien|default:''|lower }} {{ equipo.numero_serie|default:''|lower }} {{ modelo.tipo.codigo|lower }}">
+          <td><span class="inventario__codigo">{{ equipo.codigo_unidad }}</span>{% if equipo.lugar %}<small>{{ equipo.lugar }}</small>{% endif %}{% if equipo.areas_compartidas %}<small>{% translate "Compartido con" %}: {% for compartida in equipo.areas_compartidas %}{{ compartida.nombre }}{% if not forloop.last %}; {% endif %}{% endfor %}</small>{% endif %}</td>
+          <td>{% if equipo.codigo_bien %}<span class="inventario__codigo">{{ equipo.codigo_bien }}</span>{% else %}<span class="inventario__pendiente">{% translate "Pendiente" %}</span>{% endif %}</td>
+          <td>{{ equipo.numero_serie|default:"—" }}</td>
+          <td>{% if not equipo.en_inventario_real %}<span class="inventario__estado">{% if equipo.fecha_baja %}{% translate "Baja registrada" %}{% else %}{% translate "Inactivo" %}{% endif %}</span>{% else %}<span class="inventario__estado is-{% if equipo.es_publico %}ok{% else %}fuera{% endif %}">{{ equipo.get_estado_unidad_display|ui }}</span>{% if equipo.alerta_uso or equipo.alerta_inmediata %}<span class="inventario__estado is-alerta" title="{{ equipo.situacion_uso.limite }}"><i class="fas fa-bell" aria-hidden="true"></i> {{ equipo.situacion_uso.etiqueta }}</span>{% endif %}{% endif %}{% if equipo.traspaso_en_curso %}<span class="inventario__estado is-traspaso" title="{{ equipo.traspaso_en_curso.get_estado_display }}"><i class="fas fa-exchange-alt" aria-hidden="true"></i> {{ equipo.traspaso_en_curso.codigo }}</span>{% endif %}</td>
+          <td>{% if not equipo.en_inventario_real %}<span class="inventario__pendiente">{% translate "Fuera del inventario real" %}</span>{% elif equipo.existencia_verificada %}<span class="inventario__estado is-ok"><i class="fas fa-check" aria-hidden="true"></i> {% translate "Verificada" %}</span>{% elif puede_operar_recursos and equipo.laboratorio_id == unidad.pk %}<form method="post" action="{% url 'verificar_equipo' unidad.slug equipo.codigo_unidad %}" class="inventario__verificar">{% csrf_token %}<button type="submit" name="resultado" value="existe" title="{% translate "Confirmar que existe" %}" data-hecho="{% translate "Verificada" %}"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Confirmar" %}</button></form>{% else %}<span class="inventario__pendiente">{% translate "Por verificar" %}</span>{% endif %}</td>
+          <td class="inventario__acciones"><a href="{% url 'ficha_equipo_publica' unidad.slug equipo.codigo_unidad %}" title="{% translate "Ver la ficha del equipo" %}" aria-label="{% translate "Ver la ficha de" %} {{ equipo.codigo_unidad }}"><i class="fas fa-eye" aria-hidden="true"></i></a>{% if puede_operar_recursos and equipo.laboratorio_id == unidad.pk %}<a href="{% url 'editar_equipo_ficha' unidad.slug equipo.codigo_unidad %}" class="inventario__editar-ficha" title="{% translate "Editar toda la ficha: fotos, videos, especificaciones, componentes…" %}" aria-label="{% translate "Editar la ficha de" %} {{ equipo.codigo_unidad }}"><i class="fas fa-file-signature" aria-hidden="true"></i></a>{% endif %}{% if puede_operar_recursos %}{% include 'portal/pages/unidades/gestion/includes/equipo_editar_boton.html' %}{% if equipo.laboratorio_id == unidad.pk %}{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='recursos' entidad='equipo' registro=equipo.pk activo=equipo.activa modo='activos' confirmar='' %}{% include 'portal/pages/unidades/gestion/includes/ciclo_recurso_botones.html' with tipo='equipo' registro=equipo.pk activo=equipo.activa %}{% endif %}{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+      </table>
+    </details>
+    {% endfor %}
+    </section>
+    {% endfor %}
+  </details>
+  {% empty %}
+  <div class="unit-console__empty"><strong>{% translate "Sin equipos para estos filtros" %}</strong><small>{% translate "Revisa los filtros o registra un equipo con «Escanear etiqueta» o «Nuevo equipo»." %}</small></div>
+  {% endfor %}
+  {% if inventario_retirados %}
+  <details class="inventario__area is-retirados">
+    <summary><i class="fas fa-archive" aria-hidden="true"></i><span class="inventario__area-nombre"><strong>{% translate "Retirados del inventario" %}</strong><small>{% translate "No se muestran ni se reservan; se reactivan con su interruptor." %}</small></span><span class="inventario__chips"><b>{{ inventario_retirados|length }}</b></span></summary>
+    <table class="inventario__unidades"><tbody>{% for equipo in inventario_retirados %}<tr class="is-inactivo"><td><span class="inventario__codigo">{{ equipo.codigo_unidad }}</span></td><td>{{ equipo.equipo.nombre }}</td><td>{{ equipo.fecha_baja|date:"d/m/Y"|default:"—" }}</td><td class="inventario__acciones">{% if puede_operar_recursos %}{% include 'portal/pages/unidades/gestion/includes/equipo_editar_boton.html' %}{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='recursos' entidad='equipo' registro=equipo.pk activo=equipo.activa modo='activos' confirmar='' %}{% include 'portal/pages/unidades/gestion/includes/ciclo_recurso_botones.html' with tipo='equipo' registro=equipo.pk activo=equipo.activa %}{% endif %}</td></tr>{% endfor %}</tbody></table>
+  </details>
+  {% endif %}
+</div>

@@ -1,0 +1,44 @@
+/* Resultado, remisión y acciones pertenecen al mismo expediente de mejora. */
+.seguimiento-mejora { min-width:0; margin:18px 0; padding:16px; border:1px solid #d7e2da; border-top:3px solid #285d3a; border-radius:9px; background:#fff; color:#233e2e; font:12px/1.45 var(--institucion-fuente-cuerpo,Arial,sans-serif); }
+.seguimiento-mejora *, .seguimiento-mejora *::before, .seguimiento-mejora *::after { box-sizing:border-box; }
+.seguimiento-mejora__cabecera { display:flex; gap:11px; align-items:center; margin-bottom:14px; }
+.seguimiento-mejora__paso { display:grid; place-items:center; flex:0 0 34px; height:34px; border-radius:50%; background:#285d3a; color:#fff; font-weight:800; font-size:16px; }
+.seguimiento-mejora .seguimiento-mejora__cabecera h2 { margin:0; padding:0; border:0; background:none; color:#245d36; font-size:18px; line-height:1.3; }
+.seguimiento-mejora .seguimiento-mejora__cabecera p { margin:4px 0 0; color:#52675a; font-size:12px!important; }
+.seguimiento-mejora__resumen { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+.seguimiento-mejora__resumen > article { min-width:0; padding:13px; border:1px solid #e0e8e2; border-radius:7px; background:#fff; }
+.seguimiento-mejora h3, .seguimiento-mejora h4 { margin:0 0 7px; padding:0; border:0; background:none; color:#245d36; font-size:14px; line-height:1.35; }
+.seguimiento-mejora p { margin:5px 0; font-size:12px!important; line-height:1.45; }
+.seguimiento-mejora small { color:#5c7062; font-size:11px; }
+.seguimiento-mejora__resultado > strong { display:block; color:#245d36; font-size:27px; font-weight:800; line-height:1.2; }
+.seguimiento-mejora__resultado > strong.is-pendiente { color:#8b6a10; font-size:22px; }
+.seguimiento-mejora__resultado > span { display:inline-block; margin-top:6px; color:#6b5728; font-size:11px; font-weight:650; }
+.seguimiento-mejora__uso dl { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:12px 0; }
+.seguimiento-mejora__uso dl > div { min-width:0; padding-left:9px; border-left:2px solid #e9c448; }
+.seguimiento-mejora__uso dt { font-size:10px; color:#5a6d60; overflow-wrap:anywhere; }
+.seguimiento-mejora__uso dd { margin:2px 0 0; font-size:20px; font-weight:750; color:#285d3a; }
+.seguimiento-mejora .is-alerta { color:#8a5d0e; }
+.seguimiento-mejora__causa { display:flex; align-items:flex-start; gap:10px; margin:12px 0; padding:11px 12px; border:1px solid #e4d394; border-radius:7px; background:#fffdf5; color:#70551d; }
+.seguimiento-mejora__causa > i { margin-top:3px; color:#b38612; }
+.seguimiento-mejora__informe { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 20px; padding:13px 0; border-bottom:1px solid #dfe7e1; }
+.seguimiento-mejora__informe > div:first-child { flex:1 1 300px; }
+.seguimiento-mejora__botones { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.seguimiento-mejora__botones > form { margin:0; }
+.seguimiento-mejora button { width:auto; min-height:32px; padding:7px 11px; border:1px solid #285d3a; border-radius:5px; background:#285d3a; color:#fff; font:650 12px/1.35 var(--institucion-fuente-cuerpo,Arial,sans-serif); cursor:pointer; }
+.seguimiento-mejora button:focus-visible, .seguimiento-mejora a:focus-visible { outline:3px solid #e5bc34; outline-offset:3px; }
+.seguimiento-mejora__tramite { display:grid; gap:12px; margin-top:13px; }
+.seguimiento-mejora__tramite > p { margin:0; padding:8px 0; }
+.seguimiento-mejora__formulario { display:grid; gap:9px; margin:0; padding:12px; border:1px solid #dfe7e1; border-radius:7px; background:#fff; }
+.seguimiento-mejora__formulario label { display:grid; gap:4px; color:#355642; font-size:12px; }
+.seguimiento-mejora__formulario input:not([type=checkbox]):not([type=hidden]), .seguimiento-mejora__formulario textarea, .seguimiento-mejora__formulario select { box-sizing:border-box; width:100%; max-width:100%; padding:8px; border:1px solid #cbdacf; border-radius:5px; background:#fff; color:#233e2e; font:inherit; }
+.seguimiento-mejora__formulario textarea { min-height:70px; resize:vertical; }
+.seguimiento-mejora__formulario button { justify-self:start; }
+.seguimiento-mejora__accion { min-width:0; padding:13px; border:1px solid #dce6df; border-left:3px solid #d9b42c; border-radius:7px; background:#fff; }
+.seguimiento-mejora__accion ul { margin:9px 0; padding-left:18px; }
+.seguimiento-mejora__accion li { margin:5px 0; color:#536b5b; font-size:12px; overflow-wrap:anywhere; }
+.mejora-documento__seguimiento { margin-top:5px; }
+.mejora-documento__seguimiento > button { display:inline-flex; justify-content:center; align-items:center; gap:5px; box-sizing:border-box; min-height:31px; max-width:100%; padding:6px 9px; border:1px solid #a9c3b1; border-radius:5px; background:#fff; color:#285d3a; font:650 11px/1.35 var(--institucion-fuente-cuerpo,Arial,sans-serif); cursor:pointer; }
+.mejora-documento__seguimiento > button:focus-visible { outline:3px solid #e5bc34; outline-offset:3px; }
+.entregas__mejora .entregas__nombre, .citt-matriz__mejora .citt-matriz__nombre { border-left:3px solid #d9b42c; }
+.entregas__mejora td > small, .citt-matriz__mejora td > small { display:block; color:#5b6e60; font-size:11px; }
+@media(max-width:650px) { .seguimiento-mejora { padding:12px; } .seguimiento-mejora__resumen { grid-template-columns:minmax(0,1fr); } .seguimiento-mejora__uso dl { grid-template-columns:repeat(2,minmax(0,1fr)); } .seguimiento-mejora .seguimiento-mejora__cabecera h2 { font-size:16px; } .seguimiento-mejora__botones { width:100%; } }

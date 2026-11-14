@@ -1,0 +1,90 @@
+{% load i18n %}<li id="{{ carpeta.ancla }}">
+  <div class="arbol__nodo{% if not carpeta.activa %} is-oculta{% endif %}">
+    {% include "admin/unidades/contenidos_icono.html" with tipo='carpeta' %}
+    <span class="arbol__tipo">{% if carpeta.carpeta_padre_id %}{% translate "Subcarpeta" %}{% else %}{% translate "Carpeta" %}{% endif %}</span>
+    {% if puede_editar %}{% translate "Nombre de la carpeta" as etiqueta %}{% include "admin/unidades/contenidos_nombre.html" with accion='editar_carpeta' campo1='carpeta' valor1=carpeta.pk nombre=carpeta.nombre volver=carpeta.ancla maximo=255 etiqueta=etiqueta campo2='' campo3='' vacio=False marcador='' clase='' %}{% else %}<strong class="arbol__nombre">{{ carpeta.nombre }}</strong>{% endif %}
+    <ul class="contenidos-ficha__estados">
+      <li>{{ carpeta.rotulo_visibilidad }}</li>
+      <li>{% blocktranslate count total=carpeta.archivos|length %}{{ total }} archivo{% plural %}{{ total }} archivos{% endblocktranslate %}</li>
+      {% if carpeta.ficha %}<li>{% translate "En la ficha" %} «{{ carpeta.ficha }}»</li>{% endif %}
+      {% if carpeta.vacia %}<li class="is-pendiente">{% translate "Vacía: no aparece en la ficha hasta tener archivos" %}</li>{% endif %}
+      {% if carpeta.motivo %}<li class="is-pendiente">{{ carpeta.motivo }}</li>{% endif %}
+      {% if not puede_editar and not carpeta.activa %}<li class="is-oculta">{% translate "Oculta" %}</li>{% endif %}
+    </ul>
+    {% if puede_editar %}
+    <div class="contenidos-ficha__acciones">
+      {% if not carpeta.primera %}<form method="post">{% csrf_token %}
+        <input type="hidden" name="accion" value="ordenar_carpeta"><input type="hidden" name="direccion" value="subir"><input type="hidden" name="carpeta" value="{{ carpeta.pk }}"><input type="hidden" name="volver" value="{{ carpeta.ancla }}">
+        <button type="submit" class="is-secundario" title="{% translate 'Subir un lugar' %}" aria-label="{% translate 'Subir un lugar' %}">↑</button>
+      </form>{% endif %}
+      {% if not carpeta.ultima %}<form method="post">{% csrf_token %}
+        <input type="hidden" name="accion" value="ordenar_carpeta"><input type="hidden" name="direccion" value="bajar"><input type="hidden" name="carpeta" value="{{ carpeta.pk }}"><input type="hidden" name="volver" value="{{ carpeta.ancla }}">
+        <button type="submit" class="is-secundario" title="{% translate 'Bajar un lugar' %}" aria-label="{% translate 'Bajar un lugar' %}">↓</button>
+      </form>{% endif %}
+      {% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_carpeta' campo1='carpeta' valor1=carpeta.pk activo=carpeta.activa volver=carpeta.ancla campo2='' campo3='' %}
+      <details class="arbol__mas">
+        <summary>{% translate "Más" %}</summary>
+        <div class="arbol__menu">
+          <form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+            <input type="hidden" name="accion" value="acceso_de_carpeta"><input type="hidden" name="carpeta" value="{{ carpeta.pk }}"><input type="hidden" name="volver" value="{{ carpeta.ancla }}">
+            <label>{% translate "Quién la ve" %} <select name="visibilidad">{% for clave, nombre in visibilidades %}<option value="{{ clave }}"{% if clave == carpeta.visibilidad %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            {% if carpeta.archivos or carpeta.hijas %}<label class="contenidos-ficha__casilla"><input type="checkbox" name="con_archivos" value="1" checked> {% translate "Aplicar también a todos sus archivos" %}</label>
+            <label class="contenidos-ficha__casilla"><input type="checkbox" name="seguridad_verificada" value="1"> {% translate "Confirmo que sus archivos y enlaces pasaron la revisión de seguridad" %}</label>{% endif %}
+            <button type="submit">{% translate "Guardar" %}</button>
+          </form>
+          {% if not carpeta.carpeta_padre_id and destinos %}
+          <form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+            <input type="hidden" name="accion" value="mover_carpeta"><input type="hidden" name="carpeta" value="{{ carpeta.pk }}"><input type="hidden" name="volver" value="{{ carpeta.ancla }}">
+            <label>{% if es_planta %}{% translate "Mover a la sección" %}{% else %}{% translate "Mover a la pestaña" %}{% endif %} <select name="destino" required><option value="">—</option>{% for clave, nombre in destinos %}<option value="{{ clave }}"{% if clave == carpeta.destino and not carpeta.motivo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            <button type="submit">{% translate "Mover" %}</button>
+          </form>
+          {% endif %}
+          {% if carpeta.vacia %}
+          <form method="post" class="contenidos-ficha__formulario is-peligro">{% csrf_token %}
+            <input type="hidden" name="accion" value="eliminar_carpeta"><input type="hidden" name="carpeta" value="{{ carpeta.pk }}"><input type="hidden" name="volver" value="{{ carpeta.ancla_superior }}">
+            <span>{% translate "Está vacía. Se elimina para siempre." %}</span>
+            <button type="submit" class="is-peligro">{% translate "Eliminar carpeta" %}</button>
+          </form>
+          {% else %}<p class="contenidos-ficha__nota">{% translate "Solo se elimina vacía; mientras tanto se puede ocultar." %}</p>{% endif %}
+        </div>
+      </details>
+    </div>
+    {% endif %}
+  </div>
+  <ul class="arbol">
+    {% for archivo in carpeta.archivos %}
+    <li id="archivo-{{ archivo.pk }}">
+      <div class="arbol__nodo is-archivo{% if not archivo.activo %} is-oculta{% endif %}">
+        {% include "admin/unidades/contenidos_icono.html" with tipo='archivo' %}
+        <span class="arbol__tipo">{% translate "Archivo" %}</span>
+        {% if puede_editar %}{% translate "Nombre del archivo" as etiqueta %}{% include "admin/unidades/contenidos_nombre.html" with accion='renombrar_archivo' campo1='recurso' valor1=archivo.pk nombre=archivo.nombre volver=carpeta.ancla maximo=255 etiqueta=etiqueta campo2='' campo3='' vacio=False marcador='' clase='' %}{% else %}<strong class="arbol__nombre">{{ archivo.nombre }}</strong>{% endif %}
+        <ul class="contenidos-ficha__estados">
+          <li>{{ archivo.get_visibilidad_display }}</li>
+          {% for aviso in archivo.ruta.avisos %}<li class="is-pendiente">{{ aviso }}</li>{% endfor %}
+          {% if not puede_editar and not archivo.activo %}<li class="is-oculta">{% translate "Oculto" %}</li>{% endif %}
+        </ul>
+        <div class="contenidos-ficha__acciones">
+          {% if puede_editar %}{% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_archivo' campo1='recurso' valor1=archivo.pk activo=archivo.activo volver=carpeta.ancla campo2='' campo3='' %}
+          <details class="arbol__mas">
+            <summary>{% translate "Quién lo ve" %}</summary>
+            <div class="arbol__menu"><form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+              <input type="hidden" name="accion" value="editar_archivo"><input type="hidden" name="recurso" value="{{ archivo.pk }}"><input type="hidden" name="volver" value="{{ carpeta.ancla }}">
+              <label>{% translate "Quién lo ve" %} <select name="visibilidad">{% for clave, nombre in visibilidades %}<option value="{{ clave }}"{% if clave == archivo.visibilidad %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+              {% if not archivo.seguridad_verificada %}<label class="contenidos-ficha__casilla"><input type="checkbox" name="seguridad_verificada" value="1"> {% translate "Confirmo que pasó la revisión de seguridad" %}</label>{% endif %}
+              <button type="submit">{% translate "Guardar" %}</button>
+            </form></div>
+          </details>{% endif %}
+          <a class="arbol__enlace" href="{{ editor_url }}#recurso-editor-{{ archivo.pk }}" title="{% translate 'Archivo, enlace, descripción, versión y permisos' %}">{% translate "Editar todo" %}</a>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+    {% for hija in carpeta.hijas %}{% include "admin/unidades/contenidos_carpeta.html" with carpeta=hija %}{% endfor %}
+    {% if puede_editar %}
+    <li class="arbol__agregar">
+      {% if subir_url %}<a class="arbol__nuevo-enlace" href="{{ subir_url }}?unidad={{ unidad.pk }}&amp;carpeta={{ carpeta.pk }}">{% translate "+ Subir archivo aquí" %}</a>{% else %}<a class="arbol__nuevo-enlace" href="{{ editor_url }}">{% translate "Subir archivos en el editor de la unidad" %}</a>{% endif %}
+      {% if not carpeta.carpeta_padre_id %}{% translate "+ Nueva subcarpeta" as rotulo %}{% include "admin/unidades/contenidos_nueva.html" with padre=carpeta.pk volver=carpeta.ancla rotulo=rotulo %}{% endif %}
+    </li>
+    {% endif %}
+  </ul>
+</li>

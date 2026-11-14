@@ -1,0 +1,108 @@
+{% load static i18n idiomas curso_wiki %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if actual %}{{ actual.titulo }} · {% endif %}{{ curso.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/curso_wiki.css' %}?v=20261008-wiki-v2">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce aula-curso">
+  <header class="aula-curso__cabecera">
+    <a class="aula-curso__volver" href="{{ curso_url }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Página del curso" %}</a>
+    <div>
+      <span class="conoce__antetitulo">{{ curso.get_clasificacion_display }} · {{ unidad.nombre }}</span>
+      <h1>{{ curso.nombre }}</h1>
+    </div>
+    {% if vista_previa %}<p class="aula-curso__previa"><i class="fas fa-eye" aria-hidden="true"></i> {% translate "Vista previa de la unidad: así ve el aula quien está inscrito." %}</p>
+    {% elif libre %}<p class="aula-curso__previa"><i class="fas fa-lock-open" aria-hidden="true"></i> {% translate "Primera unidad gratis: inscríbete para desbloquear todo el curso." %}</p>
+    {% else %}<div class="aula-curso__avance" data-avance role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progreso.porcentaje }}" aria-label="{% translate "Avance del curso" %}"><strong data-avance-cifra>{{ progreso.porcentaje }} %</strong><span><i data-avance-relleno style="width: {{ progreso.porcentaje }}%"></i></span><small data-avance-detalle>{{ progreso.completadas }} {% translate "de" %} {{ progreso.total }} {% translate "lecciones obligatorias" %}</small></div>{% endif %}
+    {% if actual and total_lecciones %}<div class="aula-curso__posicion"><span>{% blocktranslate with numero=posicion total=total_lecciones %}Lección {{ numero }} de {{ total }}{% endblocktranslate %}</span>{% if siguiente %}<a href="{% url 'aula_curso_leccion' unidad.slug curso.codigo siguiente.pk %}{{ edicion_query }}">{% translate "Siguiente" %} <i class="fas fa-chevron-right" aria-hidden="true"></i></a>{% endif %}</div>{% endif %}
+    {% if inscripcion %}<a class="conoce__boton" href="{% url 'seguimiento_curso' unidad.slug curso.codigo %}{{ edicion_query }}"><i class="fas fa-chart-line" aria-hidden="true"></i> {% translate "Mi reporte" %} · {{ inscripcion.edicion.nombre }}</a>{% endif %}
+    {% if certificado %}<a class="conoce__boton is-principal" href="{% url 'mi_certificado' unidad.slug curso.codigo %}{{ edicion_query }}" data-ver-pdf data-pdf-titulo="Certificado · {{ curso.nombre }}"><i class="fas fa-certificate" aria-hidden="true"></i> {% translate "Mi certificado" %}</a>{% endif %}
+  </header>
+
+  {% if editor_curso_url %}<div class="curso-edicion-acceso"><a class="conoce__boton" href="{{ editor_curso_url }}" data-curso-modal="Editar curso completo"><i class="fas fa-edit" aria-hidden="true"></i> {% translate "Editar curso completo" %}</a></div>{% endif %}
+  <div class="aula-curso__cuerpo">
+    <main class="aula-curso__leccion"{% if automatico %} data-leccion-auto="{{ actual.pk }}" data-minutos="{{ actual.duracion_min|default:5 }}"{% endif %}>
+      {% if actual %}
+      <header>
+        <span class="aula-curso__tipo"><i class="{{ actual.icono }}" aria-hidden="true"></i> {{ actual.get_tipo_display }}{% if actual.duracion_min %} · {{ actual.duracion_min }} min{% endif %}{% if not actual.obligatoria %} · {% translate "Opcional" %}{% endif %}{% if not actual.publicada %} · {% translate "Sin publicar" %}{% endif %}</span>
+        <h2>{{ actual.titulo }}</h2>
+        {% translate "Lección del curso" as titulo_leccion %}{% include 'portal/pages/unidades/includes/editar.html' with clave='leccion_curso' pk=actual.pk titulo=titulo_leccion rotulo='' grupo='' padre='' %}
+      </header>
+
+      {% if cerrada %}<div class="aula-curso__cerrada"><i class="fas fa-lock" aria-hidden="true"></i><h3>{% translate "Esta lección es para quienes están inscritos" %}</h3><p>{% translate "La primera unidad es gratis. Inscríbete para desbloquear el resto del curso, guardar tu avance y obtener el certificado." %}</p><div class="aula-curso__acciones">{% include 'portal/pages/unidades/aula/includes/participar_curso.html' %}</div></div>
+      {% else %}
+      {% if actual.tipo == 'video' %}
+        {% if actual.video_id %}<div class="curso__video"><iframe data-youtube src="https://www.youtube-nocookie.com/embed/{{ actual.video_id }}?enablejsapi=1&amp;rel=0&amp;origin={{ request.scheme }}://{{ request.get_host }}" title="{{ actual.titulo }}" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        {% elif actual.archivo %}<video class="aula-curso__video" controls playsinline preload="metadata" title="{{ actual.titulo }}" src="{% url 'material_leccion' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}"{% if actual|video_bienvenida_wiki:curso %} poster="{% static 'portal/img/cursos/logistica-ia/bienvenida-poster.png' %}"{% endif %}>{% if actual|video_bienvenida_wiki:curso %}<track kind="captions" src="{% static 'portal/img/cursos/logistica-ia/bienvenida-es.vtt' %}" srclang="es" label="Español">{% endif %}{% translate "Tu navegador no puede reproducir este video. Consulta la transcripción de la lección." %}</video>{% endif %}
+      {% elif actual.tipo == 'en_vivo' %}
+        <div class="aula-curso__clase">
+          <p><i class="fas fa-calendar-day" aria-hidden="true"></i> {% if actual.fecha_hora %}<strong>{{ actual.fecha_hora|date:"l d/m/Y, H:i" }}</strong>{% else %}{% translate "La unidad anunciará la fecha de esta clase." %}{% endif %}</p>
+          {% if actual.lugar %}<p><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {{ actual.lugar }}</p>{% endif %}
+          {% if actual.sala == 'plataforma' %}{% if actual.grabacion_id %}<p class="aula-curso__grabada"><i class="fas fa-play-circle" aria-hidden="true"></i> {% translate "Grabación de la clase" %}</p><div class="curso__video"><video controls preload="metadata" src="{% url 'ver_grabacion_clase' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}" title="{% translate "Grabación de la clase" %} {{ actual.titulo }}"></video></div>{% endif %}
+            {% if not actual.grabacion_id or not actual.terminada %}<a class="conoce__boton is-principal" href="{% url 'clase_en_vivo' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}"><i class="fas fa-video" aria-hidden="true"></i> {% translate "Entrar a la clase en vivo" %}</a>{% endif %}
+          {% elif actual.grabacion_embebida %}<p class="aula-curso__grabada"><i class="fas fa-play-circle" aria-hidden="true"></i> {% translate "Grabación de la clase" %}</p><div class="curso__video"><iframe src="{{ actual.grabacion_embebida }}" title="{% translate "Grabación de la clase" %} {{ actual.titulo }}" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          {% elif actual.transmision_id and actual.terminada %}<p class="aula-curso__grabada"><i class="fas fa-play-circle" aria-hidden="true"></i> {% translate "Grabación de la clase" %}</p><div class="curso__video"><iframe src="https://www.youtube-nocookie.com/embed/{{ actual.transmision_id }}?rel=0" title="{% translate "Grabación de la clase" %} {{ actual.titulo }}" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          {% elif actual.transmision_id %}<div class="aula-curso__transmision"><div class="curso__video"><iframe src="https://www.youtube.com/embed/{{ actual.transmision_id }}?rel=0" title="{{ actual.titulo }}" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><iframe class="aula-curso__chat" src="https://www.youtube.com/live_chat?v={{ actual.transmision_id }}&amp;embed_domain={{ dominio }}" title="{% translate "Chat de la transmisión" %}" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+          {% elif actual.sala == 'externa' and actual.enlace %}<a class="conoce__boton is-principal" href="{{ actual.enlace }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-video" aria-hidden="true"></i> {% translate "Entrar a la clase virtual" %}</a>{% endif %}
+          {% if actual.sala == 'teams' and actual.reunion_url and not actual.terminada %}<div class="aula-curso__acciones"><a class="conoce__boton is-principal" href="{{ actual.reunion_url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-users" aria-hidden="true"></i> {% translate "Participar en Teams" %}</a><span>{% translate "Para hablar o compartir pantalla, entre con su cuenta institucional." %}</span></div>{% endif %}
+          {% if actual.grabacion_url and not actual.grabacion_embebida %}<a class="conoce__boton" href="{{ actual.grabacion_url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-play-circle" aria-hidden="true"></i> {% translate "Ver la grabación" %}</a>{% endif %}
+        </div>
+      {% elif actual.tipo == 'material' %}
+        <div class="aula-curso__material">
+          {% if actual.archivo %}<a class="conoce__boton is-principal" data-abre-material href="{% url 'material_leccion' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}"{% if actual.archivo.name|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="{{ actual.titulo }}"{% else %} download{% endif %}><i class="fas fa-file-download" aria-hidden="true"></i> {% translate "Abrir el material" %}</a>{% endif %}
+          {% if actual.enlace %}<a class="conoce__boton" data-abre-material href="{{ actual.enlace }}"{% if actual.enlace|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="{{ actual.titulo }}"{% else %} target="_blank" rel="noopener noreferrer"{% endif %}><i class="fas fa-external-link-alt" aria-hidden="true"></i> {% translate "Ir al material en línea" %}</a>{% endif %}
+        </div>
+      {% endif %}
+      {% if actual.contenido %}<div class="aula-curso__texto">{% if actual.contenido|es_wiki %}{{ actual.contenido|curso_wiki }}{% else %}{{ actual.contenido|urlize|linebreaks }}{% endif %}</div>{% endif %}{% if automatico and actual.tipo == 'texto' %}<span data-final-lectura aria-hidden="true"></span>{% endif %}
+      {% include 'portal/pages/unidades/aula/includes/leccion_calificada.html' %}
+      {% endif %}
+
+      <footer class="aula-curso__pie">
+        {% if anterior %}<a class="conoce__boton" href="{% url 'aula_curso_leccion' unidad.slug curso.codigo anterior.pk %}{{ edicion_query }}"><i class="fas fa-chevron-left" aria-hidden="true"></i> {% translate "Anterior" %}</a>{% else %}<span></span>{% endif %}
+        {% if completada %}<span class="aula-curso__hecha"><i class="fas fa-check-circle" aria-hidden="true"></i> {% if actual.en_vivo %}{% translate "Asistencia registrada" %}{% elif actual.calificada %}{% translate "Aprobada" %}{% else %}{% translate "Completada" %}{% endif %}</span>
+        {% elif actual.en_vivo %}<span class="aula-curso__nota">{% translate "La unidad registra tu asistencia a la clase." %}</span>
+        {% elif actual.calificada %}<span class="aula-curso__nota">{% if actual.tipo == 'evaluacion' %}{% translate "Se completa al aprobar la evaluación." %}{% else %}{% translate "Se completa cuando el instructor aprueba tu entrega." %}{% endif %}</span>
+        {% elif libre %}{% if not cerrada %}<span class="aula-curso__nota">{% translate "Inscríbete para guardar tu avance." %}</span>{% endif %}{% else %}<form method="post" data-completar action="{% url 'completar_leccion' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}">{% csrf_token %}{% if siguiente %}<input type="hidden" name="siguiente" value="{{ siguiente.pk }}">{% endif %}<button type="submit" class="conoce__boton is-principal"><i class="fas fa-check" aria-hidden="true"></i> {% if siguiente %}{% translate "Completar y seguir" %}{% else %}{% translate "Marcar como completada" %}{% endif %}</button></form>{% endif %}
+        {% if siguiente %}<a class="conoce__boton" href="{% url 'aula_curso_leccion' unidad.slug curso.codigo siguiente.pk %}{{ edicion_query }}">{% translate "Siguiente" %} <i class="fas fa-chevron-right" aria-hidden="true"></i></a>{% else %}<span></span>{% endif %}
+      </footer>
+      {% else %}
+      <div class="aula-curso__vacio"><i class="fas fa-layer-group" aria-hidden="true"></i><h2>{% translate "El programa del curso todavía no tiene lecciones" %}</h2><p>{% translate "La unidad está preparando los módulos. Vuelve pronto." %}</p></div>
+      {% endif %}
+    </main>
+
+    <aside class="aula-curso__programa" data-panel-aula aria-label="{% translate "Programa del curso" %}">
+      <div class="aula-panel__pestanas" role="tablist">
+        <button type="button" role="tab" data-pestana="contenido" class="is-activa" aria-selected="true"><i class="fas fa-list-ul" aria-hidden="true"></i> {% translate "Contenido" %}</button>
+        <button type="button" role="tab" data-pestana="comentarios" aria-selected="false"><i class="far fa-comments" aria-hidden="true"></i> {% translate "Comentarios" %}{% if comentarios %} <span>{{ comentarios.total }}</span>{% endif %}</button>
+      </div>
+      <div data-vista="contenido">
+      {% if libre %}<div class="aula-curso__libre"><strong>{% translate "Estás viendo la primera unidad gratis" %}</strong><span>{% translate "Las demás unidades se desbloquean al inscribirte." %}</span>{% include 'portal/pages/unidades/aula/includes/participar_curso.html' %}</div>
+      {% else %}<div class="aula-curso__avance-programa" data-avance role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progreso.porcentaje }}" aria-label="{% translate "Avance del curso" %}"><div><span>{% if vista_previa %}{% translate "Avance (vista previa)" %}{% else %}{% translate "Tu avance" %}{% endif %}</span><strong data-avance-cifra>{{ progreso.porcentaje }} %</strong></div><span><i data-avance-relleno style="width: {{ progreso.porcentaje }}%"></i></span><small data-avance-detalle>{{ progreso.completadas }} {% translate "de" %} {{ progreso.total }} {% translate "lecciones obligatorias" %}</small></div>{% endif %}
+      {% if vista_previa %}<a class="aula-curso__reiniciar" href="{% if edicion_query %}{{ edicion_query }}&amp;reiniciar=1{% else %}?reiniciar=1{% endif %}"><i class="fas fa-undo" aria-hidden="true"></i> {% translate "Reiniciar el avance de prueba" %}</a>{% endif %}
+      {% for modulo in modulos %}
+      <details class="aula-curso__unidad{% if modulo.completo %} is-completa{% endif %}" data-programa-unidad="{{ modulo.pk }}"{% if modulo == modulo_actual %} open{% endif %}>
+        <summary><b>{% if modulo.completo and modulo.total_obligatorias %}<i class="fas fa-check" aria-hidden="true"></i>{% else %}{{ forloop.counter }}{% endif %}</b><span>{{ modulo.titulo }}<small data-unidad-hechas>{{ modulo.hechas }} {% translate "de" %} {{ modulo.total_obligatorias }} {% translate "completadas" %}</small><em class="aula-curso__barra-unidad"><i data-unidad-relleno style="width: {% widthratio modulo.hechas modulo.total_obligatorias|default:1 100 %}%"></i></em></span><i class="fas fa-chevron-down" aria-hidden="true"></i></summary>
+        <ol>
+          {% for leccion in modulo.visibles %}<li data-programa-leccion="{{ leccion.pk }}"><a href="{% url 'aula_curso_leccion' unidad.slug curso.codigo leccion.pk %}{{ edicion_query }}" class="{% if leccion == actual %}is-actual{% endif %}{% if leccion.bloqueada or leccion.cerrada %} is-bloqueada{% endif %}"{% if leccion == actual %} aria-current="page"{% endif %}><i class="{% if leccion.pk in progreso.hechas %}fas fa-check-circle is-hecha{% elif leccion.bloqueada or leccion.cerrada %}fas fa-lock{% else %}{{ leccion.icono }}{% endif %}" aria-hidden="true"></i><span>{{ leccion.titulo }}{% if leccion.duracion_min or not leccion.obligatoria %}<small>{% if leccion.duracion_min %}{{ leccion.duracion_min }} min{% endif %}{% if not leccion.obligatoria %} · {% translate "opcional" %}{% endif %}</small>{% endif %}</span></a></li>{% endfor %}
+        </ol>
+      </details>
+      {% endfor %}
+      </div>
+      <div data-vista="comentarios" hidden>{% if actual %}{% include 'portal/pages/unidades/aula/includes/comentarios_leccion.html' %}{% endif %}</div>
+    </aside>
+  </div>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+{% if editor_curso_url %}<script defer src="{% static 'portal/js/pages/unidades/gestion_cursos_ui.js' %}?v=20261009-visores-v2"></script>{% endif %}
+{% if automatico %}<script src="{% static 'portal/js/pages/unidades/aula_curso.js' %}?v=20261004-visto-v2" defer></script>{% endif %}
+<script src="{% static 'portal/js/pages/unidades/aula_panel.js' %}?v=20261004-panel-v1" defer></script>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

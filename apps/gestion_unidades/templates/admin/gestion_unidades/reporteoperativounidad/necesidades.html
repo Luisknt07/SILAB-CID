@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block extrahead %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/necesidades_decanato.css' %}">
+{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Inicio</a> › <a href="{% url 'admin:index' %}#reportes">Reportes e indicadores</a> › Necesidades de compras</div>{% endblock %}
+{% block content_title %}{% endblock %}
+{% block content %}
+<section class="necesidades-centros" aria-labelledby="necesidades-titulo">
+  <header class="necesidades-centros__cabecera">
+    <div><p class="necesidades-centros__sobre">Dirección y centros de costo</p><h1 id="necesidades-titulo">Necesidades de compras {{ ejercicio }}</h1><p>Dirección evalúa las necesidades de cada unidad. Los decanatos y dependencias receptoras gestionan las adquisiciones con su centro de costo.</p></div>
+    {% if lectura %}<nav class="necesidades-centros__acciones" aria-label="Descargar el informe consultado"><a class="button" href="{{ pdf_url }}">Descargar PDF</a><a class="button" href="{{ xlsx_url }}">Descargar Excel</a></nav>{% endif %}
+  </header>
+  <form method="get" class="necesidades-centros__filtros" aria-label="Seleccionar informe de necesidades">
+    <label>Año de compras<select name="ejercicio">{% for anio in ejercicios %}<option value="{{ anio }}"{% if anio == ejercicio %} selected{% endif %}>{{ anio }}</option>{% endfor %}</select></label>
+    <label>Decanato o dependencia<select name="dependencia">{% if es_direccion %}<option value="">Todas las dependencias</option>{% endif %}{% for dep in dependencias %}<option value="{{ dep.pk }}"{% if dependencia_seleccionada.pk == dep.pk %} selected{% endif %}>{{ dep.nombre }}{% if not dep.activa %} · inactiva{% endif %}</option>{% endfor %}</select></label>
+    <button type="submit" class="button">Consultar</button>
+  </form>
+  {% if integridad_error %}<p class="necesidades-centros__aviso necesidades-centros__aviso--error" role="alert">{{ integridad_error }} La descarga de esta copia no está disponible.</p>{% endif %}
+  {% if remision %}
+  <section class="necesidades-centros__fuente" aria-label="Copia remitida">
+    <div><strong>Copia remitida a {{ remision.dependencia_nombre }}</strong><p>{{ remision.remitido_en|date:"d/m/Y H:i" }} · {{ remision.remitido_por.get_full_name|default:remision.remitido_por.username }}</p></div>
+    {% if es_direccion %}<a href="{{ actual_url }}">Volver a la lectura actual</a>{% endif %}
+    <details><summary>Identificación de la copia</summary><p>Remisión {{ remision.pk }} · Preparación {{ remision.anio_preparacion }} · Compras {{ remision.anio_ejecucion }}</p><code>{{ remision.sha256 }}</code></details>
+  </section>
+  {% elif es_direccion %}
+  <section class="necesidades-centros__fuente" aria-label="Lectura actual">
+    <div><strong>Lectura actual de Dirección</strong><p>Incluye las declaraciones evaluadas y señala las unidades que todavía están pendientes. No incorpora el contenido de borradores.</p></div>
+    {% if puede_remitir %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="remitir"><input type="hidden" name="ejercicio" value="{{ ejercicio }}"><input type="hidden" name="dependencia" value="{{ dependencia_seleccionada.pk }}"><button type="submit" class="button necesidades-centros__remitir">Remitir informe a {{ dependencia_seleccionada.nombre }}</button></form>{% elif not dependencia_seleccionada %}<p>Selecciona una dependencia para remitirle su informe.</p>{% elif not tiene_destinatarios %}<p>Configura al menos un receptor activo en la dependencia para remitir el informe.</p>{% else %}<p>La remisión se habilita cuando hay declaraciones evaluadas y una dependencia receptora activa.</p>{% endif %}
+  </section>
+  {% endif %}
+  {% if lectura %}
+  <div class="necesidades-centros__resumen" aria-label="Resumen del informe">
+    <div><strong>{{ lectura.resumen.unidades_total }}</strong><span>Unidades</span></div>
+    <div><strong>{{ lectura.resumen.con_compras }}</strong><span>Con necesidades de compra</span></div>
+    <div><strong>{{ lectura.resumen.sin_compras }}</strong><span>Sin compras justificadas</span></div>
+    <div><strong>{{ lectura.resumen.pendientes }}</strong><span>Pendientes de completar o evaluar</span></div>
+    <div><strong>{% if lectura.resumen.total is not None %}USD {{ lectura.resumen.total|floatformat:2 }}{% else %}Por completar{% endif %}</strong><span>Total de necesidades evaluadas</span></div>
+  </div>
+  <p class="necesidades-centros__nota">La evaluación y la remisión registran requerimientos. La aprobación presupuestaria y la ejecución de las compras corresponden al circuito de la dependencia.</p>
+  {% include 'admin/gestion_unidades/reporteoperativounidad/asignacion_necesidades.html' %}
+  {% for grupo in lectura.grupos %}{% if grupo.unidades %}
+  <section class="necesidades-centros__grupo" aria-labelledby="dependencia-{{ forloop.counter }}">
+    <header><h2 id="dependencia-{{ forloop.counter }}">{{ grupo.nombre }}</h2><p>Centro de costo: {{ grupo.centro_costo|default:'Por confirmar por la dependencia' }}</p></header>
+    {% for unidad in grupo.unidades %}
+    <article class="necesidades-centros__unidad">
+      <header><div><h3>{{ unidad.nombre }}</h3><span class="necesidades-centros__estado necesidades-centros__estado--{{ unidad.estado }}">{{ unidad.estado_etiqueta }}</span></div>{% if unidad.transferible %}<p class="necesidades-centros__importe">{% if unidad.total is not None %}USD {{ unidad.total|floatformat:2 }}{% else %}Importe por completar{% endif %}</p>{% endif %}</header>
+      {% if unidad.necesidades %}
+      <details class="necesidades-centros__detalle"><summary>{{ unidad.necesidades|length }} necesidad{{ unidad.necesidades|length|pluralize:'es' }} · consultar compras y sustento</summary>
+        <div class="necesidades-centros__tabla" role="region" aria-label="Compras de {{ unidad.nombre }}" tabindex="0"><table>
+          <thead><tr><th scope="col">Área</th><th scope="col">Bien o servicio</th><th scope="col">Clase y motivo</th><th scope="col">Cantidad</th><th scope="col">Total (USD)</th><th scope="col">Mes · semestre</th></tr></thead>
+          <tbody>{% for necesidad in unidad.necesidades %}<tr><td>{{ necesidad.area|default:'Por confirmar' }}</td><td><strong>{{ necesidad.item }}</strong>{% if necesidad.especificaciones %}<small>{{ necesidad.especificaciones }}</small>{% endif %}<p>{{ necesidad.justificacion }}</p>{% if unidad.matriz_detalle_version == 1 %}<small>CPC: {{ necesidad.cpc|default:'Por confirmar' }}. Partida: {{ necesidad.partida|default:'Por confirmar' }}. Unidad de medida: {{ necesidad.unidad_medida|default:'Por confirmar' }}.</small>{% endif %}{% if necesidad.equipos_actuales %}<small>Equipos actuales: {{ necesidad.equipos_actuales }}</small>{% endif %}</td><td>{{ necesidad.clase }}<small>{{ necesidad.motivo }}</small></td><td>{{ necesidad.cantidad }}</td><td>{% if necesidad.total is not None %}{{ necesidad.total|floatformat:2 }}{% else %}Por completar{% endif %}</td><td>{{ necesidad.mes }}<small>{% if necesidad.semestre %}Semestre {{ necesidad.semestre }}{% else %}Semestre por confirmar{% endif %}</small></td></tr>{% endfor %}</tbody>
+        </table></div>
+        {% if unidad.centro_costo %}<p class="necesidades-centros__nota">Centro agrupador registrado por la unidad: {{ unidad.centro_costo }}</p>{% endif %}
+      </details>
+      {% elif unidad.estado == 'sin_compras' %}<p class="necesidades-centros__justificacion"><strong>Justificación:</strong> {{ unidad.sin_compras_justificacion }}</p>
+      {% else %}<p class="necesidades-centros__pendiente">Esta unidad sigue pendiente. La ausencia de una declaración evaluada no significa que no necesite compras.</p>{% endif %}
+    </article>{% endfor %}
+  </section>{% endif %}{% endfor %}
+  {% if not lectura.unidades %}<p class="necesidades-centros__aviso">No hay unidades adscritas para este año y esta selección.</p>{% endif %}
+  {% elif not integridad_error %}
+  <div class="necesidades-centros__aviso"><h2>Sin informe remitido</h2><p>Dirección todavía no ha remitido un informe de necesidades para {{ ejercicio }} a {{ dependencia_seleccionada.nombre }}. Cuando lo remita, podrás consultarlo y descargar la misma copia en PDF o Excel.</p></div>
+  {% endif %}
+  {% if historial_remisiones %}
+  <details class="necesidades-centros__historial"><summary>Informes remitidos de {{ ejercicio }} ({{ historial_remisiones|length }})</summary><ul>{% for registro in historial_remisiones %}<li><a href="{{ registro.url }}">{{ registro.remision.dependencia_nombre }} · {{ registro.remision.remitido_en|date:"d/m/Y H:i" }}</a>{% if registro.remision.pk == remision.pk %}<span>Copia consultada</span>{% endif %}</li>{% endfor %}</ul></details>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% load i18n %}
+<article id="model-{{ model.object_name|lower }}" data-reporte-tipo="{{ model.tipo_menu.codigo|default:'sin_clasificar' }}">
+  <div class="citt-admin-model-card__icon" aria-hidden="true">
+    {% if model.tipo_menu.codigo == 'sistema' %}
+      {% include 'admin/includes/category_icon.html' with icon='reports' %}
+    {% elif model.tipo_menu.codigo == 'gestion' %}
+      {% include 'admin/includes/category_icon.html' with icon='maintenance' %}
+    {% else %}
+      {% include 'admin/includes/category_icon.html' with icon='file' %}
+    {% endif %}
+  </div>
+  <div class="citt-admin-model-card__copy">
+    <div class="citt-reportes__titulo-fila">
+    <strong>{% if model.admin_url %}<a href="{{ model.admin_url }}"{% if model.navegacion_directa %} data-panel-direct{% endif %}>{{ model.name }}</a>{% else %}{{ model.name }}{% endif %}</strong>
+    <span class="citt-reportes__tipo is-{{ model.tipo_menu.codigo|default:'sin_clasificar' }}"{% if model.tipo_menu.descripcion %} title="{{ model.tipo_menu.descripcion }}"{% endif %}>{{ model.tipo_menu.nombre|default:_('Tipo por definir') }}</span>
+    </div>
+    <span>{{ model.descripcion }}</span>
+  </div>
+  {% if model.add_url %}
+  <div class="citt-admin-model-card__actions"><a href="{{ model.add_url }}" class="is-add" title="{% translate 'Agregar' %} {{ model.name }}"><span aria-hidden="true">+</span> {% translate 'Nuevo' %}</a></div>
+  {% endif %}
+</article>

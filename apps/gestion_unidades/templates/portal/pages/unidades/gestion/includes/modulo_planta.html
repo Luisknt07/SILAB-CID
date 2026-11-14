@@ -1,0 +1,6 @@
+{% load i18n %}<article class="unit-console__module is-{{ modulo.acceso }}">
+  <header><i class="{{ modulo.icono }}" aria-hidden="true"></i><strong>{{ modulo.nombre }}</strong><span class="unit-console__status{% if modulo.acceso == 'opera' %} is-confirmada{% elif modulo.acceso == 'consulta' %} is-pendiente{% endif %}">{{ modulo.acceso_texto }}</span></header>
+  <p>{{ modulo.descripcion }}</p>
+  {% if modulo.indicadores %}<dl>{% for nombre, valor in modulo.indicadores %}<div><dt>{{ nombre }}</dt><dd>{{ valor }}</dd></div>{% endfor %}</dl>{% endif %}
+  <footer>{% if modulo.alimenta %}<small>{% translate "Alimenta a:" %} {{ modulo.alimenta|join:", " }}</small>{% endif %}{% if modulo.vista %}<button type="button" data-management-target="{{ modulo.vista }}">{% translate "Abrir" %}</button>{% elif modulo.enlace %}<a href="{{ modulo.enlace }}" title="{% translate "Se abre en la gestión de la unidad" %}">{% translate "Abrir" %}</a>{% endif %}</footer>
+</article>

@@ -1,0 +1,39 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="conteo_inventario" data-reload-view="recursos" data-reload-resources-mode="almacen" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="conteo_inventario"><input type="hidden" name="registro_id">
+  <header><span>{% translate "ALMACÉN" %}</span><h3>{% translate "Abrir un conteo cíclico" %}</h3><p>{% translate "Congela lo que el sistema cree tener de cada lote del alcance elegido. Después se anota lo que hay en el estante y, al cerrarlo, cada diferencia entra al kardex como ajuste." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" placeholder="{% translate "Conteo de la cámara de frío" %}"></label>
+    <label>{% translate "Alcance" %}<select name="alcance">{% for codigo, nombre in alcances_conteo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Bodega o clasificación" %}<input name="referencia" maxlength="120" list="almacenReferencias" placeholder="{% translate "Solo si el alcance lo acota" %}"></label>
+    <datalist id="almacenReferencias">{% for bodega in bodegas_almacen %}<option value="{{ bodega }}"></option>{% endfor %}{% for codigo, nombre in clasificaciones_conteo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</datalist>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2" placeholder="{% translate "Quién cuenta, con qué criterio y qué se revisa" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Anular" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-clipboard-list"></i> {% translate "Abrir el conteo" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="cerrar_conteo" data-reload-view="recursos" data-reload-resources-mode="almacen" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="conteo_inventario"><input type="hidden" name="registro_id"><input type="hidden" name="accion_conteo" value="cerrar">
+  <header><span>{% translate "ALMACÉN" %}</span><h3>{% translate "Cerrar el conteo y ajustar" %}</h3><p>{% translate "Cada lote contado que no cuadra entra al kardex con su ajuste positivo o negativo, a tu nombre. Lo que quedó sin contar no se toca. El conteo cerrado ya no se edita." %}</p></header>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-check"></i> {% translate "Cerrar y ajustar" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="linea_conteo" data-reload-view="recursos" data-reload-resources-mode="almacen" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="linea_conteo"><input type="hidden" name="registro_id">
+  <header><span>CONTEO</span><h3>{% translate "Lo que hay en el estante" %}</h3><p>{% translate "Anota lo que realmente encontraste de este lote. La diferencia con lo que el sistema dice se ajusta al cerrar el conteo." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Cantidad contada" %}<input type="number" name="cantidad_contada" step="0.001" min="0" required></label>
+    <label class="is-wide">{% translate "Observaciones" %}<input name="observaciones" maxlength="240" placeholder="{% translate "Envase roto, etiqueta ilegible, saldo en otro estante" %}"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar el conteo del lote" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="baja_lote" data-reload-view="recursos" data-reload-resources-mode="almacen" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="baja_lote"><input type="hidden" name="registro_id">
+  <header><span>{% translate "ALMACÉN" %}</span><h3>{% translate "Dar de baja por caducidad" %}</h3><p>{% translate "El lote sale entero del inventario y queda marcado como caducado: no se puede dar de baja una parte. El movimiento queda en el kardex con tu nombre." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2" placeholder="{% translate "Dónde estaba, en qué condición y cómo se dispuso" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-ban"></i> {% translate "Dar de baja" %}</button></footer>
+</form>

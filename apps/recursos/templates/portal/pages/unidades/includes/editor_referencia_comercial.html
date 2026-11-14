@@ -1,0 +1,8 @@
+{% load i18n %}{% if formulario.referencia_editable %}
+<div data-editor-referencia-comercial>
+  <h3>{% translate "Producto de referencia por confirmar" %}</h3>
+  <p class="editor__nota">{% translate "Puedes corregir este ejemplo comercial sin cambiar la marca, el modelo ni las existencias del bien registrado. Si cambias de producto, sus imágenes, documentos y videos anteriores quedarán pendientes de revisión." %}</p>
+  {{ formulario.referencia_presente }}
+  <div class="editor__campos">{% for campo in formulario.referencia_campos %}<div class="editor__campo{% if campo.name == 'referencia_descripcion' %} is-ancho{% endif %}{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endfor %}</div>
+</div>
+{% endif %}

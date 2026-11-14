@@ -1,0 +1,126 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n %}
+{% comment %}
+Lector de equipos de la gestión: se lee la etiqueta de bodega o el QR y aparece todo lo del equipo
+(trazabilidad, hermanos y familia); un código nuevo se asigna a un equipo sin código o abre el alta
+completa en la gestión de la unidad.
+{% endcomment %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_equipo.css' %}?v=20261002-ficha-estandar-v1">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/lector_equipos.css' %}?v=20261002-inteligente-v1">
+{% endblock %}
+{% block portal_content %}
+<section class="ficha lector">
+  {% csrf_token %}
+  <header class="ficha__hero">
+    <div>
+      <span>{% translate "GESTIÓN DEL INVENTARIO" %} · {% if unidad_actual %}{{ unidad_actual.nombre }}{% else %}{% translate "TODAS LAS UNIDADES" %}{% endif %}</span>
+      <h1>{% translate "Lector de equipos" %}</h1>
+      <p>{% translate "Lee la etiqueta de bodega o el QR del equipo: si está registrado verás su trazabilidad completa y dónde están sus equipos hermanos y su familia; si es nuevo, lo registras con todos sus datos." %}</p>
+    </div>
+    <div class="ficha__hero-acciones">
+      {% if puede_ver_tablero %}<a class="ficha__volver" href="{% url 'equipamiento_institucional' %}"><i class="fas fa-sitemap" aria-hidden="true"></i> {% translate "Equipamiento institucional" %}</a>{% endif %}
+      {% if volver_url %}<a class="ficha__volver" href="{{ volver_url }}">{% translate "← Volver a la gestión" %}</a>{% endif %}
+    </div>
+  </header>
+
+  <div class="lector__cuerpo">
+    <section class="ficha__tarjeta lector__camara" aria-label="{% translate "Lectura" %}">
+      <header><span>{% translate "PASO 1" %}</span><h2>{% translate "Leer la etiqueta" %}</h2></header>
+      <div class="lector__visor" data-visor>
+        <video data-video playsinline muted></video>
+        <span class="lector__mira" aria-hidden="true"></span>
+        <p class="lector__estado" data-estado aria-live="polite">{% translate "Pulsa «Activar cámara» o lee una foto de la etiqueta." %}</p>
+      </div>
+      <div class="lector__acciones">
+        <button type="button" class="lector__boton is-principal" data-activar><i class="fas fa-camera" aria-hidden="true"></i> {% translate "Activar cámara" %}</button>
+        <button type="button" class="lector__boton" data-detener hidden><i class="fas fa-stop" aria-hidden="true"></i> {% translate "Detener" %}</button>
+        <label class="lector__boton"><i class="fas fa-image" aria-hidden="true"></i> {% translate "Leer una foto" %}<input type="file" accept="image/*" capture="environment" data-foto hidden></label>
+      </div>
+      <form class="lector__manual" data-manual>
+        <label for="lector-codigo">{% translate "O escribe el código" %}</label>
+        <div><input id="lector-codigo" name="codigo" inputmode="text" autocomplete="off" placeholder="{{ prefijo }}-37881242" data-codigo><button type="submit" class="lector__boton is-principal"><i class="fas fa-search" aria-hidden="true"></i><span class="sr-only">{% translate "Buscar" %}</span></button></div>
+        <small>{% translate "Sirve el código de bodega (con o sin prefijo), el del sistema, uno anterior o el número de serie." %}</small>
+      </form>
+    </section>
+
+    <div class="lector__panel">
+      <section class="ficha__tarjeta lector__inicio" data-inicio>
+        <header><span>{% translate "PASO 2" %}</span><h2>{% translate "Qué verás" %}</h2></header>
+        <ol class="lector__pasos">
+          <li><i class="fas fa-id-card" aria-hidden="true"></i><span><strong>{% translate "Un equipo registrado" %}</strong>{% translate "Su identificación, estado, área, origen, unidades por las que pasó, mantenimientos, incidencias, vida útil e historia." %}</span></li>
+          <li><i class="fas fa-sitemap" aria-hidden="true"></i><span><strong>{% translate "Sus parientes" %}</strong>{% translate "Los equipos hermanos del mismo modelo en la unidad, el mismo modelo en otras unidades y su familia de producto, con cuántos hay en cada una." %}</span></li>
+          <li><i class="fas fa-plus-circle" aria-hidden="true"></i><span><strong>{% translate "Un código nuevo" %}</strong>{% translate "Escribes qué equipo es (o llega del reporte de bodega) y ves solo lo relacionado: los equipos de la unidad sin código, los modelos que ya existen y las áreas donde suele estar." %}</span></li>
+        </ol>
+      </section>
+
+      <section class="lector__resultado" data-resultado hidden aria-live="polite"></section>
+
+      <section class="ficha__tarjeta lector__registro" data-registro hidden>
+        <header><span>{% translate "CÓDIGO NUEVO" %}</span><h2>{% translate "Este código aún no está en el sistema" %}</h2><p><strong data-codigo-nuevo></strong></p></header>
+        <p class="lector__error" data-invalido hidden>{% blocktranslate %}La etiqueta no tiene el formato de bodega ({{ prefijo }}-número del bien). Revisa la lectura o escribe el código.{% endblocktranslate %}</p>
+        <div data-registrable>
+        {% if unidades %}
+        <div class="lector__bodega" data-bodega hidden><i class="fas fa-warehouse" aria-hidden="true"></i><div><strong>{% translate "Así lo registra bodega" %}</strong><span data-bodega-texto></span></div></div>
+        <label class="lector__unidad">{% translate "Unidad que lo tiene" %}<select data-unidad>{% for unidad in unidades %}<option value="{{ unidad.slug }}"{% if unidad_actual and unidad.slug == unidad_actual.slug %} selected{% endif %}>{{ unidad.nombre }}</option>{% endfor %}</select></label>
+        <form class="lector__manual lector__nombre" data-nombre-form>
+          <label for="lector-nombre">{% translate "¿Qué equipo es?" %}</label>
+          <div><input id="lector-nombre" data-nombre autocomplete="off" maxlength="120" placeholder="{% translate "Por ejemplo: gafas de realidad virtual, impresora 3D de resina" %}"><button type="submit" class="lector__boton is-principal"><i class="fas fa-magic" aria-hidden="true"></i><span class="sr-only">{% translate "Buscar lo relacionado" %}</span></button></div>
+          <small>{% translate "Con el nombre se muestran solo los equipos, modelos y áreas relacionados con él." %}</small>
+        </form>
+        <div class="lector__sugerencias" data-sugerencias hidden>
+          <p class="lector__familia" data-familia hidden></p>
+          <label class="lector__unidad">{% translate "Área donde queda" %}<select data-area></select></label>
+          <section class="lector__opcion" data-bloque="equipos">
+            <h3><b>1</b> {% translate "¿Es uno de estos equipos que la unidad ya tiene sin código?" %}</h3>
+            <form class="lector__formulario" data-formulario>
+              <ul class="lector__candidatos" data-candidatos></ul>
+              <details class="lector__etiqueta"><summary>{% translate "Datos de la etiqueta (opcional)" %}</summary>
+                <div class="lector__fila">
+                  <label>{% translate "Tipo de bien" %}<select name="tipo_bien"><option value="">—</option>{% for clave, nombre in tipos_bien %}<option value="{{ clave }}"{% if clave == 'BLD' %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+                  <label>{% translate "Número de serie" %}<input name="serie"></label>
+                </div>
+                <label>{% translate "Clase del bien (texto de la etiqueta)" %}<input name="clase_bien" placeholder="{% translate "Equipo electrónico / Computador de escritorio" %}"></label>
+                <label>{% translate "Custodio" %}<input name="custodio"></label>
+              </details>
+              <p class="lector__error" data-error hidden></p>
+              <button type="submit" class="lector__boton is-principal" data-asignar><i class="fas fa-link" aria-hidden="true"></i> {% translate "Asignar el código a este equipo" %}</button>
+            </form>
+          </section>
+          <section class="lector__opcion" data-bloque="modelos">
+            <h3><b>2</b> {% translate "¿Es otra unidad de un modelo que ya existe?" %}</h3>
+            <ul class="lector__modelos" data-modelos></ul>
+          </section>
+          <section class="lector__opcion" data-bloque="nuevo">
+            <h3><b>3</b> {% translate "¿Es un modelo que aún no está en el catálogo?" %}</h3>
+            <p class="lector__ayuda" data-nuevo-texto></p>
+            <a class="lector__boton" href="#" data-alta-nuevo><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Crear el modelo y registrar el equipo" %}</a>
+          </section>
+          <p class="lector__ayuda">{% translate "Registrar abre la gestión de la unidad con el formulario completo y el código de bodega ya puesto; lo que bodega sabe del bien llega escrito y el código del sistema se asigna con el estándar UNIDAD-ÁREA-MODELO-N.º según el área." %}</p>
+        </div>
+        {{ unidades|json_script:"lector-unidades" }}
+        {% else %}
+        <p class="ficha__nota">{% translate "Para registrar equipos necesitas gestionar los recursos de una unidad. Avisa a su responsable." %}</p>
+        {% endif %}
+        </div>
+        <button type="button" class="lector__boton" data-otra><i class="fas fa-redo" aria-hidden="true"></i> {% translate "Leer otro código" %}</button>
+      </section>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_scripts %}
+{{ block.super }}
+<script>
+  window.LECTOR = {
+    buscar: "{% url 'lector_buscar_equipo' %}",
+    registrar: "{% url 'lector_registrar_equipo' %}",
+    sugerencias: "{% url 'lector_sugerencias' %}",
+    zxing: "{{ zxing }}",
+  };
+</script>
+<script src="{% static 'portal/js/components/lectura_codigos.js' %}?v=20261002-lectura-v1"></script>
+<script src="{% static 'portal/js/pages/unidades/lector_equipos.js' %}?v=20261009-pdf-v1"></script>
+{% endblock %}

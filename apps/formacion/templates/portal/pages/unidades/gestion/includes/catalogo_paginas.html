@@ -1,0 +1,7 @@
+{% load i18n %}
+{% if recursos_pagina.paginator.num_pages > 1 %}
+<nav class="unit-console__pagination" aria-label="{% translate 'Páginas de tarjetas' %}">
+  <span>{% blocktranslate with inicio=recursos_pagina.start_index fin=recursos_pagina.end_index total=recursos_pagina.paginator.count %}Mostrando {{ inicio }}–{{ fin }} de {{ total }} recursos{% endblocktranslate %}</span>
+  <div>{% if recursos_anterior %}<a data-management-load href="{{ recursos_anterior }}">← {% translate "Anterior" %}</a>{% endif %}{% if recursos_siguiente %}<a data-management-load href="{{ recursos_siguiente }}">{% translate "Siguiente" %} →</a>{% endif %}</div>
+</nav>
+{% endif %}

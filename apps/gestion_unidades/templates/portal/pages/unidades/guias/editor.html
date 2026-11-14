@@ -1,0 +1,365 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n idiomas %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+{% endblock %}
+{% block portal_content %}
+<section class="guide-shell">
+  <header class="guide-hero guide-hero--compact">
+    <div>
+      <span class="guide-eyebrow">{% translate "FORMATO INSTITUCIONAL FT04" %}</span>
+      <h1>{% translate "Revisar y completar guía" %}</h1>
+      <p>{{ unidad.nombre }}{% if guia %} {% translate "· Versión" %} {{ guia.numero_version }}{% endif %}</p>
+    </div>
+    <a class="guide-btn guide-btn--ghost" href="{% if comprobante_url %}{{ comprobante_url }}{% else %}{% url 'lista_guias_practica' unidad.slug %}{% endif %}">{% translate "Cerrar" %}</a>
+  </header>
+
+  {% if procedencia_simulacion %}
+  <aside class="guide-alert">
+    <strong>Guía adaptada de una práctica virtual · {{ procedencia_simulacion.caso }} · semilla {{ procedencia_simulacion.semilla }}</strong>
+    <p>El contenido es editable y conserva su procedencia. Revisa los objetivos, recursos, seguridad y alcance de la sesión; guarda y envía a revisión mediante el flujo institucional. Los datos sintéticos y tiempos simulados no acreditan actividad presencial.</p>
+  </aside>
+  {% endif %}
+
+  {% if reserva_recien_creada %}
+  <aside class="guide-alert guide-alert--success guide-reservation-next">
+    <div>
+      <strong>{% translate "Solicitud" %} {{ reserva_fuente.codigo_reserva }} {% translate "registrada correctamente" %}</strong>
+      <span>{% translate "La reserva ya quedó guardada. Completa los apartados pedagógicos y envía esta guía a revisión; mientras sea obligatoria y no esté aprobada, el laboratorio no podrá confirmar ni ejecutar la reserva." %}</span>
+    </div>
+    <a class="guide-btn guide-btn--outline" href="{{ comprobante_url }}">{% translate "Ver comprobante" %}</a>
+  </aside>
+  {% endif %}
+
+  <form method="post" class="guide-form" enctype="multipart/form-data" novalidate data-guide-form>
+    {% csrf_token %}
+    <input type="hidden" name="formato_contenido" value="html">
+    <input type="hidden" name="version_base" value="{{ version_base }}">
+    <input type="hidden" name="guia_imagenes_token" value="{{ token_borrador }}">
+    {% for clave, html in zonas.items %}<input type="hidden" name="{{ clave }}" value="{{ html }}" data-guide-field="{{ clave }}">{% endfor %}
+    {% if form.non_field_errors or error_flujo %}<div class="guide-alert guide-alert--error">{{ form.non_field_errors }}{{ error_flujo }}</div>{% endif %}
+    {% for field in form %}{% if field.errors and field.name != 'titulo' %}<div class="guide-alert guide-alert--error">{{ field.label|ui }}: {{ field.errors|striptags }}</div>{% endif %}{% endfor %}
+
+    <section class="guide-section">
+      <div class="guide-section__heading"><span>01</span><div><h2>{% translate "Actividad vinculada" %}</h2><p>{% translate "La guía se crea sobre la actividad que luego podrá seleccionarse en una reserva." %}</p></div></div>
+      {% if not guia %}<div class="guide-field guide-field--wide">{{ form.actividad_existente.label_tag }}{{ form.actividad_existente }}{{ form.actividad_existente.errors }}</div>{% endif %}
+      <div id="newActivityFields" class="guide-grid">
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.proposito_codigo %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.subtipo_actividad %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.nombre_actividad wide=True %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.codigo_actividad %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.descripcion_actividad wide=True %}
+      </div>
+      <div class="guide-source-box">
+        <div>
+          <span class="guide-source-badge guide-source-badge--auto">{% translate "Automático" %}</span>
+          <strong>{% translate "Usar una reserva como fuente verificable" %}</strong>
+          <p>{% translate "Horario, participantes, carrera, equipos, software e insumos se copian desde lo que el usuario realmente solicitó. Si requieren cambios, deben corregirse mediante la solicitud para mantener una sola fuente verificable." %}</p>
+        </div>
+        <div class="guide-field guide-field--wide">{{ form.reserva_referencia.label_tag }}{{ form.reserva_referencia }}{% if form.reserva_referencia.help_text %}<small>{{ form.reserva_referencia.help_text }}</small>{% endif %}{{ form.reserva_referencia.errors }}</div>
+      </div>
+    </section>
+
+    <section class="guide-section">
+      <div class="guide-section__heading"><span>02</span><div><h2>{% translate "Datos generales" %}</h2><p><b>{% translate "Automáticos desde la solicitud:" %}</b> {% translate "actividad, laboratorio, asignatura, categoría, duración, participantes y responsable. Se corrigen en su origen; el documento los muestra bloqueados." %}</p></div></div>
+      <div class="guide-grid">
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.titulo wide=True %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.codigo_guia %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.asignatura %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.carrera_semestre %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.docente_responsable %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.categoria_uso %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.duracion %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.maximo_estudiantes %}
+      </div>
+      {% if not reserva_fuente %}
+      <div class="guide-grid guide-grid--four" style="margin-top:16px">
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.equipos %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.software %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.materiales %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.manejo_residuos %}
+      </div>
+      {% endif %}
+      {% if procesos_unidad %}
+      <div class="guide-grid guide-grid--four guide-editor-keep" style="margin-top:16px" data-guide-process>
+        <div class="guide-field guide-field--wide">
+          <label for="guideProcessSelect">{% translate "Proceso de la unidad" %}</label>
+          <select id="guideProcessSelect"><option value="">{% translate "Selecciona un proceso con etapas" %}</option>{% for proceso in procesos_unidad %}<option value="{{ proceso.url }}">{{ proceso.nombre }} → {{ proceso.producto }} · {{ proceso.etapas }} etapas</option>{% endfor %}</select>
+          <small>{% translate "Toma equipos, software, materiales, duración y el procedimiento paso a paso desde el proceso de la planta; después ajusta lo que necesites." %}</small>
+          <button type="button" class="guide-btn guide-btn--soft" style="margin-top:8px" data-guide-process-apply><i class="fas fa-industry" aria-hidden="true"></i> {% translate "Tomar del proceso" %}</button>
+        </div>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="guide-section guide-section--document">
+      <div class="guide-section__heading"><span>03</span><div><h2>{% translate "Contenido de la guía" %}</h2><p>{% translate "Escribe directamente sobre el formato. Solo se editan los apartados autorizados; encabezado, numeración, recursos, políticas y firmas quedan protegidos." %}</p></div></div>
+      {% if reserva_fuente %}
+      <div class="guide-managed-data">
+        <header><span class="guide-source-badge guide-source-badge--auto">{% translate "Automático" %}</span><strong>{% translate "Datos operativos de" %} {{ reserva_fuente.codigo_reserva }}</strong><small>{% translate "Para cambiarlos solicita una modificación de la reserva; la guía se volverá a sincronizar." %}</small></header>
+        <div class="guide-resource-grid">
+          <div><h4>{% translate "Equipos" %}</h4><ul>{% for item in contenido_automatico.equipos %}<li>{{ item }}</li>{% empty %}<li>{% translate "No aplica" %}</li>{% endfor %}</ul></div>
+          <div><h4>{% translate "Software y licencias" %}</h4><ul>{% for item in contenido_automatico.software %}<li>{{ item }}</li>{% empty %}<li>{% translate "No aplica" %}</li>{% endfor %}</ul></div>
+          <div><h4>{% translate "Materiales e insumos" %}</h4><ul>{% for item in contenido_automatico.materiales %}<li>{{ item }}</li>{% empty %}<li>{% translate "No aplica" %}</li>{% endfor %}</ul></div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="guide-modebar guide-editor-keep" data-guide-modebar>
+        <div class="guide-modebar__modes" role="tablist" aria-label="{% translate "Modo de la guía" %}">
+          <button type="button" class="is-on" data-guide-mode="edicion" role="tab" aria-selected="true"><i class="fas fa-pencil-alt" aria-hidden="true"></i> {% translate "Editar contenido" %}</button>
+          <button type="button" data-guide-mode="final" role="tab" aria-selected="false"><i class="fas fa-eye" aria-hidden="true"></i> {% translate "Vista final" %}</button>
+        </div>
+        {{ form.formato_procedimiento.as_hidden }}
+        <div class="guide-modebar__status" data-guide-status data-state="idle" aria-live="polite">{% if guia %}{% translate "Sin cambios" %}{% else %}{% translate "Se guarda al pulsar «Guardar borrador»" %}{% endif %}</div>
+      </div>
+      {% include 'portal/pages/unidades/guias/includes/documento.html' with modo='edicion' %}
+    </section>
+
+    <section class="guide-section">
+      <div class="guide-section__heading"><span>04</span><div><h2>{% translate "Bibliografía y materiales complementarios" %}</h2><p>{% translate "Las entradas BibTeX se presentan en estilo IEEE, numeradas [1], [2]… El apartado 10 del documento se actualiza automáticamente." %}</p></div></div>
+      <div class="guide-grid">
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.bibliografia wide=True %}
+        {% include 'portal/pages/unidades/guias/includes/campo.html' with field=form.materiales_complementarios wide=True %}
+      </div>
+      {% if imagenes_guia %}
+      <div class="guide-figures">
+        <div class="guide-figures__head"><h4>{% translate "Imágenes cargadas en esta guía" %}</h4><p>{% translate "Insértalas desde el editor con «Insertar imagen → elegir una ya cargada». Marca «Eliminar» para borrar el archivo al guardar." %}</p></div>
+        <ul class="guide-figures__list">
+          {% for imagen in imagenes_guia %}
+          <li><img src="{{ imagen.imagen.url }}" alt="{{ imagen.titulo }}"><div><strong>{% translate "Imagen" %} {{ forloop.counter }}</strong><span>{{ imagen.titulo|default:'Sin título' }}</span></div><label><input type="checkbox" name="eliminar_imagenes" value="{{ imagen.pk }}"> {% translate "Eliminar" %}</label></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <div class="guide-options">
+        <label>{{ form.permite_descarga }} <span>{{ form.permite_descarga.label }}</span></label>
+        <label>{{ form.solicita_publicacion }} <span>{{ form.solicita_publicacion.label }}</span></label>
+      </div>
+    </section>
+
+    <footer class="guide-form__footer guide-editor-keep">
+      <a class="guide-btn guide-btn--outline" href="{% if comprobante_url %}{{ comprobante_url }}{% else %}{% url 'lista_guias_practica' unidad.slug %}{% endif %}">{% translate "Cancelar" %}</a>
+      <div><span class="guide-form__pending" data-guide-pending hidden><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> {% translate "Esperando cargas de imágenes…" %}</span><button class="guide-btn guide-btn--soft" name="accion" value="guardar">{% translate "Guardar borrador" %}</button><button class="guide-btn guide-btn--primary" name="accion" value="enviar_revision">{% translate "Enviar a revisión" %}</button></div>
+    </footer>
+  </form>
+</section>
+{{ datos_autocompletado|json_script:"guideAutofillData" }}
+{{ figuras_json|json_script:"guideFigurasData" }}
+{% endblock %}
+{% block extra_scripts %}
+{{ block.super }}
+<script src="{% static 'portal/js/pages/unidades/guias/guia_editor.js' %}?v=20260916-i18n-v141"></script>
+<script>
+(function () {
+  const form = document.querySelector('[data-guide-form]');
+  const documento = document.querySelector('[data-guide-document]');
+  const status = document.querySelector('[data-guide-status]');
+  const pendingNode = document.querySelector('[data-guide-pending]');
+  const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+  let figuras = [];
+  try { figuras = JSON.parse(document.getElementById('guideFigurasData').textContent || '[]'); } catch (_e) {}
+  const guiaId = {{ guia.pk|default:'null' }};
+  const urlGuardado = '{{ url_guardado_contenido|escapejs }}';
+  let versionBase = form.querySelector('[name="version_base"]').value;
+  let sucio = false;
+  let bloqueado = false;
+  let temporizador = null;
+
+  function setStatus(texto, estado) { status.textContent = texto; status.dataset.state = estado; }
+  function sincronizarCampos() {
+    const valores = editor.valores();
+    Object.entries(valores).forEach(([campo, html]) => {
+      const input = form.querySelector(`[data-guide-field="${campo}"]`);
+      if (input) input.value = html;
+    });
+    return valores;
+  }
+
+  const editor = window.GuiaEditor.crear(documento, {
+    urlSubida: '{{ url_subida_figura|escapejs }}',
+    csrf,
+    guiaId,
+    borrador: form.querySelector('[name="guia_imagenes_token"]').value,
+    figuras,
+    modo: 'edicion',
+  });
+  editor.on('cambio', () => {
+    sincronizarCampos();
+    sucio = true;
+    if (bloqueado) return;
+    setStatus('Cambios sin guardar', 'dirty');
+    if (guiaId && urlGuardado) {
+      window.clearTimeout(temporizador);
+      temporizador = window.setTimeout(guardar, 2000);
+    }
+  });
+  editor.on('subidas', (pendientes) => { pendingNode.hidden = !pendientes; });
+  // Firmas: quien elabora siempre; revision y aprobacion cuando el autor las incluye.
+  function recogerFirmas() {
+    const firmas = {};
+    form.querySelectorAll('[data-guide-signature]').forEach((bloque) => {
+      const rol = bloque.dataset.guideSignature;
+      const activo = rol === 'elaborado' || Boolean((bloque.querySelector('input[type="checkbox"]') || {}).checked);
+      bloque.classList.toggle('is-off', !activo);
+      firmas[rol] = {
+        activo,
+        nombre: (bloque.querySelector(`[name="firma_${rol}_nombre"]`) || {}).value || '',
+        cargo: (bloque.querySelector(`[name="firma_${rol}_cargo"]`) || {}).value || '',
+        fecha: (bloque.querySelector(`[name="firma_${rol}_fecha"]`) || {}).value || '',
+      };
+    });
+    return firmas;
+  }
+  form.querySelectorAll('[data-guide-signature] input').forEach((input) => input.addEventListener(input.type === 'checkbox' ? 'change' : 'input', () => {
+    recogerFirmas();
+    sucio = true;
+    if (bloqueado) return;
+    setStatus('Cambios sin guardar', 'dirty');
+    if (guiaId && urlGuardado) {
+      window.clearTimeout(temporizador);
+      temporizador = window.setTimeout(guardar, 2000);
+    }
+  }));
+
+  function guardar() {
+    if (!guiaId || !urlGuardado || bloqueado) return;
+    const campos = sincronizarCampos();
+    setStatus('Guardando…', 'saving');
+    fetch(urlGuardado, {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({
+        campos,
+        firmas: recogerFirmas(),
+        formato_procedimiento: (form.querySelector('[name="formato_procedimiento"]') || {}).value || 'numerado',
+        version_base: versionBase,
+        borrador: form.querySelector('[name="guia_imagenes_token"]').value,
+      }),
+    })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, status: r.status, d })))
+      .then(({ ok, status: code, d }) => {
+        if (code === 409 || d.conflicto) {
+          bloqueado = true;
+          setStatus(d.error || 'Otra persona guardó una versión más reciente. Recarga para continuar.', 'error');
+          return;
+        }
+        if (!ok || !d.success) throw new Error(d.error || 'Error al guardar');
+        versionBase = d.version;
+        form.querySelector('[name="version_base"]').value = versionBase;
+        sucio = false;
+        setStatus(`Guardado ${d.guardado_en}`, 'saved');
+        if (d.avisos && d.avisos.length) setStatus(`Guardado ${d.guardado_en} · ${d.avisos.length} elemento(s) no permitido(s) se descartaron`, 'saved');
+      })
+      .catch((error) => setStatus(`Error al guardar: ${error.message}. Tus cambios siguen en pantalla.`, 'error'));
+  }
+
+  document.querySelectorAll('[data-guide-mode]').forEach((boton) => boton.addEventListener('click', () => {
+    editor.modo(boton.dataset.guideMode);
+    document.querySelectorAll('[data-guide-mode]').forEach((b) => { b.classList.toggle('is-on', b === boton); b.setAttribute('aria-selected', b === boton ? 'true' : 'false'); });
+  }));
+  editor.on('formato', (formato) => { const campo = form.querySelector('[name="formato_procedimiento"]'); if (campo) campo.value = formato; });
+  const tituloInput = document.getElementById('id_titulo');
+  const tituloDoc = documento.querySelector('[data-guide-auto="title"]');
+  if (tituloInput && tituloDoc) tituloInput.addEventListener('input', () => { tituloDoc.textContent = tituloInput.value || 'Guía de práctica'; });
+
+  // Bibliografia: mismo formateo del servidor, en el apartado 10 del documento.
+  const referencias = documento.querySelector('[data-guide-references]');
+  let temporizadorBiblio = null;
+  function refrescarReferencias() {
+    const texto = document.getElementById('id_bibliografia')?.value || '';
+    const materiales = document.getElementById('id_materiales_complementarios')?.value || '';
+    fetch('{% url "formatear_bibliografia_guia" %}', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ texto, materiales }),
+    }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (!d || !d.success || !referencias) return;
+      const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const items = (d.referencias || []).map((r) => `<li>${esc(r)}</li>`).join('') || '<li class="is-empty">No registrada</li>';
+      const mats = (d.materiales || []).map((m) => `<li>${m.url ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.titulo)}</a> <small>${esc(m.url)}</small>` : esc(m.titulo)}</li>`).join('');
+      referencias.innerHTML = `<ol class="guide-references">${items}</ol>${mats ? `<h4>Materiales complementarios</h4><ul class="guide-materials">${mats}</ul>` : ''}`;
+    }).catch(() => {});
+  }
+  // Materiales y bibliografia se editan en su apartado del documento (10 y 11).
+  document.querySelectorAll('[data-guide-source]').forEach((zona) => {
+    const campo = document.getElementById(`id_${zona.dataset.guideSource}`)?.closest('.guide-field');
+    if (!campo) return;
+    zona.appendChild(campo);
+    zona.hidden = false;
+  });
+  ['id_bibliografia', 'id_materiales_complementarios'].forEach((id) => document.getElementById(id)?.addEventListener('input', () => { window.clearTimeout(temporizadorBiblio); temporizadorBiblio = window.setTimeout(refrescarReferencias, 600); }));
+
+  form.addEventListener('submit', (event) => {
+    if (editor.pendientes() > 0) { event.preventDefault(); pendingNode.hidden = false; setStatus('Espera a que terminen las cargas de imágenes.', 'error'); return; }
+    window.clearTimeout(temporizador);
+    sincronizarCampos();
+    sucio = false;
+  });
+  window.addEventListener('beforeunload', (event) => {
+    if (!sucio) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  // Actividad y reserva de referencia (datos generales).
+  const select = document.getElementById('id_actividad_existente');
+  const reservation = document.getElementById('id_reserva_referencia');
+  const fields = document.getElementById('newActivityFields');
+  const dataNode = document.getElementById('guideAutofillData');
+  let sources = { actividades: {}, reservas: {} };
+  try { sources = JSON.parse(dataNode?.textContent || '{}'); } catch (_error) {}
+  const mapping = ['titulo', 'codigo_guia', 'asignatura', 'carrera_semestre', 'docente_responsable', 'categoria_uso', 'duracion', 'maximo_estudiantes', 'equipos', 'software', 'materiales'];
+  function setField(name, value, overwrite) {
+    const input = document.getElementById(`id_${name}`);
+    if (!input || (!overwrite && input.value.trim())) return;
+    input.value = Array.isArray(value) ? value.join('\n') : (value ?? '');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function applySource(source, overwrite = true) {
+    if (!source) return;
+    mapping.forEach((name) => setField(name, source[name], overwrite));
+    setField('manejo_residuos', source.manejo_residuos, overwrite);
+  }
+  function filterReservations(activityId) {
+    if (!reservation) return;
+    Array.from(reservation.options).forEach((option) => {
+      if (!option.value) return;
+      const source = sources.reservas?.[option.value];
+      option.disabled = Boolean(activityId && String(source?.actividad_id) !== String(activityId));
+    });
+  }
+  function update() {
+    if (fields) fields.classList.toggle('guide-is-muted', Boolean(select?.value));
+    filterReservations(select?.value || '');
+  }
+  // El proceso de la planta llena recursos, duración y procedimiento; el docente ajusta.
+  const processSelect = document.getElementById('guideProcessSelect');
+  document.querySelector('[data-guide-process-apply]')?.addEventListener('click', async () => {
+    const url = processSelect?.value;
+    if (!url) { processSelect?.focus(); return; }
+    try {
+      const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('No fue posible leer el proceso.');
+      const data = await response.json();
+      ['equipos', 'software', 'materiales'].forEach((name) => setField(name, data[name], true));
+      setField('duracion', data.duracion, false);
+      if (data.procedimiento_html && (editor.vacio('procedimiento') || window.confirm('El procedimiento ya tiene contenido. ¿Reemplazarlo con las etapas del proceso?'))) {
+        editor.establecer('procedimiento', data.procedimiento_html);
+      }
+      if (data.seguridad_html && editor.vacio('medidas_seguridad')) editor.establecer('medidas_seguridad', data.seguridad_html);
+      if (data.resultados_html && editor.vacio('resultados_esperados')) editor.establecer('resultados_esperados', data.resultados_html);
+    } catch (error) {
+      window.alert(error.message);
+    }
+  });
+  select?.addEventListener('change', () => { if (reservation) reservation.value = ''; applySource(sources.actividades?.[select.value]); update(); });
+  reservation?.addEventListener('change', () => { const source = sources.reservas?.[reservation.value]; if (source && select) select.value = String(source.actividad_id); applySource(source); update(); });
+  update();
+  {% if not guia %}
+  if (reservation?.value) applySource(sources.reservas?.[reservation.value], false);
+  else if (select?.value) applySource(sources.actividades?.[select.value], false);
+  {% endif %}
+})();
+</script>
+{% endblock %}

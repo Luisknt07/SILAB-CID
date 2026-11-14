@@ -1,0 +1,156 @@
+{% load static i18n idiomas %}
+
+<div class="modal fade reservation-modal reservation-history-modal" id="misReservasModal" tabindex="-1" role="dialog" aria-labelledby="misReservasModalLabel" aria-hidden="true" data-hora-apertura="{{ ventana_atencion_reserva.apertura }}" data-hora-cierre="{{ ventana_atencion_reserva.cierre }}">
+  <div class="modal-dialog reservation-history-modal__dialog" role="document">
+    <div class="modal-content reservation-history-shell">
+      <header class="reservation-header reservation-history-header">
+        <span class="reservation-header__tech" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <div class="reservation-header__icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></div>
+        <div class="reservation-header__copy">
+          <h2 id="misReservasModalLabel">{% translate "Mis reservas" %}</h2>
+          <p>{{ unidad.nombre }}</p>
+        </div>
+        <button type="button" class="reservation-close" data-dismiss="modal" aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+      </header>
+
+      <div class="reservation-history-toolbar" aria-label="{% translate "Filtros de reservas" %}">
+        <label>
+          <span>{% translate "Estado" %}</span>
+          <select class="form-control" id="filtroEstadoReservas" data-ui-change="filtrarReservas">
+            <option value="">{% translate "Todos los estados" %}</option>
+            <option value="pendiente">{% translate "Pendiente" %}</option>
+            <option value="confirmada">{% translate "Confirmada" %}</option>
+            <option value="en_proceso">{% translate "En proceso" %}</option>
+            <option value="completada">{% translate "Completada" %}</option>
+            <option value="rechazada">{% translate "Rechazada" %}</option>
+            <option value="cancelada">{% translate "Cancelada" %}</option>
+            <option value="no_presentado">{% translate "No se presentó" %}</option>
+            <option value="no_atendida">{% translate "No atendida por la unidad" %}</option>
+            <option value="vencida">{% translate "Vencida sin aprobación" %}</option>
+          </select>
+        </label>
+        <label>
+          <span>{% translate "Buscar reserva" %}</span>
+          <span class="reservation-history-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="search" class="form-control" id="buscarReserva" placeholder="{% translate "Equipo, software, servicio, código o fecha" %}" data-ui-input="buscarReservas">
+          </span>
+        </label>
+      </div>
+
+      <div class="modal-body reservation-history-body">
+        <section class="reservation-history-profile" aria-label="{% translate "Datos del solicitante" %}">
+          <span class="reservation-history-profile__icon"><i class="fas fa-user" aria-hidden="true"></i></span>
+          <div>
+            <span>{% translate "Solicitante principal" %}</span>
+            <strong>{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}{% translate "Usuario anónimo" %}{% endif %}</strong>
+            <small>{{ user.email|default:"Correo no registrado" }} · {{ unidad.nombre }}</small>
+          </div>
+          <button type="button" class="reservation-button reservation-button--secondary" data-ui-click="abrirNuevaReserva"><i class="fas fa-calendar-plus" aria-hidden="true"></i> {% translate "Nueva reserva" %}</button>
+        </section>
+
+        <div id="loadingReservas" class="reservation-history-loading hublab-is-hidden" role="status">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <div><strong>{% translate "Cargando tus reservas" %}</strong><small>{% translate "Estamos consultando el historial de esta unidad." %}</small></div>
+        </div>
+
+        <section id="reservasContainer" class="my-reservations-calendar hublab-is-hidden" aria-label="{% translate "Calendario de mis reservas" %}">
+          <aside class="my-reservations-calendar__sidebar">
+            <section class="my-reservations-month" aria-label="{% translate "Buscar una fecha" %}">
+              <div class="my-reservations-panel-heading">
+                <span><i class="fas fa-calendar-alt" aria-hidden="true"></i> {% translate "Buscar fecha" %}</span>
+                <small>{% translate "Los números indican tus reservas" %}</small>
+              </div>
+              <div class="my-reservations-month__nav">
+                <button type="button" id="misReservasMesAnterior" aria-label="{% translate "Mes anterior" %}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+                <strong id="misReservasMesTitulo">{% translate "Mes" %}</strong>
+                <button type="button" id="misReservasMesSiguiente" aria-label="{% translate "Mes siguiente" %}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+              </div>
+              <div class="my-reservations-month__weekdays" aria-hidden="true"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+              <div id="misReservasMesDias" class="my-reservations-month__days"></div>
+            </section>
+
+            <section id="misReservasListado" class="my-reservations-list" aria-label="{% translate "Mis solicitudes" %}" aria-live="polite">
+              <div class="my-reservations-panel-heading">
+                <span><i class="fas fa-list-ul" aria-hidden="true"></i> {% translate "Mis solicitudes" %}</span>
+                <small>{% translate "Pulsa una para ubicarla" %}</small><button type="button" data-my-list-all hidden>{% translate "Ver todas" %}</button>
+              </div>
+              <div class="my-reservations-list__items" data-reservations-list></div>
+            </section>
+          </aside>
+
+          <section class="my-reservations-week" aria-label="{% translate "Agenda semanal de mis reservas" %}">
+            <header class="my-reservations-week__toolbar">
+              <button type="button" id="misReservasSemanaAnterior" aria-label="{% translate "Semana anterior" %}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+              <div>
+                <span>{% translate "Agenda semanal" %}</span>
+                <strong id="misReservasSemanaTitulo">{% translate "Semana" %}</strong>
+              </div>
+              <div class="my-reservations-week__actions">
+                <button type="button" id="misReservasSemanaSiguiente" aria-label="{% translate "Semana siguiente" %}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                <button type="button" id="misReservasHoy"><i class="fas fa-calendar-day" aria-hidden="true"></i> {% translate "Hoy" %}</button>
+                <div class="upec-agenda-views" role="group" aria-label="{% translate 'Vista del calendario' %}"><button type="button" data-my-agenda-mode="day" aria-pressed="false">{% translate "Día" %}</button><button type="button" data-my-agenda-mode="week" aria-pressed="true">{% translate "Semana" %}</button></div>
+              </div>
+            </header>
+            <div class="my-reservations-legend" aria-label="{% translate "Estados de las reservas" %}">
+              <span><i class="is-pending"></i>{% translate "Pendiente" %}</span>
+              <span><i class="is-confirmed"></i>{% translate "Confirmada" %}</span>
+              <span><i class="is-progress"></i>{% translate "En proceso" %}</span>
+              <span><i class="is-completed"></i>{% translate "Completada" %}</span>
+              <span><i class="is-rejected"></i>{% translate "Rechazada" %}</span>
+              <span><i class="is-cancelled"></i>{% translate "Cancelada" %}</span>
+            </div>
+            <div class="my-reservations-week__heading-viewport"><div id="misReservasSemanaCabecera" class="my-reservations-week__days"></div></div>
+            <div id="misReservasSemanaCuerpo" class="my-reservations-week__viewport"></div>
+          </section>
+        </section>
+
+        <section id="noReservasMessage" class="reservation-history-empty hublab-is-hidden">
+          <span><i class="fas fa-calendar-check" aria-hidden="true"></i></span>
+          <h3>{% translate "Aún no tienes reservas en esta unidad" %}</h3>
+          <p>{% translate "Cuando realices una solicitud podrás consultar aquí su estado, horario y recursos asociados." %}</p>
+          <button type="button" class="reservation-button reservation-button--secondary" data-ui-click="abrirNuevaReserva"><i class="fas fa-calendar-plus" aria-hidden="true"></i> {% translate "Crear mi primera reserva" %}</button>
+        </section>
+
+      </div>
+
+        <!-- Expediente completo: ventana sobre la agenda, sin salir del historial. -->
+      <section class="my-reservations-record" id="misReservasExpediente" hidden>
+        <button type="button" class="my-reservations-record__scrim" data-record-close tabindex="-1" aria-label="{% translate "Cerrar el expediente" %}"></button>
+        <div class="my-reservations-record__dialog" role="dialog" aria-modal="true" aria-labelledby="misReservasExpedienteTitulo">
+        <header class="my-reservations-record__header">
+          <div class="my-reservations-record__identity">
+            <span class="reservation-history-status" data-record-status>{% translate "Estado" %}</span>
+            <small data-record-code>{% translate "Código" %}</small>
+            <h3 id="misReservasExpedienteTitulo" data-record-title>{% translate "Reserva" %}</h3>
+            <p data-record-when>{% translate "Fecha y horario" %}</p>
+          </div>
+          <button type="button" class="my-reservations-record__close" data-record-close aria-label="{% translate "Cerrar el expediente" %}"><i class="fas fa-times" aria-hidden="true"></i> {% translate "Cerrar" %}</button>
+        </header>
+        <nav class="my-reservations-record__tabs" role="tablist" aria-label="{% translate "Secciones del expediente" %}">
+          <button type="button" class="is-on" data-record-tab="seguimiento" role="tab" aria-selected="true"><i class="fas fa-route" aria-hidden="true"></i> {% translate "Seguimiento" %}</button>
+          <button type="button" data-record-tab="detalle" role="tab" aria-selected="false"><i class="fas fa-list-ul" aria-hidden="true"></i> {% translate "Detalle" %}</button>
+          <button type="button" data-record-tab="guia" role="tab" aria-selected="false" hidden><i class="fas fa-book-open" aria-hidden="true"></i> {% translate "Guía de práctica" %}</button>
+          <button type="button" data-record-tab="documentos" role="tab" aria-selected="false"><i class="fas fa-file-alt" aria-hidden="true"></i> {% translate "Comprobante" %}</button>
+          <button type="button" data-record-tab="cambios" role="tab" aria-selected="false"><i class="fas fa-comments" aria-hidden="true"></i> {% translate "Cambios y mensajes" %}</button>
+        </nav>
+        <div class="my-reservations-record__body">
+          <section data-record-panel="seguimiento" role="tabpanel"></section>
+          <section data-record-panel="detalle" role="tabpanel" hidden></section>
+          <section data-record-panel="guia" role="tabpanel" hidden></section>
+          <section data-record-panel="documentos" role="tabpanel" hidden></section>
+          <section data-record-panel="cambios" role="tabpanel" hidden></section>
+        </div>
+        </div>
+      </section>
+
+      <footer class="reservation-footer reservation-history-footer">
+        <span><b id="totalReservas">0</b> {% translate "solicitudes encontradas" %}</span>
+        <div>
+          <button type="button" class="reservation-button reservation-button--ghost" data-ui-click="actualizarReservas"><i class="fas fa-sync-alt" aria-hidden="true"></i> {% translate "Actualizar" %}</button>
+          <button type="button" class="reservation-button reservation-button--secondary" data-dismiss="modal">{% translate "Cerrar" %}</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+</div>

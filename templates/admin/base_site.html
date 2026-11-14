@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n marca %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'portal/css/components/idiomas.css' %}?v=20260921-por-unidad-v219">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  <link rel="stylesheet" href="{% static 'css/admin_custom.css' %}">
+  <link rel="stylesheet" href="{% static 'admin/css/citt_admin.css' %}?v=20261003-acceso-v1">
+  <script defer src="{% static 'admin/js/citt_admin.js' %}?v=20260929-por-unidad-v1"></script>
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/components/panel_trabajo_assets.html' %}
+{% endblock %}
+
+{% block branding %}
+<style>.citt-admin-brand__mark picture{display:flex;width:100%;height:100%;align-items:center}.citt-admin-brand__mark img{width:100%;max-height:39px}</style>
+  <div id="grp-branding" class="citt-admin-brand">
+    <a href="{% url 'admin:index' %}" aria-label="{% translate 'Ir al inicio del administrador' %}">
+      <span class="citt-admin-brand__mark" title="{{ identidad_institucion.siglas }}">{% if identidad_institucion.imagenes %}{% marca_institucional identidad_institucion 'oscuro' %}{% else %}{{ identidad_institucion.siglas }}{% endif %}</span>
+      <span class="citt-admin-brand__copy"><strong>{{ identidad_producto.nombre_corto }}</strong><small>{% translate 'Administración institucional' %}</small></span>
+    </a>
+  </div>
+{% endblock %}
+
+{% block nav-global %}{{ block.super }}{% include 'portal/components/navegacion/selector_idioma.html' %}{% endblock %}
+
+{% block footer %}{{ block.super }}{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}{% endblock %}

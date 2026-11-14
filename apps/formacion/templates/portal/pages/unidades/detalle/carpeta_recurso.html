@@ -1,0 +1,29 @@
+{% load i18n %}<section class="unit-resource-subfolder unit-resource-subfolder--custom">
+  <button class="unit-resource-group-toggle" type="button" data-toggle="collapse" data-target="#carpetaContenido{{ carpeta.pk }}" aria-expanded="false" aria-controls="carpetaContenido{{ carpeta.pk }}">
+    <i class="fas fa-folder"></i><span>{{ carpeta.nombre }}</span><b>{{ carpeta.total_recursos }}</b><i class="simple-icon-arrow-down"></i>
+  </button>
+  <div id="carpetaContenido{{ carpeta.pk }}" class="collapse">
+    {% if 'carpeta' in ediciones %}<div class="unit-resource-tools">
+      <a href="{% url 'editar_registro' unidad.slug 'carpeta' carpeta.pk %}" data-editar-ficha data-editar-titulo="{{ carpeta.nombre }}"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Renombrar" %}</a>
+      {% if subir_archivo_url %}<a href="{{ subir_archivo_url }}?unidad={{ unidad.pk }}&amp;carpeta={{ carpeta.pk }}" target="_blank" rel="noopener"><i class="fas fa-upload" aria-hidden="true"></i> {% translate "Subir archivo" %}</a>{% endif %}
+      {% if not carpeta.carpeta_padre_id %}<a href="{% url 'editar_registro' unidad.slug 'carpeta' 'nuevo' %}?padre={{ carpeta.pk }}" data-editar-ficha data-editar-titulo="{% translate 'Nueva subcarpeta' %}"><i class="fas fa-folder-plus" aria-hidden="true"></i> {% translate "Subcarpeta" %}</a>{% endif %}
+    </div>{% endif %}
+    {% if carpeta.recursos_publicos %}<ul class="unit-resource-list">
+      {% for recurso in carpeta.recursos_publicos %}
+      {% firstof recurso.nombre_visualizador recurso.nombre_original recurso.archivo.name recurso.url recurso.nombre as nombre_archivo_visual %}
+      <li class="unit-resource-item">
+        <button type="button" class="recurso-btn project-detail-resource-button" data-id="recurso-unidad-{{ recurso.pk }}" title="{{ recurso.nombre }}" {% if recurso.acceso_restringido %} data-ui-click="mostrarModalRestringido" data-ui-arg0="{{ recurso.nombre }}" data-ui-arg1="{{ recurso.pk }}" {% elif recurso.es_zip %} data-ui-click="handleZipResource" data-ui-arg0="{{ recurso.url_contenido }}" data-ui-arg1="{{ nombre_archivo_visual }}" data-ui-arg2="{{ recurso.url_contenido }}" data-ui-arg3="false" data-ui-resource="recurso-unidad-{{ recurso.pk }}" {% else %} data-ui-click="replaceContent" data-ui-arg0="{{ recurso.url_contenido }}{% if recurso.es_sitio_externo %}?visor=1{% endif %}" data-ui-arg1="{{ nombre_archivo_visual }}" data-ui-arg2="false" data-ui-resource="recurso-unidad-{{ recurso.pk }}" {% endif %}>
+          <i class="{% if recurso.acceso_restringido %}fas fa-lock{% elif recurso.url %}fas fa-external-link-alt{% else %}fas fa-file{% endif %}"></i><span class="unit-resource-name"><strong>{{ recurso.nombre|truncatechars:38 }}</strong></span>{% if puede_gestionar_unidad %}<i class="unit-content-status is-publicada" title="{{ recurso.get_visibilidad_display }}"></i>{% endif %}<i class="{% if recurso.acceso_restringido %}simple-icon-lock{% else %}simple-icon-arrow-right{% endif %}"></i>
+        </button>
+        {% if 'archivo' in ediciones %}<a class="unit-resource-download unit-resource-edit" href="{% url 'editar_registro' unidad.slug 'archivo' recurso.pk %}" data-editar-ficha data-editar-titulo="{{ recurso.nombre }}" title="{% translate 'Editar' %} {{ recurso.nombre }}"><i class="fas fa-pen" aria-hidden="true"></i></a>{% endif %}
+        {% if recurso.descargar and recurso.archivo and not recurso.es_microproyecto and not recurso.acceso_restringido %}{% if not recurso.es_zip or recurso.tipo_adjunto == 'dataset' and recurso.seguridad_verificada %}<a class="unit-resource-download" href="{{ recurso.url_contenido }}?download=1" download title="Descargar {{ recurso.nombre }}"><i class="fas fa-download"></i></a>{% endif %}{% endif %}
+      </li>
+      {% endfor %}
+    </ul>{% endif %}
+    {% if carpeta.subcarpetas_publicas %}<div class="unit-resource-groups unit-resource-groups--nested">
+      {% for hija in carpeta.subcarpetas_publicas %}
+        {% include 'portal/pages/unidades/detalle/carpeta_recurso.html' with carpeta=hija %}
+      {% endfor %}
+    </div>{% endif %}
+  </div>
+</section>

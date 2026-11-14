@@ -1,0 +1,64 @@
+.git
+.github
+.agents
+.codex
+.codex-*
+.venv
+.venv_linux
+.uv-cache
+.ruff_cache
+__pycache__
+*.pyc
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Los kits y herramientas pueden tener entornos locales anidados. Nunca
+# deben copiarse al runtime, aunque no estén versionados en Git.
+**/.git
+**/.agents
+**/.codex
+**/.codex-*
+**/.aws
+**/.ssh
+**/.qa
+**/.venv
+**/.venv_linux
+**/venv
+**/node_modules
+**/.uv-cache
+**/.ruff_cache
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
+**/.secreto-local
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+
+# Datos de ejecucion: adjuntos, estaticos recopilados, caches, registros,
+# salidas, respaldos y marca privada viven en volumenes, no en la imagen.
+var
+
+# Artefactos locales antiguos y salidas de pruebas: tampoco son código runtime.
+tmp
+output
+media
+backups
+static
+staticfiles
+logs
+.pytest_cache
+.coverage
+htmlcov
+data_backup*.json
+webcitt_data.json
+db.sqlite3
+**/*.sqlite3
+**/*.dump

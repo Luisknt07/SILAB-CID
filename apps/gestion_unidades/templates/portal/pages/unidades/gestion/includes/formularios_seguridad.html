@@ -1,0 +1,41 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="requisito_acceso" data-reload-view="seguridad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="requisito_acceso"><input type="hidden" name="registro_id"><input type="hidden" name="aplica_a_csv">
+  <header><span>{% translate "SEGURIDAD Y ACCESO" %}</span><h3>{% translate "Requisito de ingreso" %}</h3><p>{% translate "Lo que la unidad exige para entrar, a quién aplica y cuándo se comprueba. Lo obligatorio se avisa al reservar y detiene el inicio de la sesión si no se cumple." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Código" %}<input name="codigo" maxlength="30" placeholder="{% translate "LAC-ACC-INDUCCION" %}" required></label>
+    <label>{% translate "Nombre" %}<input name="nombre" maxlength="120" required></label>
+    <label>{% translate "Tipo" %}<select name="tipo">{% for codigo, nombre in tipos_requisito %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select><small>{% translate "Inducción, sanitario y documento se habilitan por persona con vigencia; protección y restricciones se verifican en la puerta." %}</small></label>
+    <label>{% translate "Cuándo se comprueba" %}<select name="momento">{% for codigo, nombre in momentos_requisito %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Vigencia (días)" %}<input type="number" name="vigencia_dias" min="1" step="1"><small>{% translate "Solo para lo habilitable; vacío es sin vencimiento." %}</small></label>
+    <label>{% translate "Orden" %}<input type="number" name="orden" min="0" step="1" value="0"></label>
+    <label>{% translate "Protección que entrega la unidad" %}<select name="consumible_id"><option value="">{% translate "Ninguna: la trae cada persona" %}</option>{% for consumible in consumibles_proteccion %}<option value="{{ consumible.pk }}">{{ consumible.nombre }} ({{ consumible.unidad_medida }})</option>{% endfor %}</select><small>{% translate "Se suma por persona a la práctica por proceso y sale del inventario." %}</small></label>
+    <label>{% translate "Cantidad por persona" %}<input type="number" name="cantidad_por_persona" min="0.001" step="0.001" value="1"></label>
+    <label class="is-wide">{% translate "Descripción o lista que se verifica" %}<textarea name="descripcion" rows="3" placeholder="{% translate "Sin joyas ni relojes; sin comida ni bebidas; celular fuera de la línea; cabello recogido bajo la cofia…" %}"></textarea></label>
+  </div>
+  <fieldset class="unit-console-operation__checks" data-access-categories><legend>{% translate "A quién aplica (sin marcar ninguna, a todas las personas)" %}</legend>{% for codigo, nombre in categorias_persona %}<label><input type="checkbox" name="aplica_a" value="{{ codigo }}"> {{ nombre }}</label>{% endfor %}<label><input type="checkbox" name="obligatorio" value="1" checked> {% translate "Obligatorio" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar requisito" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="habilitacion_acceso" data-reload-view="seguridad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="habilitacion_acceso"><input type="hidden" name="registro_id">
+  <header><span>{% translate "HABILITACIÓN" %}</span><h3>{% translate "Habilitar a una persona" %}</h3><p>{% translate "Una inducción dictada, un certificado presentado o una autorización. Queda vigente los días que el requisito declara; una habilitación no se edita: se retira y se registra la nueva." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Persona" %}<input name="persona" maxlength="150" placeholder="{% translate "usuario institucional, correo o cédula" %}" required></label>
+    <label>{% translate "Requisito" %}<select name="requisito_id" required><option value="">{% translate "Selecciona" %}</option>{% for requisito in requisitos_habilitables %}<option value="{{ requisito.pk }}">{{ requisito.nombre }}{% if requisito.vigencia_dias %} · {{ requisito.vigencia_dias }} {% translate "días" %}{% endif %}</option>{% endfor %}</select></label>
+    <label>{% translate "Fecha en que se otorga" %}<input type="date" name="fecha" value="{{ hoy_seguridad|date:'Y-m-d' }}"></label>
+    <label>{% translate "Vence" %}<input type="date" name="vence"><small>{% translate "Vacío: se calcula con la vigencia del requisito." %}</small></label>
+    <label>{% translate "Origen" %}<select name="origen">{% for codigo, nombre in origenes_habilitacion %}<option value="{{ codigo }}"{% if codigo == 'manual' %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Documento" %}<input name="documento" maxlength="120" placeholder="{% translate "Número del certificado o carné" %}"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-user-times"></i> {% translate "Retirar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-user-check"></i> {% translate "Registrar habilitación" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="ingreso" data-reload-view="seguridad" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="ingreso"><input type="hidden" name="registro_id"><input type="hidden" name="reserva_id"><input type="hidden" name="codigo_reserva"><input type="hidden" name="personas"><input type="hidden" name="personas_ids">
+  <header><span>{% translate "CONTROL DE INGRESO" %}</span><h3 data-access-title>{% translate "Ingreso de la sesión" %}</h3><p>{% translate "Persona por persona: habilitaciones al día, protección puesta y restricciones cumplidas. Quien no cumple queda como «no ingresa» con el motivo; la sesión no se inicia sin al menos un ingreso." %}</p></header>
+  <div class="unit-console-operation__access-rows" data-access-rows></div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-door-open"></i> {% translate "Registrar ingreso" %}</button></footer>
+</form>

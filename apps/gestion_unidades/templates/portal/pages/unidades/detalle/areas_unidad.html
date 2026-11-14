@@ -1,0 +1,58 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Áreas y equipos" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce ficha area">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{% translate "Áreas y equipos de la unidad" %}</span>
+      <h1>{{ unidad.nombre }}</h1>
+      <ul class="conoce__datos">
+        <li><i class="fas fa-th-large" aria-hidden="true"></i>{{ infraestructura.total_areas }} área{{ infraestructura.total_areas|pluralize }}</li>
+        <li><i class="fas fa-cogs" aria-hidden="true"></i>{{ infraestructura.total_equipos }} equipo{{ infraestructura.total_equipos|pluralize }}</li>
+      </ul>
+    </div>
+    {% if ver_documento_url %}<div class="conoce__portada-acciones">
+      <a class="conoce__boton" href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="{% translate "Áreas y equipos" %} · {{ unidad.nombre }}"><i class="fas fa-eye" aria-hidden="true"></i> {% translate "Ver el documento" %}</a>
+      <a class="conoce__boton is-principal" href="{{ descargar_documento_url }}" download><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Descargar documento" %}</a>
+    </div>{% endif %}
+  </header>
+
+  {% if infraestructura.areas %}
+  <section class="conoce__seccion area__primera">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Dónde se trabaja" %}</span><h2>{% translate "Las áreas" %}</h2></header>
+    <div class="area__tarjetas">
+      {% for area in infraestructura.areas %}<a class="area__tarjeta" href="{{ area.url }}" data-aparecer>
+        <span class="area__tarjeta-foto"{% if area.espacio.imagen_propia_url %} style="background-image: url('{{ area.espacio.imagen_propia_url }}')"{% endif %}><i class="{{ area.icono }}" aria-hidden="true"></i></span>
+        <span class="area__tarjeta-datos">
+          <small>{{ area.espacio.get_tipo_display|ui }}{% if area.espacio.capacidad %} · {% translate "hasta" %} {{ area.espacio.capacidad }} persona{{ area.espacio.capacidad|pluralize }}{% endif %}</small>
+          <strong>{{ area.espacio.nombre }}</strong>
+          {% if area.espacio.descripcion_publica %}<span>{{ area.espacio.descripcion_publica|truncatewords:22 }}</span>{% endif %}
+          <em><i class="fas fa-cogs" aria-hidden="true"></i>{{ area.equipos|length }} equipo{{ area.equipos|length|pluralize }}{% if area.responsable %} · <i class="fas fa-user" aria-hidden="true"></i>{{ area.responsable.nombre_publico }}{% endif %}</em>
+        </span>
+      </a>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if infraestructura.sin_area %}
+  <section class="conoce__seccion{% if not infraestructura.areas %} area__primera{% endif %}" id="sin-area">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Inventario" %}</span><h2>{% if infraestructura.areas %}{% translate "Equipos sin área asignada" %}{% else %}{% translate "Equipos de la unidad" %}{% endif %}</h2></header>
+    <div class="area__equipos">{% for unidad_equipo in infraestructura.sin_area %}{% include 'portal/pages/unidades/detalle/includes/tarjeta_equipo.html' %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if not infraestructura.areas and not infraestructura.sin_area %}<section class="conoce__seccion area__primera"><p class="ficha__nota">{% translate "La unidad todavía no publica áreas ni equipos." %}</p></section>{% endif %}
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Escáner de equipos" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/escaner_equipos.css' %}?v=20261002-escaner-v1">
+  {% include 'portal/components/marco_incrustado.html' %}
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+{% comment %}
+El escáner de la página de la unidad: se lee la etiqueta o el QR; si el equipo es de la unidad se abre su
+ficha en el visor, si es de otra se muestra en un recuadro con la opción de ir a esa unidad, y si no está
+se avisa que no existe.
+{% endcomment %}
+<body class="conoce escaner">
+  <header class="conoce__portada escaner__portada">
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Equipos y fichas técnicas" %} · {{ unidad.nombre }}</span>
+      <h1>{% translate "Escáner de equipos" %}</h1>
+      <p>{% translate "Apunta la cámara a la etiqueta de bodega o al QR pegado en el equipo. Si es de esta unidad se abre su ficha; si es de otra, verás su información y podrás ir a esa unidad." %}</p>
+    </div>
+  </header>
+
+  <main class="escaner__cuerpo">
+    <section class="escaner__lectura" aria-label="{% translate "Lectura" %}">
+      <div class="escaner__visor" data-visor>
+        <video data-video playsinline muted></video>
+        <span class="escaner__mira" aria-hidden="true"></span>
+        <p class="escaner__estado" data-estado aria-live="polite">{% translate "Pulsa «Activar cámara» o lee una foto de la etiqueta." %}</p>
+      </div>
+      <div class="escaner__acciones">
+        <button type="button" class="conoce__boton is-principal" data-activar><i class="fas fa-camera" aria-hidden="true"></i> {% translate "Activar cámara" %}</button>
+        <button type="button" class="conoce__boton" data-detener hidden><i class="fas fa-stop" aria-hidden="true"></i> {% translate "Detener" %}</button>
+        <label class="conoce__boton"><i class="fas fa-image" aria-hidden="true"></i> {% translate "Leer una foto" %}<input type="file" accept="image/*" capture="environment" data-foto hidden></label>
+      </div>
+      <form class="escaner__manual" data-manual>
+        <label for="escaner-codigo">{% translate "O escribe el código" %}</label>
+        <div><input id="escaner-codigo" autocomplete="off" placeholder="{{ prefijo }}-37881242" data-codigo><button type="submit" class="conoce__boton is-principal"><i class="fas fa-search" aria-hidden="true"></i><span class="escaner__oculto">{% translate "Buscar" %}</span></button></div>
+      </form>
+    </section>
+
+    <section class="escaner__no-existe" data-no-existe hidden aria-live="polite">
+      <i class="fas fa-search-minus" aria-hidden="true"></i>
+      <div>
+        <h2>{% translate "El equipo no existe" %}</h2>
+        <p>{% translate "No hay ningún equipo registrado con el código" %} <strong data-codigo-buscado></strong>. {% translate "Revisa la lectura o escribe el código de la etiqueta." %}</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="escaner__modal" data-modal aria-labelledby="escaner-modal-titulo">
+    <button type="button" class="escaner__cerrar" data-cerrar aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+    <div data-modal-contenido></div>
+  </dialog>
+
+  <script>
+    window.ESCANER = {
+      buscar: "{% url 'escaner_buscar' unidad.slug %}",
+      zxing: "{{ zxing }}",
+      unidad: "{{ unidad.nombre|escapejs }}",
+    };
+  </script>
+  <script src="{% static 'portal/js/components/lectura_codigos.js' %}?v=20261002-lectura-v1"></script>
+  <script src="{% static 'portal/js/pages/unidades/escaner_equipos.js' %}?v=20261002-escaner-v1"></script>
+</body>
+</html>

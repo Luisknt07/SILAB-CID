@@ -1,0 +1,6 @@
+
+{% load i18n idiomas static %}
+<link rel="stylesheet" href="{% static 'portal/css/components/documentos_acciones.css' %}?v=20261018-documentos-modal-2">
+<a class="documento-accion is-pdf" href="{{ ver_documento_url }}" data-ver-pdf data-pdf-titulo="{% firstof documento_titulo titulo unidad.nombre 'Documento institucional' %}" data-pdf-descarga="{{ descargar_documento_url }}" aria-label="{% translate 'Abrir documento' %} · {% firstof documento_titulo titulo unidad.nombre 'Documento institucional' %}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% translate "Ver documento" %}</a>
+<a class="documento-accion is-borrador" href="{{ descargar_documento_url }}" download><i class="fas fa-download" aria-hidden="true"></i> {% translate "Descargar documento" %}</a>
+{% if not documento_pdf %}{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}{% endif %}

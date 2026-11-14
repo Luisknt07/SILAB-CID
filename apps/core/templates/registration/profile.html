@@ -1,0 +1,531 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas %}
+
+{% block title %}{% translate "Mi Perfil - Portal CTT" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/perfil/perfil.css' %}?v=20260920-contraste-v215">
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <div class="container">
+    {% if messages %}
+      <div class="profile-messages" aria-live="polite">
+        {% for message in messages %}
+          <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show profile-alert" role="alert">
+            <strong>{% if message.tags == 'success' %}{% translate "¡Éxito!" %}{% elif message.tags == 'error' %}{% translate "¡Error!" %}{% else %}{% translate "Información" %}{% endif %}</strong>
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="{% translate "Cerrar" %}">
+              <span aria-hidden="true">{% translate "×" %}</span>
+            </button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if not perfil_vigencia.vigente %}
+      <div class="profile-gate" role="alert">
+        <div class="profile-gate__icon"><i class="simple-icon-lock"></i></div>
+        <div>
+          {% if perfil_vigencia.faltantes %}
+            <strong>{% translate "Completa tus datos para usar los laboratorios" %}</strong>
+            <p>{% translate "Faltan:" %} {{ perfil_vigencia.faltantes|join:", " }}{% translate ". Mientras tanto no puedes reservar ni seguir tus solicitudes: cada reserva queda registrada a nombre de alguien identificado y alimenta los reportes por facultad, carrera y tipo de usuario." %}</p>
+          {% else %}
+            <strong>{% translate "Confirma tus datos para el período" %} {{ perfil_vigencia.periodo.codigo }}</strong>
+            <p>
+              {% if perfil_vigencia.propuesta.avanzado %}
+                {% translate "Al cambiar de período el sistema propone el siguiente nivel de tu ruta académica. Revísalo y corrígelo antes de confirmar." %}
+              {% else %}
+                {% translate "Revisa que tu facultad, carrera y nivel sigan siendo los de este período y confírmalos." %}
+              {% endif %}
+            </p>
+          {% endif %}
+          <button type="button" class="btn btn-primary-custom" id="openGateModalButton" data-target="#editProfileModal" data-toggle="modal">
+            <i class="simple-icon-pencil mr-2"></i>{% if perfil_vigencia.faltantes %}{% translate "Completar mis datos" %}{% else %}{% translate "Revisar y confirmar" %}{% endif %}
+          </button>
+        </div>
+      </div>
+    {% elif perfil_vigencia.periodo %}
+      <p class="profile-period" role="status"><i class="simple-icon-check"></i> {% translate "Datos confirmados para el período" %} {{ perfil_vigencia.periodo.codigo }}.</p>
+    {% endif %}
+    <div class="alert {% if perfil_verificacion.verificada %}alert-success{% else %}alert-info{% endif %}" role="status">
+      <strong>{{ perfil_verificacion.etiqueta }}</strong>
+      <p class="mb-0">{% translate "La administración revisa tu pertenencia y tipo de usuario con evidencia institucional. Completar o confirmar tus datos no equivale a esta aprobación." %}</p>
+      {% if perfil_verificacion.ultima.vigente_hasta %}<p class="mb-0">{% translate "Vigente hasta" %}: {{ perfil_verificacion.ultima.vigente_hasta|date:"DATE_FORMAT" }}.</p>{% endif %}
+    </div>
+    <!-- Header del Perfil -->
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="row align-items-center">
+          <div class="col-md-3 text-center">
+            {% if profile.avatar %}
+              <img src="{{ profile.avatar.url }}" 
+                   alt="Avatar de {{ user.get_full_name|default:user.username }}" 
+                   class="profile-avatar"
+                   id="profileAvatar">
+            {% else %}
+              <div class="profile-avatar-placeholder" id="profileAvatar">
+                <i class="simple-icon-user profile-placeholder-icon"></i>
+              </div>
+            {% endif %}
+            
+            <!-- Botón para cambiar foto -->
+            <div class="mt-2">
+              <button type="button" class="btn btn-sm btn-outline-light" id="openAvatarModalButton">
+                <i class="simple-icon-camera mr-1"></i>
+                {% translate "Cambiar Foto" %}
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h2 class="mb-2">{{ user.get_full_name|default:user.username }}</h2>
+            <p class="mb-1">
+              <i class="simple-icon-envelope mr-2"></i>
+              {{ user.email }}
+            </p>
+            <p class="mb-1">
+              <i class="simple-icon-calendar mr-2"></i>
+              {% translate "Miembro desde" %} {{ user.date_joined|date:"F Y" }}
+            </p>
+            <div class="mt-3 profile-roles">
+              {% for rol in roles_perfil %}<span class="badge-custom"><i class="simple-icon-badge mr-1"></i>{{ rol }}</span>{% endfor %}
+            </div>
+          </div>
+          <div class="col-md-3 text-center">
+            <button type="button" class="btn btn-primary-custom btn-block mb-2" id="openEditModalButton">
+              <i class="simple-icon-pencil mr-2"></i>
+              {% translate "Editar Perfil" %}
+            </button>
+            <a href="{% url 'mi_formacion' %}" class="btn btn-outline-custom btn-block mb-2"><i class="simple-icon-graduation mr-2"></i>{% translate "Mis cursos y certificados" %}</a>
+            <a href="{% url 'account_change_password' %}" class="btn btn-outline-custom btn-block mb-2">
+              <i class="simple-icon-lock mr-2"></i>
+              {% translate "Cambiar Contraseña" %}
+            </a>
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-custom btn-block">
+                <i class="simple-icon-logout mr-2"></i>
+                {% translate "Cerrar sesión" %}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Estadísticas -->
+      <div class="col-md-8">
+        <div class="row">
+          {% for etapa in reservas_perfil.etapas %}
+          <div class="col-md-3 col-6 mb-3">
+            <div class="stat-card">
+              <div class="stat-icon estado-{{ etapa.codigo }}">
+                <i class="{{ etapa.icono }}"></i>
+              </div>
+              <h4 class="mb-1">{{ etapa.total }}</h4>
+              <small class="text-muted">{{ etapa.etiqueta }}</small>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Mis reservas: el mismo expediente que se abre desde la unidad -->
+        <div class="profile-card">
+          <div class="card-header-custom profile-card-header">
+            <h5><i class="simple-icon-calendar mr-2"></i>{% translate "Mis reservas" %}</h5>
+            <span>{{ reservas_perfil.abiertas }} {% translate "en curso de" %} {{ reservas_perfil.total }} solicitud{{ reservas_perfil.total|pluralize:"es" }}</span>
+          </div>
+          <div class="card-body">
+            {% if reservas_perfil.total %}
+              {% if reservas_perfil.proxima %}
+              <a class="profile-next" href="{{ reservas_perfil.proxima.url_seguimiento }}">
+                <span class="profile-next__label">{% translate "Próxima reserva" %}</span>
+                <strong>{{ reservas_perfil.proxima.resumen_solicitud }}</strong>
+                <span class="profile-next__when">{{ reservas_perfil.proxima.fecha|date:"j \d\e F" }} · {{ reservas_perfil.proxima.hora_inicio|time:"H:i" }}–{{ reservas_perfil.proxima.hora_fin|time:"H:i" }} · {{ reservas_perfil.proxima.laboratorio.nombre }}</span>
+                <span class="profile-next__action">{% translate "Abrir el expediente" %} <i class="simple-icon-arrow-right"></i></span>
+              </a>
+              {% endif %}
+              <ul class="profile-reservations">
+                {% for reserva in reservas_perfil.recientes %}
+                <li>
+                  <a href="{{ reserva.url_seguimiento }}">
+                    <span class="profile-reservations__code">{{ reserva.codigo_reserva|default:reserva.pk }}</span>
+                    <strong>{{ reserva.resumen_solicitud }}</strong>
+                    <small>{{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.laboratorio.nombre }}</small>
+                    <span class="profile-state estado-{{ reserva.estado }}">{{ reserva.get_estado_display|ui }}</span>
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="profile-empty">{% translate "Todavía no has enviado solicitudes. Elige un laboratorio o unidad experimental y reserva los recursos que necesitas." %}</p>
+              <a class="btn btn-primary-custom" href="{% url 'laboratorios_unidades' %}"><i class="simple-icon-magnifier mr-2"></i>{% translate "Ver los laboratorios" %}</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Información Personal -->
+        <div class="profile-card">
+          <div class="card-header-custom">
+            <h5><i class="simple-icon-user mr-2"></i>{% translate "Información Personal" %}</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-user"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Nombre Completo" %}</strong><br>
+                    <span class="text-muted">{{ user.get_full_name|default:"No especificado" }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-envelope"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Correo Electrónico" %}</strong><br>
+                    <span class="text-muted">{{ user.email }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-phone"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Teléfono" %}</strong><br>
+                    <span class="text-muted">{{ profile.telefono|default:"No especificado" }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon"><i class="simple-icon-people"></i></div>
+                  <div><strong>{% translate "Tipo de usuario" %}</strong><br><span class="text-muted">{{ profile.get_tipo_usuario_display|default:"No especificado"|ui }}</span></div>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon"><i class="simple-icon-organization"></i></div>
+                  <div><strong>{% translate "Facultad o dependencia" %}</strong><br><span class="text-muted">{{ profile.get_facultad_display|default:"No especificado"|ui }}</span></div>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-graduation"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Carrera" %}</strong><br>
+                    <span class="text-muted">{{ profile.get_carrera_display|default:"No especificado"|ui }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-badge"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Nivel Académico" %}</strong><br>
+                    <span class="text-muted">{{ profile.get_nivel_academico_display|default:"No especificado"|ui }}</span>
+                  </div>
+                </div>
+                {% if profile.cedula %}
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-credit-card"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Cédula o documento de identidad" %}</strong><br>
+                    <span class="text-muted">{{ profile.cedula }}</span>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                {% if perfil_publico %}
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-briefcase"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Cargo o función" %}</strong><br>
+                    <span class="text-muted">{{ profile.cargo|default:"No especificado" }}</span>
+                  </div>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                  <div class="info-icon">
+                    <i class="simple-icon-calendar"></i>
+                  </div>
+                  <div>
+                    <strong>{% translate "Fecha de Registro" %}</strong><br>
+                    <span class="text-muted">{{ user.date_joined|date:"d/m/Y H:i" }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Puertas del rol: el detalle vive en el panel y en la unidad -->
+      <div class="col-md-4">
+        {% if unidades_perfil %}
+        <div class="profile-card">
+          <div class="card-header-custom">
+            <h5><i class="simple-icon-settings mr-2"></i>{% translate "Gestión de laboratorio" %}</h5>
+          </div>
+          <div class="card-body">
+            <p class="profile-empty">
+              {% translate "Atiendes" %} {{ unidades_perfil_total }} unidad{{ unidades_perfil_total|pluralize:"es" }}{% if unidades_perfil_pendientes %} · {{ unidades_perfil_pendientes }} solicitud{{ unidades_perfil_pendientes|pluralize:"es" }} {% translate "esperan tu decisión" %}{% else %}{% translate ", sin solicitudes pendientes" %}{% endif %}{% translate ". El expediente completo, la agenda y el inventario se trabajan en el panel de cada unidad." %}
+            </p>
+            {% for item in unidades_perfil %}
+            <a class="profile-unit" href="{{ item.url_panel }}">
+              <strong>{{ item.unidad.nombre }}</strong>
+              <span>{% translate "Abrir el panel" %} {% if item.pendientes %}· {{ item.pendientes }} pendiente{{ item.pendientes|pluralize:"s" }}{% endif %} <i class="simple-icon-arrow-right"></i></span>
+            </a>
+            {% endfor %}
+            {% if unidades_perfil_total > unidades_perfil|length %}
+            <a class="profile-link" href="{% url 'laboratorios_unidades' %}">{% translate "Ver las" %} {{ unidades_perfil_total }} unidades <i class="simple-icon-arrow-right"></i></a>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if guias_perfil.total %}
+        <div class="profile-card">
+          <div class="card-header-custom">
+            <h5><i class="simple-icon-notebook mr-2"></i>{% translate "Mis guías de práctica" %}</h5>
+          </div>
+          <div class="card-body">
+            <ul class="profile-counters">
+              <li><b>{{ guias_perfil.en_trabajo }}</b><span>{% translate "En edición" %}</span></li>
+              <li><b>{{ guias_perfil.en_revision }}</b><span>{% translate "En revisión" %}</span></li>
+              <li><b>{{ guias_perfil.publicadas }}</b><span>{% translate "Publicadas" %}</span></li>
+            </ul>
+            {% if guias_perfil.url %}<a class="profile-link" href="{{ guias_perfil.url }}">{% translate "Abrir mis guías" %} <i class="simple-icon-arrow-right"></i></a>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edición -->
+<div class="modal fade profile-edit-modal" id="editProfileModal" tabindex="-1" role="dialog" aria-labelledby="editProfileModalTitle" aria-hidden="true" data-open-on-load="{{ abrir_modal_perfil|yesno:'true,false' }}">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header profile-edit-modal-header">
+        <h5 class="modal-title" id="editProfileModalTitle">
+          <i class="simple-icon-pencil mr-2"></i>
+          {% translate "Editar Perfil" %}
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">
+          <span>{% translate "×" %}</span>
+        </button>
+      </div>
+      <form method="post" action="{% url 'profile_edit' %}" enctype="multipart/form-data" id="profileInstitutionalForm" novalidate>
+        {% csrf_token %}
+        <div class="modal-body">
+          {% if perfil_form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+              {% for error in perfil_form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+            </div>
+          {% endif %}
+          <div class="text-center mb-4">
+            <div class="avatar-upload-container">
+              {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" 
+                     alt="{% translate "Avatar" %}"
+                     class="avatar-preview"
+                     id="avatarPreview">
+              {% else %}
+                <div class="avatar-preview avatar-placeholder" id="avatarPreview">
+                  <i class="simple-icon-user profile-placeholder-icon"></i>
+                </div>
+              {% endif %}
+              
+              <button type="button" class="avatar-upload-overlay" id="avatarUploadTrigger" aria-label="{% translate "Seleccionar una nueva foto" %}">
+                <i class="simple-icon-camera"></i>
+                <span>{% translate "Cambiar" %}</span>
+              </button>
+            </div>
+            
+            <input type="file" 
+                   id="avatarInput" 
+                   name="avatar" 
+                   accept="image/*" 
+                   class="profile-avatar-input">
+            
+            <small class="text-muted d-block mt-2">
+              {% translate "Formatos: JPG, PNG, GIF. Máximo 5MB." %}
+            </small>
+            {% for error in perfil_form.avatar.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+          </div>
+
+          <div class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <i class="simple-icon-user"></i>
+              <div><strong>{% translate "Identidad y contacto" %}</strong><small>{% translate "Información básica de la persona solicitante." %}</small></div>
+            </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="profileFirstName">{% translate "Nombres *" %}</label>
+                <input type="text" class="form-control{% if perfil_form.first_name.errors %} is-invalid{% endif %}" id="profileFirstName" name="first_name"
+                       value="{{ perfil_form.first_name.value|default_if_none:'' }}" required>
+                {% for error in perfil_form.first_name.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="profileLastName">{% translate "Apellidos *" %}</label>
+                <input type="text" class="form-control{% if perfil_form.last_name.errors %} is-invalid{% endif %}" id="profileLastName" name="last_name"
+                       value="{{ perfil_form.last_name.value|default_if_none:'' }}" required>
+                {% for error in perfil_form.last_name.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="profileEmail">{% translate "Correo electrónico *" %}</label>
+                <input type="email" class="form-control{% if perfil_form.email.errors %} is-invalid{% endif %}" id="profileEmail" name="email"
+                       value="{{ perfil_form.email.value|default_if_none:'' }}" required>
+                {% for error in perfil_form.email.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="profileTelefono">{% translate "Teléfono" %}</label>
+                <input type="tel" class="form-control{% if perfil_form.telefono.errors %} is-invalid{% endif %}" id="profileTelefono" name="telefono"
+                       value="{{ perfil_form.telefono.value|default_if_none:'' }}" placeholder="+593 999 000 000">
+                {% for error in perfil_form.telefono.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div class="profile-form-section profile-form-section--institutional">
+            <div class="profile-form-section-heading">
+              <i class="simple-icon-graduation"></i>
+              <div><strong>{% translate "Vinculación institucional" %}</strong><small>{% translate "Estos datos permiten clasificar las reservas y generar reportes por facultad, carrera y tipo de usuario." %}</small></div>
+            </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="profileTipoUsuario">{% translate "Tipo de usuario *" %}</label>
+                <select class="form-control{% if perfil_form.tipo_usuario.errors %} is-invalid{% endif %}" name="tipo_usuario" id="profileTipoUsuario" required>
+                  <option value="">{% translate "Seleccionar tipo..." %}</option>
+                  {% for value, label in tipos_usuario_perfil %}
+                    <option value="{{ value }}" {% if perfil_form.tipo_usuario.value == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                {% for error in perfil_form.tipo_usuario.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6" data-profile-edit-field="facultad">
+              <div class="form-group">
+                <label for="profileFacultad">{% translate "Facultad o dependencia" %} <span data-required-indicator>*</span></label>
+                <select class="form-control{% if perfil_form.facultad.errors %} is-invalid{% endif %}" name="facultad" id="profileFacultad">
+                  <option value="">{% translate "Seleccionar facultad..." %}</option>
+                  {% for value, label in facultades_perfil %}
+                    {% if value != 'externo' %}<option value="{{ value }}" {% if perfil_form.facultad.value == value %}selected{% endif %}>{{ label }}</option>{% endif %}
+                  {% endfor %}
+                </select>
+                {% for error in perfil_form.facultad.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6" data-profile-edit-field="carrera">
+              <div class="form-group">
+                <label for="profileCarrera">{% translate "Carrera o programa académico" %} <span data-career-required-indicator>*</span></label>
+                <select class="form-control{% if perfil_form.carrera.errors %} is-invalid{% endif %}" name="carrera" id="profileCarrera" aria-describedby="profileCarreraHelp">
+                  <option value="">{% translate "Seleccionar carrera..." %}</option>
+                  {% for carrera in carreras_perfil %}
+                    <option value="{{ carrera.value }}" data-facultad="{{ carrera.facultad }}" {% if perfil_form.carrera.value == carrera.value %}selected{% endif %}>{{ carrera.label }}</option>
+                  {% endfor %}
+                </select>
+                <small class="profile-field-help" id="profileCarreraHelp">{% translate "Selecciona primero una facultad para ver sus carreras." %}</small>
+                {% for error in perfil_form.carrera.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6" data-profile-edit-field="nivel_academico">
+              <div class="form-group">
+                <label for="profileNivelAcademico">{% translate "Nivel académico *" %}</label>
+                <select class="form-control{% if perfil_form.nivel_academico.errors %} is-invalid{% endif %}" name="nivel_academico" id="profileNivelAcademico">
+                  <option value="">{% translate "Seleccionar nivel académico..." %}</option>
+                  {% for value, label in niveles_academicos_perfil %}
+                    <option value="{{ value }}" {% if perfil_form.nivel_academico.value == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                {% for error in perfil_form.nivel_academico.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6" data-profile-edit-field="cedula">
+              <div class="form-group">
+                <label for="profileCedula">{% translate "Cédula o documento de identidad" %} <span data-cedula-required-indicator>*</span></label>
+                <input type="text" class="form-control{% if perfil_form.cedula.errors %} is-invalid{% endif %}" id="profileCedula" name="cedula"
+                       value="{{ perfil_form.cedula.value|default_if_none:'' }}" placeholder="{% translate "Ej.: 0401234567" %}">
+                {% for error in perfil_form.cedula.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6" data-profile-edit-field="institucion">
+              <div class="form-group">
+                <label for="profileInstitucion">{% translate "Institución, empresa u organización *" %}</label>
+                <input type="text" class="form-control{% if perfil_form.institucion.errors %} is-invalid{% endif %}" id="profileInstitucion" name="institucion"
+                       value="{{ perfil_form.institucion.value|default_if_none:'' }}" placeholder="{% translate "Nombre completo de la organización" %}">
+                {% for error in perfil_form.institucion.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+              </div>
+            </div>
+          </div>
+          </div>
+
+          {% if perfil_publico %}
+          <div class="profile-form-section">
+            <div class="profile-form-section-heading">
+              <i class="simple-icon-briefcase"></i>
+              <div><strong>{% translate "Perfil profesional" %}</strong><small>{% translate "Se muestra en la ficha del equipo humano de tu unidad, junto a tu foto y tu contacto." %}</small></div>
+            </div>
+            <div class="form-group">
+              <label for="profileCargo">{% translate "Cargo o función" %}</label>
+              <input type="text" class="form-control{% if perfil_form.cargo.errors %} is-invalid{% endif %}" id="profileCargo" name="cargo"
+                     value="{{ perfil_form.cargo.value|default_if_none:'' }}" placeholder="{% translate "Estudiante, docente, investigador, responsable de área, etc." %}">
+              {% for error in perfil_form.cargo.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+            </div>
+            <div class="form-group mb-0">
+              <label for="profileBiografia">{% translate "Biografía" %}</label>
+              <textarea class="form-control{% if perfil_form.biografia.errors %} is-invalid{% endif %}" id="profileBiografia" name="biografia" rows="3"
+                        placeholder="{% translate "Especialidad, formación o el trabajo que acompañas en el laboratorio." %}">{{ perfil_form.biografia.value|default_if_none:'' }}</textarea>
+              {% for error in perfil_form.biografia.errors %}<small class="d-block text-danger">{{ error }}</small>{% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-custom" data-dismiss="modal">
+            <i class="simple-icon-close mr-2"></i>
+            {% translate "Cancelar" %}
+          </button>
+          <button type="submit" class="btn btn-primary-custom">
+            <i class="simple-icon-check mr-2"></i>
+            {% translate "Guardar Cambios" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'portal/js/pages/perfil/perfil.js' %}?v=20260916-i18n-v141"></script>
+{% endblock %}

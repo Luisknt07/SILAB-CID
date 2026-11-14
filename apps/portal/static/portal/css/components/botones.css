@@ -1,0 +1,73 @@
+.upec-button {
+  min-height: var(--upec-control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--upec-space-xs);
+  padding: var(--upec-control-padding);
+  border: 1px solid transparent;
+  border-radius: var(--upec-radius-control);
+  font-family: var(--upec-font-family-body);
+  font-size: var(--upec-text-sm);
+  font-weight: var(--upec-font-weight-bold);
+  line-height: 1;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: color var(--upec-transition), background-color var(--upec-transition), border-color var(--upec-transition), transform var(--upec-transition);
+}
+
+.upec-button:hover {
+  transform: translateY(-1px);
+}
+
+.upec-button--primary {
+  color: var(--upec-color-ink) !important;
+  background: var(--upec-color-gold-500);
+  border-color: var(--upec-color-gold-500);
+}
+
+.upec-button--secondary {
+  color: var(--upec-color-surface) !important;
+  background: var(--upec-color-green-700);
+  border-color: var(--upec-color-green-700);
+}
+
+.upec-button--outline {
+  color: var(--upec-color-gold-300) !important;
+  background: transparent;
+  border-color: color-mix(in srgb, var(--upec-color-gold-500) 55%, transparent);
+}
+
+.upec-button--compact {
+  min-height: 38px;
+  padding: 0 var(--upec-space-md);
+  font-size: var(--upec-text-xs);
+}
+
+.upec-button--micro {
+  min-height: 24px;
+  padding: 0 0.62rem;
+  font-size: var(--upec-text-xs);
+}
+
+/* Cerrar sesión es un envío, no un enlace: el formulario no ocupa espacio. */
+.logout-action {
+  display: inline-flex;
+  margin: 0;
+}
+
+@media (max-width: 767.98px) {
+  .login-action.upec-button {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border-radius: 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upec-button {
+    transition: none;
+  }
+}

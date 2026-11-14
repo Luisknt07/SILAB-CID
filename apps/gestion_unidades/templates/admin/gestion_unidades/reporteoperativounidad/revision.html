@@ -1,0 +1,75 @@
+{% load i18n %}
+{% if revision %}
+{% if revision.solo_observaciones %}
+<section id="evaluacion" class="citt-revision" data-revision-titulo="Observaciones del documento"><header><h2>{{ revision.documento.nombre_documental }}</h2></header>{% include 'portal/pages/unidades/gestion/includes/observaciones_documentales.html' with documento=revision.documento observaciones_documentales=revision.observaciones_documentales observaciones_post_url=request.path observaciones_query=revision.observaciones_query %}</section>
+{% elif revision.documento.resumen_interfaz.revision_simple %}
+{% include 'admin/gestion_unidades/reporteoperativounidad/revision_qr.html' %}
+{% elif revision.modalidad == 'permanente' or revision.modalidad == 'conformidad' %}
+{% include 'admin/gestion_unidades/reporteoperativounidad/revision_conformidad.html' %}
+{% elif revision.cierre and not revision.cierre.historico %}
+{% include 'admin/gestion_unidades/reporteoperativounidad/revision_cierre.html' %}
+{% else %}
+<section id="evaluacion" class="citt-revision">
+  {% if revision.cierre.historico %}<p class="citt-revision__aviso">Entrega anterior: sus indicadores no se conservaron al enviar. Esta revisión mantiene la evaluación documental de esa entrega.</p>{% endif %}
+  <header><div><small>REVISIÓN DEL DOCUMENTO · v{{ revision.documento.version }}</small>
+    <h2 class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ revision.documento.nombre_documental }}</span></h2><p>{{ revision.documento.unidad.nombre }} · {{ revision.documento.etiqueta_corte }}</p></div>
+    {% if not en_expediente %}<a href="?{{ query }}">Volver a las unidades</a>{% endif %}</header>
+  <div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Plazos de la entrega" aria-haspopup="dialog">Plazos de la entrega</button><template data-reporte-informacion-contenido>{% include 'portal/pages/unidades/gestion/includes/plazo_documento.html' with documento=revision.documento %}</template></div>
+  <p><strong>1. Abre el documento → 2. Evalúa los cuatro criterios → 3. Guarda.</strong></p>
+  {% if revision.documento.recurso_id %}
+    <a class="documento-accion {% if revision.documento.estado == 'validado' %}is-pdf{% else %}is-borrador{% endif %}" href="{% url 'recurso_unidad' revision.documento.recurso_id %}" data-ver-pdf data-pdf-vigente="true" data-pdf-titulo="{{ revision.documento.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' revision.documento.recurso_id %}?download=1" aria-label="Abrir documento de {{ revision.documento.nombre_documental }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% if revision.documento.estado == 'validado' %}Ver enviado{% else %}Ver preparado · sin envío vigente{% endif %}</a>
+  {% endif %}
+  {% if not revision.evaluable %}
+  <div class="citt-revision__aviso"><p>Sin entrega completa y recibida, la Dirección puede registrar 0 por incumplimiento. Esto no marca el documento como recibido ni firmado.</p>
+    {% if revision.recibible %}
+      <p>El archivo está listo para recibir. Recíbelo para habilitar la evaluación oficial.</p>
+      {% if user.is_superuser %}<form method="post"{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %}>{% csrf_token %}{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="accion" value="recibir"><input type="hidden" name="documento" value="{{ revision.documento.pk }}"><input type="hidden" name="query" value="{{ query }}&amp;revisar={{ revision.documento.pk }}#evaluacion">{% include 'portal/pages/unidades/gestion/includes/correspondencia_documental.html' with d=revision.documento direccion=True %}<button class="grp-button" type="submit">Recibir y continuar</button></form>{% endif %}
+    {% elif revision.documento.recurso_id %}
+      <p><strong>Falta el PDF firmado.</strong> El archivo generado permite revisar el contenido, pero no equivale a una entrega firmada. La unidad debe descargarlo, firmarlo y cargarlo en su expediente.</p>
+    {% else %}<p><strong>Sin documento archivado.</strong> La unidad debe preparar y entregar la evidencia solicitada.</p>{% endif %}
+    {% if revision.documento.vencido and not revision.documento.prorroga_activa and not revision.documento.correccion_abierta %}
+      {% if revision.documento.solicitud_reapertura_pendiente and user.is_superuser %}
+      <form method="post"{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %}>{% csrf_token %}{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="accion" value="habilitar_tardia"><label>Nuevo cierre (hora local)<input type="datetime-local" name="hasta" required></label><input type="hidden" name="documento" value="{{ revision.documento.pk }}"><input type="hidden" name="query" value="{{ query }}&amp;revisar={{ revision.documento.pk }}#evaluacion"><p>La unidad solicitó entregar fuera de plazo: {{ revision.documento.tardanza_motivo }}</p><button type="submit" class="grp-button">Habilitar entrega tardía y continuar</button></form>
+      {% else %}<p>El plazo venció. La unidad debe solicitar la apertura de entrega tardía desde el expediente; la Dirección podrá habilitarla después.</p>{% endif %}
+    {% endif %}
+    {% if en_expediente %}<button class="grp-button" type="button" data-entrega-vista="gestion">Completar la entrega y revisar archivos</button>{% else %}<a href="{% url 'gestion_expediente_unidad' revision.documento.unidad.slug %}?anio={{ revision.documento.anio }}&amp;corte={{ revision.documento.corte }}">Abrir expediente para completar la entrega →</a>{% endif %}
+  </div>
+  {% endif %}
+  <div class="citt-revision__auditoria" data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Comprobaciones automáticas y pendientes" aria-haspopup="dialog">Comprobaciones automáticas y pendientes</button><template data-reporte-informacion-contenido>
+    <p>Se consultan los registros actuales. Completar campos no demuestra calidad ni garantiza que el PDF archivado contenga esos datos. Contrasta las sugerencias con la evidencia.</p>
+    <ul>{% for comprobacion in revision.comprobaciones %}<li>{{ comprobacion }}</li>{% empty %}<li>Este documento necesita revisión directa de su contenido.</li>{% endfor %}</ul>
+    {% if revision.faltantes %}<h3>{{ revision.faltantes|length }} campos pendientes en el editor</h3><ul>{% for falta in revision.faltantes %}<li>{{ falta }}</li>{% endfor %}</ul>{% endif %}
+    <p>Descuento por entrega tardía: <strong>{{ revision.penalizacion }} puntos</strong>. Se aplica una sola vez. Mínimo institucional: {{ revision.minimo }} %.</p>
+  </template></div>
+  {% if user.is_superuser %}
+  <form id="formEvaluacion" method="post"{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %} data-rubrica data-penalizacion="{{ revision.penalizacion }}" data-minimo="{{ revision.minimo }}">
+    {% csrf_token %}{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="accion" value="evaluar_rubrica"><input type="hidden" name="documento" value="{{ revision.documento.pk }}">
+    <input type="hidden" name="query" value="{{ query }}&amp;revisar={{ revision.documento.pk }}#evaluacion">
+    <input type="hidden" name="version" value="{{ revision.documento.version }}"><input type="hidden" name="huella" value="{{ revision.documento.recurso.hash_sha256 }}">
+    <h3>Rúbrica · cuatro criterios, 25 puntos cada uno</h3>
+    <p>0–24: sin respaldo suficiente · 25–49: insuficiente · 50–74: parcial · 75–89: adecuado · 90–100: destacado. El cumplimiento oficial depende del mínimo institucional.</p>
+    <div class="citt-revision__criterios">
+    {% for criterio in revision.criterios %}
+      <label class="citt-revision__criterio"><strong>{{ criterio.nombre }} · {{ criterio.peso }} puntos</strong><span>{{ criterio.exige }}</span>
+        <select name="{{ criterio.clave }}" required data-criterio data-nombre="{{ criterio.nombre }}" data-exige="{{ criterio.exige }}">
+          <option value="">Selecciona el nivel al revisar</option>
+          {% for valor, etiqueta in revision.niveles %}{% if revision.evaluable or valor == 0 %}<option value="{{ valor }}"{% if not revision.evaluable or criterio.sugerencia == valor %} selected{% endif %}>{{ valor }} % · {{ etiqueta }}</option>{% endif %}{% endfor %}
+        </select>{% if criterio.sugerencia is not None %}<small>Sugerencia de integridad del editor: {{ criterio.sugerencia }} %. Confirma o corrige al revisar el PDF.</small>{% endif %}
+      </label>
+    {% endfor %}
+    </div>
+    <div class="citt-revision__resultado" aria-live="polite"><strong data-nota>Completa los cuatro criterios</strong><p data-observaciones>Las observaciones y recomendaciones se redactan al seleccionar los niveles.</p></div>
+    <label>Nota adicional de la Dirección (opcional)<textarea name="comentario" maxlength="1200" rows="2"></textarea></label>
+    {% if revision.documento.recurso_id %}{% include 'portal/pages/unidades/gestion/includes/correspondencia_documental.html' with d=revision.documento direccion=True opcional=True %}{% endif %}
+    <label class="citt-revision__confirmacion"><input type="checkbox" name="confirmado" value="1" required> Confirmo la revisión de la evidencia disponible y de los requisitos de entrega, incluida su ausencia cuando corresponde.</label>
+    <div class="citt-revision__guardar"><button type="submit" class="grp-button grp-default">Guardar evaluación y observaciones</button></div>
+  </form>
+  {% if revision.documento.recurso_id %}<section class="citt-revision__correccion" aria-label="Solicitar correcciones a la unidad"><h3>Solicitar correcciones a la unidad</h3>{% include 'admin/gestion_unidades/reporteoperativounidad/devolver_correccion.html' with d=revision.documento %}</section>{% endif %}
+  {% endif %}
+  {% if revision.documento.evaluacion is not None %}<p><strong>Última evaluación guardada: {{ revision.documento.nota }} %.</strong> {{ revision.documento.evaluacion_observacion }}</p>{% endif %}
+  <div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Historial de evaluaciones · últimas cinco" aria-haspopup="dialog">Historial de evaluaciones · últimas cinco</button><template data-reporte-informacion-contenido>
+    {% for registro in revision.historial %}<article><strong>{{ registro.creado_en|date:"d/m/Y H:i" }} &middot; {{ registro.usuario }} · v{{ registro.datos_nuevos.version_documento }} · {{ registro.datos_nuevos.nota_final }} %</strong><p>{{ registro.datos_nuevos.observacion }}</p><ul>{% for criterio in registro.datos_nuevos.criterios %}<li>{{ criterio.nombre }}: {{ criterio.valor }} % · {{ criterio.motivo }}</li>{% endfor %}</ul><small>SHA-256: {{ registro.datos_nuevos.sha256 }}</small></article>{% empty %}<p>Todavía no hay evaluaciones con esta rúbrica.</p>{% endfor %}
+  </template></div>
+</section>
+{% endif %}
+{% endif %}

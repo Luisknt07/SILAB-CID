@@ -1,0 +1,10 @@
+.language-switch { display: inline-flex; align-items: center; gap: 2px; margin: 0; padding: 3px; border: 1px solid #91aaa0; border-radius: 7px; background: var(--institucion-fondo, #f5faf7); }
+.language-switch button { min-width: 30px; min-height: 32px; padding: 3px 5px; border: 0; border-radius: 4px; background: transparent; color: var(--institucion-texto, #174f3a); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.language-switch button[aria-current="true"] { color: #fff; background: var(--institucion-primario, #1f6048); }
+.language-switch button:hover { background: var(--institucion-primario-suave, #e1eee5); color: var(--institucion-texto, #123c2d); }
+.language-switch button:focus-visible { outline: 2px solid var(--institucion-acento, #c38d13); outline-offset: 2px; }
+@media (max-width: 767.98px) {
+  .nav-tools .login-action span { display: none; }
+  .nav-tools .login-action { min-width: 32px; padding-inline: 8px; }
+  .language-switch button { min-width: 26px; }
+}

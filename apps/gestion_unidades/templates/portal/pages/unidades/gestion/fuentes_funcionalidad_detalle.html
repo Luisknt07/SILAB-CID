@@ -1,0 +1,7 @@
+<small>Equipo: {{ fila.detalle.equipo_snapshot.codigo|default:'Identificación pendiente' }} · {{ fila.detalle.equipo_snapshot.nombre }}</small>
+<small>{{ fila.resultado_lectura }}</small>
+<details><summary>Procedimiento, criterio y hallazgos</summary>
+<p>{{ fila.detalle.procedimiento|default:'Procedimiento sin documentar' }}</p>
+<p>Criterio: {{ fila.detalle.criterio|default:'Sin documentar' }}</p>
+{% if fila.detalle.hallazgos_funcionales %}<p>{{ fila.detalle.hallazgos_funcionales }}</p>{% endif %}
+</details>

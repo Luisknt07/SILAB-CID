@@ -1,0 +1,150 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="plan_ventas" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="plan_ventas"><input type="hidden" name="registro_id">
+  <header><span>{% translate "DEMANDA Y VENTAS" %}</span><h3>{% translate "Plan de ventas del período" %}</h3><p>{% translate "Explica cuánto se espera vender, qué compromisos ya existen y qué producción corresponde a docencia. La demanda aprobada alimenta un solo plan maestro." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" placeholder="{% translate "Demanda del primer semestre" %}" required></label>
+    <label>{% translate "Desde" %}<input type="date" name="desde" required></label>
+    <label>{% translate "Hasta" %}<input type="date" name="hasta" required></label>
+    <label>{% translate "Periodicidad" %}<select name="periodicidad">{% for codigo, nombre in periodicidades_plan_ventas %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Método de previsión" %}<select name="metodo">{% for codigo, nombre in metodos_plan_ventas %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select><small>{% translate "El promedio móvil usa las ventas de los tres períodos anteriores; el método manual conserva la cifra escrita por coordinación." %}</small></label>
+    <label class="is-wide">{% translate "Plan maestro que recibirá la demanda" %}<select name="plan_maestro_id"><option value="">{% translate "Vincular después" %}</option>{% for plan in planes_maestros_para_ventas %}<option value="{{ plan.pk }}">{{ plan.codigo }} · {{ plan.nombre }} · {{ plan.desde|date:"d/m/Y" }}–{{ plan.hasta|date:"d/m/Y" }}</option>{% endfor %}</select><small>{% translate "Debe cubrir todo el horizonte y permanecer en borrador." %}</small></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2" placeholder="{% translate "Ferias, convenios, estacionalidad o condiciones que explican el plan" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Cerrar el plan" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar plan de ventas" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="plan_ventas_accion" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="plan_ventas"><input type="hidden" name="registro_id">
+  <header><span>{% translate "DEMANDA Y VENTAS" %}</span><h3>{% translate "Acciones del plan de ventas" %}</h3><p>{% translate "Calcula la demanda, aprueba la decisión de coordinación o la convierte en corridas del Plan Maestro sin duplicar los compromisos reales." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Qué hacer" %}<select name="accion_plan_ventas">
+      <option value="pronosticar">{% translate "Calcular o actualizar la demanda estimada" %}</option>
+      <option value="aprobar">{% translate "Aprobar el plan de ventas" %}</option>
+      <option value="incorporar">{% translate "Incorporar la demanda al Plan Maestro" %}</option>
+    </select><small>{% translate "Primero calcula, luego revisa los ajustes, aprueba y finalmente incorpora." %}</small></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-bolt"></i> {% translate "Ejecutar" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="linea_plan_ventas" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="linea_plan_ventas"><input type="hidden" name="registro_id"><input type="hidden" name="plan_id">
+  <header><span>{% translate "DEMANDA POR PRODUCTO" %}</span><h3>{% translate "Línea del plan de ventas" %}</h3><p>{% translate "El proceso determina el producto y su equivalencia de materia prima. Los compromisos y la docencia se vuelven a leer de sus expedientes." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Proceso y producto" %}<select name="receta_id" required><option value="">{% translate "Selecciona" %}</option>{% for receta in recetas_para_ventas %}<option value="{{ receta.pk }}">{{ receta.producto.nombre }} · {{ receta.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Inicio del período" %}<input type="date" name="periodo_inicio" required></label>
+    <label>{% translate "Fin del período" %}<input type="date" name="periodo_fin" required></label>
+    <label>{% translate "Pronóstico manual" %}<input type="number" name="pronostico" step="0.001" min="0" value="0"><small>{% translate "Solo se usa cuando el plan eligió estimación manual." %}</small></label>
+    <label>{% translate "Ajuste de coordinación" %}<input type="number" name="ajuste_manual" step="0.001" value="0"><small>{% translate "Puede ser positivo o negativo; la demanda final nunca baja de cero." %}</small></label>
+    <label class="is-wide">{% translate "Observaciones" %}<input name="observaciones" maxlength="240" placeholder="{% translate "Feria, convenio o decisión que explica el ajuste" %}"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Quitar demanda" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar demanda" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="plan_maestro" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="plan_maestro"><input type="hidden" name="registro_id">
+  <header><span>{% translate "PLANIFICACIÓN" %}</span><h3>{% translate "Plan maestro del período" %}</h3><p>{% translate "Reúne las corridas del período: las comprometidas por un encargo o una práctica y las que la unidad decide hacer para reponer existencias." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" placeholder="{% translate "Semana del 15 al 21 de septiembre" %}" required></label>
+    <label>{% translate "Desde" %}<input type="date" name="desde" required></label>
+    <label>{% translate "Hasta" %}<input type="date" name="hasta" required></label>
+    <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_plan %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select><small>{% translate "Solo un plan firme genera órdenes de producción." %}</small></label>
+    {% if not sesion_erp %}<label>{% translate "Responsable del plan" %}<select name="responsable_id"><option value="">{% translate "Sin asignar" %}</option>{% for responsable in responsables %}<option value="{{ responsable.pk }}">{{ responsable.nombre_publico }}</option>{% endfor %}</select></label>{% endif %}
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2" placeholder="{% translate "Qué condiciona el período: una feria, un mantenimiento, la leche disponible" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Cerrar el plan" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar plan" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="plan_accion" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="plan_maestro"><input type="hidden" name="registro_id">
+  <header><span>{% translate "PLANIFICACIÓN" %}</span><h3>{% translate "Acciones del plan" %}</h3><p>{% translate "Traer la demanda comprometida, firmarlo, convertir sus corridas en órdenes de producción o sugerir los pedidos que la explosión de materiales reclama." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Qué hacer con el plan" %}<select name="accion_plan">
+      <option value="proponer">{% translate "Traer la demanda ya comprometida" %}</option>
+      <option value="firmar">{% translate "Firmar el plan" %}</option>
+      <option value="ordenes">{% translate "Generar las órdenes de producción" %}</option>
+      <option value="pedidos">{% translate "Sugerir los pedidos de abastecimiento" %}</option>
+    </select><small>{% translate "Las órdenes bloquean la línea en la agenda; los pedidos nacen en borrador, uno por insumo que falta." %}</small></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-bolt"></i> {% translate "Ejecutar" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="linea_plan" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="linea_plan"><input type="hidden" name="registro_id"><input type="hidden" name="plan_id">
+  <header><span>{% translate "PLAN MAESTRO" %}</span><h3>{% translate "Corrida del plan" %}</h3><p>{% translate "Qué proceso corre ese día y a qué escala. La escala son las corridas base de la receta: cada una rinde lo que la receta declara." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Proceso" %}<select name="receta_id" required><option value="">{% translate "Selecciona" %}</option>{% for receta in recetas_para_plan %}<option value="{{ receta.pk }}">{{ receta.nombre }} · {{ receta.producto.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Día" %}<input type="date" name="fecha" required></label>
+    <label>{% translate "Escala (corridas base)" %}<input type="number" name="factor" step="0.001" min="0.001" value="1" required></label>
+    <label>{% translate "Origen" %}<select name="origen">{% for codigo, nombre in origenes_linea %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Observaciones" %}<input name="observaciones" maxlength="240" placeholder="{% translate "Para qué es esta corrida" %}"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Quitar del plan" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar corrida" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="pedido_abastecimiento" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="pedido_abastecimiento"><input type="hidden" name="registro_id">
+  <header><span>{% translate "ABASTECIMIENTO" %}</span><h3>{% translate "Pedido al proveedor" %}</h3><p>{% translate "Lo que se pide y cuándo se espera. Si llega repartido, se parte en entregas diarias desde la fecha prevista." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Insumo" %}<select name="consumible_id" required><option value="">{% translate "Selecciona" %}</option>{% for consumible in consumibles_para_pedido %}<option value="{{ consumible.pk }}">{{ consumible.nombre }} ({{ consumible.unidad_medida }})</option>{% endfor %}</select></label>
+    <label>{% translate "Proveedor" %}<input name="proveedor" maxlength="160" list="proveedoresRegistrados" placeholder="{% translate "Quien lo entrega" %}"><small>{% translate "Elige uno registrado o escribe uno nuevo: se registra una sola vez." %}</small></label>
+    <datalist id="proveedoresRegistrados">{% for proveedor in proveedores_activos %}<option value="{{ proveedor.nombre }}"></option>{% endfor %}</datalist>
+    <label>{% translate "Cantidad" %}<input type="number" name="cantidad" step="0.001" min="0.001" required></label>
+    <label>{% translate "Costo unitario" %}<input type="number" name="costo_unitario" step="0.0001" min="0" placeholder="{% translate "Si no se llena, toma el del catálogo" %}"></label>
+    <label>{% translate "Fecha del pedido" %}<input type="date" name="fecha_pedido" required></label>
+    <label>{% translate "Primera entrega" %}<input type="date" name="fecha_entrega_prevista" required></label>
+    <label>{% translate "Entregas diarias" %}<input type="number" name="entregas_diarias" min="1" step="1" value="1"><small>{% translate "En cuántos días se reparte: la leche cruda llega cada día de proceso." %}</small></label>
+    <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_pedido %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select><small>{% translate "Enviado o confirmado, el pedido ya cuenta como existencia en camino." %}</small></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Anular" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar pedido" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="entrega_pedido" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="entrega_pedido"><input type="hidden" name="registro_id">
+  <header><span>{% translate "ABASTECIMIENTO" %}</span><h3>{% translate "Recibir la entrega" %}</h3><p>{% translate "Lo que llegó entra al inventario como su propio lote, con su costo y su vencimiento; desde ahí lo toma la producción." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Cantidad recibida" %}<input type="number" name="cantidad" step="0.001" min="0.001" required></label>
+    <label>{% translate "Código del lote" %}<input name="lote_codigo" maxlength="100" placeholder="{% translate "Si se deja vacío, la plataforma lo genera" %}"></label>
+    <label>{% translate "Vence el" %}<input type="date" name="fecha_vencimiento"></label>
+    <label>{% translate "Dónde queda" %}<input name="bodega" maxlength="120" placeholder="{% translate "Bodega, cámara o tanque" %}"></label>
+    <label>{% translate "Documento" %}<input name="documento" maxlength="120" placeholder="{% translate "Guía de remisión o factura" %}"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<input name="observaciones" maxlength="240" placeholder="{% translate "Temperatura de llegada, faltantes, novedades" %}"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-dolly"></i> {% translate "Registrar la entrega" %}</button></footer>
+</form>
+{% if puede_operar_planificacion %}<form class="unit-console-operation" data-agenda-operation-form="orden_compra" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="orden_compra">
+  <header><span>{% translate "COMPRAS" %}</span><h3>{% translate "Emitir órdenes de compra" %}</h3><p>{% translate "Cada proveedor con pedidos en borrador recibe una orden con todos sus pedidos. Los pedidos sin proveedor siguen en borrador." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Condiciones de entrega y pago" %}<textarea name="condiciones" rows="3" placeholder="{% translate "Cadena de frío, documentos de la entrega, forma de pago" %}"></textarea><small>{% translate "Van impresas en cada orden." %}</small></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-file-signature"></i> {% translate "Emitir órdenes" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="orden_compra_estado" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="orden_compra"><input type="hidden" name="registro_id">
+  <header><span>{% translate "COMPRAS" %}</span><h3>{% translate "Orden de compra" %}</h3><p>{% translate "Confírmala cuando el proveedor la acepte: sus pedidos quedan confirmados. Anularla devuelve sus pedidos al borrador, mientras no se haya recibido nada." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Orden" %}<input name="codigo_orden_compra" readonly></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete data-agenda-delete-action="anular" hidden><i class="fas fa-times"></i> {% translate "Anular" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-check"></i> {% translate "Confirmar" %}</button></footer>
+</form>
+
+<form class="unit-console-operation" data-agenda-operation-form="proveedor" data-reload-view="planificacion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="proveedor"><input type="hidden" name="registro_id">
+  <header><span>{% translate "PROVEEDORES" %}</span><h3>{% translate "Datos del proveedor" %}</h3><p>{% translate "El proveedor es uno solo para toda la institución: lo que corrijas aquí lo ven las demás plantas que le compran." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" required></label>
+    <label>{% translate "RUC o cédula" %}<input name="ruc" maxlength="13" inputmode="numeric"></label>
+    <label>{% translate "Persona de contacto" %}<input name="contacto" maxlength="160"></label>
+    <label>{% translate "Teléfono" %}<input name="telefono" maxlength="40"></label>
+    <label>{% translate "Correo" %}<input type="email" name="email" maxlength="254"></label>
+    <label class="is-wide">{% translate "Dirección" %}<input name="direccion" maxlength="240"></label>
+    <label class="is-wide">{% translate "Qué provee" %}<input name="rubro" maxlength="240" placeholder="{% translate "Leche cruda refrigerada, cultivos lácticos" %}"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="2"></textarea></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Estado" %}</legend><label><input type="checkbox" name="activo" checked> {% translate "Activo: se ofrece al registrar pedidos" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar proveedor" %}</button></footer>
+</form>{% endif %}

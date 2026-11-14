@@ -1,0 +1,42 @@
+{% extends "admin/change_list.html" %}
+{% load static i18n idiomas %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/admin/reservas.css' %}?v=20261009-local-v1">
+{% endblock %}
+
+{% block content_title %}
+    <!-- ✅ AGREGAR: Encabezado institucional -->
+    <div class="upec-admin-banner">
+        <h1>
+            {{ identidad_institucion.nombre }}
+        </h1>
+        <h2>
+            {% translate "Gestión de Reservas - Panel Administrativo" %}
+        </h2>
+        <p>
+            <i class="fas fa-calendar-alt"></i> 
+            {% now "l, j \d\e F \d\e Y" %} - {% now "H:i" %}
+        </p>
+    </div>
+    {{ block.super }}
+{% endblock %}
+
+{% block object-tools %}
+  <div class="upec-admin-actions">
+    <a href="{{ url_reporte_uso }}" class="button upec-admin-button upec-admin-button--dark">
+        <strong>{% translate "Reporte por carreras y usuarios" %}</strong>
+    </a>
+    <a href="{{ url_estadisticas }}"
+       class="button upec-admin-button">
+        <strong>{% translate "📊 Ver estadísticas" %}</strong>
+    </a>
+
+    <a href="{{ url_reporte_listado }}{{ cl.get_query_string }}"
+       class="button upec-admin-button upec-admin-button--gold">
+        <strong>{% translate "📄 Reporte del listado" %}</strong>
+    </a>
+
+    {{ block.super }}
+  </div>
+{% endblock %}

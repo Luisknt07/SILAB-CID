@@ -1,0 +1,20 @@
+<section class="observaciones-documentales" aria-label="Observaciones del documento">
+  {% for canal in observaciones_documentales.canales %}{% if canal.campo not in observaciones_documentales.campos_editables %}{% if canal.campo == 'observacion' or canal.campo == 'tardanza_motivo' %}
+    <div class="observaciones-documentales__nota"><strong>{% if canal.campo == 'observacion' %}Observación{% else %}Justificación de entrega{% endif %}</strong><p>{{ canal.texto }}</p>{% if canal.origen %}<small>{{ canal.origen.autor }} · {{ canal.origen.fecha|date:'d/m/Y H:i' }}</small>{% endif %}</div>
+  {% endif %}{% endif %}{% endfor %}
+  {% if not documento.observacion and not documento.tardanza_motivo %}<p>Sin observaciones.</p>{% endif %}
+  {% for editor in observaciones_documentales.editores %}
+    {% if not forloop.first %}<details class="observaciones-documentales__adicional"><summary>{{ editor.etiqueta }}</summary>{% endif %}
+    <form class="observaciones-documentales__editor" method="post"{% if observaciones_post_url %} action="{{ observaciones_post_url }}"{% endif %}>
+      {% csrf_token %}<input type="hidden" name="accion" value="{{ editor.accion }}"><input type="hidden" name="documento" value="{{ documento.pk }}"><input type="hidden" name="anio" value="{{ documento.anio }}"><input type="hidden" name="corte" value="{{ documento.corte }}">
+      <input type="hidden" name="version" value="{{ editor.version }}"><input type="hidden" name="recurso_id" value="{{ editor.recurso_id }}"><input type="hidden" name="huella" value="{{ editor.huella }}"><input type="hidden" name="huella_texto" value="{{ editor.huella_texto }}"><input type="hidden" name="motivo" value="Actualización de {{ editor.etiqueta|lower }}.">
+      {% if observaciones_query %}<input type="hidden" name="query" value="{{ observaciones_query }}">{% endif %}
+      <label>{{ editor.etiqueta }}<textarea name="texto" rows="3" maxlength="12000" placeholder="Escribe una indicación breve.">{{ editor.texto }}</textarea></label>
+      <button type="submit" class="documento-accion is-editar observaciones-documentales__guardar">Guardar</button>
+    </form>{% if not forloop.first %}</details>{% endif %}
+  {% endfor %}
+  <details class="observaciones-documentales__historial"><summary>Historial</summary>
+    {% for canal in observaciones_documentales.antecedentes %}<p><strong>{{ canal.etiqueta }}</strong><br>{{ canal.texto }}</p>{% endfor %}
+    {% for cambio in observaciones_documentales.historial %}<article class="observaciones-documentales__cambio"><small>{{ cambio.fecha|date:'d/m/Y H:i' }} · {{ cambio.autor }}{% if cambio.version is not None %} · v{{ cambio.version }}{% endif %}{% if not cambio.texto %} · Eliminada{% endif %}</small><p>{% if cambio.texto %}{{ cambio.texto }}{% else %}{{ cambio.antes }}{% endif %}</p></article>{% empty %}<p>Sin cambios anteriores.</p>{% endfor %}
+  </details>
+</section>

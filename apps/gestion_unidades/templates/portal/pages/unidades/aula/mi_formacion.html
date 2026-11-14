@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static i18n notas_cursos %}
+{% block title %}{% translate "Mis cursos y certificados" %}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/gestion_cursos.css' %}?v=20261009-visores-v2">
+<link rel="stylesheet" href="{% static 'portal/css/pages/perfil/formacion.css' %}?v=20261009-v1">
+{% endblock %}
+{% block content %}
+<section class="mi-formacion container" aria-label="{% translate 'Mi formación' %}">
+  <header class="mi-formacion__cabecera">
+    <div><p class="mi-formacion__etiqueta">{% translate "Mi formación" %}</p><h1>{% translate "Mis cursos y certificados" %}</h1><p>{% translate "Consulta cada grupo por separado: avance, actividades, exámenes y certificados." %}</p></div>
+    <a class="btn btn-outline-secondary" href="{{ perfil_url }}">{% translate "Volver a mi perfil" %}</a>
+  </header>
+  <p>{{ total }} {% translate "matrículas registradas" %}</p>
+  <div class="mi-formacion__lista">
+    {% for fila in filas %}
+    <article class="mi-formacion__curso">
+      <header><span>{{ fila.curso.unidad.nombre }}</span><h2>{{ fila.curso.nombre }}</h2><p><strong>{{ fila.inscripcion.edicion.nombre }}</strong> · {{ fila.inscripcion.edicion.get_tipo_grupo_display }}{% if fila.inscripcion.edicion.destinatario %} · {{ fila.inscripcion.edicion.destinatario }}{% endif %}</p></header>
+      <div class="mi-formacion__datos">
+        <div><small>{% translate "Matrícula" %}</small><strong>{{ fila.inscripcion.get_estado_display }}</strong></div>
+        <div><small>{% translate "Avance" %}</small><strong>{{ fila.resumen.avance.porcentaje }} %</strong><span>{{ fila.resumen.avance.completadas }}/{{ fila.resumen.avance.total }} {% translate "lecciones" %}</span></div>
+        <div><small>{% translate "Resultado académico" %}</small><span class="curso-gestion__estado is-{{ fila.resumen.estado }}">{{ fila.resumen.rotulo }}</span>{% if fila.resumen.promedio_10 != None %}<span>{{ fila.resumen.promedio_10|floatformat:"-3" }}/10{% if not fila.resumen.promedio_completo %} · {% translate "promedio parcial" %}{% endif %}</span>{% endif %}</div>
+        <div><small>{% translate "Certificado" %}</small><strong>{{ fila.resumen.certificado_rotulo }}</strong></div>
+      </div>
+      <footer class="curso-gestion__acciones">
+        {% if fila.aula_url %}<a class="btn btn-success" href="{{ fila.aula_url }}">{% translate "Entrar al aula" %}</a>{% endif %}
+        <a class="btn btn-outline-success" href="{{ fila.reporte_url }}">{% translate "Mi reporte y calificaciones" %}</a>
+        {% if fila.certificado_url %}<a class="btn btn-outline-success" href="{{ fila.certificado_url }}" data-ver-pdf data-pdf-titulo="Certificado · {{ fila.curso.nombre }}">{% translate "Ver certificado" %}</a>{% endif %}
+      </footer>
+    </article>
+    {% empty %}
+    <section class="curso-gestion__ayuda"><h2>{% translate "Aún no tienes cursos registrados" %}</h2><p>{% translate "Puedes inscribirte en los grupos abiertos desde la ficha de cada curso. Si el laboratorio te matriculó con tu correo, verifica ese mismo correo para que tu matrícula aparezca aquí." %}</p><a href="{% url 'account_email' %}">{% translate "Revisar y verificar mi correo" %}</a></section>
+    {% endfor %}
+  </div>
+  {% if pagina.has_other_pages %}<nav class="mi-formacion__paginacion" aria-label="{% translate 'Páginas de mis cursos' %}">
+    {% if pagina.has_previous %}<a href="?pagina={{ pagina.previous_page_number }}">{% translate "Anterior" %}</a>{% endif %}
+    <span>{{ pagina.number }} / {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}<a href="?pagina={{ pagina.next_page_number }}">{% translate "Siguiente" %}</a>{% endif %}
+  </nav>{% endif %}
+</section>
+{% endblock %}

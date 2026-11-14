@@ -1,0 +1,40 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Relaciones entre áreas: el mapa de qué entrega cada área a las demás y, debajo, área por área con las tarjetas de
+Laboratorios.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Qué entrega cada área a las demás: piezas, datos, productos, señales. Pasa por un área para ver sus conexiones y entra a cualquiera." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if relaciones %}
+<section class="conoce__seccion" id="mapa">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El centro conectado" %}</span><h2>{% translate "Mapa de relaciones" %}</h2></header>
+  <div class="cv-mapa" data-mapa>
+    <svg class="cv-mapa__lineas" aria-hidden="true"></svg>
+    {% for tipo, areas in grupos.items %}
+    <div class="cv-mapa__columna"><h3>{{ tipo }}</h3>
+      {% for area in areas %}<a class="cv-mapa__nodo" href="{% url 'componente_centro_id' centro.slug area.codigo %}" data-nodo="{{ area.pk }}" style="--color: {{ area.color }}"><i class="{{ area.icono }}" aria-hidden="true"></i><span>{{ area.nombre_corto|default:area.nombre }}</span></a>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <script type="application/json" data-relaciones>[{% for relacion in relaciones %}{"origen": {{ relacion.origen_id }}, "destino": {{ relacion.destino_id }}, "que": "{{ relacion.que_fluye|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+  <p class="cv-mapa__detalle" data-mapa-detalle hidden></p>
+</section>
+
+<section class="conoce__seccion" id="por-area">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Qué entrega y qué recibe" %}</span><h2>{% translate "Área por área" %}</h2></header>
+  <div class="area__actividades">
+    {% for fila in por_area %}
+    <article class="area__actividad" data-aparecer>
+      <header><i class="{{ fila.area.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{{ fila.area.get_tipo_display }}</span></div></header>
+      <h3><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug fila.area.codigo %}">{{ fila.area.nombre_corto|default:fila.area.nombre }}</a></h3>
+      {% if fila.entrega %}<h4 class="cv-dialogo-titulo"><i class="fas fa-arrow-right" aria-hidden="true"></i> {% translate "Entrega a" %}</h4><ul class="area__lista">{% for relacion in fila.entrega %}<li><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug relacion.destino.codigo %}">{{ relacion.destino }}</a> · {{ relacion.que_fluye }}</li>{% endfor %}</ul>{% endif %}
+      {% if fila.recibe %}<h4 class="cv-dialogo-titulo"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Recibe de" %}</h4><ul class="area__lista">{% for relacion in fila.recibe %}<li><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug relacion.origen.codigo %}">{{ relacion.origen }}</a> · {{ relacion.que_fluye }}</li>{% endfor %}</ul>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no registra qué entrega cada área a las demás.") enlace=completar %}</section>
+{% endif %}
+{% endblock %}

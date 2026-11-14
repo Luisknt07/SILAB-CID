@@ -1,0 +1,125 @@
+{% load i18n idiomas %}
+{# Los documentos autorizados son independientes de la habilitación de reservas. #}
+
+{% if secciones_planta.reservar and not secciones_planta.reservar.oculta %}
+{% if herramientas_reserva_habilitadas or secciones_planta.reservar.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.reservar.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseReservarPlanta" aria-expanded="true" aria-controls="collapseReservarPlanta">
+    <span data-seccion="{{ secciones_planta.reservar.numero }}"><i class="iconsminds-calendar-4"></i></span><strong>{{ secciones_planta.reservar.titulo }}</strong><b>{% if herramientas_reserva_habilitadas %}{{ secciones_planta.reservar.total_personalizado|add:2 }}{% else %}{{ secciones_planta.reservar.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseReservarPlanta" class="collapse show" data-parent="#accordion">
+    {% if herramientas_reserva_habilitadas %}
+      <ul class="unit-resource-list">
+        <li><button type="button" class="recurso-btn project-detail-resource-button" data-id="reservar-unidad" data-ui-click="abrirModalEquipos"><i class="iconsminds-calendar-4"></i><span>{% translate "Abrir sistema de reservas" %}</span><i class="simple-icon-arrow-right"></i></button></li>
+        <li><button type="button" class="recurso-btn project-detail-resource-button" data-id="mis-reservas" data-ui-click="verMisReservas"><i class="iconsminds-profile"></i><span>{% translate "Mis reservas" %}</span><i class="simple-icon-arrow-right"></i></button></li>
+      </ul>
+    {% endif %}
+    {% if secciones_planta.reservar.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.reservar.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if secciones_planta.servicios and not secciones_planta.servicios.oculta %}
+{% if herramientas_reserva_habilitadas or secciones_planta.servicios.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.servicios.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseServiciosPlanta" aria-expanded="false" aria-controls="collapseServiciosPlanta">
+    <span data-seccion="{{ secciones_planta.servicios.numero }}"><i class="fas fa-concierge-bell"></i></span><strong>{{ secciones_planta.servicios.titulo }}</strong><b>{% if herramientas_reserva_habilitadas %}{{ secciones_planta.servicios.total_personalizado|add:1 }}{% else %}{{ secciones_planta.servicios.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseServiciosPlanta" class="collapse" data-parent="#accordion">
+    {% if herramientas_reserva_habilitadas %}
+      <ul class="unit-resource-list"><li><button type="button" class="recurso-btn project-detail-resource-button" data-id="catalogo-servicios" data-section-title="{% translate "Catálogo de servicios y tarifas" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'catalogo_servicios_unidad' unidad.slug %}" data-ui-arg1="catalogo-servicios.html" data-ui-arg2="false" data-ui-resource="catalogo-servicios"><i class="fas fa-hand-holding-usd"></i><span>{% translate "Servicios, tarifas y condiciones" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>
+    {% endif %}
+    {% if secciones_planta.servicios.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.servicios.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if secciones_planta.agenda and not secciones_planta.agenda.oculta %}
+{% if herramientas_reserva_habilitadas or secciones_planta.agenda.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.agenda.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseAgendaPlanta" aria-expanded="false" aria-controls="collapseAgendaPlanta">
+    <span data-seccion="{{ secciones_planta.agenda.numero }}"><i class="fas fa-calendar-alt"></i></span><strong>{{ secciones_planta.agenda.titulo }}</strong><b>{% if herramientas_reserva_habilitadas %}{{ secciones_planta.agenda.total_personalizado|add:1 }}{% else %}{{ secciones_planta.agenda.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseAgendaPlanta" class="collapse" data-parent="#accordion">
+    {% if herramientas_reserva_habilitadas %}
+      <ul class="unit-resource-list"><li><button type="button" class="recurso-btn project-detail-resource-button" data-id="agenda-disponibilidad" data-section-title="{% translate "Agenda y disponibilidad" %}" data-ui-click="replaceContent" data-ui-arg0="{% url 'agenda_disponibilidad_unidad' unidad.slug %}" data-ui-arg1="agenda-disponibilidad.html" data-ui-arg2="false" data-ui-resource="agenda-disponibilidad"><i class="fas fa-calendar-check"></i><span>{% translate "Consultar disponibilidad" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>
+    {% endif %}
+    {% if secciones_planta.agenda.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.agenda.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if secciones_planta.requisitos and not secciones_planta.requisitos.oculta %}
+{% if herramientas_reserva_habilitadas or secciones_planta.requisitos.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.requisitos.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseRequisitosPlanta" aria-expanded="false" aria-controls="collapseRequisitosPlanta">
+    <span data-seccion="{{ secciones_planta.requisitos.numero }}"><i class="fas fa-id-badge"></i></span><strong>{{ secciones_planta.requisitos.titulo }}</strong><b>{% if herramientas_reserva_habilitadas %}{{ secciones_planta.requisitos.total_personalizado|add:1 }}{% else %}{{ secciones_planta.requisitos.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseRequisitosPlanta" class="collapse" data-parent="#accordion">
+    {% if herramientas_reserva_habilitadas %}
+      <ul class="unit-resource-list"><li><button type="button" class="recurso-btn project-detail-resource-button" data-id="requisitos-acceso" data-section-title="{% translate "Requisitos de acceso" %}" data-ui-click="loadIntegratedSection" data-ui-arg0="requisitos-acceso"><i class="fas fa-clipboard-check"></i><span>{% translate "Condiciones para ingresar" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>
+      {% if requisitos_ingreso %}<div class="unit-access-requirements"><strong><i class="fas fa-id-badge" aria-hidden="true"></i> {% translate "Para ingresar a la unidad" %}</strong><ul>{% for requisito in requisitos_ingreso %}<li><span>{{ requisito.nombre }}{% if not requisito.obligatorio %} <small>{% translate "(opcional)" %}</small>{% endif %}</span><small>{{ requisito.tipo_display }} · {{ requisito.aplica_display }}{% if requisito.vigencia_dias %} {% translate "· vigencia de" %} {{ requisito.vigencia_dias }} {% translate "días" %}{% endif %}</small></li>{% endfor %}</ul></div>{% endif %}
+    {% endif %}
+    {% if secciones_planta.requisitos.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.requisitos.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if secciones_planta.mis_guias and not secciones_planta.mis_guias.oculta %}
+{% if herramientas_reserva_habilitadas or secciones_planta.mis_guias.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.mis_guias.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseMisGuiasPlanta" aria-expanded="false" aria-controls="collapseMisGuiasPlanta">
+    <span data-seccion="{{ secciones_planta.mis_guias.numero }}"><i class="fas fa-book-reader"></i></span><strong>{{ secciones_planta.mis_guias.titulo }}</strong><b>{% if herramientas_reserva_habilitadas %}{% if tiene_sesiones_programadas %}{{ secciones_planta.mis_guias.total_personalizado|add:2 }}{% else %}{{ secciones_planta.mis_guias.total_personalizado|add:1 }}{% endif %}{% else %}{{ secciones_planta.mis_guias.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseMisGuiasPlanta" class="collapse" data-parent="#accordion">
+    {% if herramientas_reserva_habilitadas %}
+      <ul class="unit-resource-list">
+        <li><a class="recurso-btn project-detail-resource-button" data-id="guias-practica" href="{% url 'lista_guias_practica' unidad.slug %}"><i class="iconsminds-notepad"></i><span>{% if request.user.is_authenticated %}{% translate "Abrir mis guías de práctica" %}{% else %}{% translate "Ingresar para consultar mis guías" %}{% endif %}</span><i class="simple-icon-arrow-right"></i></a></li>
+        {% if tiene_sesiones_programadas %}<li><a class="recurso-btn project-detail-resource-button" data-id="sesiones-programadas" href="{% url 'mis_sesiones' unidad.slug %}"><i class="iconsminds-calendar-4"></i><span>{% translate "Mis sesiones programadas" %}</span><i class="simple-icon-arrow-right"></i></a></li>{% endif %}
+      </ul>
+    {% endif %}
+    {% if secciones_planta.mis_guias.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.mis_guias.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if secciones_planta.reglamento and not secciones_planta.reglamento.oculta %}
+{% if herramientas_reserva_habilitadas or secciones_planta.reglamento.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.reglamento.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseReglamentoPlanta" aria-expanded="false" aria-controls="collapseReglamentoPlanta">
+    <span data-seccion="{{ secciones_planta.reglamento.numero }}"><i class="fas fa-file-contract"></i></span><strong>{{ secciones_planta.reglamento.titulo }}</strong><b>{% if herramientas_reserva_habilitadas and reglamento_data.activo %}{{ secciones_planta.reglamento.total_personalizado|add:1 }}{% else %}{{ secciones_planta.reglamento.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseReglamentoPlanta" class="collapse" data-parent="#accordion">
+    {% if herramientas_reserva_habilitadas %}
+      {% if reglamento_data.activo %}
+      <ul class="unit-resource-list"><li><button type="button" class="recurso-btn project-detail-resource-button" data-id="reglamento-unidad" data-ui-click="loadReglasReservas"><i class="iconsminds-file"></i><span>{% translate "Consultar reglamento de uso" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>
+      {% else %}<p class="unit-resource-empty">{% translate "Reglamento pendiente de publicación por la unidad." %}</p>{% endif %}
+    {% endif %}
+    {% if secciones_planta.reglamento.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.reglamento.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+{% if secciones_planta.visitas and not secciones_planta.visitas.oculta %}
+{% if puede_gestionar_unidad and herramientas_reserva_habilitadas or secciones_planta.visitas.carpetas_personalizadas %}
+<div class="unit-folder unit-folder--section" aria-label="{{ secciones_planta.visitas.titulo }}">
+  <button class="unit-section-heading" type="button" data-toggle="collapse" data-target="#collapseVisitasPlanta" aria-expanded="false" aria-controls="collapseVisitasPlanta">
+    <span data-seccion="{{ secciones_planta.visitas.numero }}"><i class="fas fa-users"></i></span><strong>{{ secciones_planta.visitas.titulo }}</strong><b>{% if puede_gestionar_unidad and herramientas_reserva_habilitadas and oferta_visitas.acepta %}{{ secciones_planta.visitas.total_personalizado|add:1 }}{% else %}{{ secciones_planta.visitas.total_personalizado }}{% endif %}</b><i class="simple-icon-arrow-down unit-section-heading__arrow"></i>
+  </button>
+  <div id="collapseVisitasPlanta" class="collapse" data-parent="#accordion">
+    {% if puede_gestionar_unidad and herramientas_reserva_habilitadas %}
+      {% if oferta_visitas.acepta %}
+      <ul class="unit-resource-list"><li><button type="button" class="recurso-btn project-detail-resource-button" data-id="visitas-unidad" data-ui-click="replaceContent" data-ui-arg0="{% url 'oferta_visitas' unidad.slug %}" data-ui-arg1="visitas-unidad.html" data-ui-arg2="false" data-ui-resource="visitas-unidad"><i class="iconsminds-conference"></i><span>{% translate "Visitas y uso interno" %}</span><i class="simple-icon-arrow-right"></i></button></li></ul>
+      {% elif not secciones_planta.visitas.carpetas_personalizadas %}<p class="unit-resource-empty">{% translate "Sin oferta de visitas activa." %}</p>{% endif %}
+    {% endif %}
+    {% if secciones_planta.visitas.carpetas_personalizadas %}<div class="unit-resource-groups">{% include 'portal/pages/unidades/detalle/carpetas_seccion.html' with carpetas=secciones_planta.visitas.carpetas_personalizadas %}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}

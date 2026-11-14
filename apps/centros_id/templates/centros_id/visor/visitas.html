@@ -1,0 +1,31 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Visitas y recorridos: qué se recorre y en qué condiciones, las áreas que se visitan con sus tarjetas y el recorrido
+virtual.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Qué se recorre, para quién y en qué condiciones. Las visitas y las demostraciones se piden como cualquier otra solicitud y el centro confirma fecha y recorrido." %}</p>{% endblock %}
+{% block acciones %}<a class="conoce__boton is-principal" href="{{ solicitar_url }}?tipo=visita"><i class="fas fa-walking" aria-hidden="true"></i> {% translate "Pedir una visita" %}</a>{% endblock %}
+
+{% block contenido %}
+{% if texto %}
+<section class="conoce__seccion area__primera" id="visitas">
+  <article class="ficha__bloque ficha__bloque--creacion" data-aparecer><header><i class="fas fa-walking" aria-hidden="true"></i><h2>{% translate "Cómo son las visitas" %}</h2></header><div class="area__texto">{{ texto|linebreaks }}</div><div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ solicitar_url }}?tipo=visita"><i class="fas fa-calendar-plus" aria-hidden="true"></i> {% translate "Pedir una visita" %}</a></div></article>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro no ha descrito sus visitas y recorridos.") enlace=completar %}</section>
+{% endif %}
+
+{% if tarjetas %}
+<section class="conoce__seccion" id="que-se-visita">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El recorrido" %}</span><h2>{% translate "Qué se visita" %}</h2></header>
+  <div class="area__tarjetas">{% for tarjeta in tarjetas %}{% include 'centros_id/visor/_area_tarjeta.html' %}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if recorrido %}
+<section class="conoce__seccion" id="recorrido">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Sin moverte" %}</span><h2>{% translate "Recorrido virtual" %}</h2></header>
+  <div class="cv-recorrido" data-aparecer><iframe src="{{ recorrido }}" title="{% translate "Recorrido virtual de" %} {{ centro.nombre }}" loading="lazy" allow="fullscreen; xr-spatial-tracking; gyroscope; accelerometer" allowfullscreen></iframe></div>
+</section>
+{% endif %}
+{% endblock %}

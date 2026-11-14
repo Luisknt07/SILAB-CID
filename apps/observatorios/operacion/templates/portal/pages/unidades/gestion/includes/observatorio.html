@@ -1,0 +1,88 @@
+{% load i18n %}{% comment %}Las secciones propias del panel de un observatorio: indicadores y datos, publicaciones y calendario, y
+solicitudes de datos. Cada acción abre la página pública donde se edita lo mismo.{% endcomment %}
+<style>
+  .obs-panel-cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0 0 16px; }
+  .obs-panel-cifras div { padding: 12px 14px; border: 1px solid #dfe7e3; border-left: 4px solid var(--institucion-primario, #1f6b46); border-radius: 6px; background: #fff; }
+  .obs-panel-cifras div.is-alerta { border-left-color: #c0392b; }
+  .obs-panel-cifras div.is-aviso { border-left-color: #d98b3a; }
+  .obs-panel-cifras b { display: block; font-size: 22px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .obs-panel-cifras span { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #5f7268; }
+  .obs-estado { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 800; }
+  .obs-estado.is-al_dia { background: #e3f1e8; color: #1f6b46; }
+  .obs-estado.is-atrasado { background: #fbecd9; color: #8a4b08; }
+  .obs-estado.is-sin_datos { background: #eef1ef; color: #5f7268; }
+  .obs-panel-carga { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 14px; padding: 12px 14px; border: 1px dashed #b9cdc1; border-radius: 6px; background: #f6faf7; }
+  .obs-panel-carga input[type=file] { max-width: 280px; }
+  .obs-panel-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+</style>
+
+{% if not carga_selectiva_panel or vista_gestion == 'obs_indicadores' %}
+<section class="unit-console__view{% if vista_gestion == 'obs_indicadores' %} is-active{% endif %}" data-management-view="obs_indicadores" role="tabpanel"{% if vista_gestion != 'obs_indicadores' %} hidden{% endif %}>
+  <header class="unit-console__view-header"><div><h3>{% translate "Indicadores y datos" %}</h3><p>{% translate "Cada indicador dice si está al día según su periodicidad. Los valores se cargan uno a uno en su ficha o todos juntos con un CSV." %}</p></div></header>
+  <div class="obs-panel-cifras">
+    <div><b>{{ obs_totales.indicadores }}</b><span>{% translate "Indicadores" %}</span></div>
+    <div><b>{{ obs_totales.al_dia }}</b><span>{% translate "Al día" %}</span></div>
+    <div class="{% if obs_totales.atrasados %}is-aviso{% endif %}"><b>{{ obs_totales.atrasados }}</b><span>{% translate "Atrasados" %}</span></div>
+    <div class="{% if obs_totales.sin_datos %}is-alerta{% endif %}"><b>{{ obs_totales.sin_datos }}</b><span>{% translate "Sin datos" %}</span></div>
+  </div>
+  <form class="obs-panel-carga" method="post" action="{% url 'importar_valores_observatorio' unidad.slug %}" enctype="multipart/form-data">{% csrf_token %}
+    <strong><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Cargar valores en CSV" %}</strong>
+    <label class="visually-hidden" for="obs-csv">{% translate "Archivo CSV" %}</label><input id="obs-csv" type="file" name="archivo" accept=".csv" required>
+    <button type="submit" class="btn btn-primary btn-sm">{% translate "Cargar" %}</button>
+    <a href="{% url 'plantilla_csv_observatorio' unidad.slug %}">{% translate "Descargar la plantilla con los códigos" %}</a>
+    <small>{% translate "Columnas: codigo; periodo; valor; y si se quiere fecha, territorio, provisional y nota. Un valor que ya existe se actualiza y la versión anterior queda en el historial." %}</small>
+  </form>
+  {% if obs_conectados %}<form class="obs-panel-carga" method="post" action="{% url 'sincronizar_observatorio' unidad.slug %}">{% csrf_token %}
+    <strong><i class="fas fa-plug" aria-hidden="true"></i> {% blocktranslate count total=obs_conectados %}{{ total }} indicador se actualiza solo desde una API pública{% plural %}{{ total }} indicadores se actualizan solos desde una API pública{% endblocktranslate %}</strong>
+    <button type="submit" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt" aria-hidden="true"></i> {% translate "Actualizar ahora" %}</button>
+    <a href="{% url 'fuentes_observatorio' unidad.slug %}#conexiones" target="_blank" rel="noopener">{% translate "Ver el estado de cada conexión" %}</a>
+  </form>{% endif %}
+  <div class="obs-panel-acciones"><a class="btn btn-outline-primary btn-sm" href="{% url 'editar_registro' unidad.slug 'indicador_observatorio' 'nuevo' %}" data-editar-ficha data-editar-titulo="{% translate "Nuevo indicador" %}"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Nuevo indicador" %}</a><a class="btn btn-outline-primary btn-sm" href="{% url 'fichas_observatorio' unidad.slug %}" target="_blank" rel="noopener">{% translate "Ver las fichas publicadas" %}</a></div>
+  <div class="unit-report__table-wrap"><table class="table table-sm"><thead><tr><th>{% translate "Indicador" %}</th><th>{% translate "Último periodo" %}</th><th>{% translate "Periodicidad" %}</th><th>{% translate "Valores" %}</th><th>{% translate "Cómo se actualiza" %}</th><th>{% translate "Estado" %}</th><th></th></tr></thead><tbody>
+    {% for fila in obs_filas %}<tr>
+      <td><strong>{{ fila.indicador.nombre }}</strong>{% if not fila.indicador.publicado %} <small>({% translate "borrador" %})</small>{% endif %}<br><small>{{ fila.indicador.codigo }} · {{ fila.indicador.fuente }}</small></td>
+      <td>{{ fila.ultimo.periodo|default:"—" }}</td><td>{{ fila.indicador.get_periodicidad_display }}</td><td>{{ fila.valores }}</td>
+      <td>{% if fila.conector %}<span class="obs-estado is-{% if fila.conector.estado == 'error' %}atrasado{% else %}al_dia{% endif %}" title="{{ fila.conector.mensaje }}">{% translate "Automático" %}</span>{% else %}<small>{{ fila.indicador.fuente_datos.get_metodo_display|default:_("Carga manual") }}</small>{% endif %}</td>
+      <td><span class="obs-estado is-{{ fila.estado }}">{% if fila.estado == 'al_dia' %}{% translate "Al día" %}{% elif fila.estado == 'atrasado' %}{% translate "Atrasado" %}{% else %}{% translate "Sin datos" %}{% endif %}</span></td>
+      <td><a href="{% url 'editar_registro' unidad.slug 'valor_indicador' 'nuevo' %}?padre={{ fila.indicador.pk }}" data-editar-ficha data-editar-titulo="{% translate "Nuevo valor" %}">{% translate "Agregar valor" %}</a>{% if fila.indicador.publicado %} · <a href="{% url 'indicador_observatorio' unidad.slug fila.indicador.codigo %}" target="_blank" rel="noopener">{% translate "Ficha" %}</a>{% endif %}{% if fila.estado != 'al_dia' and not fila.conector and fila.indicador.url_fuente %} · <a href="{{ fila.indicador.url_fuente }}" target="_blank" rel="noopener noreferrer" title="{% translate "Buscar el valor nuevo en la publicación oficial" %}">{% translate "Ir a la fuente" %}</a>{% endif %}</td>
+    </tr>{% empty %}<tr><td colspan="7">{% translate "El observatorio todavía no tiene indicadores." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'obs_publicaciones' %}
+<section class="unit-console__view{% if vista_gestion == 'obs_publicaciones' %} is-active{% endif %}" data-management-view="obs_publicaciones" role="tabpanel"{% if vista_gestion != 'obs_publicaciones' %} hidden{% endif %}>
+  <header class="unit-console__view-header"><div><h3>{% translate "Publicaciones y calendario" %}</h3><p>{% translate "El calendario es un compromiso público: lo que se planifica se publica en su fecha." %}</p></div></header>
+  <div class="obs-panel-cifras">
+    <div><b>{% if obs_cumplimiento.porcentaje is not None %}{{ obs_cumplimiento.porcentaje }} %{% else %}—{% endif %}</b><span>{% translate "Cumplimiento" %}</span></div>
+    <div><b>{{ obs_cumplimiento.a_tiempo }}</b><span>{% translate "A tiempo" %}</span></div>
+    <div class="{% if obs_atrasadas %}is-alerta{% endif %}"><b>{{ obs_total_atrasadas }}</b><span>{% translate "Atrasadas" %}</span></div>
+    <div><b>{{ obs_total_proximas }}</b><span>{% translate "Próximas" %}</span></div>
+  </div>
+  <div class="obs-panel-acciones"><a class="btn btn-outline-primary btn-sm" href="{% url 'editar_registro' unidad.slug 'publicacion_observatorio' 'nuevo' %}" data-editar-ficha data-editar-titulo="{% translate "Nueva publicación" %}"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Planificar una publicación" %}</a><a class="btn btn-outline-primary btn-sm" href="{% url 'boletin_observatorio' unidad.slug %}" data-ver-pdf data-pdf-titulo="Boletín de indicadores · {{ unidad.nombre }}" data-pdf-descarga="{% url 'boletin_observatorio' unidad.slug %}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Boletín con los indicadores vigentes" %}</a></div>
+  {% if obs_atrasadas %}<h4>{% translate "Atrasadas" %}</h4><ul>{% for publicacion in obs_atrasadas %}<li><strong>{{ publicacion.titulo }}</strong> · {% translate "planificada para el" %} {{ publicacion.fecha_planificada|date:"d/m/Y" }} · <a href="{% url 'editar_registro' unidad.slug 'publicacion_observatorio' publicacion.pk %}" data-editar-ficha data-editar-titulo="{{ publicacion.titulo }}">{% translate "Publicar o reprogramar" %}</a></li>{% endfor %}</ul>{% endif %}
+  <h4>{% translate "Próximas" %}</h4><ul>{% for publicacion in obs_proximas %}<li><strong>{{ publicacion.titulo }}</strong> · {{ publicacion.fecha_planificada|date:"d/m/Y" }} · <a href="{% url 'editar_registro' unidad.slug 'publicacion_observatorio' publicacion.pk %}" data-editar-ficha data-editar-titulo="{{ publicacion.titulo }}">{% translate "Editar" %}</a></li>{% empty %}<li>{% translate "No hay publicaciones planificadas." %}</li>{% endfor %}</ul>
+  {% if obs_publicadas %}<h4>{% translate "Publicadas" %}</h4><ul>{% for publicacion in obs_publicadas %}<li>{{ publicacion.titulo }} · {{ publicacion.fecha_publicada|date:"d/m/Y" }}{% if publicacion.a_tiempo is False %} ({% translate "con retraso" %}){% endif %}</li>{% endfor %}</ul>{% endif %}
+</section>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'obs_solicitudes' %}
+<section class="unit-console__view{% if vista_gestion == 'obs_solicitudes' %} is-active{% endif %}" data-management-view="obs_solicitudes" role="tabpanel"{% if vista_gestion != 'obs_solicitudes' %} hidden{% endif %}>
+  <header class="unit-console__view-header"><div><h3>{% translate "Solicitudes de datos" %}</h3><p>{% translate "Lo que piden estudiantes, docentes, gobiernos locales y empresas. Al responder, la persona ve la respuesta en su solicitud." %}</p></div></header>
+  <div class="obs-panel-cifras">
+    <div class="{% if obs_solicitudes_abiertas %}is-aviso{% endif %}"><b>{{ obs_solicitudes_abiertas }}</b><span>{% translate "Por atender" %}</span></div>
+    <div><b>{{ obs_solicitudes_total }}</b><span>{% translate "Recibidas" %}</span></div>
+    <div><b>{% if obs_dias_atencion is not None %}{{ obs_dias_atencion }} {% translate "días" %}{% else %}—{% endif %}</b><span>{% translate "Tiempo medio de atención" %}</span></div>
+  </div>
+  <div class="unit-report__table-wrap"><table class="table table-sm"><thead><tr><th>{% translate "Recibida" %}</th><th>{% translate "Solicitante" %}</th><th>{% translate "Qué pide" %}</th><th>{% translate "Estado" %}</th><th></th></tr></thead><tbody>
+    {% for solicitud in obs_solicitudes %}<tr>
+      <td>{{ solicitud.creada|date:"d/m/Y" }}</td><td>{{ solicitud.usuario.get_full_name|default:solicitud.usuario.get_username }}{% if solicitud.institucion %}<br><small>{{ solicitud.institucion }}</small>{% endif %}</td>
+      <td><strong>{{ solicitud.get_tipo_display }}</strong>: {{ solicitud.descripcion|truncatechars:120 }}<br><small>{{ solicitud.finalidad }}</small></td>
+      <td>{{ solicitud.get_estado_display }}</td>
+      <td><a href="{% url 'editar_registro' unidad.slug 'solicitud_datos' solicitud.pk %}" data-editar-ficha data-editar-titulo="{% translate "Responder la solicitud" %}">{% translate "Responder" %}</a></td>
+    </tr>{% empty %}<tr><td colspan="5">{% translate "Todavía no hay solicitudes." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+
+{% if obs_pagina.paginator.num_pages > 1 %}<nav class="unit-console__pagination" aria-label="{% translate 'Páginas del observatorio' %}"><span>{% translate "Página" %} {{ obs_pagina.number }} {% translate "de" %} {{ obs_pagina.paginator.num_pages }}</span><div>{% if obs_pagina.has_previous %}<a data-management-load href="{% url 'gestion_unidad' unidad.slug %}?view={{ vista_gestion }}&amp;pagina_observatorio={{ obs_pagina.previous_page_number }}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}">{% translate "Anterior" %}</a>{% endif %}{% if obs_pagina.has_next %}<a data-management-load href="{% url 'gestion_unidad' unidad.slug %}?view={{ vista_gestion }}&amp;pagina_observatorio={{ obs_pagina.next_page_number }}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}">{% translate "Siguiente" %}</a>{% endif %}</div></nav>{% endif %}

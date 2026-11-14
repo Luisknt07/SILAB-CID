@@ -1,0 +1,12 @@
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.sh text eol=lf
+manage.py text eol=lf
+
+# Conservar el espaciado original de la distribución y licencias de PDF.js.
+apps/portal/static/js/vendor/pdfjs/6.4.299/pdf*.mjs -whitespace
+apps/portal/static/js/vendor/pdfjs/6.4.299/cmaps/LICENSE -whitespace
+apps/portal/static/js/vendor/pdfjs/6.4.299/standard_fonts/LICENSE_LIBERATION -whitespace
+
+# Imágenes originales verificadas por SHA256: conservar exactamente sus bytes.
+apps/portal/static/img/catalogo/fablab/oficiales/* -text -whitespace
+apps/portal/static/img/software/oficiales/* -text -whitespace

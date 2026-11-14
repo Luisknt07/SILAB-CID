@@ -1,0 +1,54 @@
+/* Escáner de equipos de la página de la unidad (se abre en el visor): portada corta, la lectura en una
+   tarjeta y el equipo de otra unidad en un recuadro. Usa los colores de «Conoce la unidad». */
+.escaner { padding-bottom: 32px; }
+.escaner__oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.escaner__portada { min-height: 0; padding-top: 34px; padding-bottom: 74px; }
+.escaner__portada h1 { margin: 6px 0 8px; font-size: clamp(26px, 4vw, 38px); }
+.escaner__portada p { max-width: 640px; margin: 0; color: rgba(255, 255, 255, .88); font-size: 14px; line-height: 1.5; }
+.escaner__cuerpo { display: grid; gap: 16px; max-width: 760px; margin: -50px auto 0; padding: 0 var(--conoce-lado); position: relative; z-index: 1; }
+.escaner__lectura, .escaner__no-existe { padding: 18px; border-radius: 18px; background: #fff; box-shadow: 0 14px 32px rgba(0, 0, 0, .1); }
+
+.escaner__visor { position: relative; overflow: hidden; aspect-ratio: 4 / 3; max-height: 56vh; border-radius: 14px; background: #0d1f18; }
+.escaner__visor video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.escaner__mira { position: absolute; inset: 24% 10%; border: 3px solid var(--conoce-amarillo); border-radius: 12px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .28); pointer-events: none; }
+.escaner__visor.is-leyendo .escaner__mira::after { content: ""; position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: #ff5b4d; box-shadow: 0 0 8px #ff5b4d; animation: escaner-barrido 1.6s ease-in-out infinite alternate; }
+@keyframes escaner-barrido { from { transform: translateY(-36px); } to { transform: translateY(36px); } }
+@media (prefers-reduced-motion: reduce) { .escaner__visor.is-leyendo .escaner__mira::after { animation: none; } }
+.escaner__estado { position: absolute; left: 10px; right: 10px; bottom: 10px; margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(0, 0, 0, .62); color: #fff; font-size: 13px; text-align: center; }
+
+.escaner .conoce__boton { border-color: #d5e2db; background: #fff; color: var(--conoce-oscuro); cursor: pointer; }
+.escaner .conoce__boton.is-principal { border-color: var(--conoce-amarillo); background: var(--conoce-amarillo); }
+.escaner__acciones, .escaner__botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.escaner__manual { margin-top: 14px; }
+.escaner__manual label { display: block; margin-bottom: 6px; color: var(--conoce-primario); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.escaner__manual div { display: flex; gap: 8px; }
+.escaner__manual input { flex: 1; min-width: 0; padding: 11px 13px; border: 1px solid #d5e2db; border-radius: 12px; font: inherit; font-size: 14px; }
+
+.escaner__no-existe { display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; border-left: 5px solid #c0392b; }
+.escaner__no-existe > i { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: #fbeceb; color: #a12c2c; font-size: 22px; }
+.escaner__no-existe h2 { margin: 0 0 4px; color: #a12c2c; font-size: 19px; }
+.escaner__no-existe p { margin: 0; color: var(--conoce-gris); font-size: 13.5px; }
+
+.escaner__modal { width: min(720px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 22px; border: 0; border-radius: 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, .3); color: var(--conoce-oscuro); }
+.escaner__modal::backdrop { background: rgba(5, 20, 14, .55); }
+.escaner__cerrar { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #eef3f0; color: var(--conoce-oscuro); cursor: pointer; }
+.escaner__otra { margin: 0 40px 14px 0; padding: 10px 12px; border-left: 3px solid var(--conoce-amarillo); border-radius: 8px; background: #fff8df; color: #745711; font-size: 13px; }
+.escaner__equipo { display: grid; grid-template-columns: minmax(130px, 200px) minmax(0, 1fr); gap: 16px; }
+.escaner__foto { display: grid; place-items: center; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 12px; background: linear-gradient(160deg, #fff, var(--conoce-suave)); color: var(--conoce-primario); font-size: 54px; }
+.escaner__foto img { width: 100%; height: 100%; object-fit: cover; }
+.escaner__equipo h2 { margin: 6px 0 2px; font-size: 21px; }
+.escaner__equipo p { margin: 0; color: var(--conoce-gris); font-size: 13px; }
+.escaner__estado-equipo { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #eef2f0; color: var(--conoce-gris); font-size: 11px; font-weight: 800; }
+.escaner__estado-equipo.is-disponible { background: #e3f5ea; color: #1d7a47; }
+.escaner__datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 14px; margin: 12px 0 0; }
+.escaner__datos dt { color: var(--conoce-primario); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.escaner__datos dd { margin: 2px 0 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.escaner__modal h3 { margin: 16px 0 6px; color: var(--conoce-primario); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.escaner__uso { margin: 0; color: var(--conoce-gris); font-size: 13px; line-height: 1.5; }
+.escaner__chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.escaner__chips li { padding: 4px 10px; border: 1px solid #d5e2db; border-radius: 999px; font-size: 12px; }
+
+@media (max-width: 560px) {
+    .escaner__equipo { grid-template-columns: 1fr; }
+    .escaner__foto { max-height: 180px; }
+}

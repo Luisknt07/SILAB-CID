@@ -1,0 +1,1180 @@
+
+{% load i18n idiomas redaccion static %}
+<link rel="stylesheet" href="{% static 'portal/css/components/seguimiento_uso.css' %}?v=20261018-seguimiento-2">
+<div class="unit-console{% if modo_modal %} is-embedded{% endif %}"
+     id="unitManagementConsole"
+     data-resources-query="{{ recursos_query|default:request.GET.urlencode }}"
+     data-selective-loading="{{ carga_selectiva_panel|yesno:'true,false' }}"
+     data-initial-view="{{ vista_gestion|default:'indicadores' }}"
+     data-initial-reservations-mode="{{ modo_reservas|default:'agenda' }}"
+     data-initial-resources-mode="{{ modo_recursos|default:'activos' }}"
+     data-lector-buscar="{% url 'lector_buscar_equipo' %}"
+     data-selected-date="{{ fecha_seleccionada|date:'Y-m-d' }}"
+     data-can-edit-closed-reservations="{{ puede_corregir_reservas_cerradas|yesno:'true,false' }}"
+     data-can-register-access="{{ puede_operar_seguridad|yesno:'true,false' }}"
+     data-trabajo-singular="{{ palabras_trabajo_unidad.singular }}"
+     data-trabajo-plural="{{ palabras_trabajo_unidad.plural }}"
+     data-trabajo-genero="{{ palabras_trabajo_unidad.genero }}"
+     data-participant-search-url="{% url 'buscar_usuarios_reserva' %}"
+     data-sesion-erp="{% if sesion_erp %}{{ sesion_erp.codigo }}{% endif %}"
+     data-management-url="{% if superficie == 'erp' %}{{ erp_url }}{% else %}{% url 'gestion_unidad' unidad.slug %}{% endif %}">
+  {% if not modo_modal %}<header class="unit-console__titlebar">
+    <div class="unit-console__tech" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="unit-console__titlebar-inner">
+      <span class="unit-console__title-icon"><i class="fas fa-{% if superficie == 'erp' %}industry{% else %}calendar-check{% endif %}"></i></span>
+      <div class="unit-console__identity">
+        {% if superficie == 'erp' %}<span>{% translate "ERP DE LA PLANTA" %}</span>
+        <h1>{% translate "Operar la planta" %}</h1>{% else %}{% if es_observatorio_gestion %}<span>{% translate "GESTIÓN DEL OBSERVATORIO" %}</span>
+        <h1>{% translate "Gestionar observatorio" %}</h1>{% else %}<span>{% translate "GESTIÓN Y RESERVA" %}</span>
+        <h1>{% translate "Gestionar unidad" %}</h1>{% endif %}{% endif %}
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <div class="unit-console__operator">
+        <small>{{ rol_operativo }}</small>
+        <strong>{% firstof request.user.get_full_name request.user.username %}</strong>
+      </div>
+      <a class="unit-console__close" href="{{ unidad.get_absolute_url }}" aria-label="{% if es_observatorio_gestion %}{% translate "Cerrar la gestión del observatorio" %}{% else %}{% translate "Cerrar la gestión de la unidad" %}{% endif %}"><i class="fas fa-times"></i></a>
+    </div>
+  </header>{% endif %}
+
+  <div class="unit-console__workspace">
+    <aside class="unit-console__sidebar" aria-label="{% if es_observatorio_gestion %}{% translate "Operaciones del observatorio" %}{% else %}{% translate "Operaciones de la unidad" %}{% endif %}">
+      <div class="unit-console__sidebar-head">
+        <h2>{% if superficie == 'erp' %}{% translate "Módulos de la planta" %}{% elif es_observatorio_gestion %}{% translate "Panel del observatorio" %}{% else %}{% translate "Panel de la unidad" %}{% endif %}</h2>
+      </div>
+
+      <nav class="unit-console__nav" role="tablist" aria-orientation="vertical">
+        {% for seccion in secciones_navegacion %}
+        {% if seccion.grupo %}{% ifchanged seccion.grupo %}<span class="unit-console__nav-group" role="presentation">{{ seccion.grupo }}</span>{% endifchanged %}{% endif %}
+        <button type="button"
+                class="unit-console__nav-item{% if seccion.clave == vista_gestion %} is-active{% endif %}{% if not seccion.habilitada %} is-disabled{% endif %}"
+                data-management-target="{{ seccion.clave }}"
+                data-management-title="{{ seccion.titulo }}"
+                data-management-description="{{ seccion.descripcion }}"
+                role="tab"
+                aria-selected="{% if seccion.clave == vista_gestion %}true{% else %}false{% endif %}"
+                {% if not seccion.habilitada %}disabled{% endif %}>
+          <i class="{{ seccion.icono }}" aria-hidden="true"></i>
+          <span><strong>{{ seccion.titulo }}</strong><small>{{ seccion.dato }}{% if seccion.etiqueta %} · {{ seccion.etiqueta }}{% endif %}</small></span>
+          <i class="simple-icon-arrow-right" aria-hidden="true"></i>
+        </button>
+        {% endfor %}
+        {% if superficie == 'erp' %}{% if personal_planta %}<span class="unit-console__nav-group" role="presentation">{% translate "Ir a" %}</span>
+        <a class="unit-console__nav-item unit-console__nav-item--switch" href="{% url 'gestion_unidad' unidad.slug %}"><i class="fas fa-sliders-h" aria-hidden="true"></i><span><strong>{% translate "Gestionar unidad" %}</strong><small>{% translate "Uso, recursos, personal y reportes" %}</small></span><i class="simple-icon-arrow-right" aria-hidden="true"></i></a>
+        {% endif %}{% elif es_planta_gestion %}<span class="unit-console__nav-group" role="presentation">{% translate "Ir a" %}</span>
+        <a class="unit-console__nav-item unit-console__nav-item--switch" href="{% url 'erp_planta' unidad.slug %}"><i class="fas fa-industry" aria-hidden="true"></i><span><strong>{% translate "ERP de la planta" %}</strong><small>{% translate "Planificar, comprar, producir y despachar" %}</small></span><i class="simple-icon-arrow-right" aria-hidden="true"></i></a>{% endif %}
+      </nav>
+
+      <div class="unit-console__sidebar-status">
+        <span class="is-{{ tablero.estado.tono }}"><i class="fas fa-circle"></i> {{ tablero.estado.etiqueta }}</span>
+        <small>{% translate "Datos limitados a esta unidad" %}</small>
+      </div>
+    </aside>
+
+    <main class="unit-console__viewer">
+      <header class="unit-console__viewer-head">
+        <div>
+          {% if es_observatorio_gestion %}<h2 id="managementViewerTitle">{% translate "Indicadores y datos" %}</h2>
+          <p id="managementViewerDescription">{% translate "Indicadores al día, atrasados y sin datos; carga de valores uno a uno o en CSV." %}</p>{% else %}<h2 id="managementViewerTitle">{% translate "Indicadores de la unidad" %}</h2>
+          <p id="managementViewerDescription">{% translate "Utilización, disponibilidad, demanda, equipos y carga del personal." %}</p>{% endif %}
+        </div>
+        <div class="unit-console__viewer-actions">
+          <span><i class="far fa-clock"></i> {% translate "Actualizado" %} {% now "H:i" %}</span>
+          <button type="button" data-management-refresh><i class="fas fa-sync-alt"></i> {% translate "Actualizar" %}</button>
+        </div>
+      </header>
+
+      <div class="unit-console__viewport">
+        {% if superficie == 'erp' %}{% include 'portal/pages/unidades/erp/sesion_actual.html' %}{% endif %}
+        {% if superficie == 'erp' %}{% include 'portal/pages/unidades/erp/sesiones.html' %}
+        {% if mapa_planta %}{% if not carga_selectiva_panel or vista_gestion == 'mapa' %}<section class="unit-console__view{% if vista_gestion == 'mapa' %} is-active{% endif %}" data-management-view="mapa" role="tabpanel"{% if vista_gestion != 'mapa' %} hidden{% endif %}>
+          <article class="unit-console__card unit-console__plant-map">
+            <header><div><span>{% translate "EL ERP DE LA PLANTA" %}</span><h3>{% translate "Módulos y flujo de la cadena productiva" %}</h3><p>{% translate "Cada módulo con sus indicadores reales y a qué alimenta. Operas los módulos que la coordinación te delegó y consultas los de la cadena productiva." %}</p></div></header>
+            <ol class="unit-console__plant-flow" aria-label="{% translate "Flujo de la planta" %}">{% for paso in mapa_planta.flujo %}<li class="is-{{ paso.acceso }}">{% if paso.vista %}<button type="button" data-management-target="{{ paso.vista }}"><b>{{ paso.paso }}</b> {{ paso.nombre }}</button>{% elif paso.enlace %}<a href="{{ paso.enlace }}"><b>{{ paso.paso }}</b> {{ paso.nombre }}</a>{% else %}<span><b>{{ paso.paso }}</b> {{ paso.nombre }}</span>{% endif %}{% for nombre, valor in paso.indicadores|slice:":1" %}<small>{{ nombre }}: {{ valor }}</small>{% endfor %}</li>{% endfor %}</ol>
+            <div class="unit-console__modules">{% for modulo in mapa_planta.modulos_erp %}{% include 'portal/pages/unidades/gestion/includes/modulo_planta.html' %}{% endfor %}</div>
+          </article>
+          <article class="unit-console__card">
+            <header><div><span>{% translate "SE ADMINISTRA EN GESTIONAR LABORATORIO" %}</span><h3>{% translate "Lo que sostiene la operación" %}</h3><p>{% translate "La coordinación administra el uso de la unidad, sus recursos, su personal y sus reportes. Cada módulo se abre en su pestaña, con el permiso de quien lo opera." %}</p></div></header>
+            <div class="unit-console__modules">{% for modulo in mapa_planta.modulos_gestion %}{% include 'portal/pages/unidades/gestion/includes/modulo_planta.html' %}{% endfor %}</div>
+          </article>
+        </section>{% endif %}{% endif %}
+        {% else %}
+        {% if not carga_selectiva_panel or vista_gestion == 'indicadores' %}<section class="unit-console__view{% if vista_gestion == 'indicadores' %} is-active{% endif %}" data-management-view="indicadores" role="tabpanel"{% if vista_gestion != 'indicadores' %} hidden{% endif %}>
+          {% include 'portal/pages/unidades/gestion/includes/seguimiento_uso_filtros.html' %}
+          <div class="unit-console__indicator-banner">
+            <div>
+              <span class="is-{{ tablero.estado.tono }}"><i class="fas fa-circle"></i> {{ tablero.estado.etiqueta }}</span>
+              <strong>{% translate "Control operativo de la unidad" %}</strong>
+              <small>{{ indicadores_portada.reservas_analizadas }} {% translate "solicitudes del" %} {{ indicadores_portada.inicio|date:'d/m/Y' }} al {{ indicadores_portada.fin|date:'d/m/Y' }} · {{ indicadores_portada.reservas_efectivas }} {% translate "atención" %}{{ indicadores_portada.reservas_efectivas|pluralize:'es' }} efectiva{{ indicadores_portada.reservas_efectivas|pluralize }} cerrada{{ indicadores_portada.reservas_efectivas|pluralize }}.</small>
+            </div>
+            <div><b>{{ alertas_operativas|length }}</b><span>{% translate "frentes activos" %}</span></div>
+            {% if alertas_operativas %}{% with prioridad=alertas_operativas.0 %}<a href="{% url 'gestion_unidad' unidad.slug %}?view={{ prioridad.vista }}{% if prioridad.vista == 'reservas' %}&amp;modo_reservas={{ prioridad.modo }}&amp;filtro_reservas={{ prioridad.filtro }}{% elif prioridad.vista == 'recursos' %}&amp;modo_recursos=inventario{% endif %}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-tasks"></i> {% translate "Atender prioridad" %}</a>{% endwith %}{% else %}<a href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=agenda{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="far fa-calendar-check"></i> {% translate "Abrir agenda" %}</a>{% endif %}
+          </div>
+
+          <div class="unit-console__operation-metrics" aria-label="{% translate "Decisiones inmediatas de reservas" %}">
+            <a class="{% if resumen_reservas.pendientes_vencidas %}is-critical{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=vencidas{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-hourglass-end"></i><span><small>{% translate "Vencidas sin decisión" %}</small><strong>{{ resumen_reservas.pendientes_vencidas }}</strong><em>{% translate "Resolver ahora" %}</em></span><i class="fas fa-arrow-right"></i></a>
+            <a class="{% if resumen_reservas.pendientes_proximas %}has-warning{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=proximas{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-inbox"></i><span><small>{% translate "Próximas por decidir" %}</small><strong>{{ resumen_reservas.pendientes_proximas }}</strong><em>{% translate "Hoy en adelante" %}</em></span><i class="fas fa-arrow-right"></i></a>
+            <a class="{% if resumen_reservas.cierres_total %}is-critical{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=cierre{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-clipboard-check"></i><span><small>{% translate "Cierres por validar" %}</small><strong>{{ resumen_reservas.cierres_total }}</strong><em>{% translate "Completar o regularizar" %}</em></span><i class="fas fa-arrow-right"></i></a>
+            <a class="{% if resumen_reservas.sin_asignar_total %}has-warning{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=sin_asignar{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-user-clock"></i><span><small>{% translate "Activas sin responsable" %}</small><strong>{{ resumen_reservas.sin_asignar_total }}</strong><em>{% translate "Asignar personal" %}</em></span><i class="fas fa-arrow-right"></i></a>
+          </div>
+
+          <article class="unit-console__operational-priorities">
+            <header><i class="fas fa-tools"></i><div><strong>{% translate "Riesgos de disponibilidad y abastecimiento" %}</strong><small>{% translate "Novedades que pueden afectar equipos, reservas próximas o existencias." %}</small></div></header>
+            <div>
+              {% for alerta in tablero.alertas %}
+              <a class="is-{{ alerta.nivel }}" href="{% url 'gestion_unidad' unidad.slug %}?{% if alerta.tipo == 'reservas_afectadas' %}view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=riesgo{% elif alerta.tipo == 'consumible_agotado' or alerta.tipo == 'consumible_bajo' %}view=recursos&amp;modo_recursos=inventario{% else %}view=mantenimiento{% endif %}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="{{ alerta.icono }}"></i><span><strong>{{ alerta.cantidad }} · {{ alerta.titulo }}</strong><small>{{ alerta.detalle }}</small></span><i class="fas fa-chevron-right"></i></a>
+              {% empty %}
+              <span class="is-clear"><i class="fas fa-check-circle"></i><strong>{% translate "Sin alertas técnicas" %}</strong><small>{% translate "Equipos, mantenimiento e inventario no registran novedades." %}</small></span>
+              {% endfor %}
+            </div>
+          </article>
+
+          {% include 'portal/pages/unidades/gestion/includes/seguimiento_uso.html' %}
+
+          <div class="unit-console__indicator-grid">
+            <article class="unit-console__card unit-console__indicator-card--trend">
+              <header><div><span>{% translate "USO FRENTE A LO PLANIFICADO" %}</span><h3>Seguimiento por {{ seguimiento_uso.agrupacion|lower }}</h3><p>Disponibilidad, ejecución acreditada y meta del mismo tramo. Las horas disponibles no son una obligación de ocupar el 100 %.</p></div></header>
+              {% include 'portal/pages/unidades/gestion/includes/seguimiento_uso_tabla.html' %}
+            </article>
+
+            <article class="unit-console__card unit-console__indicator-card--equipment">
+              <header><div><span>{% translate "ESTADO TÉCNICO" %}</span><h3>{% translate "Disponibilidad de equipos" %}</h3><p>{{ indicadores_portada.utilizacion.equipment_available }} de {{ indicadores_portada.utilizacion.equipment_total }} {% translate "unidades activas disponibles." %}</p></div></header>
+              <div class="unit-console__equipment-health">
+                <div class="unit-console__donut" style="background:conic-gradient({{ indicadores_portada.equipment_gradient }})"><span><strong>{{ indicadores_portada.total_equipos }}</strong><small>unidades</small></span></div>
+                <div>{% for estado in indicadores_portada.estados_equipo %}<p><i style="--legend-color:{{ estado.color }}"></i><span>{{ estado.nombre }}</span><strong>{{ estado.total }}</strong><small>{{ estado.porcentaje }}%</small></p>{% empty %}<p>{% translate "Sin equipos configurados." %}</p>{% endfor %}</div>
+              </div>
+            </article>
+
+            <article class="unit-console__card unit-console__indicator-card--agenda">
+              <header><div><span>{% translate "OPERACIÓN PRÓXIMA" %}</span><h3>{% translate "Agenda inmediata" %}</h3><p>{{ resumen_reservas.reservas_hoy }} {% translate "hoy ·" %} {{ resumen_reservas.reservas_7_dias }} {% translate "en los próximos 7 días." %}</p></div><button type="button" data-reservations-mode-target="agenda">{% translate "Abrir agenda" %} <i class="fas fa-arrow-right"></i></button></header>
+              <div class="unit-console__immediate-agenda">
+                {% for reserva in resumen_reservas.agenda_proxima %}<article><time><strong>{{ reserva.fecha|date:'d M' }}</strong><small>{{ reserva.hora_inicio|time:'H:i' }}–{{ reserva.hora_fin|time:'H:i' }}</small></time><div><strong>{% firstof reserva.titulo_solicitud reserva.equipo_nombre 'Solicitud de recursos' %}</strong><small>{% if reserva.responsable_asignado %}{{ reserva.responsable_asignado.nombre_publico }}{% else %}{% translate "Sin responsable asignado" %}{% endif %}</small></div><span class="unit-console__status is-{{ reserva.estado }}">{{ reserva.get_estado_display|ui }}</span></article>{% empty %}<div class="unit-console__empty"><i class="far fa-calendar-check"></i><strong>{% translate "No hay reservas próximas" %}</strong><small>{% translate "La agenda se encuentra libre desde hoy." %}</small></div>{% endfor %}
+              </div>
+            </article>
+
+            <article class="unit-console__card unit-console__indicator-card--demand">
+              <header><div><span>{% translate "DEMANDA SOLICITADA" %}</span><h3>{% translate "Distribución por actividad" %}</h3><p>{% translate "Incluye solicitudes no canceladas, aunque todavía no hayan sido atendidas." %}</p></div></header>
+              <div class="unit-console__demand-bars">
+                {% for item in indicadores_portada.demanda|slice:':4' %}<article><div><strong>{{ item.nombre }}</strong><b>{{ item.total }}</b></div><span><i style="--demand-value:{{ item.porcentaje }}%"></i></span><small>{{ item.porcentaje }}{% translate "% del período" %}</small></article>{% empty %}<div class="unit-console__empty"><strong>{% translate "Sin demanda registrada" %}</strong></div>{% endfor %}
+              </div>
+            </article>
+
+            <article class="unit-console__card unit-console__indicator-card--resources">
+              <header><div><span>{% translate "USO EFECTIVO" %}</span><h3>{% translate "Equipos más utilizados" %}</h3><p>{% translate "Top 3 calculado desde las unidades físicas vinculadas." %}</p></div><button type="button" data-open-management-view="reportes">{% translate "Ver análisis completo" %} <i class="fas fa-arrow-right"></i></button></header>
+              <div class="unit-console__ranking">
+{% for item in indicadores_portada.equipos_mas_usados|slice:':3' %}<article><b>{{ forloop.counter|stringformat:'02d' }}</b><div><strong>{{ item.nombre }}</strong><span><i style="--rank-value:{{ item.porcentaje }}%"></i></span><small>{{ item.horas }} {% translate "h efectivas ·" %} {{ item.reservas }} {% translate "atención" %}{{ item.reservas|pluralize:'es' }}</small></div></article>{% empty %}<div class="unit-console__empty"><i class="fas fa-chart-bar"></i><strong>{% translate "Aún no hay atenciones efectivas" %}</strong><small>{% translate "El ranking aparecerá después de cerrar las reservas completadas." %}</small></div>{% endfor %}
+              </div>
+            </article>
+
+            <article class="unit-console__card unit-console__indicator-card--people">
+              <header><div><span>{% translate "EQUIPO HUMANO" %}</span><h3>{% translate "Carga y atenciones del personal" %}</h3></div><button type="button" data-open-management-view="configuracion">{% translate "Gestionar personal" %} <i class="fas fa-arrow-right"></i></button></header>
+              <div class="unit-console__people-indicators">
+                <aside><strong>{{ indicadores_portada.personal_activo }}</strong><span>{% translate "responsables activos" %}</span><small>{{ indicadores_portada.personal_recibe_reservas }} {% translate "reciben solicitudes" %}</small><b>Carga del rango seleccionado</b></aside>
+                <div>{% for item in indicadores_portada.personal|slice:':4' %}<article>{% if item.responsable.foto_publica_url %}<img src="{{ item.responsable.foto_publica_url }}" alt="{{ item.responsable.nombre_publico }}">{% else %}<span>{{ item.responsable.iniciales }}</span>{% endif %}<div><strong>{{ item.responsable.nombre_publico }}</strong><small>{{ item.responsable.get_rol_display|ui }}</small><i><b style="--people-value:{{ item.porcentaje }}%"></b></i></div><p><strong>{{ item.total }}</strong><span>asignadas</span><small>{{ item.atendidas }} atendidas</small></p></article>{% empty %}<div class="unit-console__empty"><strong>{% translate "Sin responsables activos" %}</strong></div>{% endfor %}</div>
+              </div>
+            </article>
+          </div>
+        </section>{% endif %}
+
+        {% if es_planta_gestion %}{% if not carga_selectiva_panel or vista_gestion == 'programacion' %}<section class="unit-console__view" data-management-view="programacion" role="tabpanel" hidden>
+          <div class="unit-console__report-actions"><div><span>{% translate "PROGRAMACIÓN" %}</span><strong>{% translate "Calendario único para reservas, órdenes de producción y mantenimiento sobre los mismos recursos." %}</strong></div><div><a class="unit-console__manage-reservation" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=agenda" data-management-load><i class="far fa-calendar-alt"></i> {% translate "Abrir agenda operativa" %}</a></div></div>
+          <div class="unit-console__metrics unit-console__metrics--four">
+            <article><span>{% translate "Reservas hoy" %}</span><strong>{{ resumen_reservas.reservas_hoy }}</strong><small>{% translate "atenciones programadas" %}</small></article>
+            <article><span>{% translate "Próximos 7 días" %}</span><strong>{{ resumen_reservas.reservas_7_dias }}</strong><small>{% translate "reservas vigentes" %}</small></article>
+            <article><span>{% translate "Órdenes abiertas" %}</span><strong>{{ produccion_metricas.ordenes_abiertas }}</strong><small>{% translate "planificadas o en proceso" %}</small></article>
+            <article><span>{% translate "Mantenimientos" %}</span><strong>{{ mantenimientos|length }}</strong><small>{% translate "registros recientes" %}</small></article>
+          </div>
+          <article class="unit-console__card"><header><div><span>{% translate "CALENDARIO COMÚN" %}</span><h3>{% translate "Recursos coordinados" %}</h3><p>{% translate "La agenda operativa cruza las reservas con los bloqueos de producción y mantenimiento. Ábrela para consultar la semana, resolver conflictos o programar indisponibilidades." %}</p></div></header></article>
+        </section>{% endif %}{% endif %}
+
+        {% if not carga_selectiva_panel or vista_gestion == 'reservas' %}<section class="unit-console__view" data-management-view="reservas" role="tabpanel" hidden>
+          <nav class="unit-console__module-tabs unit-console__module-tabs--reservations" aria-label="{% translate "Vistas de reservas y agenda" %}">
+            <button type="button" data-reservations-mode-target="agenda"{% if modo_reservas == 'agenda' %} class="is-active" aria-selected="true"{% else %} aria-selected="false"{% endif %}><i class="far fa-calendar-alt"></i><span><strong>{% translate "Agenda visual" %}</strong><small>{% translate "Ocupación semanal y disponibilidad" %}</small></span></button>
+            <button type="button" data-reservations-mode-target="solicitudes"{% if modo_reservas == 'solicitudes' %} class="is-active" aria-selected="true"{% else %} aria-selected="false"{% endif %}><i class="fas fa-inbox"></i><span><strong>{% translate "Bandeja de solicitudes" %}</strong><small>{% translate "Revisar, asignar y dar seguimiento" %}</small></span></button>
+          </nav>
+          <div class="unit-console__reservation-command" aria-label="{% translate "Resumen y acciones de reservas" %}">
+            <a class="{% if resumen_reservas.pendientes_vencidas %}is-critical{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=vencidas{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-hourglass-end"></i><span><strong>{{ resumen_reservas.pendientes_vencidas }}</strong><small>{% translate "vencidas sin decidir" %}</small></span></a>
+            <a href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=pendientes{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-inbox"></i><span><strong>{{ reservas_pendientes }}</strong><small>{% translate "pendientes totales" %}</small></span></a>
+            <a class="{% if resumen_reservas.riesgos_total %}is-critical{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=riesgo{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-calendar-times"></i><span><strong>{{ resumen_reservas.riesgos_total }}</strong><small>{% translate "con riesgo operativo" %}</small></span></a>
+            <button type="button" data-reservations-mode-target="agenda"><i class="far fa-calendar-check"></i><span><strong>{{ reservas_hoy }}</strong><small>{% translate "reservas hoy" %}</small></span></button>
+            <a class="{% if reservas_cierre_pendiente_total %}is-critical{% endif %}" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=cierre{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-clipboard-check"></i><span><strong>{{ reservas_cierre_pendiente_total }}</strong><small>{% translate "atenciones por cerrar" %}</small></span></a>
+            <span><i class="fas fa-ban"></i><span><strong>{{ bloqueos_proximos|length }}</strong><small>excepciones</small></span></span>
+            {% if puede_operar_reservas or puede_operar_agenda %}<div>{% if puede_operar_reservas %}<button type="button" data-management-new-reservation data-unit-url="{{ unidad.get_absolute_url }}"><i class="fas fa-plus"></i> {% translate "Nueva reserva" %}</button>{% endif %}{% if puede_operar_agenda %}<button type="button" data-agenda-operation-open="bloqueo"><i class="fas fa-ban"></i> {% translate "Bloquear horario" %}</button>{% endif %}</div>{% endif %}
+          </div>
+          <div class="unit-console__module-pane" data-reservations-pane="solicitudes"{% if modo_reservas != 'solicitudes' %} hidden{% endif %}>
+          {% if reservas_cierre_pendiente_total %}<article class="unit-console__closure-alert"><i class="fas fa-exclamation-circle"></i><div><strong>{{ reservas_cierre_pendiente_total }} reserva{{ reservas_cierre_pendiente_total|pluralize }} {% translate "requieren cierre válido" %}</strong><span>{% translate "Incluye horarios terminados y registros antiguos sin evidencia de ejecución. Completa el resultado real antes de contabilizarlos." %}</span></div><a href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=cierre{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Ver pendientes" %}</a></article>{% endif %}
+          <nav class="unit-console__request-filters" aria-label="{% translate "Filtros de la bandeja" %}">
+            <a{% if filtro_reservas == 'pendientes' %} class="is-active"{% endif %} href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=pendientes{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Todas" %} <b>{{ resumen_reservas.pendientes_total }}</b></a>
+            <a{% if filtro_reservas == 'vencidas' %} class="is-active"{% endif %} href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=vencidas{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Vencidas" %} <b>{{ resumen_reservas.pendientes_vencidas }}</b></a>
+            <a{% if filtro_reservas == 'proximas' %} class="is-active"{% endif %} href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=proximas{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Próximas" %} <b>{{ resumen_reservas.pendientes_proximas }}</b></a>
+            <a{% if filtro_reservas == 'sin_asignar' %} class="is-active"{% endif %} href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=sin_asignar{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Sin responsable" %} <b>{{ resumen_reservas.sin_asignar_total }}</b></a>
+            <a{% if filtro_reservas == 'cierre' %} class="is-active"{% endif %} href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=cierre{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Por cerrar" %} <b>{{ resumen_reservas.cierres_total }}</b></a>
+            <a{% if filtro_reservas == 'riesgo' %} class="is-active"{% endif %} href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas=riesgo{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Con riesgo" %} <b>{{ resumen_reservas.riesgos_total }}</b></a>
+          </nav>
+          <div class="unit-console__split">
+            <article class="unit-console__card">
+              <header><div><span>{% translate "COLA DE REVISIÓN ·" %} {{ reservas_bandeja_pagina.paginator.count }} REGISTRO{{ reservas_bandeja_pagina.paginator.count|pluralize }}</span><h3>{{ filtro_reservas_info.titulo }}</h3><p>{{ filtro_reservas_info.descripcion }}</p></div><button type="button" data-reservations-mode-target="agenda"><i class="far fa-calendar-alt"></i> {% translate "Ver agenda" %}</button></header>
+              <div class="unit-console__records">
+                {% for reserva in reservas_pendientes_lista %}
+                <article class="unit-console__record gestion-solicitud">
+                  <div class="gestion-solicitud__cabecera"><time>{{ reserva.fecha|date:"d M" }}<small>{{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }}</small></time><span><strong>{% firstof reserva.titulo_solicitud reserva.equipo_nombre "Solicitud de recursos" %}</strong><small>{% firstof reserva.nombre_solicitante reserva.usuario.get_full_name reserva.usuario.username "Solicitante" %} · {{ reserva.numero_participantes }} participante{{ reserva.numero_participantes|pluralize }}</small></span><b class="is-{{ reserva.estado }}">{{ reserva.get_estado_display|ui }}</b></div>
+                  <div class="gestion-solicitud__acciones">
+                    <div data-reporte-informacion>
+                      <button type="button" data-reporte-informacion-abrir data-modal-titulo="{% translate 'Detalle de la solicitud' %} · {{ reserva.codigo_reserva|default:'Por asignar' }}" aria-haspopup="dialog"><i class="far fa-eye" aria-hidden="true"></i> {% translate "Ver detalle" %}{% if reserva.riesgos_operativos %}<span class="gestion-solicitud__alertas"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> {{ reserva.riesgos_operativos|length }} {% translate "alerta(s)" %}</span>{% endif %}</button>
+                      <template data-reporte-informacion-contenido><div class="gestion-consulta__detalle">
+                    <dl><div><dt>{% translate "Código" %}</dt><dd>{{ reserva.codigo_reserva|default:"Por asignar" }}</dd></div><div><dt>{% translate "Propósito" %}</dt><dd>{{ reserva.get_proposito_codigo_display|default:reserva.proposito|ui }}</dd></div><div><dt>{% translate "Responsable" %}</dt><dd>{% if reserva.responsable_asignado %}{{ reserva.responsable_asignado.nombre_publico }}{% else %}{% translate "Sin asignar" %}{% endif %}</dd></div><div><dt>{% translate "Recursos" %}</dt><dd>{{ reserva.equipo_nombre|default:"Espacio o servicio" }}</dd></div></dl>
+
+                    {% if reserva.riesgos_operativos %}<div class="unit-console__reservation-risks"><strong><i class="fas fa-exclamation-triangle"></i> {% translate "Revisar antes de atender" %}</strong><ul>{% for riesgo in reserva.riesgos_operativos %}<li>{{ riesgo.detalle }}</li>{% endfor %}</ul></div>{% endif %}
+
+                      </div></template>
+                    </div>
+                    {% if puede_operar_reservas %}
+                    <button type="button" class="unit-console__manage-reservation"
+                            data-reservation-manage
+                            data-reservation-id="{{ reserva.pk }}"
+                            data-action-url="{% url 'gestion_reserva_accion' unidad.slug reserva.pk %}"
+                            data-detail-url="{% url 'gestion_reserva_detalle' unidad.slug reserva.pk %}"
+                            data-reservation-code="{{ reserva.codigo_reserva|default:'Por asignar' }}"
+                            data-reservation-title="{{ reserva.titulo_solicitud|default:reserva.equipo_nombre|default:'Solicitud de recursos' }}"
+                            data-reservation-requester="{{ reserva.nombre_completo_solicitante }}"
+                            data-reservation-email="{{ reserva.correo_contacto|default:'No registrado' }}"
+                            data-reservation-phone="{{ reserva.telefono_contacto|default:'No registrado' }}"
+                            data-reservation-date="{{ reserva.fecha|date:'d/m/Y' }}"
+                            data-reservation-date-iso="{{ reserva.fecha|date:'Y-m-d' }}"
+                            data-reservation-start="{{ reserva.hora_inicio|time:'H:i' }}"
+                            data-reservation-end="{{ reserva.hora_fin|time:'H:i' }}"
+                            data-reservation-time="{{ reserva.hora_inicio|time:'H:i' }}–{{ reserva.hora_fin|time:'H:i' }}"
+                            data-reservation-purpose="{{ reserva.get_proposito_codigo_display|default:reserva.proposito }}"
+                            data-reservation-participants="{{ reserva.numero_participantes }}"
+                            data-reservation-status="{{ reserva.estado }}"
+                            data-reservation-status-label="{{ reserva.get_estado_display }}"
+                            data-responsible-id="{{ reserva.responsable_asignado_id|default:'' }}">
+                      <i class="fas fa-clipboard-check"></i> {% translate "Revisar y gestionar" %}
+                    </button>
+                    {% endif %}
+                  </div>
+                </article>
+                {% empty %}<div class="unit-console__empty"><i class="fas fa-check-circle"></i><strong>{{ filtro_reservas_info.vacio }}</strong></div>{% endfor %}
+              </div>
+              {% if reservas_bandeja_pagina.paginator.num_pages > 1 %}<nav class="unit-console__pagination" aria-label="{% translate "Páginas de la bandeja" %}"><span>{% translate "Página" %} {{ reservas_bandeja_pagina.number }} de {{ reservas_bandeja_pagina.paginator.num_pages }}</span><div>{% if reservas_bandeja_pagina.has_previous %}<a href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas={{ filtro_reservas }}&amp;pagina_pendientes={{ reservas_bandeja_pagina.previous_page_number }}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="fas fa-chevron-left"></i> {% translate "Anterior" %}</a>{% endif %}{% if reservas_bandeja_pagina.has_next %}<a href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=solicitudes&amp;filtro_reservas={{ filtro_reservas }}&amp;pagina_pendientes={{ reservas_bandeja_pagina.next_page_number }}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "Siguiente" %} <i class="fas fa-chevron-right"></i></a>{% endif %}</div></nav>{% endif %}
+            </article>
+            <article class="unit-console__card">
+              <header><div><span>{% translate "ESTADO DE LAS SOLICITUDES" %}</span><h3>{% translate "Distribución operativa" %}</h3></div><button type="button" data-reservations-mode-target="agenda"><i class="far fa-calendar-alt"></i> {% translate "Ver calendario" %}</button></header>
+              <div class="unit-console__reservation-states">
+                {% for item in reservas_por_estado %}<article><div><i style="--state-color:{{ item.color }}"></i><strong>{{ item.nombre }}</strong><b>{{ item.total }}</b></div><span><i style="--state-value:{{ item.porcentaje }}%;--state-color:{{ item.color }}"></i></span><small>{{ item.porcentaje }}{% translate "% del total" %}</small></article>{% empty %}<div class="unit-console__empty"><strong>{% translate "Sin solicitudes registradas" %}</strong></div>{% endfor %}
+              </div>
+            </article>
+          </div>
+          <section class="unit-console__secondary-details gestion-seccion-operativa">
+            <header class="gestion-seccion-operativa__cabecera"><div><i class="fas fa-history" aria-hidden="true"></i><strong>{% translate "Historial y trazabilidad" %}</strong><small>{% translate "Consulta solicitudes anteriores y decisiones registradas" %}</small></div></header>
+            <div class="unit-console__secondary-content">
+          <article class="unit-console__card">
+            <header><div><span>{% translate "HISTORIAL RECIENTE" %}</span><h3>{% translate "Últimas solicitudes registradas" %}</h3></div></header>
+            <div class="unit-console__table-wrap">
+              <table class="unit-console__table">
+                <thead><tr><th>{% translate "Código" %}</th><th>{% translate "Fecha y hora" %}</th><th>{% translate "Solicitud" %}</th><th>{% translate "Solicitante" %}</th><th>{% translate "Responsable" %}</th><th>{% translate "Estado" %}</th>{% if puede_operar_reservas %}<th>{% translate "Operación" %}</th>{% endif %}</tr></thead>
+                <tbody>
+                  {% for reserva in reservas_recientes %}
+                  <tr>
+                    <td>{{ reserva.codigo_reserva|default:"—" }}</td>
+                    <td><strong>{{ reserva.fecha|date:"d/m/Y" }}</strong><small>{{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }}</small></td>
+                    <td>{% firstof reserva.titulo_solicitud reserva.equipo_nombre "Solicitud de recursos" %}</td>
+                    <td>{% firstof reserva.nombre_solicitante reserva.usuario.get_full_name reserva.usuario.username "—" %}</td>
+                    <td>{% if reserva.responsable_asignado %}{{ reserva.responsable_asignado.nombre_publico }}{% else %}{% translate "Sin asignar" %}{% endif %}</td>
+                    <td><span class="unit-console__status is-{{ reserva.estado }}">{{ reserva.get_estado_display|ui }}</span></td>
+                    {% if puede_operar_reservas %}
+                    <td><button type="button" class="unit-console__manage-reservation is-compact"
+                                data-reservation-manage
+                                data-reservation-id="{{ reserva.pk }}"
+                                data-action-url="{% url 'gestion_reserva_accion' unidad.slug reserva.pk %}"
+                                data-detail-url="{% url 'gestion_reserva_detalle' unidad.slug reserva.pk %}"
+                                data-reservation-code="{{ reserva.codigo_reserva|default:'Por asignar' }}"
+                                data-reservation-title="{{ reserva.titulo_solicitud|default:reserva.equipo_nombre|default:'Solicitud de recursos' }}"
+                                data-reservation-requester="{{ reserva.nombre_completo_solicitante }}"
+                                data-reservation-email="{{ reserva.correo_contacto|default:'No registrado' }}"
+                                data-reservation-phone="{{ reserva.telefono_contacto|default:'No registrado' }}"
+                                data-reservation-date="{{ reserva.fecha|date:'d/m/Y' }}"
+                                data-reservation-date-iso="{{ reserva.fecha|date:'Y-m-d' }}"
+                                data-reservation-start="{{ reserva.hora_inicio|time:'H:i' }}"
+                                data-reservation-end="{{ reserva.hora_fin|time:'H:i' }}"
+                                data-reservation-time="{{ reserva.hora_inicio|time:'H:i' }}–{{ reserva.hora_fin|time:'H:i' }}"
+                                data-reservation-purpose="{{ reserva.get_proposito_codigo_display|default:reserva.proposito }}"
+                                data-reservation-participants="{{ reserva.numero_participantes }}"
+                                data-reservation-status="{{ reserva.estado }}"
+                                data-reservation-status-label="{{ reserva.get_estado_display }}"
+                                data-responsible-id="{{ reserva.responsable_asignado_id|default:'' }}"><i class="fas fa-sliders-h"></i> {% translate "Gestionar" %}</button></td>
+                    {% endif %}
+                  </tr>
+                  {% empty %}<tr><td colspan="7">{% translate "No hay solicitudes registradas." %}</td></tr>{% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </article>
+          <article class="unit-console__card gestion-consulta" data-reporte-informacion>
+            <header><div><span>TRAZABILIDAD</span><h3>{% translate "Decisiones operativas recientes" %}</h3><p>{% translate "Consulta quién decidió, cuándo y qué quedó registrado." %}</p></div><span class="unit-console__count">{{ trazabilidad_reservas|length }}</span></header>
+            <button type="button" data-reporte-informacion-abrir data-modal-titulo="{% translate 'Decisiones operativas recientes' %}" aria-haspopup="dialog"><i class="fas fa-history" aria-hidden="true"></i> {% translate "Ver bitácora" %}</button>
+            <template data-reporte-informacion-contenido>
+            <div class="unit-console__audit-list">
+              {% for registro in trazabilidad_reservas %}
+              <article><span><i class="fas fa-history"></i></span><div><strong>{{ registro.object_repr }}</strong><small>{{ registro.change_message }}</small></div><time>{{ registro.action_time|date:"d/m/Y H:i" }}<small>{% firstof registro.user.get_full_name registro.user.username "Sistema" %}</small></time></article>
+              {% empty %}<div class="unit-console__empty"><i class="fas fa-clipboard-check"></i><strong>{% translate "Aún no existen decisiones registradas" %}</strong><small>{% translate "Las asignaciones y cambios de estado aparecerán aquí." %}</small></div>{% endfor %}
+            </div>
+            </template>
+          </article>
+            </div>
+          </section>
+          </div>
+
+          <div class="unit-console__module-pane" data-reservations-pane="agenda"{% if modo_reservas != 'agenda' %} hidden{% endif %}>
+          <div class="unit-console__agenda-layout" data-management-agenda>
+          <div class="upec-agenda-sidebar">
+          <aside class="unit-console__card unit-console__month" aria-label="{% translate "Selector mensual de la agenda" %}">
+            <header class="unit-console__month-toolbar">
+              <div><span>{% translate "BUSCAR FECHA" %}</span><h3>{{ calendario_mensual.mes|date:"F Y" }}</h3></div>
+              <nav aria-label="{% translate "Cambiar mes" %}">
+                <a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ calendario_mensual.mes_anterior }}" data-management-load aria-label="{% translate "Mes anterior" %}"><i class="fas fa-chevron-left"></i></a>
+                <a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ calendario_mensual.mes_siguiente }}" data-management-load aria-label="{% translate "Mes siguiente" %}"><i class="fas fa-chevron-right"></i></a>
+              </nav>
+            </header>
+            <div class="unit-console__month-weekdays" aria-hidden="true">
+              {% for nombre_dia in calendario_mensual.dias_semana %}<span>{{ nombre_dia }}</span>{% endfor %}
+            </div>
+            <div class="unit-console__month-grid">
+              {% for semana in calendario_mensual.semanas %}
+                {% for dia in semana %}
+                <a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ dia.fecha|date:'Y-m-d' }}"
+                   class="unit-console__month-day{% if not dia.es_mes_actual %} is-outside{% endif %}{% if dia.es_fin_semana %} is-weekend{% endif %}{% if dia.esta_en_semana %} is-in-week{% endif %}{% if dia.es_seleccionada %} is-selected{% endif %}{% if dia.es_hoy %} is-today{% endif %}"
+                   data-management-load
+                   aria-label="Ver semana del {{ dia.fecha|date:'d/m/Y' }}{% if dia.reservas %}, {{ dia.reservas }} reservas{% endif %}">
+                  <span>{{ dia.fecha|date:"j" }}</span>
+                  {% if dia.reservas %}<b>{{ dia.reservas }}</b>{% endif %}
+                </a>
+                {% endfor %}
+              {% endfor %}
+            </div>
+            <footer>
+              <span><i class="fas fa-calendar-week"></i> {% translate "Semana seleccionada" %}</span>
+              <strong>{{ inicio_semana|date:"d M" }}–{{ fin_semana|date:"d M" }}</strong>
+              <small>{% translate "Los números indican reservas activas del día." %}</small>
+            </footer>
+          </aside>
+          <section class="upec-agenda-day-panel" aria-label="{% translate 'Agenda del día' %}">
+            <header><div><span>{% translate "Agenda del día" %}</span><strong data-agenda-day-date></strong></div><b data-agenda-day-count>0</b></header>
+            <div data-agenda-day-list tabindex="-1"></div>
+          </section>
+          </div>
+          <article class="unit-console__card unit-console__calendar-card">
+            <header class="unit-console__calendar-toolbar">
+              <div><span data-agenda-heading>{% translate "AGENDA SEMANAL" %}</span><h3 data-agenda-title>{% with ultimo=agenda_semana|last %}{{ inicio_semana|date:"d M" }} – {{ ultimo.fecha|date:"d M Y" }}{% endwith %}</h3></div>
+              <nav aria-label="{% translate "Cambiar semana" %}">
+                <a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ semana_anterior }}" data-management-load data-agenda-step="-1" aria-label="{% translate "Semana anterior" %}"><i class="fas fa-chevron-left"></i></a>
+                <a class="is-today" href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ semana_actual }}" data-management-load><i class="far fa-calendar-alt"></i> {% translate "Hoy" %}</a>
+                <a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ semana_siguiente }}" data-management-load data-agenda-step="1" aria-label="{% translate "Semana siguiente" %}"><i class="fas fa-chevron-right"></i></a>
+                <div class="upec-agenda-views" role="group" aria-label="{% translate 'Vista del calendario' %}"><button type="button" data-agenda-mode="day" aria-pressed="false">{% translate "Día" %}</button><button type="button" data-agenda-mode="week" aria-pressed="true">{% translate "Semana" %}</button></div>
+              </nav>
+            </header>
+            <div class="unit-console__calendar-scroll">
+              <div class="unit-console__calendar" style="--management-days:{{ agenda_semana|length }};--management-rows:{{ agenda_grid.horas|length }}">
+                <div class="unit-console__calendar-corner">{% translate "Hora" %}</div>
+                {% for dia in agenda_semana %}
+                <a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reservas&amp;modo_reservas=agenda&amp;semana={{ dia.fecha|date:'Y-m-d' }}"
+                   class="unit-console__calendar-day{% if dia.es_hoy %} is-today{% endif %}{% if dia.es_seleccionado %} is-selected{% endif %}"
+                   data-management-load
+                   data-agenda-date="{{ dia.fecha|date:'Y-m-d' }}" data-agenda-label="{{ dia.fecha|date:'l, j F Y' }}"
+                   {% if dia.es_seleccionado %}aria-current="date"{% endif %}
+                   aria-label="Seleccionar {{ dia.fecha|date:'l d/m/Y' }}">
+                  <span>{{ dia.fecha|date:"l" }}</span><strong>{{ dia.fecha|date:"d" }}</strong><small>{{ dia.reservas|length }} reserva{{ dia.reservas|length|pluralize }}</small>
+                </a>
+                {% endfor %}
+                <div class="unit-console__calendar-times">
+                  {% for hora in agenda_grid.horas %}<span>{{ hora }}</span>{% endfor %}
+                </div>
+                {% for dia in agenda_grid.dias %}
+                <div class="unit-console__calendar-column{% if dia.es_seleccionado %} is-selected-day{% endif %}">
+                  <div class="unit-console__calendar-slots">
+                    {% for celda in dia.celdas %}
+                    <div class="unit-console__calendar-slot{% if not celda.habilitada %} is-disabled{% endif %}{% if celda.bloqueada %} is-blocked{% endif %}" style="--fila:{{ celda.indice }}"{% if puede_operar_agenda and celda.libre %} data-block-slot data-slot-date="{{ dia.fecha|date:'Y-m-d' }}" data-slot-hour="{{ celda.hora }}" role="button" tabindex="0" aria-label="Marcar {{ dia.fecha|date:'l d/m' }} {{ celda.hora }} para bloquear"{% endif %}>
+                      <span class="unit-console__calendar-free">{% if celda.libre %}{% translate "Disponible" %}{% elif celda.bloqueada %}{% translate "Bloqueado" %}{% elif not celda.habilitada %}{% translate "No habilitado" %}{% else %}{% translate "Con reservas" %}{% endif %}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <div class="unit-console__calendar-bands">
+                    {% for banda in dia.bandas %}
+                    <span class="unit-console__calendar-block" style="--fila:{{ banda.inicio }};--filas:{{ banda.filas }}"><i class="fas fa-ban"></i> {{ banda.bloqueo.titulo|truncatechars:38 }}</span>
+                    {% endfor %}
+                    {% for evento in dia.eventos %}
+                    <button type="button" class="unit-console__calendar-event is-{{ evento.reserva.estado }}"
+                            style="--fila:{{ evento.inicio }};--filas:{{ evento.filas }};--carril:{{ evento.carril }};--carriles:{{ evento.carriles }}"
+                            title="{{ evento.reserva.titulo_solicitud|default:evento.reserva.equipo_nombre }}"
+                            {% if puede_operar_reservas %}
+                            data-reservation-manage data-reservation-id="{{ evento.reserva.pk }}"
+                            data-action-url="{% url 'gestion_reserva_accion' unidad.slug evento.reserva.pk %}"
+                            data-detail-url="{% url 'gestion_reserva_detalle' unidad.slug evento.reserva.pk %}"
+                            data-reservation-code="{{ evento.reserva.codigo_reserva|default:'Por asignar' }}"
+                            data-reservation-title="{{ evento.reserva.titulo_solicitud|default:evento.reserva.equipo_nombre|default:'Solicitud de recursos' }}"
+                            data-reservation-requester="{{ evento.reserva.nombre_completo_solicitante }}"
+                            data-reservation-email="{{ evento.reserva.correo_contacto|default:'No registrado' }}"
+                            data-reservation-phone="{{ evento.reserva.telefono_contacto|default:'No registrado' }}"
+                            data-reservation-date="{{ evento.reserva.fecha|date:'d/m/Y' }}" data-reservation-date-iso="{{ evento.reserva.fecha|date:'Y-m-d' }}"
+                            data-reservation-start="{{ evento.reserva.hora_inicio|time:'H:i' }}" data-reservation-end="{{ evento.reserva.hora_fin|time:'H:i' }}"
+                            data-reservation-time="{{ evento.reserva.hora_inicio|time:'H:i' }}–{{ evento.reserva.hora_fin|time:'H:i' }}"
+                            data-reservation-purpose="{{ evento.reserva.get_proposito_codigo_display|default:evento.reserva.proposito|ui }}"
+                            data-reservation-participants="{{ evento.reserva.numero_participantes }}"
+                            data-reservation-status="{{ evento.reserva.estado }}" data-reservation-status-label="{{ evento.reserva.get_estado_display|ui }}"
+                            data-responsible-id="{{ evento.reserva.responsable_asignado_id|default:'' }}"{% else %} disabled{% endif %}>
+                      <time>{{ evento.reserva.hora_inicio|time:"H:i" }}–{{ evento.reserva.hora_fin|time:"H:i" }}</time>
+                      <strong>{{ evento.reserva.resumen_solicitud }}</strong>
+                      <span class="unit-console__calendar-event-who"><i class="fas fa-user" aria-hidden="true"></i>{{ evento.reserva.nombre_completo_solicitante }}<em>{{ evento.reserva.tipo_usuario_solicitante_corto }}</em></span>
+                      <span class="unit-console__calendar-event-meta"><span>{{ evento.reserva.proposito_corto }}</span><b>{{ evento.reserva.get_estado_display|ui }}</b></span>
+                    </button>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% if puede_operar_agenda %}<div class="unit-console__block-bar" data-block-selection-bar hidden><span><i class="fas fa-ban"></i> <b data-block-count>0</b> {% translate "hora(s) marcada(s) para bloquear" %} <small data-block-summary></small></span><div><button type="button" data-block-clear><i class="fas fa-eraser"></i> {% translate "Limpiar" %}</button><button type="button" class="is-primary" data-block-confirm data-agenda-operation-open="bloqueo"><i class="fas fa-ban"></i> {% translate "Bloquear estas horas" %}</button></div></div>{% endif %}
+            <footer class="unit-console__calendar-legend"><span><i class="is-confirmada"></i> {% translate "Confirmada" %}</span><span><i class="is-pendiente"></i> {% translate "Pendiente" %}</span><span><i class="is-en_proceso"></i> {% translate "En proceso" %}</span><span><i class="is-blocked"></i> {% translate "Bloqueo" %}</span><small>{% translate "Los sábados y domingos solo aparecen cuando tienen jornada, bloqueo o reserva habilitada por administración." %}{% if puede_operar_agenda %} {% translate "Haz clic en las horas libres para marcarlas y bloquearlas." %}{% endif %}</small></footer>
+          </article>
+          </div>
+          <section class="unit-console__agenda-settings gestion-seccion-operativa">
+            <header class="gestion-seccion-operativa__cabecera"><div><i class="fas fa-sliders-h" aria-hidden="true"></i><strong>{% translate "Configuración y excepciones" %}</strong><small>{% translate "Jornadas, aperturas especiales y bloqueos" %}</small></div><span>{{ horarios_configurados }} {% translate "jornadas" %} · {{ bloqueos_proximos|length }} {% translate "bloqueos" %}</span></header>
+          <div class="unit-console__split">
+            <article class="unit-console__card">
+              <header><div><span>{% translate "DISPONIBILIDAD" %}</span><h3>{% translate "Jornadas configuradas" %}</h3></div>{% if puede_operar_agenda %}<button type="button" data-agenda-operation-open="horario"><i class="fas fa-plus"></i> {% translate "Nueva jornada" %}</button>{% else %}<span class="unit-console__count">{{ horarios_configurados }}</span>{% endif %}</header>
+              <div class="unit-console__schedule-list">
+                {% for horario in horarios_operacion %}
+                <article>
+                  <span><strong>{{ horario.get_dia_semana_display|ui }}</strong><small>{% if horario.periodo %}{{ horario.periodo.codigo }}{% else %}{% translate "Horario general" %}{% endif %}</small></span>
+                  <time>{{ horario.hora_inicio|time:"H:i" }}–{{ horario.hora_fin|time:"H:i" }}</time>
+                  <div>{% if horario.permite_recursos %}<b>{% translate "Recursos" %}</b>{% endif %}{% if horario.permite_servicios %}<b>{% translate "Servicios" %}</b>{% endif %}</div>
+                  {% if puede_operar_agenda %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="horario" data-field-registro_id="{{ horario.pk }}" data-field-nombre="{{ horario.nombre }}" data-field-periodo_id="{{ horario.periodo_id|default:'' }}" data-field-dia_semana="{{ horario.dia_semana }}" data-field-hora_inicio="{{ horario.hora_inicio|time:'H:i' }}" data-field-hora_fin="{{ horario.hora_fin|time:'H:i' }}" data-field-permite_recursos="{{ horario.permite_recursos|yesno:'true,false' }}" data-field-permite_servicios="{{ horario.permite_servicios|yesno:'true,false' }}" data-field-activo="{{ horario.activo|yesno:'true,false' }}" data-field-observaciones="{{ horario.observaciones }}" aria-label="Editar jornada de {{ horario.get_dia_semana_display }}"><i class="fas fa-pen"></i></button>{% endif %}
+                </article>
+                {% empty %}<div class="unit-console__empty"><strong>{% translate "Sin jornadas configuradas" %}</strong></div>{% endfor %}
+              </div>
+            </article>
+            <article class="unit-console__card">
+              <header><div><span>EXCEPCIONES</span><h3>{% translate "Bloqueos próximos" %}</h3></div>{% if puede_operar_agenda %}<button type="button" data-agenda-operation-open="bloqueo"><i class="fas fa-plus"></i> {% translate "Nuevo bloqueo" %}</button>{% else %}<span class="unit-console__count">{{ bloqueos_proximos|length }}</span>{% endif %}</header>
+              <div class="unit-console__block-list">
+                {% for bloqueo in bloqueos_proximos %}
+                <article>
+                  <i class="fas fa-ban"></i><span><strong>{{ bloqueo.titulo }}</strong><small>{{ bloqueo.get_tipo_display|ui }} · {{ bloqueo.get_alcance_display|ui }}</small></span>
+                  <time>{{ bloqueo.fecha_inicio|date:"d M" }}{% if bloqueo.fecha_fin != bloqueo.fecha_inicio %}–{{ bloqueo.fecha_fin|date:"d M" }}{% endif %}<small>{% if bloqueo.dia_completo %}{% translate "Día completo" %}{% else %}{{ bloqueo.hora_inicio|time:"H:i" }}–{{ bloqueo.hora_fin|time:"H:i" }}{% endif %}</small></time>
+                  {% if puede_operar_agenda %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="bloqueo" data-field-registro_id="{{ bloqueo.pk }}" data-field-tipo="{{ bloqueo.tipo }}" data-field-titulo="{{ bloqueo.titulo }}" data-field-motivo="{{ bloqueo.motivo }}" data-field-fecha_inicio="{{ bloqueo.fecha_inicio|date:'Y-m-d' }}" data-field-fecha_fin="{{ bloqueo.fecha_fin|date:'Y-m-d' }}" data-field-dia_completo="{{ bloqueo.dia_completo|yesno:'true,false' }}" data-field-hora_inicio="{{ bloqueo.hora_inicio|time:'H:i' }}" data-field-hora_fin="{{ bloqueo.hora_fin|time:'H:i' }}" data-field-alcance="{{ bloqueo.alcance }}" data-field-bloquea_recursos="{{ bloqueo.bloquea_recursos|yesno:'true,false' }}" data-field-bloquea_servicios="{{ bloqueo.bloquea_servicios|yesno:'true,false' }}" data-field-visible_en_agenda="{{ bloqueo.visible_en_agenda|yesno:'true,false' }}" data-field-activo="{{ bloqueo.activo|yesno:'true,false' }}" data-field-espacios="{% for espacio in bloqueo.espacios.all %}{{ espacio.pk }}{% if not forloop.last %},{% endif %}{% endfor %}" data-field-equipos="{% for equipo in bloqueo.equipos.all %}{{ equipo.pk }}{% if not forloop.last %},{% endif %}{% endfor %}" aria-label="Editar {{ bloqueo.titulo }}"><i class="fas fa-pen"></i></button>{% endif %}
+                </article>
+                {% empty %}<div class="unit-console__empty"><i class="fas fa-check-circle"></i><strong>{% translate "Sin bloqueos próximos" %}</strong></div>{% endfor %}
+              </div>
+            </article>
+          </div>
+          </section>
+          </div>
+        </section>{% endif %}
+
+        {% if not carga_selectiva_panel or vista_gestion == 'recursos' %}<section class="unit-console__view" data-management-view="recursos" role="tabpanel" hidden>
+          <nav class="recursos-menu" aria-label="{% translate "Recursos e inventario" %}">
+            {% if recursos_habilitados or inventario_habilitado %}<section class="recursos-menu__grupo">
+              <h3>{% translate "Recursos" %} <small>{% translate "Lo que tiene la unidad" %}</small></h3>
+              <div class="recursos-menu__lista">
+                {% if recursos_habilitados %}<button type="button" class="recursos-menu__item is-azul{% if modo_recursos == 'activos' %} is-active{% endif %}" data-resources-mode-target="activos" aria-selected="{% if modo_recursos == 'activos' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-microchip" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Equipos" %}</strong><small>{% translate "Por área y modelo, con su estado" %}</small></span>{% if not catalogos_remotos %}<b>{{ equipos|length }}</b>{% endif %}</button>
+                <button type="button" class="recursos-menu__item is-turquesa{% if modo_recursos == 'espacios' %} is-active{% endif %}" data-resources-mode-target="espacios" aria-selected="{% if modo_recursos == 'espacios' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-vector-square" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Áreas y espacios" %}</strong><small>{% translate "Dónde se trabaja y su capacidad" %}</small></span>{% if not catalogos_remotos %}<b>{{ espacios|length }}</b>{% endif %}</button>
+                <button type="button" class="recursos-menu__item is-morado{% if modo_recursos == 'software' %} is-active{% endif %}" data-resources-mode-target="software" aria-selected="{% if modo_recursos == 'software' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-laptop-code" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Software" %}</strong><small>{% translate "Programas y licencias" %}</small></span>{% if not catalogos_remotos %}<b>{{ software|length }}</b>{% endif %}</button>{% endif %}
+                {% if inventario_habilitado %}<button type="button" class="recursos-menu__item is-verde{% if modo_recursos == 'insumos' %} is-active{% endif %}" data-resources-mode-target="insumos" aria-selected="{% if modo_recursos == 'insumos' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-box-open" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Insumos y materiales" %}</strong><small>{% translate "Qué se usa y con qué equipo" %}</small></span>{% if not catalogos_remotos %}<b>{{ consumibles|length }}</b>{% endif %}</button>{% endif %}
+              </div>
+            </section>{% endif %}
+            {% if inventario_habilitado or finanzas_habilitado %}<section class="recursos-menu__grupo">
+              <h3>{% translate "Inventario" %} <small>{% translate "Cuánto hay y cómo se mueve" %}</small></h3>
+              <div class="recursos-menu__lista">
+                {% if inventario_habilitado %}<button type="button" class="recursos-menu__item is-oro{% if modo_recursos == 'inventario' %} is-active{% endif %}" data-resources-mode-target="inventario" aria-selected="{% if modo_recursos == 'inventario' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-boxes" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Existencias y consumo" %}</strong><small>{% translate "Niveles, consumo en vivo y movimientos" %}</small></span><b{% if requieren_reposicion %} class="is-alerta"{% endif %} title="{% translate "Por reponer" %}">{{ requieren_reposicion }}</b></button>
+                <button type="button" class="recursos-menu__item is-coral{% if modo_recursos == 'almacen' %} is-active{% endif %}" data-resources-mode-target="almacen" aria-selected="{% if modo_recursos == 'almacen' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-warehouse" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Almacén y conteo" %}</strong><small>{% translate "Vencimientos y conteo cíclico" %}</small></span><b{% if lotes_vencidos %} class="is-alerta"{% endif %}>{{ lotes_vencidos|length }}</b></button>{% endif %}
+                {% if finanzas_habilitado %}<button type="button" class="recursos-menu__item is-rosa{% if modo_recursos == 'finanzas' %} is-active{% endif %}" data-resources-mode-target="finanzas" aria-selected="{% if modo_recursos == 'finanzas' %}true{% else %}false{% endif %}"><span class="recursos-menu__icono"><i class="fas fa-hand-holding-usd" aria-hidden="true"></i></span><span class="recursos-menu__texto"><strong>{% translate "Costos y sostenibilidad" %}</strong><small>{% translate "Ingresos, compras y fuentes" %}</small></span><b>${{ resumen_financiero.balance|floatformat:0 }}</b></button>{% endif %}
+              </div>
+            </section>{% endif %}
+          </nav>
+          <p class="recursos-ciclo-ayuda">Activo = existe en la unidad. Inactivo = referencia sin existencia: sólo edición y vista previa. <a href="{% url 'adquisiciones_unidad' unidad.slug %}">Solicitudes de adquisición →</a></p>{% include 'portal/pages/unidades/gestion/includes/paginacion_recursos.html' %}
+          {% if recursos_habilitados %}{% if not carga_selectiva_panel or modo_recursos == 'activos' %}<div class="unit-console__module-pane" data-resources-pane="activos"{% if modo_recursos != 'activos' %} hidden{% endif %}>
+          {% if puede_operar_recursos %}<div class="recursos-cabecera"><div><h2>{% translate "Equipos" %}</h2><p>{% translate "Cada equipo en su área, agrupado por modelo. Edita, verifica o abre su ficha desde su fila." %}</p></div><div class="recursos-cabecera__acciones"><a class="is-primary" href="{% url 'lector_equipos' %}?unidad={{ unidad.slug }}"><i class="fas fa-barcode"></i> {% translate "Escanear etiqueta" %}</a><button type="button" data-agenda-operation-open="equipo"><i class="fas fa-plus"></i> {% translate "Nuevo equipo" %}</button>{% if equipos %}<a href="{% url 'etiquetas_equipos' unidad.slug %}" data-ver-pdf data-pdf-titulo="Etiquetas de equipos"><i class="fas fa-print"></i> {% translate "Etiquetas A4" %}</a>{% endif %}</div></div>{% else %}<div class="recursos-cabecera"><div><h2>{% translate "Equipos" %}</h2><p>{% translate "Cada equipo en su área, agrupado por modelo. Edita, verifica o abre su ficha desde su fila." %}</p></div></div>{% endif %}
+          {% include 'portal/pages/unidades/gestion/includes/recursos_equipos.html' %}
+          <details class="recursos-custodia"><summary>Custodia de toda la unidad · préstamos y devoluciones</summary><article class="unit-console__card"><header><div><span>{% translate "CUSTODIA" %}</span><h3>{% translate "Salidas y devoluciones" %}</h3><p>{% translate "Préstamos de toda la unidad: salidas, devoluciones y vencimientos." %}</p></div>{% if puede_operar_recursos %}<button type="button" data-agenda-operation-open="prestamo"><i class="fas fa-hand-holding"></i> {% translate "Prestar" %}</button>{% endif %}</header>
+            <div class="unit-console__issue-list">
+              {% for prestamo in prestamos %}
+              <article>
+                <span class="{% if prestamo.vencido %}is-critica{% else %}is-media{% endif %}"><i class="fas fa-{% if prestamo.tipo == 'externo' %}truck{% else %}building{% endif %}"></i></span>
+                <div>
+                  <strong>{{ prestamo.equipo.equipo.nombre }} · {{ prestamo.equipo.codigo_unidad }}</strong>
+                  <small>{{ prestamo.get_tipo_display|cut:":" }} · {{ prestamo.quien_retira }}{% if prestamo.institucion %} · {{ prestamo.institucion }}{% endif %}</small>
+                  <p>{{ prestamo.proposito|truncatechars:110 }}</p>
+                  <small>{% translate "Devuelve el" %} {{ prestamo.fecha_retorno_previsto|date:"d/m/Y" }}{% if prestamo.vencido %} · <b>{% translate "vencido" %}</b>{% endif %}</small>
+                </div>
+                <b class="{% if prestamo.vencido %}is-critica{% endif %}">{% if prestamo.vencido %}{% translate "Vencido" %}{% else %}{{ prestamo.get_estado_display }}{% endif %}</b>
+                {% if puede_operar_recursos %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="prestamo" data-field-registro_id="{{ prestamo.pk }}" data-field-equipo_id="{{ prestamo.equipo_id }}" data-field-tipo="{{ prestamo.tipo }}" data-field-estado="{{ prestamo.estado }}" data-field-solicitante="{{ prestamo.solicitante_id|default:'' }}" data-field-nombre_solicitante="{{ prestamo.nombre_solicitante }}" data-field-documento_solicitante="{{ prestamo.documento_solicitante }}" data-field-contacto="{{ prestamo.contacto }}" data-field-institucion="{{ prestamo.institucion }}" data-field-autorizado_por="{{ prestamo.autorizado_por }}" data-field-proposito="{{ prestamo.proposito }}" data-field-fecha_salida="{{ prestamo.fecha_salida|date:'Y-m-d' }}T{{ prestamo.fecha_salida|time:'H:i' }}" data-field-fecha_retorno_previsto="{{ prestamo.fecha_retorno_previsto|date:'Y-m-d' }}T{{ prestamo.fecha_retorno_previsto|time:'H:i' }}" data-field-condicion_salida="{{ prestamo.condicion_salida }}" data-field-condicion_retorno="{{ prestamo.condicion_retorno }}" data-field-observaciones_salida="{{ prestamo.observaciones_salida }}" data-field-observaciones_retorno="{{ prestamo.observaciones_retorno }}" data-field-bloquea_agenda="{{ prestamo.bloquea_agenda|yesno:'true,false' }}" aria-label="Gestionar {{ prestamo.codigo }}"><i class="fas fa-pen"></i></button>{% endif %}
+              </article>
+              {% empty %}
+              <div class="unit-console__empty"><i class="fas fa-box-open"></i><strong>{% translate "Ningún equipo prestado" %}</strong><small>{% translate "Al prestar uno queda fuera de reservas hasta que vuelva." %}</small></div>
+              {% endfor %}
+            </div>
+          </article>
+          </details>
+          <section class="recursos-analitica gestion-seccion-operativa">
+            <header class="gestion-seccion-operativa__cabecera"><div><i class="fas fa-chart-line" aria-hidden="true"></i><strong>{% translate "Uso efectivo de equipos, espacios y software" %}</strong></div></header>
+          <section class="unit-console__resource-analytics">
+            <article class="unit-console__card unit-console__flow-card">
+              <header><div><span>{% translate "USO EFECTIVO DE RECURSOS" %}</span><h3>{% translate "Equipos, espacios y software" %}</h3><p>{% translate "Se calcula desde" %} {{ analitica_activos.reservas_efectivas }} {% translate "atenciones completadas y se expresa en" %} {{ analitica_activos.unidad_grafica }}.</p></div><nav><button type="button" class="is-active" data-assets-chart-target="semanal">{% translate "Semana" %}</button><button type="button" data-assets-chart-target="mensual">{% translate "Mes" %}</button></nav></header>
+              <div class="unit-console__flow-legend unit-console__flow-legend--assets"><span class="is-equipment">{% translate "Equipos" %}</span><span class="is-space">{% translate "Espacios" %}</span><span class="is-software">{% translate "Software" %}</span></div>
+              {% for nombre, grafica in analitica_activos.graficas.items %}
+              <div class="unit-console__flow-chart" data-assets-chart="{{ nombre }}"{% if nombre != 'semanal' %} hidden{% endif %}>
+                <svg class="unit-console__flow-svg" viewBox="0 0 820 224" role="img" aria-labelledby="assetsChartTitle-{{ nombre }} assetsChartDescription-{{ nombre }}" preserveAspectRatio="xMidYMid meet">
+                  <title id="assetsChartTitle-{{ nombre }}">{% translate "Uso efectivo de equipos, espacios y software por" %} {{ nombre }}</title>
+                  <desc id="assetsChartDescription-{{ nombre }}">{% translate "Gráfica de líneas con marcadores calculada automáticamente desde las reservas atendidas." %}</desc>
+                  <g class="unit-console__flow-grid">{% for nivel in grafica.rejilla %}<line x1="52" y1="{{ nivel.y_svg }}" x2="802" y2="{{ nivel.y_svg }}"></line><text x="44" y="{{ nivel.y_svg }}">{{ nivel.valor|floatformat:"-2" }}</text>{% endfor %}</g>
+                  <line class="unit-console__flow-axis" x1="52" y1="18" x2="52" y2="176"></line><line class="unit-console__flow-axis" x1="52" y1="176" x2="802" y2="176"></line>
+                  {% if grafica.tiene_datos %}<polyline class="unit-console__flow-line is-equipment" points="{{ grafica.lineas.equipos }}"></polyline><polyline class="unit-console__flow-line is-space" points="{{ grafica.lineas.espacios }}"></polyline><polyline class="unit-console__flow-line is-software" points="{{ grafica.lineas.software }}"></polyline>{% endif %}
+                  {% for punto in grafica.puntos %}<g class="unit-console__flow-point"><circle class="is-equipment" cx="{{ punto.x_svg }}" cy="{{ punto.y_equipos_svg }}" r="4" tabindex="0"><title>{{ punto.rango }}: {{ punto.equipos }} horas-equipo</title></circle><circle class="is-space" cx="{{ punto.x_svg }}" cy="{{ punto.y_espacios_svg }}" r="4" tabindex="0"><title>{{ punto.rango }}: {{ punto.espacios }} horas-espacio</title></circle><circle class="is-software" cx="{{ punto.x_svg }}" cy="{{ punto.y_software_svg }}" r="3.2" tabindex="0"><title>{{ punto.rango }}: {{ punto.software }} horas-software</title></circle><text class="unit-console__flow-x-label" x="{{ punto.x_svg }}" y="198">{{ punto.etiqueta }}</text></g>{% endfor %}
+                  {% if not grafica.tiene_datos %}<text class="unit-console__flow-empty" x="427" y="100">{% translate "Sin atenciones completadas en este período" %}</text>{% endif %}
+                </svg>
+                <div class="unit-console__flow-values" aria-label="{% translate "Valores de uso efectivo" %}">{% for punto in grafica.puntos %}<article><span>{{ punto.etiqueta }}</span><small><b class="is-equipment">{{ punto.equipos }}</b><b class="is-space">{{ punto.espacios }}</b><b class="is-software">{{ punto.software }}</b></small></article>{% endfor %}</div>
+              </div>{% endfor %}
+            </article>
+            <article class="unit-console__card unit-console__availability-card">
+              <header><div><span>{% translate "DISPONIBILIDAD ACTUAL" %}</span><h3>{% translate "Capacidad habilitada" %}</h3><p>{% translate "Estados y capacidades tomados directamente del catálogo." %}</p></div></header>
+              <div>{% for item in analitica_activos.disponibilidad %}<article><div><span>{{ item.nombre }}</span><strong>{{ item.disponible }} de {{ item.total }}</strong></div><i><b style="--asset-availability:{{ item.porcentaje_css }}%"></b></i><small>{{ item.porcentaje }}% · {{ item.detalle }}</small></article>{% endfor %}</div>
+            </article>
+          </section>
+          </section>
+          </div>{% endif %}
+          {% if not carga_selectiva_panel or modo_recursos == 'espacios' %}<div class="unit-console__module-pane" data-resources-pane="espacios"{% if modo_recursos != 'espacios' %} hidden{% endif %}>
+          {% if puede_operar_recursos %}<div class="recursos-cabecera"><div><h2>{% translate "Áreas y espacios" %}</h2><p>{% translate "Dónde se trabaja, cuántas personas caben y qué equipos tiene cada área." %}</p></div><div class="recursos-cabecera__acciones"><button type="button" data-agenda-operation-open="espacio"><i class="fas fa-plus"></i> {% translate "Nuevo espacio" %}</button></div></div>{% else %}<div class="recursos-cabecera"><div><h2>{% translate "Áreas y espacios" %}</h2><p>{% translate "Dónde se trabaja, cuántas personas caben y qué equipos tiene cada área." %}</p></div></div>{% endif %}
+            <div class="recursos-tabla" data-tabla>
+              {% if not catalogos_remotos %}<label class="inventario__buscar"><i class="fas fa-search" aria-hidden="true"></i><input type="search" placeholder="{% translate "Buscar por nombre, código o equipo" %}" data-tabla-buscar aria-label="{% translate "Buscar espacios" %}"></label>{% endif %}
+              <div class="recursos-tabla__envoltura"><table>
+                <thead><tr><th scope="col">{% translate "Área o espacio" %}</th><th scope="col">{% translate "Tipo y capacidad" %}</th><th scope="col">{% translate "Equipos y software" %}</th><th scope="col">{% translate "Reserva" %}</th><th scope="col"><span class="sr-only">{% translate "Acciones" %}</span></th></tr></thead>
+                <tbody>{% for espacio in espacios_gestion %}{% translate "Al desactivar el área también se desactivan sus equipos, el software instalado solo en ellos y los insumos que solo ellos usan. Al reactivarla vuelven con ella. ¿Continuar?" as confirmar_area %}<tr{% if not espacio.activo %} class="is-inactivo"{% endif %} data-texto="{{ espacio.nombre|lower }} {{ espacio.codigo|lower }} {{ espacio.equipos_asociados_resumen|default:''|lower }}">
+                  <td><div class="recursos-tabla__nombre">{% if espacio.imagen_publica_url %}<img src="{{ espacio.imagen_publica_url }}" alt="" loading="lazy">{% else %}<span aria-hidden="true"><i class="fas fa-vector-square"></i></span>{% endif %}<div><strong>{{ espacio.nombre }}</strong><small>{{ espacio.codigo }}</small>{% if not espacio.activo %}<span class="recursos-tabla__estado">{% translate "Inactiva: no se muestra ni se reserva" %}</span>{% endif %}</div></div></td>
+                  <td>{{ espacio.get_tipo_display|ui }}<small>{{ espacio.capacidad }} {% translate "persona" %}{{ espacio.capacidad|pluralize }}</small></td>
+                  <td>{% if espacio.equipos_asociados_resumen %}{{ espacio.equipos_asociados_resumen|truncatechars:90 }}{% else %}<span class="recursos-tabla__tenue">{% translate "Sin equipos asociados" %}</span>{% endif %}{% if espacio.software_asociado_resumen %}<small><i class="fas fa-laptop-code" aria-hidden="true"></i> {{ espacio.software_asociado_resumen|truncatechars:80 }}</small>{% endif %}</td>
+                  <td><span class="recursos-tabla__nivel{% if not espacio.reservable %} is-critico{% endif %}">{% if espacio.reservable %}{% translate "Reservable" %}{% else %}{% translate "No reservable" %}{% endif %}</span></td>
+                  <td class="inventario__acciones">{% if puede_operar_recursos %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="espacio" data-field-registro_id="{{ espacio.pk }}" data-field-codigo="{{ espacio.codigo }}" data-field-nombre="{{ espacio.nombre }}" data-field-tipo="{{ espacio.tipo }}" data-field-politica_reserva="{{ espacio.politica_reserva }}" data-field-capacidad="{{ espacio.capacidad }}" data-field-ubicacion="{{ espacio.ubicacion }}" data-field-descripcion_publica="{{ espacio.descripcion_publica }}" data-field-caracteristicas="{{ espacio.caracteristicas }}" data-field-mobiliario_incluido="{{ espacio.mobiliario_incluido }}" data-field-equipos_asociados="{{ espacio.equipos_asociados_ids_csv }}" data-field-instrucciones_uso="{{ espacio.instrucciones_uso }}" data-field-reservable="{{ espacio.reservable|yesno:'true,false' }}" data-field-activo="{{ espacio.activo|yesno:'true,false' }}" aria-label="Editar {{ espacio.nombre }}"><i class="fas fa-pen"></i></button>{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='recursos' entidad='espacio' registro=espacio.pk activo=espacio.activo modo='espacios' confirmar=confirmar_area %}{% endif %}</td>
+                </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Sin espacios registrados" %}</strong></div></td></tr>{% endfor %}</tbody>
+              </table></div>
+              <p class="inventario__vacio" data-tabla-vacio hidden>{% translate "Ningún espacio coincide con la búsqueda." %}</p>
+            </div>
+          </div>{% endif %}
+          {% if not carga_selectiva_panel or modo_recursos == 'software' %}<div class="unit-console__module-pane" data-resources-pane="software"{% if modo_recursos != 'software' %} hidden{% endif %}>
+            {% include 'portal/pages/unidades/gestion/includes/recursos_software.html' %}
+          </div>{% endif %}{% endif %}
+          {% if inventario_habilitado %}{% if not carga_selectiva_panel or modo_recursos == 'insumos' %}<div class="unit-console__module-pane" data-resources-pane="insumos"{% if modo_recursos != 'insumos' %} hidden{% endif %}>
+            {% include 'portal/pages/unidades/gestion/includes/recursos_insumos.html' %}
+          </div>{% endif %}{% endif %}
+          {% if inventario_habilitado %}{% if not carga_selectiva_panel or modo_recursos == 'inventario' %}<div class="unit-console__module-pane" data-resources-pane="inventario"{% if modo_recursos != 'inventario' %} hidden{% endif %}>
+            {% include 'portal/pages/unidades/gestion/includes/recursos_inventario.html' %}
+          </div>{% endif %}{% endif %}
+          {% if almacen_habilitado %}{% if not carga_selectiva_panel or modo_recursos == 'almacen' %}<div class="unit-console__module-pane" data-resources-pane="almacen"{% if modo_recursos != 'almacen' %} hidden{% endif %}>
+            {% include 'portal/pages/unidades/gestion/includes/recursos_almacen.html' %}
+          </div>{% endif %}{% endif %}
+          {% if finanzas_habilitado %}{% if not carga_selectiva_panel or modo_recursos == 'finanzas' %}<div class="unit-console__module-pane" data-resources-pane="finanzas"{% if modo_recursos != 'finanzas' %} hidden{% endif %}>
+            {% include 'portal/pages/unidades/gestion/includes/recursos_finanzas.html' %}
+          </div>{% endif %}{% endif %}
+        </section>{% endif %}
+        {% endif %}
+
+        {% if produccion_habilitada %}{% include 'portal/pages/unidades/gestion/includes/produccion.html' %}{% endif %}
+        {% if seguridad_habilitada %}{% include 'portal/pages/unidades/gestion/includes/seguridad.html' %}{% endif %}
+        {% if es_observatorio_gestion %}{% include 'portal/pages/unidades/gestion/includes/observatorio.html' %}{% endif %}
+        {% if visitas_habilitadas %}{% include 'portal/pages/unidades/gestion/includes/visitas.html' %}{% endif %}
+        {% if calidad_habilitada %}{% include 'portal/pages/unidades/gestion/includes/calidad.html' %}{% endif %}
+        {% if planificacion_habilitada %}{% include 'portal/pages/unidades/gestion/includes/planificacion.html' %}{% endif %}
+        {% if ejercicios_habilitados %}{% include 'portal/pages/unidades/gestion/includes/ejercicios.html' %}{% endif %}
+
+        {% if superficie != 'erp' %}
+        {% if not carga_selectiva_panel or vista_gestion == 'mantenimiento' %}<section class="unit-console__view" data-management-view="mantenimiento" role="tabpanel" hidden>
+          {% include 'portal/pages/unidades/gestion/includes/mantenimiento_panel.html' %}
+          <div class="unit-console__split">
+            <article class="unit-console__card"><header><div><span>INCIDENCIAS</span><h3>{% translate "Estado de novedades técnicas" %}</h3></div>{% if puede_operar_mantenimiento %}<button type="button" data-agenda-operation-open="incidencia"><i class="fas fa-plus"></i> {% translate "Reportar" %}</button>{% endif %}</header><div class="unit-console__issue-list">{% for incidencia in incidencias %}<article><span class="is-{{ incidencia.prioridad }}"><i class="fas fa-exclamation-triangle"></i></span><div><strong>{{ incidencia.titulo }}</strong><small>{{ incidencia.equipo.codigo_unidad }} · {{ incidencia.get_tipo_display|ui }}</small><p>{{ incidencia.descripcion|truncatechars:130 }}</p></div><b class="is-{{ incidencia.estado }}">{{ incidencia.get_estado_display|ui }}</b>{% if puede_operar_mantenimiento %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="incidencia" data-field-registro_id="{{ incidencia.pk }}" data-field-equipo_id="{{ incidencia.equipo_id }}" data-field-titulo="{{ incidencia.titulo }}" data-field-tipo="{{ incidencia.tipo }}" data-field-prioridad="{{ incidencia.prioridad }}" data-field-estado="{{ incidencia.estado }}" data-field-descripcion="{{ incidencia.descripcion }}" data-field-detiene_operacion="{{ incidencia.detiene_operacion|yesno:'true,false' }}" data-field-asignada_a="{{ incidencia.asignada_a_id|default:'' }}" data-field-solucion="{{ incidencia.solucion }}" aria-label="Gestionar {{ incidencia.titulo }}"><i class="fas fa-pen"></i></button>{% endif %}</article>{% empty %}<div class="unit-console__empty"><i class="fas fa-check-circle"></i><strong>{% translate "Sin incidencias registradas" %}</strong></div>{% endfor %}</div></article>
+            {% comment %}La tabla de arriba ya dice el plan de cada equipo. Aquí no
+            se repite la lista: se ordena por urgencia, que es lo que hace falta para
+            saber qué atender primero, y desde cada fila se programa la orden.{% endcomment %}
+            <article class="unit-console__card mant-agenda">
+              <header>
+                <div><span>{% translate "PREVENCIÓN" %}</span><h3>{% translate "Lo que viene" %}</h3><p>{% translate "Los planes ordenados por urgencia; desde cada uno se programa su orden y su día abre esa semana en la agenda." %}</p></div>
+                <a class="unit-console__manage-reservation is-compact" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=agenda{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load><i class="far fa-calendar-alt"></i> {% translate "Ver en la agenda" %}</a>
+              </header>
+              {% for grupo in panel_mantenimiento.agenda %}
+              <h4 class="mant-agenda__titulo is-{{ grupo.tono }}">{{ grupo.etiqueta }} <b>{{ grupo.items|length }}</b></h4>
+              <ul class="mant-agenda__lista">
+                {% for item in grupo.items %}
+                <li class="is-{{ grupo.tono }}">
+                  {% comment %}El cierre de cada orden ya vive en el calendario común:
+                  desde aquí se salta a esa semana en vez de dibujar otro calendario.{% endcomment %}
+                  <a class="mant-agenda__dia" href="{% url 'gestion_unidad' unidad.slug %}?view=reservas&amp;modo_reservas=agenda&amp;semana={{ item.plan.proxima_ejecucion|date:'Y-m-d' }}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load
+                     aria-label="{% blocktranslate with fecha=item.plan.proxima_ejecucion|date:'d/m/Y' %}Ver el {{ fecha }} en la agenda{% endblocktranslate %}">
+                    <time datetime="{{ item.plan.proxima_ejecucion|date:'Y-m-d' }}"><b>{{ item.plan.proxima_ejecucion|date:"d" }}</b><span>{{ item.plan.proxima_ejecucion|date:"M" }}</span></time>
+                  </a>
+                  <div>
+                    <strong>{{ item.plan.nombre }}</strong>
+                    <small>{{ item.plan.equipo.equipo.nombre }} · {{ item.plan.equipo.codigo_unidad }}</small>
+                    <em>{{ item.plan.get_tipo_display|ui }} · {{ item.plan.get_ejecutor_display }}{% if item.dias < 0 %} · {% blocktranslate with dias=item.dias|stringformat:"d" %}vencido hace {{ dias }} días{% endblocktranslate %}{% elif item.dias == 0 %} · {% translate "hoy" %}{% else %} · {% blocktranslate with dias=item.dias %}en {{ dias }} días{% endblocktranslate %}{% endif %}</em>
+                  </div>
+                  {% if puede_operar_mantenimiento %}
+                  <button type="button" class="unit-console__row-action" data-agenda-operation-open="mantenimiento"
+                          data-field-equipo_id="{{ item.plan.equipo_id }}"
+                          data-field-tipo="{{ item.plan.tipo }}"
+                          data-field-titulo="{{ item.plan.nombre }}"
+                          data-field-ejecutor="{{ item.plan.ejecutor }}"
+                          data-field-proveedor="{{ item.plan.proveedor }}"
+                          data-field-responsable="{{ item.plan.responsable_id|default:'' }}"
+                          data-field-descripcion="{{ item.plan.instrucciones }}"
+                          data-field-fecha_programada="{{ item.plan.proxima_ejecucion|date:'Y-m-d' }}T09:00"
+                          aria-label="{% translate "Programar" %} {{ item.plan.nombre }}"><i class="fas fa-calendar-plus"></i></button>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+              {% empty %}
+              <div class="unit-console__empty"><strong>{% translate "Sin planes registrados" %}</strong><small>{% translate "Un equipo crítico sin plan vigente es una falta en la auditoría." %}</small></div>
+              {% endfor %}
+            </article>
+          </div>
+          <article class="unit-console__card"><header><div><span>TRAZABILIDAD</span><h3>{% translate "Últimos mantenimientos" %}</h3></div>{% if puede_operar_mantenimiento %}<button type="button" data-agenda-operation-open="mantenimiento"><i class="fas fa-plus"></i> {% translate "Programar" %}</button>{% endif %}</header><div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Código" %}</th><th>{% translate "Equipo" %}</th><th>{% translate "Actividad" %}</th><th>{% translate "Programación" %}</th><th>{% translate "Responsable" %}</th><th>{% translate "Estado" %}</th>{% if puede_operar_mantenimiento %}<th>{% translate "Acción" %}</th>{% endif %}</tr></thead><tbody>{% for mantenimiento in mantenimientos %}<tr><td>{{ mantenimiento.codigo }}</td><td>{{ mantenimiento.equipo.codigo_unidad }}</td><td>{{ mantenimiento.titulo }}</td><td>{{ mantenimiento.fecha_programada|date:"d/m/Y H:i" }}</td><td>{% firstof mantenimiento.responsable.get_full_name mantenimiento.responsable.username "Sin asignar" %}</td><td><span class="unit-console__status is-{{ mantenimiento.estado }}">{{ mantenimiento.get_estado_display|ui }}</span></td>{% if puede_operar_mantenimiento %}<td><button type="button" class="unit-console__row-action" data-agenda-operation-open="mantenimiento" data-field-registro_id="{{ mantenimiento.pk }}" data-field-equipo_id="{{ mantenimiento.equipo_id }}" data-field-tipo="{{ mantenimiento.tipo }}" data-field-estado="{{ mantenimiento.estado }}" data-field-titulo="{{ mantenimiento.titulo }}" data-field-descripcion="{{ mantenimiento.descripcion }}" data-field-fecha_programada="{{ mantenimiento.fecha_programada|date:'Y-m-d' }}T{{ mantenimiento.fecha_programada|time:'H:i' }}" data-field-responsable="{{ mantenimiento.responsable_id|default:'' }}" data-field-ejecutor="{{ mantenimiento.ejecutor }}" data-field-costo="{{ mantenimiento.costo|default_if_none:'' }}" data-field-duracion_horas="{{ mantenimiento.duracion_horas }}" data-field-bloquea_agenda="{{ mantenimiento.bloquea_agenda|yesno:'true,false' }}" data-field-proveedor="{{ mantenimiento.proveedor }}" data-field-resultado="{{ mantenimiento.resultado }}" data-field-incidencia_id="{{ mantenimiento.incidencia_id|default:'' }}" data-field-fecha_inicio="{{ mantenimiento.fecha_inicio|date:'Y-m-d\TH:i' }}" data-field-fecha_fin="{{ mantenimiento.fecha_fin|date:'Y-m-d\TH:i' }}" data-field-prueba_funcionamiento="{{ mantenimiento.prueba_funcionamiento }}" data-field-resultado_operativo="{{ mantenimiento.resultado_operativo }}" data-field-proximo_mantenimiento="{{ mantenimiento.proximo_mantenimiento|date:'Y-m-d' }}" aria-label="Gestionar {{ mantenimiento.codigo }}"><i class="fas fa-pen"></i></button></td>{% endif %}</tr>{% empty %}<tr><td colspan="7">{% translate "No hay mantenimientos registrados." %}</td></tr>{% endfor %}</tbody></table></div></article>
+        </section>{% endif %}
+
+        {% if not carga_selectiva_panel or vista_gestion == 'practicas' %}<section class="unit-console__view" data-management-view="practicas" role="tabpanel" hidden>
+          <div class="unit-console__report-actions"><div><span>{% translate "FLUJO INSTITUCIONAL" %}</span><strong>{% translate "Actividad → guía → planificación → reserva → ejecución → reporte" %}</strong></div><div><a class="is-primary" href="{% url 'lista_practicas' unidad.slug %}"><i class="fas fa-external-link-alt"></i> {% translate "Abrir módulo completo" %}</a></div></div>
+          <div class="unit-console__metrics">
+            <article><span>{% translate "Planificaciones" %}</span><strong>{{ planificaciones_practica|length }}</strong><small>{% translate "expedientes recientes" %}</small></article>
+            <article><span>{% translate "Por revisar" %}</span><strong>{{ planificaciones_revision_total }}</strong><small>{% translate "requieren decisión" %}</small></article>
+            <article><span>{% translate "Ejecuciones" %}</span><strong>{{ ejecuciones_practica|length }}</strong><small>{% translate "registros recientes" %}</small></article>
+            <article><span>{% translate "Guías por revisar" %}</span><strong>{{ guias_revision_total }}</strong><small>{% translate "documentación previa" %}</small></article>
+          </div>
+          <article class="unit-console__card"><header><div><span>{% translate "PLANIFICACIÓN Y SEGUIMIENTO" %}</span><h3>{% translate "Uso planificado de la unidad" %}</h3></div><a href="{% url 'nueva_planificacion_practica' unidad.slug %}" class="unit-console__row-action" aria-label="{% translate "Nueva planificación" %}"><i class="fas fa-plus"></i></a></header><div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Código" %}</th><th>{% translate "Fecha" %}</th><th>{% translate "Actividad" %}</th><th>{% translate "Guía" %}</th><th>{% translate "Reserva" %}</th><th>{% translate "Ejecución" %}</th><th>{% translate "Estado" %}</th><th></th></tr></thead><tbody>{% for plan in planificaciones_practica %}<tr><td><strong>{{ plan.codigo }}</strong><small>v{{ plan.numero_version }}</small></td><td>{{ plan.fecha|date:'d/m/Y' }}<small>{{ plan.hora_inicio|time:'H:i' }}–{{ plan.hora_fin|time:'H:i' }}</small></td><td>{{ plan.tema }}<small>{{ plan.docente_tutor }}</small></td><td>{% if plan.guia %}v{{ plan.guia.numero_version }}{% elif plan.requiere_guia %}{% translate "Pendiente" %}{% else %}{% translate "No aplica" %}{% endif %}</td><td>{% if plan.reserva %}{{ plan.reserva.codigo_reserva }}{% else %}{% translate "Sin vincular" %}{% endif %}</td><td>{% if plan.ejecucion and not plan.ejecucion.eliminado_en %}{{ plan.ejecucion.get_resultado_display|ui }}{% else %}{% translate "Pendiente" %}{% endif %}</td><td><span class="unit-console__status is-{{ plan.estado }}">{{ plan.get_estado_display|ui }}</span></td><td><a class="unit-console__row-action" href="{% url 'detalle_planificacion_practica' unidad.slug plan.pk %}" aria-label="Abrir {{ plan.codigo }}"><i class="fas fa-arrow-right"></i></a></td></tr>{% empty %}<tr><td colspan="8">{% translate "Aún no existen planificaciones de uso." %}</td></tr>{% endfor %}</tbody></table></div></article>
+          {% include 'portal/pages/unidades/gestion/includes/asignaturas.html' %}
+          {% if es_planta_gestion %}{% include 'portal/pages/unidades/erp/seguimiento_sesiones.html' %}{% endif %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "CONTROL DOCUMENTAL" %}</span><h3>{% translate "Guías de práctica pendientes" %}</h3></div><a class="unit-console__manage-reservation is-compact" href="{% url 'lista_guias_practica' unidad.slug %}"><i class="fas fa-book-open"></i> {% translate "Ver todas" %}</a></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Versión" %}</th><th>{% translate "Actividad" %}</th><th>{% translate "Guía" %}</th><th>{% translate "Autor" %}</th><th>{% translate "Actualización" %}</th><th>{% translate "Operación" %}</th></tr></thead><tbody>{% for guia in guias_revision %}<tr><td>V{{ guia.numero_version }}</td><td>{{ guia.actividad.nombre }}</td><td>{{ guia.titulo }}</td><td>{% firstof guia.actividad.creado_por.get_full_name guia.actividad.creado_por.username "—" %}</td><td>{{ guia.actualizado_en|date:"d/m/Y H:i" }}</td><td><a class="unit-console__manage-reservation is-compact" href="{% url 'ver_guia_actividad' guia.pk %}"><i class="fas fa-clipboard-check"></i> {% translate "Revisar" %}</a></td></tr>{% empty %}<tr><td colspan="6">{% translate "No hay guías pendientes de revisión." %}</td></tr>{% endfor %}</tbody></table></div>
+          </article>
+        </section>{% endif %}
+
+        {% if cursos_gestion %}{% include 'portal/pages/unidades/gestion/includes/cursos.html' %}{% endif %}
+
+        {% if not carga_selectiva_panel or vista_gestion == 'reportes' %}<section class="unit-console__view" data-management-view="reportes" role="tabpanel" hidden>
+          <link rel="stylesheet" href="{% static 'portal/css/components/documentos_acciones.css' %}?v=20261018-documentos-modal-2">
+          {% if expediente_consola %}
+          {% comment %}El expediente del período, aquí mismo y con el menú al lado. Lleva su
+          hoja de estilos y el visor de PDF dentro del fragmento, porque la consola también
+          se abre como ventana emergente sobre la página pública de la unidad.{% endcomment %}
+          <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/expediente.css' %}?v=20261018-plan-estandar-2">
+<link rel="stylesheet" href="{% static 'portal/css/components/progreso_general.css' %}?v=20261018-indicadores-1">
+          <link rel="stylesheet" href="{% static 'portal/css/components/reportes_indicadores.css' %}?v=20261017-diseno-4">
+          <link rel="stylesheet" href="{% static 'portal/css/components/reportes_cierre.css' %}?v=20261018-avance-1">
+          {% comment %}Sin portada propia: el resumen del período ya dice de qué va, y la
+          página completa muestra exactamente esto mismo. Repetirlo era leer dos veces lo
+          mismo antes de llegar a los documentos.{% endcomment %}
+          <div class="expediente-page expediente-en-consola">
+          {% with e=expediente_consola %}
+          {% include 'portal/pages/unidades/gestion/includes/expediente_cuerpo.html' with guia_reportes=e.guia_reportes anio=e.anio anios=e.anios corte=e.corte cortes=e.cortes etiqueta_periodo=e.etiqueta_periodo rango_periodo=e.rango_periodo historico=e.historico de_la_unidad=e.de_la_unidad periodos=e.periodos resumen_unidad=e.resumen_unidad del_anio=e.del_anio resumen_anio=e.resumen_anio resumen=e.resumen total_entregas=e.total_entregas progreso_general=e.progreso_general automatizacion_resumen=e.automatizacion_resumen escenario_ideal_disponible=e.escenario_ideal_disponible consultas=e.consultas minimo_cumplimiento=e.minimo_cumplimiento cumplimiento=e.cumplimiento en_consola=e.en_consola enlace_base=e.enlace_base volver=e.volver requiere_preparacion=e.requiere_preparacion tramite_mejora=e.tramite_mejora acciones_mejora=e.acciones_mejora receptor_mejora=e.receptor_mejora direccion_mejora=e.direccion_mejora responsables_mejora=e.responsables_mejora decisiones_mejora=e.decisiones_mejora mejora_antecedente=e.mejora_antecedente hoy=e.hoy %}
+          {% endwith %}
+          </div>
+          {% else %}
+          <p class="unit-console__report-volver"><a href="{% url 'gestion_unidad' unidad.slug %}?view=reportes{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}" data-management-load>{% translate "← Volver a las entregas del período" %}</a></p>
+          {% endif %}
+          <p class="unit-console__report-institucional"><a class="documento-accion is-pdf" href="{% url 'reporte_institucional' %}?formato=pdf" data-ver-pdf data-pdf-titulo="Reporte institucional">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% translate "Reporte institucional" %}</a> <small>{% translate "Resume lo que hicieron las unidades que administras; se consulta en este mismo visualizador." %}</small></p>
+          {% if not expediente_consola %}
+          <div class="unit-console__report-intro"><div><span>{% translate "CONSULTA Y ANÁLISIS" %}</span><strong>{% translate "Informes de respaldo" %}</strong></div><p>{% translate "Cada informe se abre con todo lo que tiene: sus filtros, su detalle y sus descargas. Aquí no se entrega nada; lo que cuenta como entrega se valida en el expediente." %}</p></div>
+          {% comment %}Los ocho informes que pide la Universidad, a la vista. El menú
+          desplegable escondía veinte categorías detrás de un clic y no dejaba ver
+          cuáles cuentan como evidencia del expediente.{% endcomment %}
+          {% if reporte_gestion.dataset.registration_actions %}<div class="unit-console__report-actions"><strong>{% translate "Completar evidencias de este informe" %}</strong><div>{% for accion in reporte_gestion.dataset.registration_actions %}<a href="{{ accion.url }}" data-entrega-editor data-editor-titulo="{{ accion.label }}">{{ accion.label }}</a>{% endfor %}</div></div>{% endif %}
+          <section class="gestion-seccion-operativa gestion-informes-disponibles"><header class="gestion-seccion-operativa__cabecera"><div><i class="far fa-file-alt" aria-hidden="true"></i><strong>{% translate "Informes de respaldo disponibles" %}</strong></div></header>
+          <nav class="unit-console__report-nav" aria-label="{% translate "Informes disponibles" %}">
+            {% for familia, opciones in reporte_gestion.choices.families %}
+            <section class="unit-console__report-family gestion-informes-familia">
+              <header><strong>{{ familia }}</strong><b>{{ opciones|length }}</b></header>
+              <div>
+                {% for codigo, nombre in opciones %}
+                <a class="{% if reporte_gestion.filters.categoria_reporte == codigo %}is-active{% endif %}"
+                   href="{% url 'gestion_unidad' unidad.slug %}?view=reportes&amp;categoria_reporte={{ codigo }}{% if modo_modal %}&amp;modal=1&amp;fragment=1{% endif %}"
+                   data-management-load>
+                  <span class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ nombre }}</span></span>
+                  {% if codigo in reporte_gestion.choices.expediente %}<em>{{ reporte_gestion.choices.expediente|get_item:codigo }}</em>{% else %}<em class="is-consulta">{% translate "consulta" %}</em>{% endif %}
+                </a>
+                {% endfor %}
+              </div>
+            </section>
+            {% endfor %}
+          </nav></section>
+          {% comment %}El consolidado sale de la unidad: suma todas las que administra
+          quien mira. Va al pie y dice adónde lleva, para que no se confunda con los
+          informes de esta unidad.{% endcomment %}
+          <form class="unit-console__report-filters" method="get" action="{% url 'gestion_unidad' unidad.slug %}" data-management-filter-form>
+            {% if modo_modal %}<input type="hidden" name="modal" value="1">{% endif %}
+            <input type="hidden" name="view" value="reportes">
+            <input type="hidden" name="categoria_reporte" value="{{ reporte_gestion.category }}">
+            <label class="is-search">{% translate "Buscar" %}<input type="search" name="buscar" value="{{ reporte_gestion.filters.buscar }}" placeholder="{% translate "Código, actividad, persona o recurso" %}"></label>
+            <label>{% translate "Desde" %}<input type="date" name="desde" value="{{ reporte_gestion.filters.desde }}"><small>{% translate "por omisión, el período vigente" %}</small></label>
+            <label>{% translate "Hasta" %}<input type="date" name="hasta" value="{{ reporte_gestion.filters.hasta }}"><small>{% translate "cámbialas para una semana, un mes o un rango" %}</small></label>
+            <label>{% translate "Estado" %}<select name="estado"><option value="">{% translate "Todos" %}</option>{% for codigo, nombre in reporte_gestion.choices.states %}<option value="{{ codigo }}"{% if reporte_gestion.filters.estado == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            {% if reporte_gestion.supports_effectiveness %}<label>{% translate "Efectividad" %}<select name="efectividad">{% for codigo, nombre in reporte_gestion.choices.effectiveness %}<option value="{{ codigo }}"{% if reporte_gestion.filters.efectividad == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>{% endif %}
+            {% if reporte_gestion.has_advanced_reservation_filters %}
+            <label>{% translate "Propósito" %}<select name="proposito"><option value="">{% translate "Todos" %}</option>{% for codigo, nombre in reporte_gestion.choices.purposes %}<option value="{{ codigo }}"{% if reporte_gestion.filters.proposito == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            <label>{% translate "Usuario" %}<select name="tipo_usuario"><option value="">{% translate "Todos" %}</option>{% for codigo, nombre in reporte_gestion.choices.user_types %}<option value="{{ codigo }}"{% if reporte_gestion.filters.tipo_usuario == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            <label>{% translate "Solicitud" %}<select name="tipo_solicitud"><option value="">{% translate "Todas" %}</option>{% for codigo, nombre in reporte_gestion.choices.request_types %}<option value="{{ codigo }}"{% if reporte_gestion.filters.tipo_solicitud == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            <label>{% translate "Responsable" %}<select name="responsable"><option value="">{% translate "Todos" %}</option>{% for codigo, nombre in reporte_gestion.choices.responsibles %}<option value="{{ codigo }}"{% if reporte_gestion.filters.responsable == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            <label>{% translate "Agrupar por" %}<select name="agrupar">{% for codigo, nombre in reporte_gestion.choices.groups %}<option value="{{ codigo }}"{% if reporte_gestion.filters.agrupar == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+            {% endif %}
+            <div><button type="submit"><i class="fas fa-filter"></i> {% translate "Aplicar filtros" %}</button><a href="{% url 'gestion_unidad' unidad.slug %}?{% if modo_modal %}modal=1&amp;fragment=1&amp;{% endif %}view=reportes" data-management-load>{% translate "Limpiar" %}</a></div>
+          </form>
+          <div class="unit-console__report-actions"><div><span>{% translate "VISTA PREVIA HTML" %}</span><strong>{{ reporte_gestion.start_date|date:"d/m/Y" }} – {{ reporte_gestion.end_date|date:"d/m/Y" }}</strong></div><div><a class="documento-accion is-pdf" data-ver-pdf data-pdf-titulo="{{ reporte_gestion.category_label }}" href="{% url 'gestion_reporte_unidad_pdf' unidad.slug %}?{{ reporte_gestion.query_string }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% translate "Abrir reporte" %}</a><a href="{% url 'gestion_reporte_unidad' unidad.slug %}?{{ reporte_gestion.query_string }}&amp;formato=docx"><i class="fas fa-file-word" aria-hidden="true"></i> {% translate "Descargar Word" %}</a><a href="{% url 'gestion_reporte_unidad_xlsx' unidad.slug %}?{{ reporte_gestion.query_string }}"><i class="fas fa-file-excel"></i> {% translate "Hoja de cálculo" %}</a><a class="documento-accion is-pdf" href="{% url 'reporte_institucional' %}?formato=pdf" data-ver-pdf data-pdf-titulo="Reporte institucional">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% translate "Reporte institucional" %}</a><a class="documento-accion is-borrador" href="{% url 'gestion_reporte_unidad_pdf' unidad.slug %}?{{ reporte_gestion.query_string }}" download><i class="fas fa-download" aria-hidden="true"></i> {% translate "Descargar documento" %}</a></div></div>
+          {% if reporte_gestion.expediente %}
+          <p class="unit-console__report-nota">{% if reporte_gestion.expediente.anexo_de %}{% blocktranslate with nombre=reporte_gestion.expediente.nombre padre=reporte_gestion.expediente.anexo_de carpeta=reporte_gestion.expediente.carpeta %}Este informe es el anexo «{{ nombre }}» ({{ carpeta }}) de «{{ padre }}»: el sistema lo adjunta con las fechas del período cuando se genera ese documento y se valida con él. Aquí se consulta con cualquier rango de fechas.{% endblocktranslate %}{% else %}{% blocktranslate with nombre=reporte_gestion.expediente.nombre carpeta=reporte_gestion.expediente.carpeta periodicidad=reporte_gestion.expediente.periodicidad|lower %}Este reporte es el documento «{{ nombre }}» de la carpeta {{ carpeta }}, {{ periodicidad }}.{% endblocktranslate %} {% translate "Entrégalo desde el expediente para que cuente." %}{% endif %} <a href="{{ reporte_gestion.expediente.url }}">{% translate "Ir al expediente" %} →</a></p>
+          {% endif %}
+          <div class="unit-console__report-preview">{% include 'portal/pages/unidades/gestion/includes/reporte_contenido.html' %}</div>
+          {% endif %}
+        </section>{% endif %}
+        {% endif %}
+
+        {% if superficie == 'erp' and mapa_planta and not sesion_erp %}{% if not carga_selectiva_panel or vista_gestion == 'supervision' %}<section class="unit-console__view" data-management-view="supervision" role="tabpanel" hidden>
+          <div class="unit-console__report-actions"><div><span>{% translate "SUPERVISIÓN" %}</span><strong>{% translate "Sinóptico, variables, alarmas, tendencias e historial de la planta." %}</strong></div></div>
+          <article class="unit-console__card"><header><div><span>{% translate "ESTRUCTURA PREPARADA" %}</span><h3>{% translate "Supervisión de proceso" %}</h3><p>{% translate "Este módulo queda reservado para conectar señales reales y su historial. No se publican valores simulados como si fueran mediciones de planta." %}</p></div></header><div class="unit-console__empty"><i class="fas fa-satellite-dish"></i><strong>{% translate "Sin señales conectadas" %}</strong><small>{% translate "Los equipos, variables y límites registrados en datos maestros servirán de base para la integración." %}</small></div></article>
+        </section>{% endif %}{% endif %}
+
+        {% if superficie != 'erp' %}
+        {% if not carga_selectiva_panel or vista_gestion == 'configuracion' %}<section class="unit-console__view" data-management-view="configuracion" role="tabpanel" hidden>
+          {% if puede_editar_contenido_unidad %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "CONTENIDOS DE LA UNIDAD" %}</span><h3>{% translate "Datos, ficha pública y documentos" %}</h3><p>{% translate "Edita descripciones, multimedia, reglamento, espacios, software y archivos de esta unidad." %}</p></div>{% if es_planta_gestion %}<a href="{% url 'completitud_plantas' unidad.slug %}">{% translate "Completitud de contenidos" %} →</a>{% endif %}<a href="{% url 'admin:directorio_unidades_unidad_change' unidad.pk %}">{% translate "Editar datos y contenidos" %} →</a></header>
+          </article>
+          {% endif %}
+          <div class="unit-console__split">
+            <article class="unit-console__card"><header><div><span>{% translate "CAPACIDADES DEL SISTEMA" %}</span><h3>{% translate "Módulos habilitados" %}</h3></div>{% if puede_operar_configuracion %}<button type="button" data-agenda-operation-open="configuracion"><i class="fas fa-sliders-h"></i> {% translate "Configurar" %}</button>{% endif %}</header><div class="unit-console__capabilities">{% for nombre, activa in capacidades_configuradas %}<article><span><i class="fas fa-{% if activa %}check{% else %}minus{% endif %}"></i></span><strong>{{ nombre }}</strong><b class="{% if activa %}is-active{% endif %}">{% if activa %}{% translate "Activo" %}{% else %}{% translate "Inactivo" %}{% endif %}</b></article>{% endfor %}</div></article>
+            <article class="unit-console__card"><header><div><span>{% translate "CAPACIDAD OPERATIVA" %}</span><h3>{% translate "Límites vigentes" %}</h3></div>{% if puede_operar_configuracion %}<button type="button" data-agenda-operation-open="capacidad"><i class="fas fa-plus"></i> {% translate "Nueva vigencia" %}</button>{% endif %}</header>{% if capacidad %}<dl class="unit-console__facts"><div><dt>{% translate "Aforo y seguridad" %}</dt><dd>{{ capacidad.aforo_seguridad }}</dd></div><div><dt>{% translate "Puestos con mobiliario" %}</dt><dd>{{ capacidad.puestos_mobiliario }}</dd></div><div><dt>{% translate "Puestos equipados" %}</dt><dd>{{ capacidad.puestos_equipados }}</dd></div><div><dt>{% translate "Capacidad del personal" %}</dt><dd>{{ capacidad.capacidad_personal }}</dd></div><div class="is-highlight"><dt>{% translate "Capacidad efectiva" %}</dt><dd>{{ capacidad.capacidad_efectiva }} personas</dd></div><div><dt>{% translate "Factor limitante" %}</dt><dd>{{ capacidad.factor_limitante }}</dd></div></dl>{% else %}<div class="unit-console__empty"><strong>{% translate "Capacidad sin configurar" %}</strong><small>{% translate "Registra los límites operativos antes de analizar utilización." %}</small></div>{% endif %}</article>
+          </div>
+          <div class="unit-console__split">
+            <article class="unit-console__card"><header><div><span>{% translate "EQUIPO HUMANO" %}</span><h3>{% translate "Responsables activos" %}</h3></div>{% if puede_administrar_personal %}<button type="button" data-agenda-operation-open="responsable"><i class="fas fa-user-plus"></i> {% translate "Agregar" %}</button>{% endif %}</header><div class="unit-console__people">{% for responsable in responsables %}<article>{% if responsable.foto_publica_url %}<img src="{{ responsable.foto_publica_url }}" alt="{{ responsable.nombre_publico }}">{% else %}<span>{{ responsable.iniciales }}</span>{% endif %}<div><strong>{{ responsable.nombre_publico }}</strong><small>{{ responsable.get_rol_display|ui }}</small>{% if responsable.descripcion_publica %}<em class="unit-console__people-role">{{ responsable.descripcion_publica }}</em>{% endif %}<p>{{ responsable.email_publico|default:"Sin correo" }} · {% if responsable.usuario_id %}{% translate "Cuenta:" %} {{ responsable.usuario.username }}{% else %}{% translate "Sin acceso al panel" %}{% endif %}</p></div><b>{% if responsable.es_administrador_principal %}{% translate "Administrador principal" %}{% elif responsable.recibe_reservas and responsable.usuario_id %}{% translate "Recibe reservas" %}{% else %}{% translate "Solo contacto" %}{% endif %}</b>{% if responsable.puede_editar_personal %}<button type="button" class="unit-console__row-action" data-agenda-operation-open="responsable" data-field-registro_id="{{ responsable.pk }}" data-field-usuario_id="{{ responsable.usuario_id|default:'' }}" data-field-nombre="{{ responsable.nombre }}" data-field-rol="{{ responsable.rol }}" data-field-email="{{ responsable.email }}" data-field-telefono="{{ responsable.telefono }}" data-field-descripcion="{{ responsable.descripcion }}" data-field-horario_atencion="{{ responsable.horario_atencion }}" data-field-publico="{{ responsable.publico|yesno:'true,false' }}" data-field-recibe_reservas="{{ responsable.recibe_reservas|yesno:'true,false' }}" data-field-permiso_reservas="{{ responsable.permiso_reservas|yesno:'true,false' }}" data-field-permiso_agenda="{{ responsable.permiso_agenda|yesno:'true,false' }}" data-field-permiso_recursos="{{ responsable.permiso_recursos|yesno:'true,false' }}" data-field-permiso_mantenimiento="{{ responsable.permiso_mantenimiento|yesno:'true,false' }}" data-field-permiso_inventario="{{ responsable.permiso_inventario|yesno:'true,false' }}" data-field-permiso_practicas="{{ responsable.permiso_practicas|yesno:'true,false' }}" data-field-permiso_produccion="{{ responsable.permiso_produccion|yesno:'true,false' }}" data-field-permiso_reportes="{{ responsable.permiso_reportes|yesno:'true,false' }}" data-field-permiso_configuracion="{{ responsable.permiso_configuracion|yesno:'true,false' }}" data-field-permiso_corregir_cerradas="{{ responsable.permiso_corregir_cerradas|yesno:'true,false' }}" data-field-activo="{{ responsable.activo|yesno:'true,false' }}" aria-label="Editar {{ responsable.nombre_publico }}"><i class="fas fa-pen"></i></button>{% endif %}</article>{% empty %}<div class="unit-console__empty"><strong>{% translate "Sin responsables activos" %}</strong></div>{% endfor %}</div></article>
+            <article class="unit-console__card"><header><div><span>JORNADAS</span><h3>{% translate "Configuración de atención" %}</h3></div>{% if puede_operar_agenda %}<button type="button" data-agenda-operation-open="horario"><i class="fas fa-plus"></i> {% translate "Agregar jornada" %}</button>{% endif %}</header><div class="unit-console__schedule-list">{% for horario in horarios_operacion %}<article><span><strong>{{ horario.get_dia_semana_display|ui }}</strong><small>{% if horario.periodo %}{{ horario.periodo.codigo }}{% else %}{% translate "General" %}{% endif %}</small></span><time>{{ horario.hora_inicio|time:"H:i" }}–{{ horario.hora_fin|time:"H:i" }}</time><div>{% if horario.permite_recursos %}<b>{% translate "Recursos" %}</b>{% endif %}{% if horario.permite_servicios %}<b>{% translate "Servicios" %}</b>{% endif %}</div></article>{% empty %}<div class="unit-console__empty"><strong>{% translate "Sin jornadas" %}</strong></div>{% endfor %}</div></article>
+          </div>
+        </section>{% endif %}
+        {% endif %}
+      </div>
+    </main>
+  </div>
+
+  {% if puede_operar_alguna_funcion %}
+  {% if not carga_selectiva_panel or vista_gestion == 'reservas' %}<div class="unit-console-drawer" id="reservationManagementDrawer" hidden aria-hidden="true">
+    <button type="button" class="unit-console-drawer__scrim" data-close-reservation-drawer aria-label="{% translate "Cerrar panel lateral" %}"></button>
+    <aside class="unit-console-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="reservationManagementTitle">
+      <header class="unit-console-drawer__header{% if modo_modal %} unit-console-drawer__header--contextual{% endif %}">
+        {% if not modo_modal %}
+        <div class="unit-console-drawer__tech" aria-hidden="true"><span></span><span></span><span></span></div>
+        <span class="unit-console-drawer__header-icon"><i class="fas fa-calendar-check"></i></span>
+        {% endif %}
+        <div>
+          {% if not modo_modal %}<span>{% translate "GESTIÓN Y RESERVA" %}</span>{% endif %}
+          <h2 id="reservationManagementTitle">{% translate "Gestionar solicitud" %}</h2>
+          {% if not modo_modal %}<p>{{ unidad.nombre }}</p>{% endif %}
+        </div>
+        <button type="button" class="unit-console-drawer__close" data-close-reservation-drawer aria-label="{% translate "Cerrar solicitud" %}"><i class="fas fa-times"></i></button>
+      </header>
+
+      <form class="unit-console-drawer__form" id="reservationManagementForm">
+        {% csrf_token %}
+        <div class="unit-console-drawer__intro">
+          <div>
+            <span>{% translate "SOLICITUD SELECCIONADA" %}</span>
+            <strong id="managementReservationCode">—</strong>
+            <h3 id="managementReservationName">{% translate "Solicitud de recursos" %}</h3>
+          </div>
+          <div class="unit-console-drawer__intro-actions">
+            <span class="unit-console__status" id="managementReservationStatus">{% translate "Pendiente" %}</span>
+            <button type="button" data-open-reservation-editor><i class="fas fa-pen"></i> {% translate "Editar solicitud" %}</button>
+          </div>
+        </div>
+
+        <nav class="unit-console-drawer__tabs" aria-label="{% translate "Secciones de la solicitud" %}">
+          <button type="button" class="is-active" data-reservation-drawer-tab="resumen" aria-selected="true"><i class="fas fa-clipboard-check"></i><span>{% translate "Resumen" %}</span></button>
+          <button type="button" data-reservation-drawer-tab="recursos" aria-selected="false"><i class="fas fa-cogs"></i><span>{% translate "Recursos" %}</span><b id="managementResourceAlertCount" hidden>0</b></button>
+          <button type="button" data-reservation-drawer-tab="participantes" aria-selected="false"><i class="fas fa-users"></i><span>{% translate "Participantes" %}</span><b id="managementParticipantCount">0</b></button>
+          <button type="button" data-reservation-drawer-tab="ejecucion" aria-selected="false"><i class="fas fa-clipboard-list"></i><span>{% translate "Ejecución" %}</span></button>
+          <button type="button" data-reservation-drawer-tab="seguimiento" aria-selected="false"><i class="fas fa-notes-medical"></i><span>{% translate "Seguimiento" %}</span></button>
+          <button type="button" data-reservation-drawer-tab="decision" aria-selected="false"><i class="fas fa-edit"></i><span>{% translate "Editar y decidir" %}</span></button>
+        </nav>
+
+        <div class="unit-console-drawer__body">
+          <div class="unit-console-drawer__loading" id="managementDetailLoading"><i class="fas fa-circle-notch fa-spin"></i> {% translate "Cargando expediente completo..." %}</div>
+
+          <div class="unit-console-drawer__pane is-active" data-reservation-drawer-pane="resumen">
+            <section class="unit-console-drawer__summary" aria-label="{% translate "Información de la solicitud" %}">
+              <header><span>{% translate "INFORMACIÓN" %}</span><h3>{% translate "Datos para tomar la decisión" %}</h3></header>
+              <dl>
+                <div><dt><i class="fas fa-user"></i> {% translate "Solicitante" %}</dt><dd id="managementReservationRequester">—</dd></div>
+                <div><dt><i class="fas fa-envelope"></i> {% translate "Contacto" %}</dt><dd><span id="managementReservationEmail">—</span><small id="managementReservationPhone">—</small></dd></div>
+                <div><dt><i class="fas fa-calendar-day"></i> {% translate "Fecha y horario" %}</dt><dd><span id="managementReservationDate">—</span><small id="managementReservationTime">—</small></dd></div>
+                <div><dt><i class="fas fa-bullseye"></i> {% translate "Propósito" %}</dt><dd id="managementReservationPurpose">—</dd></div>
+                <div><dt><i class="fas fa-users"></i> {% translate "Participantes" %}</dt><dd id="managementReservationParticipants">—</dd></div>
+                <div><dt><i class="fas fa-tag"></i> {% translate "Tipo de solicitud" %}</dt><dd id="managementRequestType">—</dd></div>
+              </dl>
+            </section>
+
+            <!-- Recorrido del estado: la misma línea que ve el solicitante. -->
+            <section class="unit-console-drawer__detail-card">
+              <header><span>{% translate "RECORRIDO DE LA SOLICITUD" %}</span><h3>{% translate "En qué etapa está" %}</h3></header>
+              <ol class="unit-console-timeline" id="managementTimeline"></ol>
+            </section>
+
+            <!-- Documentos del expediente sin salir del panel. -->
+            <section class="unit-console-drawer__detail-card">
+              <header><span>DOCUMENTOS</span><h3>{% translate "Comprobante y guía" %}</h3><p>{% translate "Se abren aquí mismo; no hace falta descargarlos." %}</p></header>
+              <div class="unit-console-drawer__doc-actions">
+                <button type="button" data-management-document="comprobante"><i class="fas fa-file-alt"></i> {% translate "Comprobante" %}</button>
+                <button type="button" data-management-document="comprobante_pdf"><i class="fas fa-file-pdf"></i> {% translate "Ver comprobante" %}</button>
+                <button type="button" data-management-document="guia_documento" id="managementGuideDocument" hidden><i class="fas fa-book-open"></i> {% translate "Guía" %}</button>
+                <button type="button" data-management-document="guia_pdf" id="managementGuidePdf" hidden><i class="fas fa-file-pdf"></i> {% translate "Ver guía" %}</button>
+              </div>
+              <div class="unit-console-viewer" id="managementDocumentViewer" hidden>
+                <header><strong data-viewer-title>{% translate "Documento" %}</strong><button type="button" data-viewer-close aria-label="{% translate "Cerrar el documento" %}"><i class="fas fa-times"></i></button></header>
+                <div class="unit-console-viewer__body" data-viewer-body></div>
+              </div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__documentation" id="managementDocumentationCard">
+              <header><span>{% translate "COMPUERTA DOCUMENTAL" %}</span><h3>{% translate "Guía y habilitación operativa" %}</h3></header>
+              <div class="unit-console-drawer__documentation-state"><i id="managementDocumentationIcon" class="fas fa-check-circle"></i><div><strong id="managementDocumentationLabel">{% translate "No requiere guía" %}</strong><p id="managementDocumentationDetail">{% translate "La solicitud puede continuar con su revisión operativa." %}</p></div><a id="managementDocumentationLink" href="#" hidden>{% translate "Revisar documento" %} <i class="fas fa-external-link-alt"></i></a></div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card">
+              <header><span>{% translate "CONTEXTO DE USO" %}</span><h3>{% translate "Actividad, motivo y condiciones" %}</h3></header>
+              <div class="unit-console-drawer__context-grid">
+                <div><small>{% translate "Actividad" %}</small><strong id="managementActivity">—</strong></div>
+                <div><small>{% translate "Motivo o necesidad" %}</small><p id="managementMotive">—</p></div>
+                <div><small>{% translate "Descripción" %}</small><p id="managementDescription">—</p></div>
+                <div><small>{% translate "Requisitos especiales" %}</small><p id="managementRequirements">{% translate "Sin requisitos especiales" %}</p></div>
+                <div><small>{% translate "Beneficiario" %}</small><strong id="managementBeneficiary">—</strong></div>
+                <div><small>{% translate "Período / semana" %}</small><strong id="managementPeriod">—</strong></div>
+                <div><small>{% translate "Perfil del solicitante" %}</small><strong id="managementRequesterProfile">—</strong></div>
+                <div><small>{% translate "Modalidad / condiciones" %}</small><strong id="managementServiceConditions">{% translate "No aplica" %}</strong></div>
+              </div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card">
+              <header class="unit-console-drawer__progress-head"><div><span>{% translate "CONTROL DE INFORMACIÓN" %}</span><h3>{% translate "Completitud de la solicitud" %}</h3></div><strong id="managementCompletenessLabel">0%</strong></header>
+              <div class="unit-console-drawer__progress"><span id="managementCompletenessBar"></span></div>
+              <ul class="unit-console-drawer__checklist" id="managementMissingList"></ul>
+            </section>
+          </div>
+
+          <div class="unit-console-drawer__pane" data-reservation-drawer-pane="recursos" hidden>
+            <section class="unit-console-drawer__detail-card"><header><span>{% translate "RECURSOS SOLICITADOS" %}</span><h3>{% translate "Equipos y estado operativo" %}</h3></header><div class="unit-console-drawer__resource-list" id="managementEquipmentList"></div></section>
+            <div class="unit-console-drawer__resource-grid">
+              <section class="unit-console-drawer__detail-card"><header><span>{% translate "TECNOLOGÍA" %}</span><h3>{% translate "Software" %}</h3></header><div class="unit-console-drawer__resource-list" id="managementSoftwareList"></div></section>
+              <section class="unit-console-drawer__detail-card"><header><span>{% translate "UBICACIÓN" %}</span><h3>{% translate "Espacios" %}</h3></header><div class="unit-console-drawer__resource-list" id="managementSpaceList"></div></section>
+              <section class="unit-console-drawer__detail-card"><header><span>{% translate "ATENCIÓN TÉCNICA" %}</span><h3>{% translate "Servicios" %}</h3></header><div class="unit-console-drawer__resource-list" id="managementServiceList"></div></section>
+              <section class="unit-console-drawer__detail-card"><header><span>CONSUMO</span><h3>{% translate "Insumos" %}</h3><small id="managementSupplyProvision"></small></header><div class="unit-console-drawer__resource-list" id="managementSupplyList"></div></section>
+            </div>
+            <section class="unit-console-drawer__detail-card"><header><span>{% translate "SOPORTE TÉCNICO" %}</span><h3>{% translate "Archivos adjuntos" %}</h3></header><div class="unit-console-drawer__resource-list" id="managementFileList"></div></section>
+          </div>
+
+          <div class="unit-console-drawer__pane" data-reservation-drawer-pane="participantes" hidden>
+            <section class="unit-console-drawer__detail-card"><header><span>{% translate "CONTROL DE INGRESO" %}</span><h3>{% translate "Personas que asistirán" %}</h3><p id="managementParticipantSummary"></p></header><div class="unit-console-drawer__participant-list" id="managementParticipantList"></div></section>
+            <section class="unit-console-drawer__detail-card" id="managementAccessCard" hidden><header><span>{% translate "ACCESO A LA UNIDAD" %}</span><h3>{% translate "Requisitos e ingreso por persona" %}</h3><p id="managementAccessSummary"></p></header><div class="unit-console-drawer__participant-list" id="managementAccessList"></div><footer class="unit-console-drawer__detail-actions"><button type="button" class="unit-console__row-action unit-console__row-action--text" id="managementAccessButton" hidden><i class="fas fa-door-open"></i> {% translate "Registrar ingreso" %}</button></footer></section>
+          </div>
+
+          <div class="unit-console-drawer__pane" data-reservation-drawer-pane="ejecucion" hidden>
+            <input type="hidden" name="ejecucion_registrada" value="1">
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution">
+              <header><span>{% translate "CIERRE OPERATIVO" %}</span><h3>{% translate "Lo que realmente ocurrió" %}</h3><p>{% translate "Confirma asistencia, recursos, consumos e incidencias. La solicitud original permanece intacta." %}</p></header>
+              <div class="unit-console-drawer__automation"><i class="fas fa-link"></i><div><strong>{% translate "Un solo registro alimenta inventario, costos y reportes" %}</strong><span>{% translate "Al completar se generan movimientos trazables y, si corresponde, el borrador del registro de ejecución de práctica." %}</span></div></div>
+              <fieldset class="unit-console-drawer__execution-grid">
+                <legend>{% translate "Horario y resultado real" %}</legend>
+                <label>{% translate "Inicio real" %}<input id="managementExecutionStart" type="time" name="ejecucion_hora_inicio" required></label>
+                <label>{% translate "Fin real" %}<input id="managementExecutionEnd" type="time" name="ejecucion_hora_fin" required></label>
+                <label>{% translate "Total real de asistentes" %}<input id="managementExecutionAttendees" type="number" name="ejecucion_asistentes_total" min="0" required></label>
+                <label id="managementExecutionPiecesField" hidden>{{ palabras_trabajo_unidad.plural|capfirst }} {{ palabras_trabajo_unidad.obtenidos }}<input id="managementExecutionPieces" type="number" name="ejecucion_piezas" min="0" step="1"></label>
+                <label>{% translate "Cumplimiento" %}<select id="managementExecutionCompliance" name="ejecucion_cumplimiento" required><option value="si">{% translate "Sí" %}</option><option value="parcial">{% translate "Parcial" %}</option><option value="no">{% translate "No" %}</option></select></label>
+              </fieldset>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution">
+              <header><span>{% translate "USO REAL" %}</span><h3>{% translate "Recursos utilizados" %}</h3><p>{% translate "Puedes registrar sustituciones respecto de lo solicitado." %}</p></header>
+              <div class="unit-console-drawer__execution-resources">
+                <label>{% translate "Equipos" %}<select id="managementExecutionEquipment" name="ejecucion_equipos_ids" multiple size="5">{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+                <label>{% translate "Software" %}<select id="managementExecutionSoftware" name="ejecucion_software_ids" multiple size="4">{% for programa in software %}<option value="{{ programa.pk }}">{{ programa.nombre }} {{ programa.version }}</option>{% endfor %}</select></label>
+                <label>{% translate "Espacios" %}<select id="managementExecutionSpaces" name="ejecucion_espacios_ids" multiple size="4">{% for espacio in espacios %}<option value="{{ espacio.pk }}">{{ espacio.codigo }} · {{ espacio.nombre }}</option>{% endfor %}</select></label>
+                <label>{% translate "Servicios realizados" %}<select id="managementExecutionServices" name="ejecucion_servicios_ids" multiple size="4">{% for servicio in servicios %}<option value="{{ servicio.pk }}">{{ servicio.code }} · {{ servicio.nombre }}</option>{% endfor %}</select></label>
+              </div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution">
+              <header><span>{% translate "CONSUMO REAL" %}</span><h3>{% translate "Material utilizado y desperdicio" %}</h3><p>{% translate "Cada cantidad es el total que salió del lote entre todas las piezas. Solo se descuentan lotes abiertos y asignados al equipo seleccionado." %}</p><p class="unit-console-drawer__pieces-note" id="managementExecutionPiecesNote" hidden></p></header>
+              <div class="unit-console-drawer__execution-consumables" id="managementExecutionConsumables">
+                {% for item in consumibles %}
+                  <article data-execution-consumable-row="{{ item.pk }}" data-unit="{{ item.unidad_medida }}" hidden>
+                    <label class="is-name"><input type="checkbox" data-execution-consumable-enabled> <span><strong>{{ item.nombre }}</strong><small>{{ item.codigo }} {% translate "· unidad:" %} {{ item.unidad_medida }}</small></span></label>
+                    <label>{% translate "Uso útil total (" %}{{ item.unidad_medida }})<input type="number" min="0" step="0.001" data-execution-consumed value="0"></label>
+                    <label>{% translate "Desperdicio total (" %}{{ item.unidad_medida }})<input type="number" min="0" step="0.001" data-execution-waste value="0"></label>
+                    <label>{% translate "Lote abierto" %}<select data-execution-lot><option value="">{% translate "Selecciona" %}</option>{% for lote in item.lotes_operativos %}<option value="{{ lote.pk }}" data-equipment-id="{{ lote.equipo_en_uso_id|default:'' }}" data-status="{{ lote.estado }}" data-available="{{ lote.cantidad_actual }}">{{ lote.codigo }} · {{ lote.get_estado_display|ui }} · {{ lote.cantidad_actual|floatformat:'-3' }} {{ item.unidad_medida }}</option>{% endfor %}</select></label>
+                    <label>{% translate "Equipo" %}<select data-execution-equipment><option value="">{% translate "Selecciona" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+                    <label>{% translate "Causa del desperdicio" %}<select data-execution-waste-reason><option value="desperdicio_calidad">{% translate "Calidad o proceso" %}</option><option value="desperdicio_equipo">{% translate "Falla del equipo" %}</option></select></label>
+                    <div class="unit-console-drawer__pieces" data-execution-pieces hidden>
+                      <p class="unit-console-drawer__pieces-reference" data-execution-pieces-reference></p>
+                      <div class="unit-console-drawer__pieces-controls">
+                        <label>{% translate "Cómo se obtiene el total" %}<select data-execution-pieces-mode>
+                          <option value="iguales">{{ palabras_trabajo_unidad.plural|capfirst }} iguales</option>
+                          <option value="distintas">{% translate "Cada" %} {{ palabras_trabajo_unidad.singular }} {% translate "usó una cantidad distinta" %}</option>
+                          <option value="total">{% translate "Escribo el total medido" %}</option>
+                        </select></label>
+                        <label data-execution-pieces-unit hidden>{% translate "Cantidad por" %} {{ palabras_trabajo_unidad.singular }} ({{ item.unidad_medida }})<input type="number" min="0" step="0.001" data-execution-piece-unit></label>
+                      </div>
+                      <div class="unit-console-drawer__pieces-list" data-execution-pieces-list hidden></div>
+                      <p class="unit-console-drawer__pieces-result" data-execution-pieces-result></p>
+                    </div>
+                  </article>
+                {% empty %}<p>{% translate "No hay insumos configurados para esta unidad." %}</p>{% endfor %}
+              </div>
+              <input type="hidden" id="managementExecutionConsumablesValue" name="ejecucion_consumibles_json" value="[]">
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution">
+              <header><span>{% translate "NOVEDAD TÉCNICA" %}</span><h3>{% translate "Incidencia detectada" %}</h3><p>{% translate "Si una falla produjo desperdicio, este registro es obligatorio." %}</p></header>
+              <label class="unit-console-drawer__inline-check"><input id="managementExecutionHasIncident" type="checkbox" name="ejecucion_tuvo_incidencia" value="1"> {% translate "Se detectó una incidencia durante la atención" %}</label>
+              <div class="unit-console-drawer__execution-conditional" id="managementExecutionIncidentFields" hidden>
+                <label>{% translate "Equipo" %}<select name="ejecucion_incidencia_equipo_id"><option value="">{% translate "Selecciona" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+                <label>{% translate "Tipo" %}<select name="ejecucion_incidencia_tipo">{% for codigo, nombre in tipos_incidencia_ejecucion %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+                <label>{% translate "Prioridad" %}<select name="ejecucion_incidencia_prioridad">{% for codigo, nombre in prioridades_incidencia_ejecucion %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+                <label class="is-wide">{% translate "Título" %}<input name="ejecucion_incidencia_titulo" maxlength="180"></label>
+                <label class="is-wide">{% translate "Descripción" %}<textarea name="ejecucion_incidencia_descripcion" rows="3"></textarea></label>
+                <label class="unit-console-drawer__inline-check is-wide"><input type="checkbox" name="ejecucion_incidencia_detiene" value="1"> {% translate "La incidencia detiene la operación del equipo" %}</label>
+              </div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution" id="managementExecutionFinance">
+              <header><span>{% translate "SERVICIO Y RECAUDACIÓN" %}</span><h3>{% translate "Registro del ingreso" %}</h3><p>{% translate "El sistema usa el valor final de la liquidación. Escribe otro monto únicamente si existe un ajuste autorizado y justificado." %}</p></header>
+              <div class="unit-console-drawer__execution-grid">
+                <label>{% translate "Ajuste manual del monto (USD)" %}<input id="managementExecutionAmount" type="number" name="ejecucion_monto_cobrado" min="0" step="0.01" placeholder="{% translate "Automático al cerrar" %}"></label>
+                <label>{% translate "Comprobante o referencia" %}<input id="managementExecutionPaymentReference" name="ejecucion_referencia_pago" maxlength="120"></label>
+                <label class="is-wide">{% translate "Justificación del ajuste" %}<input id="managementExecutionAdjustmentReason" name="ejecucion_justificacion_ajuste" maxlength="300" placeholder="{% translate "Obligatoria solo si cambia el valor calculado" %}"></label>
+                <label class="unit-console-drawer__inline-check is-wide"><input id="managementExecutionPaymentConfirmed" type="checkbox" name="ejecucion_pago_confirmado" value="1"> {% translate "Pago verificado; registrar como ingreso confirmado" %}</label>
+              </div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution">
+              <header><span>{% translate "LIQUIDACIÓN OPERATIVA" %}</span><h3>{% translate "Estimado frente a ejecución real" %}</h3><p>{% translate "El material útil, el aporte institucional y las pérdidas se muestran por separado." %}</p></header>
+              <div class="unit-console-drawer__liquidation" id="managementExecutionLiquidation">
+                <div><small>{% translate "Estimado del usuario" %}</small><strong id="managementLiquidationEstimated">—</strong></div>
+                <div><small>{% translate "Costo operativo real" %}</small><strong id="managementLiquidationReal">{% translate "Se calculará al cerrar" %}</strong></div>
+                <div><small>{% translate "Aporte institucional" %}</small><strong id="managementLiquidationContribution">—</strong></div>
+                <div><small>{% translate "Desperdicio asumido" %}</small><strong id="managementLiquidationWaste">—</strong></div>
+                <div class="is-total"><small>{% translate "Valor final del usuario" %}</small><strong id="managementLiquidationUser">—</strong></div>
+              </div>
+              <p class="unit-console-drawer__liquidation-note" id="managementLiquidationPolicy">{% translate "La cotización original no se sobrescribe; el cierre generará una liquidación trazable." %}</p>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__execution">
+              <header><span>{% translate "OBSERVACIONES" %}</span><h3>{% translate "Conclusión de la atención" %}</h3></header>
+              <textarea id="managementExecutionNotes" name="ejecucion_observaciones" rows="4" placeholder="{% translate "Resultado obtenido, novedades, recomendaciones o acciones posteriores." %}"></textarea>
+              <div class="unit-console-drawer__execution-record" id="managementExecutionRecord" hidden></div>
+            </section>
+          </div>
+
+          <div class="unit-console-drawer__pane" data-reservation-drawer-pane="seguimiento" hidden>
+            <section class="unit-console-drawer__detail-card unit-console-drawer__incidents"><header><span>{% translate "VALIDACIÓN OPERATIVA" %}</span><h3>{% translate "Incidencias y disponibilidad actual" %}</h3></header><div class="unit-console-drawer__resource-list" id="managementIncidentList"></div></section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__change-request" id="managementChangeRequestPanel" hidden>
+              <header><span>{% translate "CAMBIO SOLICITADO POR EL TITULAR" %}</span><h3>{% translate "Autorizar, revisar y aplicar sin sobrescribir" %}</h3><p>{% translate "La propuesta permanece separada de la reserva vigente hasta que apruebes su aplicación." %}</p></header>
+              <div class="unit-console-drawer__change-request-summary">
+                <span id="managementChangeRequestStatus"></span>
+                <p id="managementChangeRequestReason"></p>
+                <small id="managementChangeRequestDeadline"></small>
+              </div>
+              <div class="unit-console-drawer__change-request-fields" id="managementChangeRequestFields">
+                <strong>{% translate "Campos que el usuario podrá modificar" %}</strong>
+                <div>
+                  <label><input type="checkbox" name="campo_cambio" value="fecha_horario" checked> {% translate "Fecha y horario" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="actividad" checked> {% translate "Actividad y descripción" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="participantes" checked> {% translate "Participantes" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="equipos" checked> {% translate "Equipos" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="software" checked> {% translate "Software" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="espacios" checked> {% translate "Espacios" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="servicios" checked> {% translate "Servicios" %}</label>
+                  <label><input type="checkbox" name="campo_cambio" value="insumos" checked> {% translate "Insumos" %}</label>
+                </div>
+              </div>
+              <div class="unit-console-drawer__original-comparison" id="managementChangeProposal" hidden>
+                <div><i class="fas fa-exchange-alt"></i><span><strong>{% translate "Comparación de la propuesta" %}</strong><small>{% translate "Antes de aprobar, verifica cada diferencia y la disponibilidad actual." %}</small></span></div>
+                <div id="managementChangeProposalList"></div>
+              </div>
+              <label for="managementChangeReviewObservation">{% translate "Observación para el solicitante" %}</label>
+              <textarea id="managementChangeReviewObservation" rows="3" maxlength="1200" placeholder="{% translate "Indica restricciones, motivo de rechazo o constancia de la aprobación." %}"></textarea>
+              <div class="unit-console-drawer__note-actions">
+                <button type="button" data-change-request-action="rechazar"><i class="fas fa-times-circle"></i> {% translate "Rechazar cambio" %}</button>
+                <button type="button" class="is-primary" data-change-request-action="autorizar"><i class="fas fa-user-edit"></i> {% translate "Autorizar 48 horas" %}</button>
+                <button type="button" class="is-primary" data-change-request-action="aprobar"><i class="fas fa-check-double"></i> {% translate "Aprobar y aplicar" %}</button>
+              </div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card" id="managementRevisionPanel" hidden>
+              <header><span>{% translate "VERSIONES INMUTABLES" %}</span><h3>{% translate "Historial formal de la reserva" %}</h3><p>{% translate "Cada versión conserva la fotografía completa del expediente y el responsable que la generó." %}</p></header>
+              <div class="unit-console-drawer__timeline" id="managementRevisionList"></div>
+            </section>
+
+            <section class="unit-console-drawer__detail-card unit-console-drawer__notes">
+              <header><span>{% translate "BITÁCORA Y AUDITORÍA" %}</span><h3>{% translate "Seguimiento y cambios del expediente" %}</h3><p>{% translate "Consulta quién modificó cada dato, cuándo lo hizo y cómo cambió con respecto al valor anterior." %}</p></header>
+              <div class="unit-console-drawer__original-comparison" id="managementOriginalComparison" hidden>
+                <div><i class="fas fa-code-branch"></i><span><strong>{% translate "Cambios acumulados respecto a la solicitud original" %}</strong><small id="managementOriginalChangeCount"></small></span></div>
+                <div id="managementOriginalChangeList"></div>
+              </div>
+              <label for="managementInternalNote">{% translate "Nueva anotación" %}</label>
+              <textarea id="managementInternalNote" rows="3" placeholder="{% translate "Ej. Equipo temporalmente fuera de servicio; confirmar alternativa o nueva fecha." %}"></textarea>
+              <div class="unit-console-drawer__note-actions"><button type="button" data-reservation-action="anotar"><i class="fas fa-pen"></i> {% translate "Guardar nota" %}</button><button type="button" class="is-primary" data-reservation-action="solicitar_info"><i class="fas fa-paper-plane"></i> {% translate "Solicitar información" %}</button></div>
+              <div class="unit-console-drawer__timeline" id="managementAuditList"></div>
+            </section>
+          </div>
+
+          <div class="unit-console-drawer__pane" data-reservation-drawer-pane="decision" hidden>
+            <section class="unit-console-drawer__decision">
+              <header><span>{% translate "EDICIÓN ADMINISTRATIVA" %}</span><h3>{% translate "Corregir, reprogramar y decidir" %}</h3><p>{% translate "El expediente original no se reemplaza: cada corrección conserva el valor anterior, el valor nuevo, el usuario y la fecha." %}</p></header>
+              <div class="unit-console-drawer__automation"><i class="fas fa-user-shield"></i><div><strong>{% translate "Edición autorizada para la administración de la unidad" %}</strong><span>{% translate "Puedes corregir fecha, horario, motivo, propósito, requisitos, recursos y responsable. Las decisiones y modificaciones quedan auditadas." %}</span></div></div>
+              <section class="unit-console-drawer__advanced gestion-seccion-operativa" id="managementAdvancedDecision">
+                <header class="gestion-seccion-operativa__cabecera"><div><i class="fas fa-sliders-h" aria-hidden="true"></i><strong>{% translate "Datos editables de la solicitud" %}</strong><small>{% translate "Reprogramación, recursos, responsable y motivos" %}</small></div></header>
+                <div>
+                  <fieldset class="unit-console-drawer__edit" id="managementReservationEdit">
+                    <legend>{% translate "Editar y reprogramar" %}</legend>
+                    <label class="is-wide" for="managementReservationTitleField">{% translate "Título de la solicitud" %}<input id="managementReservationTitleField" name="titulo_solicitud" maxlength="255" required></label>
+                    <label for="managementReservationDateField">{% translate "Fecha" %}<input id="managementReservationDateField" type="date" name="fecha" required></label>
+                    <label for="managementReservationParticipantsField">{% translate "Personas identificadas" %}<input id="managementReservationParticipantsField" type="number" name="numero_participantes" min="1" readonly required></label>
+                    <label for="managementReservationStartField">{% translate "Hora inicial" %}<input id="managementReservationStartField" type="time" name="hora_inicio" step="3600" required></label>
+                    <label for="managementReservationEndField">{% translate "Hora final" %}<input id="managementReservationEndField" type="time" name="hora_fin" step="3600" required></label>
+                    <label class="is-wide" for="managementReservationPurposeField">{% translate "Propósito institucional" %}<select id="managementReservationPurposeField" name="proposito_codigo" required>{% for codigo, nombre in propositos_reserva %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+                    <section class="unit-console-drawer__integral-editor is-wide" aria-labelledby="managementParticipantsEditorTitle">
+                      <header><span>{% translate "PERSONAS Y ASISTENCIA" %}</span><strong id="managementParticipantsEditorTitle">{% translate "Participantes identificados" %}</strong><small>{% translate "Busca cuentas institucionales; la cantidad se calcula automáticamente." %}</small></header>
+                      <label for="managementApplicantAttendance">{% translate "Asistencia del solicitante" %}<select id="managementApplicantAttendance" name="asistencia_solicitante"><option value="prevista">{% translate "Prevista" %}</option><option value="asistio">{% translate "Asistió" %}</option><option value="no_asistio">{% translate "No asistió" %}</option></select></label>
+                      <label for="managementParticipantSearch">{% translate "Agregar participante" %}<input id="managementParticipantSearch" type="search" autocomplete="off" placeholder="{% translate "Nombre, usuario o correo" %}"></label>
+                      <div class="unit-console-drawer__search-results" id="managementParticipantSearchResults" hidden></div>
+                      <div class="unit-console-drawer__editable-list" id="managementParticipantEditorList"></div>
+                      <input type="hidden" id="managementParticipantsValue" name="participantes_seleccionados" value="[]">
+                    </section>
+                    <label class="is-wide" for="managementReservationMotiveField">{% translate "Motivo o necesidad" %}<textarea id="managementReservationMotiveField" name="motivo" rows="3" placeholder="{% translate "Describe la necesidad real de la solicitud." %}"></textarea></label>
+                    <label class="is-wide" for="managementReservationDescriptionField">{% translate "Descripción de la actividad" %}<textarea id="managementReservationDescriptionField" name="descripcion_proyecto" rows="3"></textarea></label>
+                    <label class="is-wide" for="managementReservationRequirementsField">{% translate "Requisitos, materiales o indicaciones" %}<textarea id="managementReservationRequirementsField" name="requisitos_especiales" rows="3"></textarea></label>
+                    <label class="is-wide" for="managementReservationEquipmentField">{% translate "Equipos" %}<select id="managementReservationEquipmentField" name="unidades_ids" multiple size="4">{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+                    <label class="is-wide" for="managementReservationSoftwareField">{% translate "Software" %}<select id="managementReservationSoftwareField" name="software_ids" multiple size="3">{% for programa in software %}<option value="{{ programa.pk }}">{{ programa.nombre }} {{ programa.version }}</option>{% endfor %}</select></label>
+                    <label class="is-wide" for="managementReservationSpacesField">{% translate "Espacios" %}<select id="managementReservationSpacesField" name="espacios_ids" multiple size="3">{% for espacio in espacios %}<option value="{{ espacio.pk }}">{{ espacio.nombre }}</option>{% endfor %}</select></label>
+                    <label class="is-wide" for="managementReservationServicesField">{% translate "Servicios" %}<select id="managementReservationServicesField" name="servicios_ids" multiple size="3">{% for servicio in servicios %}<option value="{{ servicio.pk }}">{{ servicio.nombre }}</option>{% endfor %}</select></label>
+                    <label for="managementSupplyProvisionField">{% translate "Provisión de insumos" %}<select id="managementSupplyProvisionField" name="provision_consumibles">{% for codigo, nombre in provisiones_consumibles %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+                    <label for="managementBeneficiaryScopeField">{% translate "Beneficiario" %}<select id="managementBeneficiaryScopeField" name="alcance_beneficiario">{% for codigo, nombre in alcances_beneficiario %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+                    <label class="is-wide" for="managementBeneficiaryEntityField">{% translate "Entidad, proyecto o comunidad beneficiaria" %}<input id="managementBeneficiaryEntityField" name="entidad_beneficiaria" maxlength="220"></label>
+                    <section class="unit-console-drawer__integral-editor is-wide">
+                      <header><span>INSUMOS</span><strong>{% translate "Cantidades solicitadas, aprobadas y consumidas" %}</strong><small>{% translate "Selecciona solo los materiales vinculados a esta solicitud." %}</small></header>
+                      <div class="unit-console-drawer__consumable-editor" id="managementConsumableEditor">
+                        {% for item in consumibles %}<article data-consumable-row="{{ item.pk }}"><label><input type="checkbox" data-consumable-enabled> {{ item.nombre }}</label><small>{{ item.codigo }} · {{ item.unidad_medida }}</small><input type="number" min="0" step="0.001" data-consumable-requested placeholder="{% translate "Solicitada" %}"><select data-consumable-method>{% for codigo, nombre in metodos_estimacion_consumible %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select><input type="number" min="0" step="0.001" data-consumable-approved placeholder="{% translate "Aprobada" %}"><input type="number" min="0" step="0.001" data-consumable-used placeholder="{% translate "Consumida" %}"></article>{% empty %}<p>{% translate "No hay insumos activos configurados en esta unidad." %}</p>{% endfor %}
+                      </div>
+                      <input type="hidden" id="managementConsumablesValue" name="consumibles_json" value="[]">
+                    </section>
+                    <section class="unit-console-drawer__integral-editor is-wide" id="managementServiceEditor">
+                      <header><span>SERVICIO</span><strong>{% translate "Condiciones técnicas y económicas" %}</strong><small>{% translate "Se aplican solamente cuando la solicitud corresponde a un servicio." %}</small></header>
+                      <div class="unit-console-drawer__mini-grid"><label>{% translate "Modalidad" %}<select id="managementServiceModeField" name="modalidad_servicio"><option value="">{% translate "No aplica" %}</option>{% for codigo, nombre in modalidades_servicio %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label><label>{% translate "Costo estimado" %}<input id="managementEstimatedCostField" type="number" min="0" step="0.01" readonly aria-readonly="true"></label><label>{% translate "Aporte UPEC (%)" %}<input id="managementDiscountField" type="number" min="0" max="100" step="0.01" readonly aria-readonly="true"></label><label>{% translate "Método de pago" %}<select id="managementPaymentMethodField" name="metodo_pago"><option value="">{% translate "No definido" %}</option>{% for codigo, nombre in metodos_pago_reserva %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label><label>{% translate "Urgencia" %}<select id="managementUrgencyField" name="urgencia_servicio"><option value="">{% translate "No aplica" %}</option>{% for codigo, nombre in urgencias_servicio %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label><label>{% translate "Entrega prevista" %}<input id="managementDeliveryDateField" type="date" name="fecha_entrega_prevista"></label></div>
+                      <p>{% translate "El valor se calcula desde los materiales aprobados. Los recursos y el personal los asume la UPEC." %}</p><label class="unit-console-drawer__inline-check"><input id="managementQuoteAcceptedField" type="checkbox" name="cotizacion_aceptada" value="1"> {% translate "Cotización aceptada" %}</label>
+                    </section>
+                    <section class="unit-console-drawer__integral-editor is-wide">
+                      <header><span>{% translate "ARCHIVOS TÉCNICOS" %}</span><strong>{% translate "Adjuntar o retirar archivos" %}</strong><small>{% translate "Los cambios quedan registrados en la bitácora." %}</small></header>
+                      <div class="unit-console-drawer__editable-list" id="managementExistingFileEditor"></div>
+                      <label>{% translate "Agregar archivos" %}<input id="managementTechnicalFilesField" type="file" name="archivos_tecnicos" accept=".pdf,.stl,.obj,.3mf,.step,.stp,.dxf,.dwg,.svg,.png,.jpg,.jpeg,.webp,.zip" multiple></label>
+                      <label>{% translate "Indicaciones para abrirlos" %}<textarea name="indicaciones_archivos_nuevos" rows="2" maxlength="1200"></textarea></label>
+                    </section>
+                    <p class="unit-console-drawer__hint is-wide"><i class="fas fa-history"></i> {% translate "Cada identidad, cantidad, condición y archivo modificado se compara con el expediente original." %}</p>
+                  </fieldset>
+                  <label for="managementChangeReason">{% translate "Justificación de la corrección" %}</label>
+                  <textarea id="managementChangeReason" name="justificacion_cambio" rows="2" placeholder="{% translate "Opcional mientras la solicitud esté pendiente o confirmada; obligatorio si ya inició o fue cerrada." %}"></textarea>
+                  <p class="unit-console-drawer__hint"><i class="fas fa-history"></i> {% translate "Esta justificación aparecerá junto con el detalle de campos modificados en Seguimiento." %}</p>
+                  <label for="managementResponsible">{% translate "Cambiar responsable manualmente" %}</label>
+                  <select id="managementResponsible" name="responsable_id"><option value="">{% translate "Mantener o asignar automáticamente" %}</option>{% for responsable in responsables %}{% if responsable.recibe_reservas and responsable.usuario_id %}<option value="{{ responsable.pk }}">{{ responsable.nombre_publico }} · {{ responsable.get_rol_display|ui }}</option>{% endif %}{% endfor %}</select>
+                  <label for="managementObservation">{% translate "Motivo de una decisión negativa" %}</label>
+                  <textarea id="managementObservation" name="observacion" rows="3" placeholder="{% translate "Obligatorio solo para rechazar, cancelar o registrar una inasistencia." %}"></textarea>
+                  <p class="unit-console-drawer__hint"><i class="fas fa-info-circle"></i> {% translate "Para observaciones ordinarias usa la bitácora; aquí registra el motivo de la decisión." %}</p>
+                  <div class="unit-console-drawer__advanced-actions"><button type="button" class="is-neutral" data-reservation-action="actualizar"><i class="fas fa-calendar-alt"></i> {% translate "Guardar cambios" %}</button><button type="button" class="is-neutral" data-reservation-action="asignar"><i class="fas fa-user-check"></i> {% translate "Guardar responsable" %}</button></div>
+                </div>
+              </section>
+              <div class="unit-console-drawer__feedback" id="managementReservationFeedback" role="status" aria-live="polite"></div>
+            </section>
+          </div>
+        </div>
+
+        <footer class="unit-console-drawer__actions">
+          <button type="button" class="is-secondary" data-close-reservation-drawer>{% translate "Volver" %}</button>
+          <button type="button" class="is-danger" data-reservation-action="rechazar"><i class="fas fa-times-circle"></i> {% translate "Rechazar" %}</button>
+          <button type="button" class="is-danger" data-reservation-action="cancelar"><i class="fas fa-ban"></i> {% translate "Cancelar reserva" %}</button>
+          <button type="button" class="is-warning" data-reservation-action="no_presentado"><i class="fas fa-user-times"></i> {% translate "No se presentó" %}</button>
+          <button type="button" class="is-danger" data-reservation-action="no_atendida"><i class="fas fa-calendar-times"></i> {% translate "No atendida" %}</button>
+          <button type="button" class="is-primary" data-reservation-action="aprobar"><i class="fas fa-check-circle"></i> {% translate "Aprobar reserva" %}</button>
+          <button type="button" class="is-primary" data-reservation-action="iniciar"><i class="fas fa-play"></i> {% translate "Iniciar atención" %}</button>
+          <button type="button" class="is-primary" data-reservation-action="completar"><i class="fas fa-flag-checkered"></i> {% translate "Completar" %}</button>
+        </footer>
+      </form>
+    </aside>
+  </div>{% endif %}
+
+  <div class="unit-console-drawer" id="agendaManagementDrawer" hidden aria-hidden="true">
+    <button type="button" class="unit-console-drawer__scrim" data-close-agenda-drawer aria-label="{% translate "Cerrar panel lateral" %}"></button>
+    <aside class="unit-console-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="agendaManagementTitle">
+      <header class="unit-console-drawer__header{% if modo_modal %} unit-console-drawer__header--contextual{% endif %}">
+        {% if not modo_modal %}
+        <div class="unit-console-drawer__tech" aria-hidden="true"><span></span><span></span><span></span></div>
+        <span class="unit-console-drawer__header-icon"><i class="fas fa-calendar-alt"></i></span>
+        {% endif %}
+        <div>{% if not modo_modal %}<span>{% translate "AGENDA OPERATIVA" %}</span>{% endif %}<h2 id="agendaManagementTitle">{% translate "Configurar agenda" %}</h2>{% if not modo_modal %}<p>{{ unidad.nombre }}</p>{% endif %}</div>
+        <button type="button" class="unit-console-drawer__close" data-close-agenda-drawer aria-label="{% translate "Cerrar formulario" %}"><i class="fas fa-times"></i></button>
+      </header>
+
+      <div class="unit-console-drawer__operation-body">
+        {% if not carga_selectiva_panel or vista_gestion == 'reservas' or vista_gestion == 'configuracion' %}<form class="unit-console-operation" data-agenda-operation-form="horario" action="{% url 'gestion_agenda_accion' unidad.slug %}" hidden>
+          {% csrf_token %}<input type="hidden" name="entidad" value="horario"><input type="hidden" name="registro_id">
+          <header><span>{% translate "DISPONIBILIDAD" %}</span><h3>{% translate "Jornada de atención" %}</h3><p>{% translate "Define cuándo se reciben reservas de recursos o solicitudes de servicios. Una jornada de sábado o domingo habilita ese día excepcionalmente." %}</p></header>
+          <div class="unit-console-operation__grid">
+            <label class="is-wide">{% translate "Nombre de la jornada" %}<input name="nombre" maxlength="100" placeholder="{% translate "Ej. Jornada ordinaria" %}"></label>
+            <label>{% translate "Período" %}<select name="periodo_id"><option value="">{% translate "Horario general" %}</option>{% for periodo in periodos_agenda %}<option value="{{ periodo.pk }}">{{ periodo.codigo }} · {{ periodo.nombre }}</option>{% endfor %}</select></label>
+            <label>{% translate "Día" %}<select name="dia_semana" required><option value="0">{% translate "Lunes" %}</option><option value="1">{% translate "Martes" %}</option><option value="2">{% translate "Miércoles" %}</option><option value="3">{% translate "Jueves" %}</option><option value="4">{% translate "Viernes" %}</option><option value="5">{% translate "Sábado" %}</option><option value="6">{% translate "Domingo" %}</option></select></label>
+            <label>{% translate "Hora inicial" %}<input type="time" step="3600" name="hora_inicio" required></label>
+            <label>{% translate "Hora final" %}<input type="time" step="3600" name="hora_fin" required></label>
+            <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="3" maxlength="240" placeholder="{% translate "Condiciones o acuerdos especiales" %}"></textarea></label>
+          </div>
+          <fieldset class="unit-console-operation__checks"><legend>{% translate "Modalidades habilitadas" %}</legend><label><input type="checkbox" name="permite_recursos" checked> {% translate "Reservas de recursos" %}</label><label><input type="checkbox" name="permite_servicios" checked> {% translate "Solicitudes de servicios" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Jornada activa" %}</label></fieldset>
+          <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+          <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar jornada" %}</button></footer>
+        </form>{% endif %}
+
+        {% if not carga_selectiva_panel or vista_gestion == 'reservas' or vista_gestion == 'configuracion' %}<form class="unit-console-operation" data-agenda-operation-form="bloqueo" action="{% url 'gestion_agenda_accion' unidad.slug %}" hidden>
+          {% csrf_token %}<input type="hidden" name="entidad" value="bloqueo"><input type="hidden" name="registro_id">
+          <header><span>{% translate "EXCEPCIÓN OPERATIVA" %}</span><h3>{% translate "Bloqueo de agenda" %}</h3><p>{% translate "Indica por qué no se reservan estas horas. Las fechas y horas salen de lo que marcaste en el calendario; puedes ajustarlas o limitar el bloqueo a áreas o equipos en este formulario." %}</p></header>
+          <div class="unit-console-operation__selection" data-block-selection-summary hidden><i class="fas fa-calendar-check"></i><div><strong>{% translate "Horas marcadas en el calendario" %}</strong><span data-block-selection-text></span></div></div>
+          <div class="unit-console-operation__grid">
+            <label>{% translate "Tipo" %}<select name="tipo"><option value="mantenimiento">{% translate "Mantenimiento programado" %}</option><option value="feriado">{% translate "Feriado o suspensión" %}</option><option value="evento">{% translate "Evento institucional" %}</option><option value="seguridad">{% translate "Cierre por seguridad" %}</option><option value="limpieza">{% translate "Limpieza o preparación" %}</option><option value="otro">{% translate "Otra indisponibilidad" %}</option></select></label>
+            <label class="is-wide">{% translate "¿Para qué se bloquea?" %}<textarea name="motivo" rows="2" required placeholder="{% translate "Ej. Mantenimiento de la impresora 3D de resina: calibración y cambio de resina" %}"></textarea></label>
+          </div>
+          <section class="unit-console-operation__advanced gestion-seccion-operativa" data-block-advanced>
+            <header class="gestion-seccion-operativa__cabecera"><div><i class="fas fa-sliders-h" aria-hidden="true"></i><strong>{% translate "Título, fechas y alcance del bloqueo" %}</strong></div></header>
+            <div class="unit-console-operation__grid">
+              <label class="is-wide">{% translate "Título" %}<input name="titulo" maxlength="160" placeholder="{% translate "Si lo dejas vacío se genera con el tipo y la fecha" %}"></label>
+              <label>{% translate "Fecha inicial" %}<input type="date" name="fecha_inicio" required></label>
+              <label>{% translate "Fecha final" %}<input type="date" name="fecha_fin" required></label>
+              <label>{% translate "Hora inicial" %}<input type="time" name="hora_inicio" step="3600"></label>
+              <label>{% translate "Hora final" %}<input type="time" name="hora_fin" step="3600"></label>
+              <label>{% translate "Alcance" %}<select name="alcance"><option value="unidad_completa">{% translate "Toda la unidad" %}</option><option value="areas">{% translate "Áreas seleccionadas" %}</option><option value="equipos">{% translate "Equipos seleccionados" %}</option></select></label>
+              <label>{% translate "Áreas" %}<select name="espacios" multiple size="4">{% for espacio in espacios %}<option value="{{ espacio.pk }}">{{ espacio.nombre }}</option>{% endfor %}</select></label>
+              <label>{% translate "Equipos" %}<select name="equipos" multiple size="4">{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+            </div>
+            <fieldset class="unit-console-operation__checks"><legend>{% translate "Aplicación" %}</legend><label><input type="checkbox" name="dia_completo"> {% translate "Día completo" %}</label><label><input type="checkbox" name="bloquea_recursos" checked> {% translate "Bloquea recursos" %}</label><label><input type="checkbox" name="bloquea_servicios" checked> {% translate "Bloquea servicios" %}</label><label><input type="checkbox" name="visible_en_agenda" checked> {% translate "Visible en agenda" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Bloqueo activo" %}</label></fieldset>
+          </section>
+          <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+          <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar bloqueo" %}</button></footer>
+        </form>{% endif %}
+        {% include 'portal/pages/unidades/gestion/includes/formularios_operativos.html' %}
+        {% if produccion_habilitada %}{% include 'portal/pages/unidades/gestion/includes/formularios_produccion.html' %}{% endif %}
+        {% if seguridad_habilitada %}{% include 'portal/pages/unidades/gestion/includes/formularios_seguridad.html' %}{% endif %}
+        {% if visitas_habilitadas %}{% include 'portal/pages/unidades/gestion/includes/formularios_visitas.html' %}{% endif %}
+        {% if calidad_habilitada %}{% include 'portal/pages/unidades/gestion/includes/formularios_calidad.html' %}{% endif %}
+        {% if planificacion_habilitada %}{% include 'portal/pages/unidades/gestion/includes/formularios_planificacion.html' %}{% endif %}
+        {% if ejercicios_habilitados %}{% include 'portal/pages/unidades/gestion/includes/formularios_ejercicios.html' %}{% endif %}
+        {% if almacen_habilitado %}{% include 'portal/pages/unidades/gestion/includes/formularios_almacen.html' %}{% endif %}
+        {% if permisos_operativos.practicas and not carga_selectiva_panel or vista_gestion == 'practicas' %}{% include 'portal/pages/unidades/gestion/includes/formularios_asignaturas.html' %}{% endif %}
+      </div>
+    </aside>
+  </div>
+  {% endif %}
+</div>

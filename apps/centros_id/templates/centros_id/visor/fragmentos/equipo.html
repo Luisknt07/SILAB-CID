@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}La ficha técnica de un equipo, con la pieza de Laboratorios. Va dentro de un diálogo: el de su área (con
+en_area) o la ventana del visualizador cuando se abre desde otra página.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande{% if equipo.imagen %} con-foto{% endif %}" aria-hidden="true">{% if equipo.imagen %}<img src="{{ equipo.imagen.url }}" alt="">{% else %}<i class="{{ equipo.componente.icono }}"></i>{% endif %}</span>
+  <div><span class="ficha__rol">{{ equipo.categoria }}</span><h3>{{ equipo.nombre }}</h3>{% if equipo.funcion %}<p>{{ equipo.funcion }}</p>{% endif %}</div>
+</header>
+<div class="area__dialogo-cuerpo">
+  <table class="area__tabla area__tabla--ficha"><caption>{% translate "Especificaciones técnicas" %}</caption><tbody>
+    <tr><th scope="row">{% translate "Área" %}</th><td><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug equipo.componente.codigo %}"><i class="{{ equipo.componente.icono }}" aria-hidden="true"></i> {{ equipo.componente }}</a></td></tr>
+    <tr><th scope="row">{% translate "Estado" %}</th><td><span class="area__estado {% if equipo.estado == 'operativo' %}is-ok{% elif equipo.estado == 'baja' %}is-fuera{% else %}is-uso{% endif %}">{{ equipo.get_estado_display }}</span></td></tr>
+    <tr><th scope="row">{% translate "Cantidad" %}</th><td>{{ equipo.cantidad }}</td></tr>
+    {% if equipo.codigo %}<tr><th scope="row">{% translate "Código" %}</th><td><span class="area__codigo">{{ equipo.codigo }}</span></td></tr>{% endif %}
+    {% if equipo.detalle %}<tr><th scope="row">{% translate "Qué incluye" %}</th><td>{{ equipo.detalle }}</td></tr>{% endif %}
+    {% for dato, valor in equipo.lista_especificaciones %}<tr><th scope="row">{{ dato }}</th><td>{{ valor|default:"—" }}</td></tr>{% endfor %}
+  </tbody></table>
+  {% with pasos=equipo.pasos.all %}{% if pasos %}<div class="area__dialogo-listas"><div><h4><i class="fas fa-project-diagram" aria-hidden="true"></i> {% translate "En qué procesos se usa" %}</h4><ul class="area__lista">{% for paso in pasos %}<li><strong>{{ paso.proceso.nombre }}</strong> · {% translate "paso" %} {{ paso.numero }}: {{ paso.nombre }}</li>{% endfor %}</ul></div></div>{% endif %}{% endwith %}
+  {% if equipo.estado == 'planificado' %}<p class="ficha__nota">{% translate "Equipamiento previsto en el proyecto del centro; se registra como operativo cuando se instala." %}</p>{% endif %}
+  {% if equipo.requisitos %}<h4>{% translate 'Condiciones de acceso' %}</h4>{{ equipo.requisitos|linebreaks }}{% endif %}
+  {% if equipo.apto_reserva %}<p><a class="ficha__boton" href="{% url 'seccion_centro_id' centro.slug 'recursos' %}?equipo={{ equipo.pk }}">{% translate 'Consultar disponibilidad y solicitar uso' %}</a></p>{% endif %}
+  {% if not en_area %}<div class="ficha__documento-acciones"><a class="ficha__boton" href="{% url 'componente_centro_id' centro.slug equipo.componente.codigo %}"><i class="{{ equipo.componente.icono }}" aria-hidden="true"></i> {% translate "Ver el área y sus procesos" %}</a></div>{% endif %}
+</div>

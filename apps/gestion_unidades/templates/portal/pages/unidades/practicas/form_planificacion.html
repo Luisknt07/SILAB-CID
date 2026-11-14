@@ -1,0 +1,42 @@
+{% extends 'portal/layouts/base.html' %}{% load static i18n idiomas %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/practicas.css' %}?v=20260920-contraste-v215">{% endblock %}
+{% block portal_content %}
+<section class="practice-shell">
+  <header class="practice-hero">
+    <div><span>{% translate "FORMATO FT02 · PLANIFICACIÓN" %}</span><h1>{% if plan.pk %}{% translate "Editar" %} {{ plan.codigo }}{% else %}{% translate "Nueva planificación" %}{% endif %}</h1><p>{{ unidad.nombre }}</p></div>
+    <div><a href="{% url 'lista_practicas' unidad.slug %}">{% translate "← Volver" %}</a></div>
+  </header>
+  <form class="practice-form" method="post" novalidate>
+    {% csrf_token %}
+    <header><div><span>{% translate "UPEC-P10-S01-FT02 · DATOS ESTRUCTURADOS" %}</span><h2>{% translate "Planificación de uso del laboratorio" %}</h2><p>{% translate "La reserva aporta fecha, horario, solicitante y recursos. Completa o confirma únicamente la información académica y operativa faltante." %}</p></div>{% if plan.pk %}<span class="practice-status is-{{ plan.estado }}">{{ plan.get_estado_display|ui }}</span>{% endif %}</header>
+    {% if form.non_field_errors %}<div class="practice-form__errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="practice-form__section">
+      <div class="practice-form__section-heading"><span>01</span><div><h3>{% translate "Origen automático" %}</h3><p>{% translate "Vincula la actividad, su guía vigente y la reserva que genera la planificación." %}</p></div></div>
+      <div class="practice-form__grid">{% for field in form.campos_origen %}<label class="is-wide"><span>{{ field.label|ui }}{% if field.field.required %} *{% endif %}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}</div>
+    </section>
+
+    <section class="practice-form__section">
+      <div class="practice-form__section-heading"><span>02</span><div><h3>{% translate "Programación" %}</h3><p>{% translate "Define cuándo se usará el laboratorio y bajo qué categoría institucional." %}</p></div></div>
+      <div class="practice-form__grid">{% for field in form.campos_programacion %}<label><span>{{ field.label|ui }}{% if field.field.required %} *{% endif %}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}</div>
+    </section>
+
+    <section class="practice-form__section">
+      <div class="practice-form__section-heading"><span>03</span><div><h3>{% translate "Contexto académico" %}</h3><p>{% translate "Identifica carrera, nivel, asignatura y docente o tutor responsable." %}</p></div></div>
+      <div class="practice-form__grid">{% for field in form.campos_contexto %}<label><span>{{ field.label|ui }}{% if field.field.required %} *{% endif %}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}</div>
+    </section>
+
+    <section class="practice-form__section">
+      <div class="practice-form__section-heading"><span>04</span><div><h3>{% translate "Práctica prevista" %}</h3><p>{% translate "Resume el tema, el resultado que se verificará y el grupo esperado." %}</p></div></div>
+      <div class="practice-form__grid">{% for field in form.campos_practica %}<label class="{% if field.name == 'tema' or field.name == 'resultado_aprendizaje' %}is-wide{% endif %}"><span>{{ field.label|ui }}{% if field.field.required %} *{% endif %}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}</div>
+    </section>
+
+    <section class="practice-form__section">
+      <div class="practice-form__section-heading"><span>05</span><div><h3>{% translate "Responsable y control" %}</h3><p>{% translate "Asigna la atención técnica y registra condiciones u observaciones necesarias." %}</p></div></div>
+      <div class="practice-form__grid">{% for field in form.campos_operacion %}<label class="{% if field.name == 'observaciones' %}is-wide{% endif %}"><span>{{ field.label|ui }}{% if field.field.required %} *{% endif %}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}</div>
+    </section>
+
+    <footer><a href="{% url 'lista_practicas' unidad.slug %}">{% translate "Cancelar" %}</a><div><button name="accion" value="guardar">{% translate "Guardar borrador" %}</button><button class="is-primary" name="accion" value="enviar">{% translate "Enviar a revisión" %}</button></div></footer>
+  </form>
+</section>
+{% endblock %}

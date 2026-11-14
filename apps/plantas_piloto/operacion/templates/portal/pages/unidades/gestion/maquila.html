@@ -1,0 +1,109 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Encargo" %} {{ reserva.codigo_reserva }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .maquila-pasos { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; }
+    .maquila-pasos li { font-size: 12px; font-weight: 700; color: #6b7a73; }
+    .maquila-pasos li.is-hecho { color: var(--institucion-texto, #1f6b46); }
+    .maquila-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 14px; align-items: end; margin: 12px 0 0; padding: 14px 16px; border: 1px solid var(--institucion-primario-suave, #dbe7df); border-radius: 6px; background: #f7faf8; }
+    .maquila-form label { display: grid; gap: 4px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--institucion-texto, #1f3d2f); }
+    .maquila-form input, .maquila-form select, .maquila-form textarea { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #c9d8cf; border-radius: 4px; font: inherit; font-size: 13px; letter-spacing: 0; text-transform: none; background: #fff; }
+    .maquila-form small { font-weight: 500; letter-spacing: 0; text-transform: none; color: #6b7a73; }
+    .maquila-form .is-wide { grid-column: 1 / -1; }
+    .maquila-form button { justify-self: start; padding: 9px 16px; border: 0; border-radius: 4px; background: var(--institucion-primario, #1f3d2f); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .maquila-form .is-check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; }
+    .maquila-form .is-check input { width: 18px; height: 18px; }
+    .maquila-ok { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    .maquila-falta { color: #a12c2c; font-weight: 700; }
+    .maquila-aviso { color: var(--institucion-acento-tinta, #a35d00); font-weight: 700; }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· PRODUCCIÓN POR ENCARGO" %}</span>
+        <h1>{% translate "Encargo" %} {{ reserva.codigo_reserva }}</h1>
+        <small>{{ reserva.titulo_solicitud }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl><div><dt>{% translate "Cliente" %}</dt><dd>{{ reserva.nombre_solicitante|default:reserva.usuario.username }}{% if reserva.institucion %} · {{ reserva.institucion }}{% endif %}</dd></div><div><dt>{% translate "Escala" %}</dt><dd>{{ expediente.factor }} lote{{ expediente.factor|pluralize }} · {{ expediente.escala }}</dd></div><div><dt>{% translate "Etapa" %}</dt><dd>{{ expediente.etapa_display }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones del encargo" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver a producción" %}</a>
+      <div>
+        <a href="{% url 'comprobante_reserva' reserva.pk %}">{% translate "Solicitud" %} {{ reserva.codigo_reserva }}</a>
+        {% if expediente.entregas %}<a href="{{ acta_url }}">{% translate "Acta de entrega y certificado" %}</a>{% endif %}
+        {% include 'portal/components/acciones_documento.html' %}
+      </div>
+    </section>
+
+    {% if hecho == 'recepcion' %}<p class="unit-report__notice maquila-ok">{% translate "Materia prima del cliente recibida y registrada en el inventario a costo cero." %}</p>{% elif hecho == 'entrega' %}<p class="unit-report__notice maquila-ok">{% translate "Entrega registrada: el acta y el certificado ya se pueden imprimir." %}</p>{% endif %}
+    {% if error %}<p class="unit-report__notice maquila-falta">{{ error }}</p>{% endif %}
+
+    <section class="unit-report__context"><span>AVANCE</span><h2>{{ expediente.etapa_display }}</h2>
+      <ul class="maquila-pasos">{% for paso in expediente.pasos %}<li{% if paso.hecho %} class="is-hecho"{% endif %}>{% if paso.hecho %}✓{% else %}○{% endif %} {{ paso.nombre }}</li>{% endfor %}</ul>
+    </section>
+
+    <section class="unit-report__summary" aria-label="{% translate "El encargo" %}">
+      <article><span>{% translate "Proceso" %}</span><strong>{{ expediente.receta.nombre }}</strong><small>{{ expediente.producto }}</small></article>
+      <article><span>{% translate "Materia prima" %}</span><strong>{{ expediente.escala }}</strong><small>{% if expediente.materia_prima_cliente %}{% translate "la trae el cliente" %}{% else %}{% translate "la pone la planta" %}{% endif %}</small></article>
+      <article><span>{% translate "Producto esperado" %}</span><strong>{{ expediente.producto_esperado }}</strong><small>{% translate "rendimiento declarado del proceso" %}</small></article>
+      <article><span>{% translate "Corrida" %}</span><strong>{% if expediente.orden %}{{ expediente.orden.codigo }}{% else %}{% translate "Sin orden" %}{% endif %}</strong><small>{% if expediente.orden %}{{ expediente.orden.get_estado_display|ui }} · {{ expediente.orden.fecha_inicio|date:"d/m/Y" }}{% if expediente.orden.fecha_fin != expediente.orden.fecha_inicio %} – {{ expediente.orden.fecha_fin|date:"d/m/Y" }}{% endif %}{% else %}{% translate "nace al aprobar la solicitud" %}{% endif %}</small></article>
+    </section>
+
+    {% if expediente.materia_prima_cliente %}
+    <section class="unit-report__section">
+      <header><span>{% translate "MATERIA PRIMA DEL CLIENTE" %}</span><small>{% if expediente.material %}recibida: {{ expediente.material_recibido }} {{ expediente.receta.unidad_base }}{% else %}{% translate "pendiente de recibir" %}{% endif %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Lote" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Recibido" %}</th><th>{% translate "Disponible" %}</th><th>{% translate "Fecha" %}</th><th>{% translate "Documento" %}</th><th>{% translate "Control de recepción" %}</th></tr></thead><tbody>
+        {% for lote in expediente.material %}<tr><td><strong>{{ lote.codigo }}</strong></td><td>{{ lote.consumible.nombre }}</td><td>{{ lote.cantidad_inicial|floatformat:"-3" }} {{ lote.consumible.unidad_medida }}</td><td>{{ lote.cantidad_actual|floatformat:"-3" }}</td><td>{{ lote.fecha_ingreso|date:"d/m/Y" }}</td><td>{{ lote.documento_recepcion|default:"—" }}</td><td>{{ lote.observaciones }}</td></tr>{% empty %}<tr><td colspan="7">{% translate "El cliente todavía no entrega su materia prima." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% if expediente.orden_abierta %}
+      <form method="post" class="maquila-form">
+        {% csrf_token %}<input type="hidden" name="accion" value="recepcion">
+        <label>{% translate "Materia prima" %}<select name="consumible_id">{% for insumo in bases %}<option value="{{ insumo.consumible_id }}">{{ insumo.consumible.nombre }} ({{ insumo.consumible.unidad_medida }})</option>{% endfor %}</select></label>
+        <label>{% translate "Cantidad recibida" %}<input type="number" name="cantidad" min="0.001" step="0.001" required><small>{% translate "El encargo pide" %} {{ expediente.escala }}.</small></label>
+        <label>{% translate "Documento" %}<input name="documento" maxlength="120" placeholder="{% translate "Guía o nota de entrega" %}"></label>
+        <label class="is-wide">{% translate "Control de recepción" %}<textarea name="control_recepcion" rows="2" placeholder="{% translate "Prueba de alcohol negativa; acidez 16 °D; 6 °C al llegar" %}" required></textarea></label>
+        <label class="is-check"><input type="checkbox" name="aprobado" value="1"> {% translate "Pasa el control: entra al inventario como lote del cliente, a costo cero" %}</label>
+        <button type="submit">{% translate "Registrar la recepción" %}</button>
+      </form>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="unit-report__section">
+      <header><span>{% translate "LOTES PRODUCIDOS" %}</span><small>{{ expediente.aprobados|length }} aprobado{{ expediente.aprobados|length|pluralize }} {% translate "por calidad de" %} {{ expediente.lotes|length }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Lote" %}</th><th>{% translate "Producto" %}</th><th>{% translate "Producido" %}</th><th>{% translate "Disponible" %}</th><th>{% translate "Vence" %}</th><th>{% translate "Control de calidad" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+        {% for lote in expediente.lotes %}<tr><td><strong>{{ lote.codigo }}</strong></td><td>{{ lote.producto.nombre }}</td><td>{{ lote.cantidad_inicial|floatformat:"-3" }} {{ lote.producto.unidad_medida }}</td><td>{{ lote.cantidad_disponible|floatformat:"-3" }}</td><td>{% if lote.fecha_vencimiento %}{{ lote.fecha_vencimiento|date:"d/m/Y" }}{% else %}—{% endif %}</td><td><span class="{% if lote.control_calidad == 'aprobado' %}maquila-ok{% elif lote.control_calidad == 'rechazado' %}maquila-falta{% else %}maquila-aviso{% endif %}">{{ lote.get_control_calidad_display|ui }}</span></td><td>{{ lote.get_estado_display|ui }}</td></tr>{% empty %}<tr><td colspan="7">{% if expediente.orden %}{% translate "La corrida se cierra en la pestaña de producción con sus consumos y salidas; sus lotes aparecen aquí." %}{% else %}{% translate "La corrida nace al aprobar la solicitud." %}{% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>
+      <p class="unit-report__notice">{% translate "La corrida se inicia y se cierra en la pestaña de producción (consumos por lote, incluida la materia prima del cliente, y salidas); el control de calidad libera cada lote desde la misma pestaña. Solo un lote aprobado y disponible se entrega." %}</p>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "ENTREGA AL CLIENTE" %}</span><small>entregado: {{ expediente.entregado_texto }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Lote" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Destino" %}</th><th>{% translate "Referencia" %}</th><th>{% translate "Registró" %}</th></tr></thead><tbody>
+        {% for entrega in expediente.entregas %}<tr><td>{{ entrega.fecha|date:"d/m/Y H:i" }}</td><td>{{ entrega.lote.codigo }}</td><td>{{ entrega.cantidad|floatformat:"-3" }} {{ entrega.lote.producto.unidad_medida }}</td><td>{{ entrega.destino }}</td><td>{{ entrega.referencia }}</td><td>{{ entrega.registrado_por.get_full_name|default:entrega.registrado_por.username|default:"—" }}</td></tr>{% empty %}<tr><td colspan="6">{% translate "Sin entregas registradas." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% if expediente.entregables %}
+      <form method="post" class="maquila-form">
+        {% csrf_token %}<input type="hidden" name="accion" value="entrega">
+        <label>{% translate "Lote" %}<select name="lote_id">{% for lote in expediente.entregables %}<option value="{{ lote.pk }}">{{ lote.codigo }} · {{ lote.cantidad_disponible|floatformat:"-3" }} {{ lote.producto.unidad_medida }} disponibles</option>{% endfor %}</select></label>
+        <label>{% translate "Cantidad entregada" %}<input type="number" name="cantidad" min="0.001" step="0.001" placeholder="{% translate "Todo el lote" %}"><small>{% translate "Vacío: todo lo disponible del lote." %}</small></label>
+        <label>{% translate "Referencia del acta" %}<input name="referencia" maxlength="120" placeholder="Acta de entrega {{ reserva.codigo_reserva }}"></label>
+        <button type="submit">{% translate "Registrar la entrega" %}</button>
+      </form>
+      {% else %}<p class="unit-report__notice">{% if expediente.etapa == 'entregada' %}{% translate "El encargo está entregado por completo." %}{% else %}{% translate "Cuando un lote esté aprobado por calidad y disponible, aquí se registra la entrega." %}{% endif %}</p>{% endif %}
+    </section>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Expediente del encargo ·" %} {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

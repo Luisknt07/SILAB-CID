@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">SOLIDWORKS</title>
+  <rect width="160" height="160" rx="34" fill="#eef4ff"/>
+  <path d="M31 57c15-28 43-29 59-9l-19 14c-8-9-17-8-22 1-4 8 3 13 17 14 28 2 40 20 30 42-11 24-47 27-68 6l18-16c10 10 24 10 30 1 5-8-1-14-16-16-30-4-41-18-29-37Z" fill="#e42d2f"/>
+  <path d="m91 50 16 55 12-39h17l-23 69H96L80 82l11-32Z" fill="#2461a9"/>
+  <text x="80" y="151" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#294f83">SOLIDWORKS</text>
+</svg>

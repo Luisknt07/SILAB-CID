@@ -1,0 +1,32 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Una carpeta propia del centro con las piezas de Laboratorios: sus videos con la pantalla y la lista, sus textos en
+bloques y sus archivos y enlaces como recursos.{% endcomment %}
+
+{% block ceja_extra %} · {% translate "Carpeta del centro" %}{% endblock %}
+{% block titulo %}{{ carpeta.nombre }}{% endblock %}
+{% block entradilla %}{% if carpeta.descripcion %}<p class="cv-entradilla">{{ carpeta.descripcion }}</p>{% endif %}{% if carpeta.visibilidad != 'publica' %}<ul class="conoce__datos"><li><i class="fas fa-lock" aria-hidden="true"></i>{% translate "Solo quien gestiona el centro" %}</li></ul>{% endif %}{% endblock %}
+
+{% block contenido %}
+{% if videos %}
+<section class="conoce__seccion" id="videos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Míralo" %}</span><h2>{% translate "Videos" %}</h2></header>
+  {% include 'centros_id/visor/_videos.html' %}
+</section>
+{% endif %}
+
+{% if textos %}
+<section class="conoce__seccion" id="textos">
+  <div class="ficha__datos">{% for recurso in textos %}<article class="ficha__bloque{% if abrir == recurso.pk %} is-destacado{% endif %}" id="recurso-{{ recurso.pk }}" data-aparecer><header><i class="fas fa-align-left" aria-hidden="true"></i><h2>{{ recurso.titulo }}</h2></header>{% if recurso.descripcion %}<p class="ficha__nota">{{ recurso.descripcion }}</p>{% endif %}<div class="area__texto">{{ recurso.texto|linebreaks }}</div></article>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if archivos %}
+<section class="conoce__seccion" id="archivos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para leer y descargar" %}</span><h2>{% translate "Archivos y enlaces" %}</h2></header>
+  <div class="area__recursos">{% for recurso in archivos %}{% if recurso.tipo == 'enlace' %}<a href="{{ recurso.url }}" target="_blank" rel="noopener" id="recurso-{{ recurso.pk }}"{% if abrir == recurso.pk %} class="is-destacado"{% endif %} data-aparecer><i class="fas fa-external-link-alt" aria-hidden="true"></i><span><strong>{{ recurso.titulo }}</strong><small>{{ recurso.descripcion|default:recurso.get_tipo_display }}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% elif recurso.archivo %}<a href="{{ recurso.archivo_url }}"{% if recurso.es_pdf %} data-ver-pdf data-pdf-titulo="{{ recurso.titulo }}" data-pdf-descarga="{{ recurso.archivo_url }}"{% else %} download{% endif %} id="recurso-{{ recurso.pk }}"{% if abrir == recurso.pk %} class="is-destacado"{% endif %} data-aparecer><i class="fas {% if recurso.es_pdf %}fa-file-pdf{% else %}fa-file-download{% endif %}" aria-hidden="true"></i><span><strong>{{ recurso.titulo }}</strong><small>{{ recurso.descripcion|default:recurso.get_tipo_display }}</small></span><i class="fas {% if recurso.es_pdf %}fa-eye{% else %}fa-download{% endif %}" aria-hidden="true"></i></a>{% endif %}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if not videos and not textos and not archivos %}<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("La carpeta todavía no tiene recursos.") enlace=completar %}</section>{% endif %}
+{% endblock %}

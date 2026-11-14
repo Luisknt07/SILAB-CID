@@ -1,0 +1,23 @@
+"""Modelos propios; tablas existentes conservadas por migración de estado."""
+from apps.gestion_unidades.models.operaciones import ConfiguracionOperativaUnidad  # noqa: F401
+from apps.gestion_unidades.models.operaciones import ReporteOperativoUnidad  # noqa: F401
+from apps.gestion_unidades.models.operaciones import HorarioOperacionUnidad  # noqa: F401
+from apps.gestion_unidades.models.operaciones import BloqueoAgendaUnidad  # noqa: F401
+from apps.gestion_unidades.models.operaciones import CapacidadOperativaUnidad  # noqa: F401
+from apps.gestion_unidades.models.fichas import FichaContenido  # noqa: F401
+from apps.gestion_unidades.models.repositorio import Adjunto  # noqa: F401
+from apps.gestion_unidades.models.repositorio import ArtefactoExterno  # noqa: F401
+from apps.gestion_unidades.models.repositorio import ResultadoArtefacto  # noqa: F401
+from apps.gestion_unidades.models.espacios import EspacioReservable  # noqa: F401
+from apps.gestion_unidades.models.espacios import ResponsableUnidad  # noqa: F401
+from apps.gestion_unidades.models.interior import MedioInterior  # noqa: F401
+from apps.gestion_unidades.models.presentacion import PresentacionUnidad  # noqa: F401
+from apps.gestion_unidades.models.presentacion import LineaAccionUnidad  # noqa: F401
+from apps.gestion_unidades.models.presentacion import HitoUnidad  # noqa: F401
+from apps.gestion_unidades.models.novedades import NovedadUnidad  # noqa: F401
+from apps.gestion_unidades.models.fichas_area import FichaArea  # noqa: F401
+from apps.gestion_unidades.models.fichas_area import ElementoFichaArea  # noqa: F401
+from apps.gestion_unidades.models.secciones import AjusteSeccionPlanta  # noqa: F401
+from apps.gestion_unidades.models.secciones_propias import SeccionPropia  # noqa: F401
+from apps.gestion_unidades.models.secciones_propias import ElementoSeccionPropia  # noqa: F401
+from apps.gestion_unidades.models.portadas import PortadaPestana  # noqa: F401

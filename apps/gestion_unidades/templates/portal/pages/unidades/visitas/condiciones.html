@@ -1,0 +1,28 @@
+{% load i18n idiomas %}
+<section class="visita-info" aria-label="{% translate 'Oferta y condiciones de la visita' %}">
+  <article class="visita-info__offer">
+    <h2>{% translate "Qué te ofrece esta unidad" %}</h2>
+    {% if oferta.texto %}<p>{{ oferta.texto|linebreaksbr }}</p>{% else %}<p>{% blocktranslate with nombre=unidad.nombre %}Conoce el trabajo de {{ nombre }} mediante una visita de presentación guiada. Indica los temas de interés de tu grupo para que la unidad prepare la atención y confirme las actividades disponibles.{% endblocktranslate %}</p>{% endif %}
+    <p>{% translate "La visita incluye orientación y acompañamiento. El uso de equipos, los ensayos y los trabajos técnicos se solicitan desde las rutas de recursos o servicios." %}</p>
+    {% if oferta.temas %}<h3>{% translate "Temas que puedes consultar" %}</h3><ul>{% for tema in oferta.temas %}<li>{{ tema }}</li>{% endfor %}</ul><p>{% translate "Indica cuáles interesan a tu grupo. La unidad confirmará qué puede presentar o demostrar durante la visita." %}</p>{% endif %}
+    <div class="visita-facts"><span>{% translate "Guías:" %} <strong>1 / {{ oferta.personas_por_guia }} {% translate "visitantes" %}</strong></span><span><strong>{% translate "Recorrido y guías a cargo de la UPEC" %}</strong></span></div>
+    <p>{% translate "Solo se cobran los materiales de protección que entregue la unidad y se consuman durante la visita. El valor final se confirma según el consumo real." %}</p>
+  </article>
+  <article>
+    <h2>{% translate "Qué se puede visitar" %}</h2>
+    <ul>{% for area in oferta.areas %}<li><strong>{{ area.nombre }}</strong>{% if area.capacidad %} · {% translate "hasta" %} {{ area.capacidad }} {% translate "visitantes por grupo" %}{% endif %}{% if area.descripcion_publica %}<small>{{ area.descripcion_publica }}</small>{% endif %}</li>{% empty %}<li>{% translate "Presentación y orientación con el equipo de la unidad. El recorrido específico y el punto de encuentro se confirman al aprobar la solicitud." %}</li>{% endfor %}</ul>
+  </article>
+  <article class="visita-info__restricted">
+    <h2>{% translate "Qué no incluye el recorrido" %}</h2>
+    <ul>{% for area in oferta.areas_restringidas %}<li>{{ area.nombre }}</li>{% empty %}<li>{% translate "Las zonas que no estén incluidas expresamente en el recorrido aprobado." %}</li>{% endfor %}</ul>
+    <p>{% translate "No se permite ingresar por cuenta propia ni manipular equipos, muestras, productos o animales. Las demostraciones requieren coordinación con el responsable." %}</p>
+  </article>
+  <article>
+    <h2>{% translate "Qué necesitan los visitantes" %}</h2>
+    <ul>
+      <li>{% translate "Una persona responsable del grupo, número de visitantes y fecha y horario solicitados." %}</li>
+      <li>{% translate "Acudir con la visita aprobada, seguir las indicaciones del guía y permanecer en el recorrido autorizado." %}</li>
+      {% for requisito in oferta.requisitos %}<li><strong>{{ requisito.nombre }}</strong>{% if requisito.descripcion %} · {{ requisito.descripcion }}{% endif %}{% if requisito.tipo == 'proteccion' %}<small>{% if requisito.consumible %}{% translate "La unidad entrega esta protección según la disponibilidad y las condiciones confirmadas." %}{% else %}{% translate "Cada visitante debe llevar esta protección." %}{% endif %}</small>{% endif %}</li>{% empty %}<li>{% translate "La unidad confirmará si se necesita vestimenta, protección u otras condiciones adicionales antes de la visita." %}</li>{% endfor %}
+    </ul>
+  </article>
+</section>

@@ -1,0 +1,9 @@
+<form method="post"{% if revision_post_url %} action="{{ revision_post_url }}"{% endif %}>
+  {% csrf_token %}{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}
+  <input type="hidden" name="accion" value="observar"><input type="hidden" name="documento" value="{{ d.pk }}">
+  <input type="hidden" name="query" value="{{ query }}&amp;{% if plazos_casilla %}plazos={{ d.pk }}#plazos-documento{% else %}revisar={{ d.pk }}#evaluacion{% endif %}">
+  <label>Qué debe corregir la unidad<textarea name="observacion" required maxlength="1200" rows="3">{% if plazos_casilla %}{{ d.observacion }}{% endif %}</textarea></label>
+  <label>Corregir y reenviar hasta · hora local<input type="datetime-local" name="hasta_correccion" required></label>
+  <p>La fecha es obligatoria y debe ser futura. Abre la corrección de esta entrega y conserva su plazo institucional, historial y puntualidad inicial.</p>
+  <button type="submit" class="grp-button">{% if plazos_casilla %}Guardar fecha de corrección{% else %}Devolver para corregir{% endif %}</button>
+</form>

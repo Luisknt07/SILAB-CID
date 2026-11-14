@@ -1,0 +1,42 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Mis cursos" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce ficha area">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{{ unidad.nombre }}</span>
+      <h1>{% translate "Mis cursos" %}</h1>
+      <ul class="conoce__datos"><li><i class="fas fa-user-graduate" aria-hidden="true"></i>{{ filas|length }} inscripci{{ filas|length|pluralize:"ón,ones" }}</li></ul>
+    </div>
+    <div class="conoce__portada-acciones"><a class="conoce__boton" href="{{ todos_url }}"><i class="fas fa-th-large" aria-hidden="true"></i> {% translate "Todos los cursos" %}</a></div>
+  </header>
+
+  <section class="conoce__seccion area__primera">
+    {% if filas %}
+    <div class="area__actividades">
+      {% for fila in filas %}<article class="area__actividad">
+        <header><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i><div><span class="ficha__rol">{{ fila.curso.get_clasificacion_display }}</span><span class="ficha__rol">{{ fila.inscripcion.edicion.nombre }}</span></div></header>
+        <h3>{{ fila.curso.nombre }}</h3>
+        {% if fila.progreso %}<div class="inscritos__avance"><span><i style="width: {{ fila.progreso.porcentaje }}%"></i></span><b>{{ fila.progreso.porcentaje }} %</b></div><p>{{ fila.progreso.completadas }} {% translate "de" %} {{ fila.progreso.total }} {% translate "lecciones obligatorias" %}</p>
+        {% else %}<p>{% if fila.inscripcion.estado == 'pendiente' %}{% translate "Tu inscripción está en revisión: la unidad te confirmará el ingreso." %}{% else %}{% translate "La unidad no aceptó esta inscripción." %}{% if fila.inscripcion.observacion %} {{ fila.inscripcion.observacion }}{% endif %}{% endif %}</p>{% endif %}
+        <footer><a class="conoce__boton" href="{% url 'seguimiento_curso' unidad.slug fila.curso.codigo %}?edicion={{ fila.inscripcion.edicion_id }}"><i class="fas fa-chart-line" aria-hidden="true"></i> {% translate "Mi reporte y notas" %}</a>{% if fila.progreso %}<a class="conoce__boton is-principal" href="{{ fila.aula }}">{% if fila.progreso.completadas %}{% translate "Continuar" %}{% else %}{% translate "Empezar" %}{% endif %}</a>{% endif %}{% if fila.certificado %}<a class="conoce__boton is-principal" href="{% url 'mi_certificado' unidad.slug fila.curso.codigo %}?edicion={{ fila.inscripcion.edicion_id }}" data-ver-pdf data-pdf-titulo="Certificado · {{ fila.curso.nombre }}"><i class="fas fa-certificate" aria-hidden="true"></i> {% translate "Certificado" %}</a>{% endif %}<a class="conoce__boton" href="{{ fila.pagina }}">{% translate "Ver el curso" %}</a></footer>
+      </article>{% endfor %}
+    </div>
+    {% else %}
+    <p class="ficha__nota">{% translate "Todavía no te inscribes en ningún curso de esta unidad." %}</p>
+    {% endif %}
+  </section>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

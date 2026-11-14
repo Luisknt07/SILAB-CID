@@ -1,0 +1,207 @@
+# Identidad histórica estable: cambiar de carpeta de versión no crea otras bases.
+name: citt
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    logging: *logging
+    image: postgres:17
+    # Un servidor puede alojar las dos bases: institucional y Centros I+D.
+    container_name: slcid-postgresql-institucional
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      # Docker usa el formato ${NOMBRE_VARIABLE}
+      - POSTGRES_DB=${DB_NAME:?DB_NAME es obligatorio}
+      - POSTGRES_USER=${DB_MIGRATION_USER:?DB_MIGRATION_USER es obligatorio}
+      - POSTGRES_PASSWORD=${DB_MIGRATION_PASSWORD:?DB_MIGRATION_PASSWORD es obligatorio}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    container_name: slcid-migraciones-base-datos
+    image: slcid-web:${SLCID_VERSION:-local}
+    logging: *logging
+    build:
+      context: .
+      target: web
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings_production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NETWORK_ISOLATED=true
+      - INSTITUTION_LOGO_ROOT=/app/var/private/institutional-brand
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["sh", "/app/scripts/migrar_produccion.sh"]
+    volumes:
+      - media_data:/app/var/media
+      - institutional_brand_data:/app/var/private/institutional-brand
+
+  web:
+    image: slcid-web:${SLCID_VERSION:-local}
+    logging: *logging
+    build:
+      context: .
+      target: web
+    container_name: slcid-portal-laboratorios-centros-id
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings_production
+      - DB_MIGRATION_USER=
+      - DB_MIGRATION_PASSWORD=
+      - DB_BACKUP_USER=
+      - DB_BACKUP_PASSWORD=
+      - CENTROS_DB_MIGRATION_USER=
+      - CENTROS_DB_MIGRATION_PASSWORD=
+      - CENTROS_DB_BACKUP_USER=
+      - CENTROS_DB_BACKUP_PASSWORD=
+      - WEB_LISTEN=0.0.0.0:8000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NETWORK_ISOLATED=true
+      - INSTITUTION_LOGO_ROOT=/app/var/private/institutional-brand
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "/app/scripts/comprobar_salud.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - media_data:/app/var/media
+      - institutional_brand_data:/app/var/private/institutional-brand
+
+  scheduler:
+    image: slcid-web:${SLCID_VERSION:-local}
+    logging: *logging
+    build:
+      context: .
+      target: web
+    container_name: slcid-tareas-programadas
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings_production
+      - DB_MIGRATION_USER=
+      - DB_MIGRATION_PASSWORD=
+      - DB_BACKUP_USER=
+      - DB_BACKUP_PASSWORD=
+      - CENTROS_DB_MIGRATION_USER=
+      - CENTROS_DB_MIGRATION_PASSWORD=
+      - CENTROS_DB_BACKUP_USER=
+      - CENTROS_DB_BACKUP_PASSWORD=
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NETWORK_ISOLATED=true
+      - INSTITUTION_LOGO_ROOT=/app/var/private/institutional-brand
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    entrypoint: ["sh", "/app/scripts/docker_scheduler.sh"]
+    volumes:
+      - media_data:/app/var/media
+      - institutional_brand_data:/app/var/private/institutional-brand
+
+  # Pone en marcha los microproyectos Django solicitados desde el admin. Es el unico
+  # servicio con el socket de Docker y no publica puertos. Se activa con
+  # `docker compose --profile microproyectos up -d` (ver docs/microproyectos-django.md).
+  microproyectos:
+    image: slcid-microproyectos:${SLCID_VERSION:-local}
+    logging: *logging
+    profiles: ["microproyectos"]
+    build:
+      context: .
+      target: microproyectos
+    container_name: slcid-gestor-aplicaciones-laboratorios
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings_production
+      - DB_MIGRATION_USER=
+      - DB_MIGRATION_PASSWORD=
+      - DB_BACKUP_USER=
+      - DB_BACKUP_PASSWORD=
+      - CENTROS_DB_MIGRATION_USER=
+      - CENTROS_DB_MIGRATION_PASSWORD=
+      - CENTROS_DB_BACKUP_USER=
+      - CENTROS_DB_BACKUP_PASSWORD=
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NETWORK_ISOLATED=true
+    group_add:
+      - "${DOCKER_GID:-999}"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    volumes:
+      - media_data:/app/var/media:ro
+      - microproyectos_data:/app/var/microproyectos
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  backup:
+    logging: *logging
+    image: postgres:17
+    container_name: slcid-respaldos-laboratorios-unidades
+    restart: always
+    # postgres declara este VOLUME incluso al usarlo solo como cliente de respaldo.
+    # Montarlo en memoria evita un volumen anónimo vacío en cada recreación.
+    tmpfs:
+      - /var/lib/postgresql/data:size=16m,mode=0700
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts:ro
+      - ${BACKUP_HOST_DIR:-./var/backups}:/backups
+      - media_data:/media:ro
+      - institutional_brand_data:/brand:ro
+    environment:
+      - DB_NAME=${DB_NAME:?DB_NAME es obligatorio}
+      - DB_USER=${DB_BACKUP_USER:?DB_BACKUP_USER es obligatorio}
+      - DB_PASSWORD=${DB_BACKUP_PASSWORD:?DB_BACKUP_PASSWORD es obligatorio}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - BACKUP_DIR=/backups
+      - MEDIA_ROOT=/media
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
+      - BACKUP_VERIFY_RESTORE=${BACKUP_VERIFY_RESTORE:-true}
+    entrypoint: ["sh", "/scripts/docker_backup_loop.sh"]
+
+volumes:
+  postgres_data:
+  media_data:
+  institutional_brand_data:
+  microproyectos_data:

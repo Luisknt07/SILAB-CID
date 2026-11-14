@@ -1,0 +1,46 @@
+{% load static i18n idiomas marca %}
+<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Reporte operativo ·" %} {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{{ reporte_gestion.category_label }}</h1>
+        <small>{% translate "Reporte operativo de unidad" %}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>{% if reporte_gestion.dataset.document_meta.code %}<div><dt>{% translate "Código" %}</dt><dd>{{ reporte_gestion.dataset.document_meta.code }}</dd></div><div><dt>{% translate "Revisión" %}</dt><dd>{{ reporte_gestion.dataset.document_meta.revision }}</dd></div>{% endif %}<div><dt>{% translate "Período" %}</dt><dd>{{ reporte_gestion.start_date|date:"d/m/Y" }} – {{ reporte_gestion.end_date|date:"d/m/Y" }}</dd></div><div><dt>{% translate "Generado" %}</dt><dd>{{ reporte_gestion.generated_at|date:"d/m/Y H:i" }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones del reporte" %}">
+      <a href="{% url 'gestion_unidad' unidad.slug %}?modal=1&view=reportes&{{ reporte_gestion.query_string }}#reportes">{% translate "← Volver a la gestión" %}</a>
+      <div>
+        <button type="button" data-ui-click="window.print">{% translate "Imprimir / Guardar documento" %}</button>
+        <a href="{% url 'gestion_reporte_unidad_xlsx' unidad.slug %}?{{ reporte_gestion.query_string }}">{% translate "Descargar hoja de cálculo" %}</a>
+        <a href="{% url 'gestion_reporte_unidad' unidad.slug %}?{{ reporte_gestion.query_string }}&formato=docx">{% translate "Descargar Word" %}</a>
+        <a href="{% url 'gestion_reporte_unidad' unidad.slug %}?{{ reporte_gestion.query_string }}&formato=csv">{% translate "Descargar CSV" %}</a>
+        <a class="is-primary" href="{% url 'gestion_reporte_unidad_pdf' unidad.slug %}?{{ reporte_gestion.query_string }}" download>{% translate "Descargar documento" %}</a>
+      </div>
+    </section>
+
+    <section class="unit-report__context">
+      <span>{% translate "INFORME INSTITUCIONAL" %}</span>
+      <h2>{{ reporte_gestion.category_label }}</h2>
+      <p>{% translate "Consulta trazable construida directamente con los registros y filtros seleccionados. Las cifras efectivas excluyen solicitudes incumplidas o sin validación." %}</p>
+    </section>
+
+    {% include 'portal/pages/unidades/gestion/includes/reporte_contenido.html' %}
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% if reporte_gestion.dataset.document_meta.code %}<span>{{ reporte_gestion.dataset.document_meta.code }} {% translate "· Revisión" %} {{ reporte_gestion.dataset.document_meta.revision }}</span>{% endif %}<span>{% translate "Documento generado el" %} {{ reporte_gestion.generated_at|date:"d/m/Y H:i" }}</span></div></footer>
+  </main>
+</body>
+</html>

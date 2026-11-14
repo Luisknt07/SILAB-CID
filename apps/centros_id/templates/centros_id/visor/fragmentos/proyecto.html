@@ -1,0 +1,31 @@
+{% load i18n %}{% comment %}La ficha de un proyecto, con la pieza de Laboratorios: de qué trata, hasta dónde llegó en la ruta, su avance,
+sus datos, sus hitos y sus resultados.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande{% if proyecto.imagen %} con-foto{% endif %}" aria-hidden="true">{% if proyecto.imagen %}<img src="{{ proyecto.imagen.url }}" alt="">{% else %}<i class="fas fa-rocket"></i>{% endif %}</span>
+  <div><span class="ficha__rol">{{ proyecto.estado_publico }}{% if proyecto.codigo %} · {{ proyecto.codigo }}{% endif %}</span><h3>{{ proyecto.titulo }}</h3>{% if proyecto.linea %}<p>{% translate "Línea:" %} {{ proyecto.linea.nombre }}</p>{% endif %}</div>
+</header>
+<div class="area__dialogo-cuerpo">
+  {% if proyecto.resumen %}<div class="area__texto">{{ proyecto.resumen|linebreaks }}</div>{% endif %}
+  {% if proyecto.problema %}<h4>{% translate "Problema" %}</h4><div class="area__texto">{{ proyecto.problema|linebreaks }}</div>{% endif %}
+  {% if proyecto.objetivos %}<h4>{% translate "Objetivos" %}</h4><div class="area__texto">{{ proyecto.objetivos|linebreaks }}</div>{% endif %}
+  {% if proyecto.metodologia %}<h4>{% translate "Metodología" %}</h4><div class="area__texto">{{ proyecto.metodologia|linebreaks }}</div>{% endif %}
+  <p><strong>{% translate "Actividad actual:" %}</strong> {{ proyecto.get_etapa_display }}</p>
+  {% if proyecto.avance_acreditado %}<span class="cv-barra"><i style="width: {{ proyecto.avance }}%"></i><b>{{ proyecto.avance }}% {% translate "de avance" %}</b></span><p class="ficha__nota">{{ proyecto.avance_metodo }} · {{ proyecto.avance_fecha|date:'d/m/Y' }} · {{ proyecto.avance_evidencia }}</p>{% elif proyecto.avance is not None %}<p class="ficha__nota">{% translate "Avance pendiente de respaldo documental." %}</p>{% endif %}
+  <table class="area__tabla area__tabla--ficha"><caption>{% translate "Datos del proyecto" %}</caption><tbody>
+    <tr><th scope="row">{% translate 'Categoría de actividad' %}</th><td>{{ proyecto.get_categoria_display }}</td></tr>
+    {% if proyecto.sector %}<tr><th scope="row">{% translate 'Sector' %}</th><td>{{ proyecto.sector }}</td></tr>{% endif %}
+    {% if proyecto.responsable %}<tr><th scope="row">{% translate "Responsable" %}</th><td>{{ proyecto.responsable.nombre }}{% if proyecto.responsable.cargo %} · {{ proyecto.responsable.cargo }}{% endif %}</td></tr>{% endif %}
+    {% if proyecto.inicio %}<tr><th scope="row">{% translate "Periodo" %}</th><td>{{ proyecto.inicio|date:"m/Y" }}{% if proyecto.fin %} – {{ proyecto.fin|date:"m/Y" }}{% endif %}</td></tr>{% endif %}
+    {% if proyecto.financiador %}<tr><th scope="row">{% translate "Financiamiento" %}</th><td>{{ proyecto.financiador }}{% if proyecto.monto_publico and proyecto.monto is not None %} · USD {{ proyecto.monto|floatformat:"0g" }}{% endif %}</td></tr>{% endif %}
+    {% if equipo or en_formacion %}<tr><th scope="row">{% translate "Equipo" %}</th><td>{% for persona in equipo %}{{ persona.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if en_formacion %}{% if equipo %} · {% endif %}{% blocktranslate count total=en_formacion %}{{ total }} persona en formación{% plural %}{{ total }} personas en formación{% endblocktranslate %}{% endif %}</td></tr>{% elif proyecto.investigadores %}<tr><th scope="row">{% translate "Investigadores" %}</th><td>{{ proyecto.investigadores }}</td></tr>{% endif %}
+    {% if proyecto.componentes.all %}<tr><th scope="row">{% translate "Áreas que intervienen" %}</th><td><span class="cv-chips">{% for area in proyecto.componentes.all %}<a class="cv-chip" href="{% url 'componente_centro_id' centro.slug area.codigo %}"><i class="{{ area.icono }}" aria-hidden="true"></i> {{ area.nombre_corto|default:area.nombre }}</a>{% endfor %}</span></td></tr>{% endif %}
+    {% if aliados %}<tr><th scope="row">{% translate "Aliados" %}</th><td>{% for aliado in aliados %}{{ aliado.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</td></tr>{% endif %}
+  </tbody></table>
+  {% if hitos %}<h4>{% translate "Hitos con seguimiento" %}</h4><ul class="area__lista">{% for hito in hitos %}<li><strong>{{ hito.titulo }}</strong> · {{ hito.fecha_prevista|date:'d/m/Y' }} · {{ hito.estado_publico }}{% if hito.cumplimiento_documentado %} · {{ hito.fecha_cumplida|date:'d/m/Y' }} · {{ hito.evidencia }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+  {% if proyecto.lista_hitos or resultados %}<div class="area__dialogo-listas">
+    {% if proyecto.lista_hitos %}<div><h4><i class="fas fa-flag" aria-hidden="true"></i> {% translate "Hitos declarados" %}</h4><ul class="area__lista">{% for fecha, hito in proyecto.lista_hitos %}<li><strong>{{ fecha }}</strong> · {{ hito }}</li>{% endfor %}</ul></div>{% endif %}
+    {% if resultados %}<div><h4><i class="fas fa-book-open" aria-hidden="true"></i> {% translate "Resultados" %}</h4><ul class="area__lista">{% for resultado in resultados %}<li>{{ resultado.titulo }} <small class="cv-mudo">{{ resultado.get_tipo_display }}, {{ resultado.anio }}</small></li>{% endfor %}</ul></div>{% endif %}
+  </div>{% endif %}
+  <div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ solicitar_url }}?tipo=reto&amp;finalidad=colaboracion&amp;proyecto={{ proyecto.pk }}">{% translate "Proponer colaboración en este proyecto" %}</a></div>
+  <p class="ficha__nota">{% translate "La solicitud se evalúa; no concede acceso ni incorpora participantes automáticamente." %}</p>
+  {% if proyecto.enlace %}<div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ proyecto.enlace }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt" aria-hidden="true"></i> {% translate "Más información" %}</a></div>{% endif %}
+</div>

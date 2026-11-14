@@ -1,0 +1,22 @@
+{% load i18n %}
+<header><span class="area__ilustracion"><i class="fas fa-compass" aria-hidden="true"></i></span><div><h3>{{ linea.nombre }}</h3>{% if linea.ambito %}<p>{{ linea.ambito }}</p>{% endif %}</div></header>
+<div class="area__dialogo-cuerpo">
+  {% if linea.problema %}<h4>{% translate "Problema que investiga" %}</h4><div class="area__texto">{{ linea.problema|linebreaks }}</div>{% endif %}
+  {% if linea.objetivos %}<h4>{% translate "Objetivos" %}</h4><div class="area__texto">{{ linea.objetivos|linebreaks }}</div>{% endif %}
+  {% if linea.preguntas %}<h4>{% translate "Preguntas de investigación" %}</h4><div class="area__texto">{{ linea.preguntas|linebreaks }}</div>{% endif %}
+  {% if linea.metodologia %}<h4>{% translate "Métodos y enfoque" %}</h4><div class="area__texto">{{ linea.metodologia|linebreaks }}</div>{% endif %}
+  {% if linea.resultados %}<h4>{% translate "Resultados que busca" %}</h4><p>{{ linea.resultados }}</p>{% endif %}
+  {% if linea.responsable %}<p><strong>{% translate "Responsable:" %}</strong> {{ linea.responsable.nombre }}</p>{% endif %}
+  {% if linea.lista_retos %}<h4>{% translate "Retos prioritarios" %}</h4><ul class="area__lista">{% for reto in linea.lista_retos %}<li>{{ reto }}</li>{% endfor %}</ul>{% endif %}
+  {% if integrantes %}<h4>{% translate "Personas investigadoras" %}</h4><ul class="area__lista">{% for persona in integrantes %}<li>{{ persona.nombre }} · {{ persona.cargo|default:persona.get_rol_display }}</li>{% endfor %}</ul>{% endif %}
+  {% if grupos %}<h4>{% translate "Grupos" %}</h4><ul class="area__lista">{% for grupo in grupos %}<li>{{ grupo.nombre }}</li>{% endfor %}</ul>{% endif %}
+  <p class="ficha__nota">{{ proyectos|length }} {% translate "proyectos publicados" %} · {{ resultados|length }} {% translate "resultados publicados" %}</p>
+  {% if proyectos %}<h4>{% translate 'Proyectos relacionados' %}</h4><ul class="area__lista">{% for proyecto in proyectos %}<li>{{ proyecto.titulo }} · {{ proyecto.estado_publico }}</li>{% endfor %}</ul>{% endif %}
+  {% if resultados %}<h4>{% translate 'Resultados relacionados' %}</h4><ul class="area__lista">{% for resultado in resultados %}<li>{{ resultado.titulo }} · {{ resultado.get_tipo_display }} · {{ resultado.anio }}</li>{% endfor %}</ul>{% endif %}
+  <div class="ficha__documento-acciones">
+    {% if proyectos %}<a class="ficha__boton" href="{% url 'seccion_centro_id' centro.slug 'proyectos' %}?linea={{ linea.pk }}">{% translate "Consultar proyectos" %}</a>{% endif %}
+    {% if produccion %}<a class="ficha__boton" href="{% url 'seccion_centro_id' centro.slug 'produccion' %}?linea={{ linea.pk }}">{% translate "Consultar producción" %}</a>{% endif %}
+    {% if desarrollos %}<a class="ficha__boton" href="{% url 'seccion_centro_id' centro.slug 'desarrollos' %}?linea={{ linea.pk }}">{% translate "Consultar desarrollos" %}</a>{% endif %}
+    <a class="ficha__boton" href="{{ solicitar_url }}?tipo=reto&amp;finalidad=colaboracion&amp;titulo={{ linea.nombre|urlencode }}">{% translate "Proponer colaboración" %}</a>
+  </div>
+</div>

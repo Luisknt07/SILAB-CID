@@ -1,0 +1,252 @@
+/* Adaptadores de componentes. Solo se carga con una paleta publicada.
+   No modifica geometria, estados operativos ni colores de datos cientificos. */
+.lab-unit-card {
+  --unit-accent: var(--institucion-primario);
+  --unit-accent-dark: var(--institucion-primario-hover);
+  --unit-soft: var(--institucion-primario-suave);
+  color: var(--institucion-texto);
+  border-color: var(--institucion-borde);
+}
+
+/* Acciones principales: texto blanco sobre el color principal solido. */
+.lab-unit-card .lab-unit-card__cta,
+.lab-filter-submit, .lab-view-switch button.active,
+.lab-pagination .is-current,
+.home-btn.primary,
+.service-tech-card > div > a,
+.page-quienes .team-profile-body > button,
+.page-quienes .pillar-content > a,
+.page-quienes .team-contact-bar > a,
+.page-quienes .upec-about__contact > div > a,
+.unit-action--secondary,
+#unitDetail #modulo-tabs .nav-link.active,
+#unitDetail #modulo-tabs .nav-link[aria-selected="true"],
+#unitDetail #modulo-tabs .nav-link[aria-current="page"],
+.unit-detail__module-nav .nav-link.active,
+#equiposReservaModal.reservation-wizard-enhanced .rw-button--primary,
+#equiposReservaModal.reservation-wizard-enhanced .reservation-button--primary,
+.unit-console__module-tabs button.is-active,
+.unit-console__report-filters button,
+.unit-console__report-actions a,
+.unit-console__report-actions button,
+.aula-form button, .unit-report__section-title,
+.upec-button--secondary, .guide-btn--primary, .btn-primary-custom,
+.unit-console__row-action:not(.unit-console__row-action--text) {
+  color: var(--institucion-boton-principal-texto, #fff) !important;
+  background-color: var(--institucion-boton-principal, var(--institucion-primario)) !important;
+  background-image: var(--institucion-degradado-botones, none) !important;
+  border-color: var(--institucion-boton-principal, var(--institucion-primario)) !important;
+}
+
+/* Acento: reservado a la accion destacada y al elemento seleccionado. */
+.home-btn.gold,
+.practice-hero a.is-primary, .practice-form button.is-primary,
+.practice-panel button.is-primary,
+#equiposReservaModal.reservation-wizard-enhanced .rw-button--gold,
+.unit-action--primary,
+.upec-button--primary, .guide-btn--gold {
+  color: var(--institucion-boton-acento-texto, var(--institucion-texto)) !important;
+  background-color: var(--institucion-boton-acento, var(--institucion-acento)) !important;
+  background-image: var(--institucion-degradado-botones, none) !important;
+  border-color: var(--institucion-boton-acento, var(--institucion-acento)) !important;
+}
+
+/* Acciones de contorno: el color viene de la paleta, el fondo queda limpio. */
+.upec-button--outline, .guide-btn--outline, .btn-outline-custom,
+.home-btn.secondary, .unit-console__row-action--text {
+  color: var(--institucion-primario-tinta, var(--institucion-primario)) !important;
+  background-image: none !important;
+  border-color: var(--institucion-borde) !important;
+}
+
+/* Superficies de lectura: las tarjetas no compiten con sus acciones. */
+.lab-unit-card, .lab-catalog-filters,
+.feature-card, .news-card, .service-tech-card,
+.institutional-card, .structure-card,
+.unit-panel, .unit-overview-card,
+.unit-console__card, .unit-console__viewer,
+.unit-console__sidebar, .unit-console__metrics,
+.practice-panel, .practice-form, .practice-filters,
+#equiposReservaModal .rw-panel-card,
+#equiposReservaModal .rw-resource-card {
+  background-color: var(--institucion-superficie);
+  color: var(--institucion-texto);
+  border-color: var(--institucion-borde);
+}
+.lab-unit-card { border-top-color: var(--institucion-primario); }
+.lab-unit-card h3 a, .lab-catalog-heading h2,
+.unit-overview-card strong, .unit-panel h2 {
+  color: var(--institucion-texto);
+}
+.lab-unit-card__tags span {
+  background: var(--institucion-primario-suave);
+  color: var(--institucion-texto);
+  border-color: var(--institucion-borde);
+}
+.lab-catalog-tabs.institutional-local-nav a.active {
+  color: var(--institucion-texto);
+  background: var(--institucion-acento-suave);
+  box-shadow: inset 0 -3px var(--institucion-acento);
+}
+.lab-catalog-tabs a.active > i {
+  color: var(--institucion-acento-tinta);
+  background: var(--institucion-acento-suave);
+}
+.lab-catalog-tabs > a > i {
+  color: var(--institucion-primario-tinta);
+  background: var(--institucion-primario-suave);
+}
+
+/* Formularios historicos Bootstrap y acceso: conservar variantes semanticas. */
+.btn-primary:not(.btn-danger):not(.btn-success),
+.btn-secondary:not(.btn-danger):not(.btn-success) {
+  color: #fff !important;
+  background: var(--institucion-primario) !important;
+  border-color: var(--institucion-primario) !important;
+}
+.btn-outline-primary {
+  color: var(--institucion-primario-tinta) !important;
+  border-color: var(--institucion-primario) !important;
+}
+.btn-outline-primary:hover {
+  color: #fff !important;
+  background: var(--institucion-primario) !important;
+}
+.bg-primary, .page-item.active .page-link {
+  color: #fff !important;
+  background-color: var(--institucion-primario) !important;
+  border-color: var(--institucion-primario) !important;
+}
+.text-primary { color: var(--institucion-primario-tinta) !important; }
+.border-primary { border-color: var(--institucion-primario) !important; }
+.card { background-color: var(--institucion-superficie); color: var(--institucion-texto); }
+
+/* Grappelli utiliza un degradado azul propio en los controles de guardar. */
+#grp-content .grp-submit-row input.grp-button:not(.grp-delete-link),
+#grp-content .grp-submit-row button.grp-button:not(.grp-delete-link),
+#grp-content .grp-submit-row a.grp-button:not(.grp-delete-link),
+#grp-content .grp-submit-row input.default {
+  color: #fff !important;
+  background-color: var(--institucion-primario) !important;
+  background-image: none !important;
+  border-color: var(--institucion-primario) !important;
+  text-shadow: none;
+  opacity: 1;
+}
+.institution-presentation-review button {
+  color: #fff !important;
+  background-color: var(--institucion-primario) !important;
+  background-image: none !important;
+}
+
+/* Lineas de marca: no cambia bordes de campos ni diagramas cientificos. */
+.home-top .home-menu a::after {
+  right: auto; left: 50%; margin-left: calc(var(--institucion-linea-ancho) / -2);
+  width: var(--institucion-linea-ancho); height: var(--institucion-linea-grosor);
+  background: var(--institucion-linea-fondo); opacity: var(--institucion-linea-opacidad);
+}
+.upec-home .heading-line::before, .upec-home .heading-line::after, .upec-home .eyebrow::before {
+  width: calc(42px * var(--institucion-linea-fraccion)); height: var(--institucion-linea-grosor);
+  background: var(--institucion-linea-fondo); opacity: var(--institucion-linea-opacidad);
+}
+.portal.page-quienes .showcase-selector::after {
+  left: 50%; right: auto; width: var(--institucion-linea-ancho);
+  transform: translateX(-50%); height: var(--institucion-linea-grosor);
+  background: var(--institucion-linea-fondo); opacity: var(--institucion-linea-opacidad);
+}
+.lab-unit-card { border-top-color: var(--institucion-linea-color); border-top-width: var(--institucion-linea-grosor); }
+.lab-catalog-tabs.institutional-local-nav a.active { box-shadow: inset 0 calc(-1 * var(--institucion-linea-grosor)) var(--institucion-linea-color); }
+.page-quienes .showcase-intro { border-color: var(--institucion-linea-color); border-width: var(--institucion-linea-grosor); }
+/* Bandas de lectura oscuras comparten un degradado distinto de las acciones. */
+.portal.page-quienes .showcase-stats, .upec-home .impact-band, .portal.page-quienes .showcase-capability {
+  background: var(--institucion-degradado-superficie); color: #fff;
+}
+.portal.page-quienes .showcase-stats i, .portal.page-quienes .showcase-capability i { color: #fff; }
+.page-quienes .showcase-stats b, .page-quienes .showcase-stats small { color: #fff; }
+.home-menu a.active i, .home-menu a:hover i { color: var(--institucion-acento); }
+/* Titulos/iconos claros: roles separados de sus variantes sobre fondos oscuros. */
+.lab-unit-card h3 a, .lab-catalog-heading h2, .section-heading h2,
+.unit-overview-card strong, .unit-panel h2,
+.page-quienes .showcase-heading h2, .institutional-content h2,
+.unit-console__card h2, .unit-console__card h3 { color: var(--institucion-titulo) !important; }
+/* Bandas sobre el primario: titulo claro y ceja con el acento legible. */
+.feature h2, .section-heading .feature h2 { color: #fff !important; }
+.feature .eyebrow { color: var(--institucion-acento-sobre-oscuro) !important; }
+.lab-catalog-tabs > a > i, .stat-icon > i,
+.page-quienes .showcase-intro i, .unit-overview-card > i {
+  color: var(--institucion-icono, var(--institucion-primario-tinta));
+}
+/* Mantener proporciones y palabras completas al aumentar la lectura. */
+.upec-home .hero-content h1 { font-size: clamp(1.8rem, 2.8vw, 3rem); line-height: 1.16; }
+
+@media (max-width: 760px) { .portal.page-quienes .showcase-main { min-height: max(580px, calc(36rem + 70px)); } }
+
+/* Panel Contenidos: tres niveles con un mismo lenguaje. Modulo lleva el color
+   principal, carpeta el acento y archivo la superficie con borde. */
+.unit-section-heading {
+  background-color: var(--institucion-panel-modulo-fondo, var(--institucion-primario-suave)) !important;
+}
+.unit-section-heading > span {
+  background-color: var(--institucion-panel-modulo, var(--institucion-boton-principal, var(--institucion-primario))) !important;
+  background-image: var(--institucion-panel-imagen, none) !important;
+  color: var(--institucion-panel-modulo-texto, var(--institucion-boton-principal-texto, #fff)) !important;
+}
+.unit-section-heading > i { color: var(--institucion-icono, var(--institucion-primario-tinta)) !important; }
+.unit-section-heading > b {
+  color: var(--institucion-primario-tinta) !important;
+  background: var(--institucion-superficie, #fff) !important;
+  box-shadow: inset 0 0 0 1px var(--institucion-borde) !important;
+}
+.unit-section-heading > .unit-section-heading__arrow { color: var(--institucion-primario-tinta) !important; }
+
+.unit-resource-group-toggle > i:first-child,
+.unit-folder > .project-detail-folder-toggle > i:first-child {
+  color: var(--institucion-acento-tinta) !important;
+}
+.unit-resource-group-toggle[aria-expanded="true"] {
+  border-left-color: var(--institucion-panel-carpeta, var(--institucion-acento)) !important;
+  background: var(--institucion-panel-carpeta-fondo, var(--institucion-primario-suave)) !important;
+}
+.unit-resource-group-toggle b { color: var(--institucion-primario-tinta) !important; }
+
+.unit-resource-list .project-detail-resource-button {
+  border-color: var(--institucion-borde) !important;
+  background-color: var(--institucion-superficie, #fff) !important;
+  background-image: none !important;
+}
+.unit-resource-list .project-detail-resource-button > i:first-child,
+.unit-resource-list .project-detail-resource-button[data-id^="ficha-proceso-"] > i:first-child {
+  color: var(--institucion-icono, var(--institucion-primario-tinta)) !important;
+}
+.unit-resource-list .project-detail-resource-button[data-id^="ficha-producto-"] > i:first-child {
+  color: var(--institucion-acento-tinta) !important;
+}
+.unit-resource-list .project-detail-resource-button[data-id^="ficha-proceso-"],
+.unit-resource-list .project-detail-resource-button[data-id^="ficha-producto-"] {
+  border-left-color: var(--institucion-panel-carpeta, var(--institucion-acento)) !important;
+}
+/* Seleccionado: color propio del panel, con el filete del modulo a la
+   izquierda; antes era un dorado fijo fuera de la paleta. */
+#unitDetail .unit-resource-list button.project-detail-resource-button.active,
+#unitDetail .unit-resource-list button.project-detail-resource-button[aria-current="true"],
+.unit-resource-list button.project-detail-resource-button.active,
+.unit-resource-list button.project-detail-resource-button[aria-current="true"] {
+  color: var(--institucion-panel-seleccion-texto, var(--institucion-boton-acento-texto, var(--institucion-texto))) !important;
+  background-color: var(--institucion-panel-seleccion, var(--institucion-boton-acento, var(--institucion-acento))) !important;
+  background-image: var(--institucion-panel-imagen, var(--institucion-degradado-botones, none)) !important;
+  border-color: var(--institucion-panel-seleccion, var(--institucion-boton-acento, var(--institucion-acento))) !important;
+  box-shadow: inset 4px 0 0 var(--institucion-panel-modulo, var(--institucion-boton-principal, var(--institucion-primario))) !important;
+}
+#unitDetail .unit-resource-list button.project-detail-resource-button.active > i,
+#unitDetail .unit-resource-list button.project-detail-resource-button[aria-current="true"] > i,
+.unit-resource-list button.project-detail-resource-button.active > i,
+.unit-resource-list button.project-detail-resource-button.active .unit-resource-name small,
+.unit-resource-list button.project-detail-resource-button[aria-current="true"] > i,
+.unit-resource-list button.project-detail-resource-button[aria-current="true"] .unit-resource-name small {
+  color: var(--institucion-panel-seleccion-texto, var(--institucion-boton-acento-texto, var(--institucion-texto))) !important;
+}
+.unit-resource-list button.project-detail-resource-button:hover {
+  border-color: var(--institucion-primario) !important;
+  background-color: var(--institucion-primario-suave) !important;
+  background-image: none !important;
+}

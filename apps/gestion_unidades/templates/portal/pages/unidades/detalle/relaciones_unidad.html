@@ -1,0 +1,5 @@
+{% load i18n %}{% for grupo in grupos %}
+<div class="relaciones-unidad__grupo" style="--color: {{ grupo.color }}">
+  <p class="relaciones-unidad__titulo" role="heading" aria-level="3"><i class="{{ grupo.icono }}" aria-hidden="true"></i> {{ grupo.etiqueta }}</p>
+  <ul>{% for item in grupo.unidades %}<li><a href="{{ item.unidad.get_absolute_url }}"><strong>{{ item.unidad.nombre }}</strong>{% if item.unidad.estado_catalogo == 'en_creacion' %} <em>{% translate "en creación" %}</em>{% endif %}{% if item.que_fluye %}<small>{{ item.que_fluye }}</small>{% endif %}</a></li>{% endfor %}</ul>
+</div>{% endfor %}

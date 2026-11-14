@@ -1,0 +1,126 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Documentación del proceso" %}{% endblock %}
+{% block encabezado %}{% translate "Documentación del proceso" %}{% endblock %}
+{% block subtitulo %}{{ receta.nombre_publico }}{% endblock %}
+{% block pie %}{% translate "Documentación de" %} {{ receta.codigo }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Código" %}</dt><dd>{{ receta.codigo }}</dd></div><div><dt>{% translate "Operaciones" %}</dt><dd>{{ operaciones|length }}</dd></div><div><dt>{% translate "Puntos críticos" %}</dt><dd>{{ puntos_criticos|length }}</dd></div>{% endblock %}
+{% block barra %}<div>{% for item in acciones_proceso %}<a class="accion-proceso{% if item.activa %} is-active{% endif %}" href="{{ item.url }}"{% if item.activa %} aria-current="page"{% endif %}>{{ item.nombre }}</a>{% endfor %}{% if cita %}<button class="aula-citar" type="button" data-cita="{{ cita|escape }}"><i class="fas fa-quote-right"></i> {% translate "Citar" %}</button>{% endif %}{% if ver_documento_url %}<a href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="Documentación técnica · {{ receta.nombre_publico }}">{% translate "Ver el documento" %}</a><a class="is-primary" href="{{ descargar_documento_url }}">{% translate "Descargar PDF" %}</a>{% endif %}</div>{% endblock %}
+{% block contenido %}
+<section class="unit-report__context">
+  <span>{% translate "RUTA DEL SABER Y DEL HACER" %}</span>
+  <h2>{{ receta.nombre_publico }}</h2>
+  <p>{% translate "Corrida base de" %} {{ proceso.cantidad_base }} {{ proceso.unidad_base }} {% translate "que rinde" %} {{ proceso.rendimiento_esperado }} {{ proceso.unidad_producto }} de {{ proceso.producto|lower }}{% translate ", en" %} {{ resumen.etapas }} {% translate "etapas y" %} {{ resumen.duracion_texto }}{% translate ". Esta página explica por qué cada etapa está donde está: qué operación unitaria es, qué le ocurre al producto, qué variable la gobierna y qué pasa cuando esa variable se sale de su rango." %}</p>
+</section>
+
+<section aria-label="{% translate "Secuencia de aprendizaje" %}">
+  <div class="saber-ruta">
+    {% for paso in ruta_aprendizaje %}<article><b>{{ paso.numero }}</b><div><strong><i class="{{ paso.icono }}" aria-hidden="true"></i> {{ paso.clave }}</strong><span>{{ paso.detalle }}</span></div></article>{% endfor %}
+  </div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "BASES PARA LEER Y CALCULAR EL PROCESO" %}</span><small>{% translate "ecuación, datos necesarios y control del resultado" %}</small></header>
+  <div class="saber-bases">
+    {% for base in fundamentos %}<article class="saber-base"><h4><i class="{{ base.icono }}" aria-hidden="true"></i>{{ base.nombre }}</h4><code class="saber-formula">{{ base.formula }}</code><dl><div><dt>{% translate "Para qué se usa" %}</dt><dd>{{ base.uso }}</dd></div><div><dt>{% translate "Qué datos requiere" %}</dt><dd>{{ base.datos }}</dd></div><div><dt>{% translate "Cómo se comprueba" %}</dt><dd>{{ base.comprobacion }}</dd></div></dl></article>{% endfor %}
+  </div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "QUÉ SE PUEDE USAR CON LOS DATOS ACTUALES" %}</span><small>{% translate "las funciones bloqueadas no inventan el dato que falta" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Diagrama o simulación" %}</th><th>{% translate "Estado" %}</th><th>{% translate "Condición" %}</th></tr></thead><tbody>{% for artefacto in artefactos %}<tr><td><strong>{{ artefacto.nombre }}</strong></td><td>{% if artefacto.listo %}<span class="aula-ok"><i class="fas fa-check-circle"></i> {{ artefacto.estado }}</span>{% else %}<span class="aula-aviso"><i class="fas fa-lock"></i> {{ artefacto.estado }}</span>{% endif %}</td><td>{{ artefacto.detalle }}</td></tr>{% endfor %}</tbody></table></div>
+</section>
+
+<section class="unit-report__summary" aria-label="{% translate "El proceso en números" %}">
+  <article><span>{% translate "Etapas" %}</span><strong>{{ resumen.etapas }}</strong><small>{{ operaciones|length }} {% translate "operaciones unitarias" %}</small></article>
+  <article><span>{% translate "Duración" %}</span><strong>{{ resumen.duracion_texto }}</strong><small>{{ resumen.trabajo_texto }} {% translate "de trabajo" %}</small></article>
+  <article><span>{% translate "Puntos críticos" %}</span><strong>{{ puntos_criticos|length }}</strong><small>{% translate "con su límite declarado" %}</small></article>
+  <article><span>{% translate "Merma del balance" %}</span><strong>{{ general.merma_total }}</strong><small>{{ general.unidad_base }} · {{ general.proporcion_merma }} {% translate "% de lo que entra" %}</small></article>
+</section>
+
+{% include 'portal/pages/unidades/aula/includes/balance_general.html' %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "ENTRADAS Y SALIDAS, ETAPA POR ETAPA" %}</span><small>{% translate "lo que entra por la izquierda y lo que se va por la derecha" %}</small></header>
+  <div class="doc-flujo">
+    {% for fila in flujo %}
+    <div class="doc-fila">
+      <div class="doc-entradas">
+        {% for insumo in fila.insumos %}<span class="doc-chip"><i class="fas fa-arrow-right" aria-hidden="true"></i><b>{{ insumo.nombre }}</b><small>{{ insumo.cantidad }}</small></span>{% endfor %}
+        {% if fila.entra %}<span class="doc-masa">entra <b>{{ fila.entra }}</b></span>{% endif %}
+      </div>
+      <div class="doc-etapa{% if fila.punto_critico %} is-critica{% elif fila.punto_control %} is-control{% endif %}">
+        <i class="{{ fila.operacion.icono }}" aria-hidden="true"></i>
+        <div>
+          <strong>{{ fila.orden }}. {{ fila.nombre }}</strong>
+          <span>{{ fila.operacion.nombre }}{% if fila.equipo %} · {{ fila.equipo }}{% endif %}{% if fila.minutos %} · {{ fila.minutos }} min{% endif %}{% if fila.personas %} · {{ fila.personas }} persona{{ fila.personas|pluralize }}{% endif %}</span>
+          {% if fila.punto_critico %}<em>{% translate "PCC (inocuidad):" %} {{ fila.parametro }} · {{ fila.limite }}</em>{% elif fila.punto_control %}<em>{% translate "PC (calidad):" %} {{ fila.parametro }} · {{ fila.limite }}</em>{% endif %}
+        </div>
+      </div>
+      <div class="doc-salidas">
+        {% for salida in fila.salidas %}<span class="doc-chip{% if salida.clase == 'merma' %} is-merma{% endif %}"><i class="fas fa-arrow-right" aria-hidden="true"></i><b>{{ salida.nombre }}</b></span>{% empty %}<span class="doc-masa">sigue <b>{{ fila.continua }}</b></span>{% endfor %}
+        {% if fila.salidas and fila.continua %}<span class="doc-masa">sigue <b>{{ fila.continua }}</b></span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "LAS OPERACIONES UNITARIAS DE ESTE PROCESO" %}</span><small>{{ operaciones|length }} operaciones</small></header>
+  {% for operacion in operaciones %}
+  <div class="doc-op">
+    <i class="{{ operacion.icono }}" aria-hidden="true"></i>
+    <div>
+      <span class="doc-familia">{{ operacion.familia }}</span>
+      <h4>{{ operacion.nombre }}</h4>
+      <p>{{ operacion.fenomeno }}</p>
+      <dl>
+        <div><dt>{% translate "Variable que la gobierna" %}</dt><dd>{{ operacion.variable }}</dd></div>
+        <div><dt>{% translate "Qué pasa fuera de rango" %}</dt><dd>{{ operacion.fuera_de_rango }}</dd></div>
+        <div><dt>{% translate "Cómo se mide" %}</dt><dd>{{ operacion.se_mide }}</dd></div>
+      </dl>
+      <p class="doc-etapas-op">{% translate "En este proceso:" %} {% for etapa in operacion.etapas %}{{ etapa.orden }}. {{ etapa.nombre }}{% if etapa.punto_critico %} {% translate "(punto crítico:" %} {{ etapa.limite }}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "VARIABLES QUE SE PUEDEN MOVER" %}</span><small>{% translate "lo que los simuladores dejan cambiar" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Variable" %}</th><th>{% translate "Valor en esta receta" %}</th><th>{% translate "De dónde sale" %}</th><th>{% translate "Qué cambia si la mueves" %}</th><th>{% translate "Dónde se simula" %}</th></tr></thead><tbody>
+    {% for variable in variables %}<tr>
+      <td><strong>{{ variable.nombre }}</strong></td>
+      <td>{{ variable.valor }}</td>
+      <td>{{ variable.de_donde }}</td>
+      <td>{{ variable.efecto }}</td>
+      <td>{{ variable.simulador }}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "DE DÓNDE SALEN LOS DATOS" %}</span><small>{% translate "nada de esto se escribe aparte" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Dato" %}</th><th>{% translate "Fuente" %}</th><th>{% translate "Quién lo mantiene" %}</th></tr></thead><tbody>
+    {% for fila in datos_que_usa %}<tr><td><strong>{{ fila.dato }}</strong></td><td>{{ fila.fuente }}</td><td>{{ fila.quien }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "TODO LO QUE ENTRA" %}</span><small>{{ entradas|length }} insumo{{ entradas|length|pluralize }}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Etapa" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Cantidad por corrida base" %}</th><th>{% translate "Su papel en el balance" %}</th></tr></thead><tbody>
+    {% for entrada in entradas %}<tr>
+      <td>{% if entrada.etapa %}{{ entrada.etapa }}{% else %}{% translate "Sin etapa" %}{% endif %}</td>
+      <td><strong>{{ entrada.nombre }}</strong>{% if not entrada.obligatorio %} <small>{% translate "(opcional)" %}</small>{% endif %}</td>
+      <td>{{ entrada.cantidad }}</td>
+      <td>{{ entrada.rol }}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "REFERENCIAS PARA PROFUNDIZAR" %}</span><small>{% translate "fuentes técnicas primarias y documentos institucionales" %}</small></header>
+  <div class="saber-bases">{% for referencia in referencias_tecnicas %}<article class="saber-base"><h4><i class="fas fa-external-link-alt"></i>{{ referencia.nombre }}</h4><p>{{ referencia.uso }}</p><a href="{{ referencia.url }}" target="_blank" rel="noopener">{% translate "Consultar fuente" %}</a></article>{% endfor %}</div>
+</section>
+{% endblock %}

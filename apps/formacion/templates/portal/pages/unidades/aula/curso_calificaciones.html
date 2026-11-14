@@ -1,0 +1,69 @@
+{% load static i18n idiomas notas_cursos %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Calificaciones y seguimiento" %} · {{ curso.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/seguimiento_cursos.css' %}?v=20261009-notas-v1">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce aula-curso">
+  <header class="aula-curso__cabecera">
+    <a class="aula-curso__volver" href="{{ curso_url }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Página del curso" %}</a>
+    <div><span class="conoce__antetitulo">{% translate "Calificaciones y seguimiento" %} · {{ unidad.nombre }}</span><h1>{{ curso.nombre }}</h1></div>
+    <a class="aula-curso__previa" href="{{ inscritos_url }}{% if elegida %}?edicion={{ elegida.pk }}{% endif %}"><i class="fas fa-users" aria-hidden="true"></i> {% translate "Inscritos y asistencia" %}</a>
+  </header>
+  <main class="inscritos seguimiento">
+    {% if messages %}<div class="portal-messages" role="status" aria-live="polite">{% for message in messages %}<p class="portal-messages__item is-{{ message.tags|default:'info' }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    <section class="seguimiento__panel" aria-labelledby="titulo-grupo">
+      <h2 id="titulo-grupo">{% translate "Libro de notas por grupo" %}</h2>
+      <p>{% translate "Las notas se muestran sobre 10. El avance y los intentos pertenecen únicamente al grupo seleccionado." %}</p>
+      <form method="get" class="seguimiento__filtros">
+        <label>{% translate "Grupo / edición" %}<select name="edicion">{% for edicion in ediciones_curso %}<option value="{{ edicion.pk }}"{% if edicion == elegida %} selected{% endif %}>{{ edicion.nombre }}{% if edicion.destinatario %} · {{ edicion.destinatario }}{% endif %}</option>{% endfor %}</select></label>
+        <label>{% translate "Estado académico" %}<select name="estado"><option value="">{% translate "Todos" %}</option><option value="aprobado"{% if filtros.estado == 'aprobado' %} selected{% endif %}>{% translate "Aprobados" %}</option><option value="reprobado"{% if filtros.estado == 'reprobado' %} selected{% endif %}>{% translate "Reprobados" %}</option><option value="pendiente"{% if filtros.estado == 'pendiente' %} selected{% endif %}>{% translate "Pendientes" %}</option></select></label>
+        <label>{% translate "Intentos de evaluación" %}<select name="intentos"><option value="">{% translate "Todos" %}</option><option value="agotados"{% if filtros.intentos == 'agotados' %} selected{% endif %}>{% translate "Sin oportunidades" %}</option><option value="realizados"{% if filtros.intentos == 'realizados' %} selected{% endif %}>{% translate "Con intentos" %}</option><option value="sin_rendir"{% if filtros.intentos == 'sin_rendir' %} selected{% endif %}>{% translate "Sin rendir" %}</option></select></label>
+        <label>{% translate "Buscar persona" %}<input type="search" name="q" value="{{ filtros.q }}" maxlength="200" placeholder="{% translate 'Nombre, documento o correo' %}"></label>
+        <button type="submit" class="conoce__boton is-principal"><i class="fas fa-filter" aria-hidden="true"></i> {% translate "Aplicar" %}</button>
+      </form>
+      <div class="seguimiento__resumen" aria-label="{% translate 'Resumen del grupo completo' %}"><div><strong>{{ totales.aprobado }}</strong><span>{% translate "Aprobados" %}</span></div><div><strong>{{ totales.reprobado }}</strong><span>{% translate "Reprobados" %}</span></div><div><strong>{{ totales.pendiente }}</strong><span>{% translate "Pendientes" %}</span></div></div>
+      <p class="ficha__nota">{% translate "Aprobado: todas las actividades obligatorias completas. Reprobado: una evaluación obligatoria terminó sin aprobar, por plazo o intentos agotados. Los deberes devueltos siguen pendientes de corrección." %}</p>
+      {% if elegida %}<a class="conoce__boton" href="{{ csv_url }}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar este libro en CSV" %}</a>{% endif %}
+    </section>
+    {% if error_calificacion %}<p class="seguimiento__error" role="alert">{{ error_calificacion }}</p>{% endif %}
+    <section class="calificaciones__bloque">
+      <h2><i class="fas fa-inbox" aria-hidden="true"></i> {% translate "Deberes por revisar" %} <span class="curso__estado">{{ por_revisar|length }}</span></h2>
+      {% if por_revisar %}<div class="calificaciones__entregas">
+        {% for entrega in por_revisar %}<article class="calificaciones__entrega">
+          <header><strong>{% firstof entrega.inscripcion.nombres_completos entrega.inscripcion.usuario.get_full_name entrega.inscripcion.usuario.username %}</strong><span>{{ entrega.leccion.titulo }} · {% translate "mínima" %} {{ entrega.leccion.nota_minima|sobre_diez|floatformat:"-3" }} / 10</span></header>
+          <p><i class="fas fa-clock" aria-hidden="true"></i> {{ entrega.entregada_en|date:"d/m/Y H:i" }}{% if entrega.tardia %} · <em>{% translate "fuera de plazo" %}</em>{% endif %}</p>
+          <ul>{% if entrega.archivo %}<li><a href="{% url 'archivo_entrega' unidad.slug curso.codigo entrega.pk %}"{% if entrega.archivo.name|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="Entrega · {{ entrega.leccion.titulo }}"{% else %} download{% endif %}><i class="fas fa-paperclip" aria-hidden="true"></i> {% translate "Abrir el archivo" %}</a></li>{% endif %}{% if entrega.enlace %}<li><a href="{{ entrega.enlace }}"{% if entrega.enlace|lower|slice:"-4:" == '.pdf' %} data-ver-pdf data-pdf-titulo="Entrega · {{ entrega.leccion.titulo }}"{% else %} target="_blank" rel="noopener noreferrer"{% endif %}><i class="fas fa-link" aria-hidden="true"></i> {% translate "Abrir el enlace" %}</a></li>{% endif %}</ul>
+          {% if entrega.comentario %}<blockquote>{{ entrega.comentario|linebreaksbr }}</blockquote>{% endif %}
+          <form method="post">{% csrf_token %}<input type="hidden" name="entrega" value="{{ entrega.pk }}">
+            <label>{% translate "Nota / 10" %}<input type="number" name="nota_sobre_10" min="0" max="10" step="0.001" inputmode="decimal" placeholder="7"></label>
+            <label>{% translate "Retroalimentación" %}<textarea name="retroalimentacion" rows="2" maxlength="4000" placeholder="{% translate 'Qué está bien y qué debe mejorar' %}"></textarea></label>
+            <div><button type="submit" name="accion" value="calificar" class="conoce__boton is-principal">{% translate "Calificar" %}</button><button type="submit" name="accion" value="devolver" class="conoce__boton" formnovalidate>{% translate "Devolver para corregir" %}</button></div>
+          </form>
+        </article>{% endfor %}
+      </div><p class="ficha__nota">{% translate "Con la nota mínima o más, el deber queda aprobado. Una nota inferior devuelve el trabajo para corregir." %}</p>
+      {% else %}<p class="ficha__nota">{% translate "No hay entregas pendientes de revisión con estos filtros." %}</p>{% endif %}
+    </section>
+    <section class="calificaciones__bloque">
+      <h2><i class="fas fa-table" aria-hidden="true"></i> {% translate "Libro de notas" %} <span class="curso__estado">{{ inscritos|length }}</span></h2>
+      {% if inscritos and calificadas %}<div class="inscritos__tabla-envoltura" tabindex="0" role="region" aria-label="{% translate 'Libro de notas; desplácese horizontalmente para ver las actividades' %}">
+        <table class="inscritos__tabla"><caption class="seguimiento__sr">{{ elegida.nombre }} · {% translate "Notas sobre 10 e intentos individuales" %}</caption>
+          <thead><tr><th scope="col">{% translate "Persona" %}</th><th scope="col">{% translate "Avance y estado" %}</th>{% for leccion in calificadas %}<th scope="col">{{ leccion.titulo }}</th>{% endfor %}<th scope="col">{% translate "Certificado" %}</th></tr></thead>
+          <tbody>{% for inscrito in inscritos %}<tr>
+            <th scope="row"><strong>{{ inscrito.seguimiento.nombre }}</strong>{% if inscrito.seguimiento.documento %}<small>{{ inscrito.seguimiento.documento }}</small>{% endif %}</th>
+            <td><progress max="100" value="{{ inscrito.avance.porcentaje }}" aria-label="{% translate 'Avance' %}">{{ inscrito.avance.porcentaje }} %</progress><strong>{{ inscrito.avance.porcentaje }} %</strong><span class="seguimiento__estado is-{{ inscrito.seguimiento.estado }}">{{ inscrito.seguimiento.rotulo }}</span>{% if inscrito.seguimiento.promedio_10 is not None %}<small>{% if inscrito.seguimiento.promedio_completo %}{% translate "Promedio" %}{% else %}{% translate "Promedio parcial" %}{% endif %}: {{ inscrito.seguimiento.promedio_10|floatformat:"-3" }} / 10</small>{% endif %}</td>
+            {% for nota in inscrito.notas %}<td class="calificaciones__nota{% if nota.aprobado %} is-aprobado{% elif nota.nota is not None %} is-pendiente{% endif %}">{% if nota.nota_10 is not None %}<strong>{{ nota.nota_10|floatformat:"-3" }} / 10</strong>{% else %}—{% endif %}<small>{{ nota.rotulo }}</small>{% if nota.usados is not None %}<small>{{ nota.detalle }}{% if not nota.aprobado %} · {{ nota.restantes }} {% translate "restantes" %}{% endif %}</small>{% endif %}{% if nota.intentos %}<details><summary>{% translate "Ver intentos" %}</summary><ol>{% for intento in nota.intentos %}<li><strong>{{ intento.nota_10|floatformat:"-3" }} / 10</strong> · {{ intento.fecha|date:"d/m/Y H:i" }} · {% if intento.aprobado %}{% translate "Aprobado" %}{% else %}{% translate "No aprobado" %}{% endif %}</li>{% endfor %}</ol></details>{% endif %}</td>{% endfor %}
+            <td>{{ inscrito.seguimiento.certificado_rotulo }}{% if inscrito.seguimiento.certificado %}<small>{{ inscrito.seguimiento.certificado.codigo }}</small>{% endif %}</td>
+          </tr>{% endfor %}</tbody>
+        </table>
+      </div>{% elif not calificadas %}<p class="ficha__nota">{% translate "El curso todavía no tiene evaluaciones ni deberes publicados." %}</p>{% else %}<p class="ficha__nota">{% translate "No hay personas inscritas con estos filtros." %}</p>{% endif %}
+    </section>
+  </main>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body></html>

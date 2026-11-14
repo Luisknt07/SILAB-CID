@@ -1,0 +1,4 @@
+<div class="redaccion__indicador-origen" data-reporte-informacion>
+  <button type="button" data-reporte-informacion-abrir data-modal-titulo="{{ ficha.titulo }}" aria-haspopup="dialog">Origen y cálculo <i class="fas fa-info-circle" aria-hidden="true"></i></button>
+  <template data-reporte-informacion-contenido><dl class="redaccion__indicador-datos">{% for etiqueta, valor in ficha.pares %}<div><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}</dl></template>
+</div>

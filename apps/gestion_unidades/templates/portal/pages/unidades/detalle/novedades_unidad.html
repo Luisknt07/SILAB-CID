@@ -1,0 +1,52 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Novedades" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce ficha area">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{{ unidad.nombre }}</span>
+      <h1>{% translate "Novedades y avisos" %}</h1>
+      <ul class="conoce__datos"><li><i class="fas fa-bullhorn" aria-hidden="true"></i>{% translate "Noticias, logros, eventos y convocatorias de la unidad" %}</li></ul>
+    </div>
+    <div class="conoce__portada-acciones"><a class="conoce__boton" href="{% url 'noticias' %}" target="_top"><i class="fas fa-newspaper" aria-hidden="true"></i> {% translate "Noticias de todas las unidades" %}</a></div>
+  </header>
+
+  <section class="conoce__seccion area__primera">
+    {% if novedades %}
+    <div class="area__novedades">
+      {% for novedad in novedades %}<article class="area__novedad{% if novedad.destacada %} is-destacada{% endif %}" data-aparecer>
+        {% if novedad.imagen %}<a class="area__novedad-foto" href="{{ novedad.get_absolute_url }}" target="_top" tabindex="-1" aria-hidden="true"><img src="{{ novedad.imagen.url }}" alt="" loading="lazy"></a>{% endif %}
+        <div class="area__novedad-datos">
+          <div class="area__novedad-etiquetas"><span class="ficha__rol"><i class="{{ novedad.icono }}" aria-hidden="true"></i> {{ novedad.get_categoria_display }}</span>{% if not novedad.publicada %}<span class="area__estado is-uso">{% translate "Borrador" %}</span>{% elif novedad.abierta %}<span class="area__estado is-ok">{% if novedad.categoria == 'evento' %}{% translate "Próximo" %}{% else %}{% translate "Abierta" %}{% endif %}</span>{% endif %}</div>
+          <h3>{{ novedad.titulo }}</h3>
+          <p>{{ novedad.resumen }}</p>
+          <ul class="ficha__medios">
+            <li><i class="fas fa-calendar-alt" aria-hidden="true"></i>{{ novedad.fecha_publicacion|date:"j \d\e F \d\e Y" }}</li>
+            {% if novedad.fecha_evento %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ novedad.fecha_evento|date:"j \d\e F, H:i" }}{% if novedad.lugar %} · {{ novedad.lugar }}{% endif %}</li>{% endif %}
+            {% if novedad.cierre %}<li><i class="fas fa-hourglass-half" aria-hidden="true"></i>{% translate "Cierre:" %} {{ novedad.cierre|date:"j \d\e F \d\e Y" }}</li>{% endif %}
+          </ul>
+          <a class="area__enlace" href="{{ novedad.get_absolute_url }}" target="_top">{% translate "Leer la nota completa" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+          {% include 'portal/pages/unidades/includes/editar.html' with clave='novedad' pk=novedad.pk titulo=novedad.titulo %}
+        </div>
+      </article>{% endfor %}
+    </div>
+    {% else %}
+    <p class="ficha__nota">{% translate "La unidad todavía no publica novedades." %}</p>
+    {% endif %}
+  </section>
+  {% translate "Nueva novedad" as titulo_nuevo %}{% translate "Publicar una novedad" as rotulo_nuevo %}<p class="ficha__editar">{% include 'portal/pages/unidades/includes/editar.html' with clave='novedad' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+</body>
+</html>

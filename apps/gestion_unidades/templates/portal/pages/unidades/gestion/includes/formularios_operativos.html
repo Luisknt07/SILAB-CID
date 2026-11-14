@@ -1,0 +1,438 @@
+
+{% load i18n idiomas %}
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'activos' %}
+<form class="unit-console-operation" data-agenda-operation-form="equipo" data-reload-view="recursos" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="recursos"><input type="hidden" name="entidad" value="equipo"><input type="hidden" name="registro_id">
+  <header><span>{% translate "RECURSO TÉCNICO" %}</span><h3>{% translate "Equipo y unidad física" %}</h3><p>{% translate "Registra un modelo técnico nuevo o incorpora otra unidad de un modelo existente." %}</p><p class="unit-console-operation__ficha-completa">{% translate "Fotos, videos, especificaciones, componentes, modos de uso y documentos se editan en la ficha del equipo: botón" %} <i class="fas fa-file-signature" aria-hidden="true"></i> {% translate "de su fila en el inventario, o «Editar» en cada sección de la ficha." %}</p></header>
+  <div data-equipment-source>
+    <label class="unit-console-operation__standalone-label">{% translate "Modelo o equipo del catálogo" %}<select name="equipo_catalogo_id"{% if catalogos_remotos %} data-resource-select="modelos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %}><option value="">{% translate "Crear un modelo técnico nuevo" %}</option>{% for catalogo in catalogos_equipos %}<option value="{{ catalogo.pk }}">{{ catalogo.codigo }} · {{ catalogo.nombre }}{% if catalogo.marca %} · {{ catalogo.marca }} {{ catalogo.modelo }}{% endif %}</option>{% endfor %}</select></label>
+  </div>
+  <fieldset data-equipment-new-model>
+    <legend>{% translate "Ficha del nuevo modelo" %}</legend>
+    <div class="unit-console-operation__grid">
+      <label>{% translate "Código de catálogo" %}<input name="codigo_catalogo" maxlength="20" placeholder="{% translate "Vacío: UNIDAD-ÁREA-NN" %}"></label>
+      <label>{% translate "Nombre del equipo" %}<input name="nombre_catalogo" maxlength="100" data-equipment-new-required></label>
+      <label>{% translate "Familia de producto" %}<select name="familia_equipo"><option value="">{% translate "Deducirla del nombre (si es un equipo conocido)" %}</option>{% for familia in familias_equipo %}<option value="{{ familia.pk }}">{{ familia.nombre }}</option>{% endfor %}</select></label>
+      <label>{% translate "Rol en la unidad" %}<select name="rol_equipo">{% for codigo, nombre in roles_equipo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+      <label>{% translate "Marca" %}<input name="marca" maxlength="100"></label>
+      <label>{% translate "Modelo" %}<input name="modelo" maxlength="100"></label>
+      <label class="is-wide">{% translate "Descripción técnica" %}<textarea name="descripcion_catalogo" rows="3"></textarea></label>
+      <label class="is-wide">{% translate "Características y especificaciones" %}<textarea name="caracteristicas_publicas" rows="3"></textarea></label>
+      <label class="is-wide">{% translate "Usos autorizados" %}<textarea name="uso_publico" rows="2"></textarea></label>
+      <label class="is-wide">{% translate "Preparación e instrucciones" %}<textarea name="instrucciones_publicas" rows="2"></textarea></label>
+      <label class="is-wide">{% translate "Lo que viene con el equipo" %}<textarea name="accesorios_incluidos_texto" rows="3" placeholder="{% translate "Una línea por componente: «2 × Controles táctiles | Se emparejan al encender»" %}"></textarea></label>
+      <label class="is-wide">{% translate "Complementos (no obligatorios)" %}<textarea name="accesorios_opcionales_texto" rows="2" placeholder="{% translate "Mismo formato. Lo que no se registre lo completa la referencia de su familia." %}"></textarea></label>
+      <label>{% translate "Fotografía" %}<input type="file" name="imagen" accept="image/png,image/jpeg,image/webp"></label>
+      <label>{% translate "Manual de operación" %}<input type="file" name="manual_operacion" accept="application/pdf"></label>
+      <label>{% translate "Ficha técnica PDF" %}<input type="file" name="ficha_tecnica" accept="application/pdf"></label>
+    </div>
+  </fieldset>
+  <div class="unit-console-operation__section-head"><span>{% translate "IDENTIFICACIÓN PATRIMONIAL" %}</span><h3>{% translate "Unidad física" %}</h3><p>{% translate "Estos datos identifican el activo concreto que se encuentra en la unidad." %}</p></div>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Código del bien (bodega)" %}<input name="codigo_bien" maxlength="30" autocomplete="off" placeholder="{% translate "El de la etiqueta de código de barras" %}"></label>
+    <label>{% translate "Tipo de bien" %}<select name="tipo_bien"><option value="">—</option><option value="BLD">{% translate "Larga duración (BLD)" %}</option><option value="BCA">{% translate "Control administrativo (BCA)" %}</option></select></label>
+    <label>{% translate "Código del sistema" %}<input name="codigo_unidad" maxlength="50" placeholder="{% translate "Vacío: se asigna con el estándar UNIDAD-ÁREA-MODELO-N.º" %}"></label>
+    <label>{% translate "Número de serie" %}<input name="numero_serie" maxlength="100"></label>
+    <label>{% translate "Clase del bien" %}<input name="clase_bien" maxlength="160" placeholder="{% translate "Equipo electrónico / Computador de escritorio" %}"></label>
+    <label>{% translate "Custodio" %}<input name="custodio" maxlength="160"></label>
+    <label>{% translate "Ubicación según bodega" %}<input name="ubicacion_bodega" maxlength="160"></label>
+    <label>{% translate "Fecha de ingreso a bodega" %}<input type="date" name="fecha_ingreso_bodega"></label>
+    <label>{% translate "Valor contable (bodega)" %}<input type="number" name="valor_contable" min="0" step="0.01"></label>
+    <label>{% translate "Color" %}<input name="color" maxlength="60"></label>
+    <label>{% translate "Material" %}<input name="material" maxlength="80"></label>
+    <label>{% translate "Dimensiones" %}<input name="dimensiones" maxlength="160"></label>
+    <label>{% translate "Estado" %}<select name="estado_unidad">{% for codigo, nombre in estados_unidad_equipo %}<option value="{{ codigo }}">{{ nombre|ui }}</option>{% endfor %}</select></label>
+    <label>{% translate "Criticidad" %}<select name="criticidad">{% for codigo, nombre in criticidades_equipo %}<option value="{{ codigo }}"{% if codigo == 'normal' %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Versión del sistema o firmware" %}<input name="version_sistema" maxlength="80" placeholder="{% translate "La instalada en esta unidad" %}"></label>
+    <label>{% translate "Actualizado el" %}<input type="date" name="sistema_actualizado"></label>
+    <label>{% translate "Ubicación" %}<input name="ubicacion_especifica" maxlength="200"></label>
+    <label>{% translate "Origen" %}<select name="origen_adquisicion">{% for codigo, nombre in origenes_adquisicion_equipo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Fecha de adquisición" %}<input type="date" name="fecha_adquisicion"></label>
+    <label>{% translate "Documento de respaldo" %}<input name="documento_adquisicion" maxlength="120" placeholder="{% translate "Acta, contrato, factura o proyecto" %}"></label>
+    <label>{% translate "Valor referencial" %}<input type="number" name="valor_referencial" min="0" step="0.01"></label>
+    <label class="is-wide">{% translate "Espacios asociados" %}<select name="espacios_asociados"{% if catalogos_remotos %} data-resource-select="espacios" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="4">{% for espacio in espacios %}<option value="{{ espacio.pk }}">{{ espacio.codigo }} · {{ espacio.nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="4"></textarea></label>
+  </div>
+  <div class="unit-console-operation__section-head"><span>{% translate "RELACIONES OPERATIVAS" %}</span><h3>{% translate "Software e insumos compatibles" %}</h3><p>{% translate "Selecciona registros existentes; un equipo puede utilizar varios programas e insumos." %}</p></div>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Software instalado o habilitado" %}<select name="software_asociado"{% if catalogos_remotos %} data-resource-select="software" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="5">{% for programa in software %}<option value="{{ programa.pk }}">{{ programa.nombre }} {{ programa.version }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Si es auxiliar, apoya a" %}<select name="apoya_a"{% if catalogos_remotos %} data-resource-select="principales" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="4">{% for catalogo in catalogos_equipos_unidad %}{% if catalogo.rol == 'principal' %}<option value="{{ catalogo.pk }}">{{ catalogo.codigo }} · {{ catalogo.nombre }}</option>{% endif %}{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Insumos y materiales autorizados" %}<select name="consumibles_compatibles"{% if catalogos_remotos %} data-resource-select="insumos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="6">{% for item in consumibles %}<option value="{{ item.pk }}">{{ item.codigo }} · {{ item.nombre }}{% if item.variante %} · {{ item.variante }}{% endif %}</option>{% endfor %}</select></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Disponibilidad" %}</legend><label><input type="checkbox" name="activa" checked> {% translate "Activo en la unidad" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar equipo" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'espacios' %}
+<form class="unit-console-operation" data-agenda-operation-form="espacio" data-reload-view="recursos" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="recursos"><input type="hidden" name="entidad" value="espacio"><input type="hidden" name="registro_id">
+  <div class="unit-console-operation__grid"><label>{% translate "Código" %}<input name="codigo" maxlength="60" required></label><label>{% translate "Nombre" %}<input name="nombre" maxlength="160" required></label><label>{% translate "Tipo" %}<select name="tipo"><option value="area">{% translate "Área de trabajo" %}</option><option value="estacion">{% translate "Estación de trabajo" %}</option><option value="sala">{% translate "Sala" %}</option><option value="puesto">{% translate "Puesto individual" %}</option><option value="cabina">{% translate "Cabina" %}</option><option value="otro">{% translate "Otro" %}</option></select></label><label>{% translate "Política" %}<select name="politica_reserva"><option value="general">{% translate "Uso general" %}</option><option value="mixto">{% translate "Uso mixto" %}</option><option value="tecnico">{% translate "Uso técnico" %}</option></select></label></div>
+  <header><span>{% translate "ESPACIO RESERVABLE" %}</span><h3>{% translate "Capacidad y disponibilidad" %}</h3><p>{% translate "Mantén actualizada la información que verá el usuario al reservar." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Capacidad" %}<input type="number" name="capacidad" min="1" required></label>
+    <label>{% translate "Ubicación" %}<input name="ubicacion" maxlength="255"></label>
+    <label>{% translate "Fotografía" %}<input type="file" name="imagen" accept="image/png,image/jpeg,image/webp"></label>
+    <label class="is-wide">{% translate "Descripción pública" %}<textarea name="descripcion_publica" rows="4"></textarea></label>
+    <label class="is-wide">{% translate "Características del espacio" %}<textarea name="caracteristicas" rows="3"></textarea></label>
+    <label class="is-wide">{% translate "Mobiliario e infraestructura" %}<textarea name="mobiliario_incluido" rows="3"></textarea></label>
+    <label class="is-wide">{% translate "Equipos ubicados o disponibles" %}<select name="equipos_asociados"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="6">{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Instrucciones de uso" %}<textarea name="instrucciones_uso" rows="3"></textarea></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Disponibilidad" %}</legend><label><input type="checkbox" name="reservable" checked> {% translate "Permitir reservas" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Espacio activo" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-trash-alt"></i> {% translate "Archivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar espacio" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'software' %}
+<form class="unit-console-operation" data-agenda-operation-form="software" data-reload-view="recursos" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="recursos"><input type="hidden" name="entidad" value="software"><input type="hidden" name="registro_id">
+  <div class="unit-console-operation__grid"><label>{% translate "Nombre" %}<input name="nombre" maxlength="100" required></label><label>{% translate "Código" %}<input name="codigo" maxlength="40"></label><label>{% translate "Versión" %}<input name="version" maxlength="50"></label><label>{% translate "Tipo" %}<select name="tipo_recurso"><option value="software">{% translate "Software" %}</option><option value="licencia">{% translate "Licencia institucional" %}</option></select></label><label>{% translate "Acceso" %}<select name="tipo_acceso"><option value="instalacion">{% translate "Instalado en la unidad" %}</option><option value="licencia">{% translate "Licencia individual" %}</option><option value="red">{% translate "Licencia de red" %}</option><option value="remoto">{% translate "Acceso remoto" %}</option></select></label><label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="3"></textarea></label></div>
+  <header><span>{% translate "SOFTWARE Y LICENCIAS" %}</span><h3>{% translate "Disponibilidad de acceso" %}</h3><p>{% translate "Actualiza licencias e instrucciones sin alterar la identidad del producto." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Licencias totales" %}<input type="number" name="licencias_totales" min="1" required></label>
+    <label>{% translate "Licencias disponibles" %}<input type="number" name="licencias_disponibles" min="0" required></label>
+    <label>{% translate "Logo o imagen" %}<input type="file" name="logo" accept="image/png,image/jpeg,image/webp"></label>
+    <label class="is-wide">{% translate "Equipos donde está instalado o habilitado" %}<select name="equipos_instalados"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="7">{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Instrucciones de acceso" %}<textarea name="instrucciones_acceso" rows="4"></textarea></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Disponibilidad" %}</legend><label><input type="checkbox" name="requiere_reserva" checked> {% translate "Requiere reserva" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Software activo" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-trash-alt"></i> {% translate "Archivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar software" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'mantenimiento' %}
+<form class="unit-console-operation" data-agenda-operation-form="incidencia" data-reload-view="mantenimiento" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="incidencia"><input type="hidden" name="registro_id">
+  <header><span>{% translate "INCIDENCIA TÉCNICA" %}</span><h3>{% translate "Registro y seguimiento" %}</h3><p>{% translate "Reporta, asigna y cierra una novedad conservando su trazabilidad." %}</p></header>
+  {% comment %}Quien reporta una falla suele hacerlo con el equipo delante y con
+  prisa: el tipo, la prioridad y el estado se eligen de un toque y se reconocen
+  por su color y su icono, en vez de abrir tres menus desplegables iguales.{% endcomment %}
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Equipo" %}<select name="equipo_id"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} required data-incidencia-equipo><option value="">{% translate "Selecciona un equipo" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}" data-foto="{{ equipo.equipo.imagen_publica_url }}" data-codigo="{{ equipo.codigo_unidad }}" data-nombre="{{ equipo.equipo.nombre }}" data-detalle="{{ equipo.get_estado_unidad_display }}{% if equipo.ubicacion_especifica %} · {{ equipo.ubicacion_especifica }}{% endif %}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <figure class="unit-console-operation__ficha is-wide" data-incidencia-ficha hidden><img alt="" data-ficha-foto><figcaption><strong data-ficha-nombre></strong><small data-ficha-codigo></small><em data-ficha-detalle></em></figcaption></figure>
+    <label class="is-wide">{% translate "Título" %}<input name="titulo" maxlength="180" required placeholder="{% translate "Qué pasó, en una línea" %}"></label>
+    <label class="is-wide">{% translate "Asignada a" %}<select name="asignada_a"><option value="">{% translate "Sin asignar" %}</option>{% for responsable in responsables %}{% if responsable.usuario_id %}<option value="{{ responsable.usuario_id }}">{{ responsable.nombre_publico }}</option>{% endif %}{% endfor %}</select></label>
+  </div>
+  <fieldset class="unit-console-operation__opciones">
+    <legend>{% translate "Qué tipo de novedad es" %}</legend>
+    <div class="unit-console-operation__tarjetas">
+      <label><input type="radio" name="tipo" value="falla" checked><span><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>{% translate "Falla o avería" %}</span></label>
+      <label><input type="radio" name="tipo" value="seguridad"><span><i class="fas fa-hard-hat" aria-hidden="true"></i>{% translate "Seguridad" %}</span></label>
+      <label><input type="radio" name="tipo" value="calibracion"><span><i class="fas fa-ruler-combined" aria-hidden="true"></i>{% translate "Calibración" %}</span></label>
+      <label><input type="radio" name="tipo" value="accesorio"><span><i class="fas fa-plug" aria-hidden="true"></i>{% translate "Accesorio o pieza" %}</span></label>
+      <label><input type="radio" name="tipo" value="software"><span><i class="fas fa-laptop-code" aria-hidden="true"></i>{% translate "Software o licencia" %}</span></label>
+      <label><input type="radio" name="tipo" value="otro"><span><i class="fas fa-question-circle" aria-hidden="true"></i>{% translate "Otro" %}</span></label>
+    </div>
+  </fieldset>
+  <fieldset class="unit-console-operation__opciones">
+    <legend>{% translate "Qué tan urgente es" %}</legend>
+    <div class="unit-console-operation__escala">
+      <label><input type="radio" name="prioridad" value="baja" checked><span class="is-baja">{% translate "Baja" %}</span></label>
+      <label><input type="radio" name="prioridad" value="media"><span class="is-media">{% translate "Media" %}</span></label>
+      <label><input type="radio" name="prioridad" value="alta"><span class="is-alta">{% translate "Alta" %}</span></label>
+      <label><input type="radio" name="prioridad" value="critica"><span class="is-critica">{% translate "Crítica" %}</span></label>
+    </div>
+  </fieldset>
+  <fieldset class="unit-console-operation__opciones">
+    <legend>{% translate "En qué punto está" %}</legend>
+    <div class="unit-console-operation__ruta" data-incidencia-estado>
+      <label><input type="radio" name="estado" value="abierta" checked><span>{% translate "Abierta" %}</span></label>
+      <label><input type="radio" name="estado" value="evaluacion"><span>{% translate "En evaluación" %}</span></label>
+      <label><input type="radio" name="estado" value="reparacion"><span>{% translate "En reparación" %}</span></label>
+      <label><input type="radio" name="estado" value="resuelta"><span>{% translate "Resuelta" %}</span></label>
+      <label><input type="radio" name="estado" value="cerrada"><span>{% translate "Cerrada" %}</span></label>
+      <label><input type="radio" name="estado" value="descartada"><span>{% translate "Descartada" %}</span></label>
+    </div>
+  </fieldset>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="4" required placeholder="{% translate "Qué se observó, cuándo y con qué trabajo" %}"></textarea></label>
+    <label class="is-wide" data-incidencia-solucion>{% translate "Solución o cierre" %}<textarea name="solucion" rows="4" placeholder="{% translate "Obligatoria al resolver o cerrar" %}"></textarea><small data-incidencia-solucion-aviso hidden>{% translate "Para resolver o cerrar hay que decir qué se hizo." %}</small></label>
+  </div>
+  <fieldset class="unit-console-operation__impacto"><legend>{% translate "Impacto" %}</legend>
+    <label><input type="checkbox" name="detiene_operacion"><span><b>{% translate "Detiene la operación del equipo" %}</b><small>{% translate "Al marcarlo el equipo queda fuera de servicio y deja de ofrecerse en reservas hasta que la incidencia se cierre." %}</small></span></label>
+  </fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar incidencia" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'mantenimiento' %}
+{% include 'portal/pages/unidades/gestion/includes/formularios_reparacion.html' %}
+<form class="unit-console-operation" data-agenda-operation-form="mantenimiento" data-reload-view="mantenimiento" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="mantenimiento"><input type="hidden" name="registro_id">
+  <header><span>{% translate "ORDEN DE MANTENIMIENTO" %}</span><h3>{% translate "Programación y ejecución" %}</h3><p>{% translate "Programa la atención, asigna responsable y registra el resultado al completar." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Equipo" %}<select name="equipo_id"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} required><option value="">{% translate "Selecciona un equipo" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Responsable" %}<select name="responsable"><option value="">{% translate "Sin asignar" %}</option>{% for responsable in responsables %}{% if responsable.usuario_id %}<option value="{{ responsable.usuario_id }}">{{ responsable.nombre_publico }}</option>{% endif %}{% endfor %}</select></label>
+    <label class="is-wide">Incidencia atendida<select name="incidencia_id"><option value="">No vinculada</option>{% for incidencia in incidencias %}<option value="{{ incidencia.pk }}">{{ incidencia.equipo.codigo_unidad }} · {{ incidencia.titulo }}</option>{% endfor %}</select><small>La incidencia debe corresponder al equipo de esta orden.</small></label>
+    <label class="is-wide">{% translate "Título" %}<input name="titulo" maxlength="180" required></label>
+    <label>{% translate "Tipo" %}<select name="tipo"><option value="preventivo">{% translate "Preventivo" %}</option><option value="correctivo">{% translate "Correctivo" %}</option><option value="calibracion">{% translate "Calibración" %}</option><option value="inspeccion">{% translate "Inspección técnica" %}</option><option value="actualizacion">{% translate "Actualización" %}</option></select></label>
+    <label>{% translate "Estado" %}<select name="estado"><option value="planificado">{% translate "Planificado" %}</option><option value="programado">{% translate "Programado" %}</option><option value="en_proceso">{% translate "En proceso" %}</option><option value="completado">{% translate "Completado" %}</option><option value="cancelado">{% translate "Cancelado" %}</option></select></label>
+    {% comment %}Quién la ejecuta decide el costo y el plazo; sin este dato el
+    seguimiento no distingue la rutina del laboratorista del trabajo externo.{% endcomment %}
+    <label>{% translate "Quién la ejecuta" %}<select name="ejecutor">{% for codigo, nombre in ejecutores_mantenimiento %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Fecha programada" %}<input type="datetime-local" name="fecha_programada" required></label>
+    <label>Inicio real<input type="datetime-local" name="fecha_inicio"></label>
+    <label>Fin real<input type="datetime-local" name="fecha_fin"></label>
+    <label>{% translate "Duración prevista (horas)" %}<input type="number" name="duracion_horas" min="1" max="24" step="1" value="2"></label>
+    <label>{% translate "Próximo mantenimiento" %}<input type="date" name="proximo_mantenimiento"></label>
+    <label>{% translate "Costo del servicio (USD)" %}<input type="number" name="costo" min="0" step="0.01" placeholder="0.00"><small>{% translate "La mano de obra; los repuestos se registran aparte." %}</small></label>
+    <label>{% translate "Proveedor" %}<input name="proveedor" maxlength="180"></label>
+    <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="3"></textarea></label>
+    <label class="is-wide">{% translate "Resultado" %}<textarea name="resultado" rows="4" placeholder="{% translate "Obligatorio al completar" %}"></textarea></label>
+    <label class="is-wide">Prueba de funcionamiento<textarea name="prueba_funcionamiento" rows="3" placeholder="Prueba, resultado y persona que verifica. Obligatoria para cerrar una intervención diagnosticada."></textarea></label>
+    <label class="is-wide">Condición después de la intervención<select name="resultado_operativo"><option value="pendiente">Por verificar</option><option value="apto">Apto para operar</option><option value="parcial">Operación limitada</option><option value="no_apto">No apto para operar</option></select><small>Una orden completada con resultado no apto o limitado mantiene el equipo fuera de disponibilidad general.</small></label>
+  </div>
+  {% comment %}Un mantenimiento que no cierra sus horas termina chocando con una
+  reserva ya aceptada: por eso el calendario lo toma igual que cualquier cierre.{% endcomment %}
+  <fieldset class="unit-console-operation__impacto"><legend>{% translate "Calendario" %}</legend>
+    <label><input type="checkbox" name="bloquea_agenda" checked><span><b>{% translate "Reservar el equipo en el calendario" %}</b><small>{% translate "Cierra esas horas en la agenda de la unidad: el equipo aparece ocupado y nadie puede reservarlo mientras se interviene." %}</small></span></label>
+  </fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar mantenimiento" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'activos' %}
+<form class="unit-console-operation" data-agenda-operation-form="prestamo" data-reload-view="recursos" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="prestamo"><input type="hidden" name="registro_id">
+  <header><span>{% translate "PRÉSTAMO DE EQUIPO" %}</span><h3>{% translate "Salida y retorno" %}</h3><p>{% translate "Quién retira el equipo, con qué plazo y en qué condición vuelve. Mientras está afuera no se puede reservar." %}</p></header>
+  {% comment %}El préstamo externo saca el activo de la custodia de la unidad:
+  por eso exige institución receptora y quien autoriza la salida.{% endcomment %}
+  <fieldset class="unit-console-operation__opciones">
+    <legend>{% translate "A dónde sale" %}</legend>
+    <div class="unit-console-operation__tarjetas" data-prestamo-tipo>
+      <label><input type="radio" name="tipo" value="interno" checked><span><i class="fas fa-building" aria-hidden="true"></i>{% translate "Interno: otra área de la Universidad" %}</span></label>
+      <label><input type="radio" name="tipo" value="externo"><span><i class="fas fa-truck" aria-hidden="true"></i>{% translate "Externo: sale de la Universidad" %}</span></label>
+    </div>
+  </fieldset>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Equipo" %}<select name="equipo_id"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} required><option value="">{% translate "Selecciona un equipo" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Quién retira (con cuenta)" %}<select name="solicitante"><option value="">{% translate "Sin cuenta en la plataforma" %}</option>{% for responsable in responsables %}{% if responsable.usuario_id %}<option value="{{ responsable.usuario_id }}">{{ responsable.nombre_publico }}</option>{% endif %}{% endfor %}</select></label>
+    <label>{% translate "Nombre de quien retira" %}<input name="nombre_solicitante" maxlength="160" placeholder="{% translate "Obligatorio si no tiene cuenta" %}"></label>
+    <label>{% translate "Cédula o documento" %}<input name="documento_solicitante" maxlength="30"></label>
+    <label>{% translate "Correo o teléfono" %}<input name="contacto" maxlength="180"></label>
+    <label data-prestamo-externo>{% translate "Institución o área receptora" %}<input name="institucion" maxlength="180"><small>{% translate "Obligatoria en el préstamo externo." %}</small></label>
+    <label data-prestamo-externo>{% translate "Autoriza la salida" %}<input name="autorizado_por" maxlength="160"><small>{% translate "Obligatorio en el préstamo externo." %}</small></label>
+    <label class="is-wide">{% translate "Para qué se presta" %}<textarea name="proposito" rows="2" required></textarea></label>
+    <label>{% translate "Salida" %}<input type="datetime-local" name="fecha_salida" required></label>
+    <label>{% translate "Retorno previsto" %}<input type="datetime-local" name="fecha_retorno_previsto" required></label>
+    <label>{% translate "Condición de salida" %}<select name="condicion_salida">{% for codigo, nombre in condiciones_prestamo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Estado del préstamo" %}<select name="estado">{% for codigo, nombre in estados_prestamo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Observaciones de salida" %}<textarea name="observaciones_salida" rows="2"></textarea></label>
+    <label>{% translate "Retorno real" %}<input type="datetime-local" name="fecha_retorno_real"><small>{% translate "Al marcar «Devuelto»." %}</small></label>
+    <label>{% translate "Condición de retorno" %}<select name="condicion_retorno"><option value="">{% translate "Todavía no vuelve" %}</option>{% for codigo, nombre in condiciones_prestamo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Observaciones de retorno" %}<textarea name="observaciones_retorno" rows="2"></textarea></label>
+    <label class="is-wide">{% translate "Acta o autorización firmada" %}<input type="file" name="acta" accept=".pdf,.jpg,.jpeg,.png"><small>{% if unidad.codigo_base == 'laboratorios' %}{% translate "Puedes guardar la solicitud sin acta. Para marcar una salida externa como Entregado, adjunta un PDF o imagen legible e indica la institución y quién autoriza. Al devolver, tu usuario queda registrado como responsable de recepción y debes indicar la condición del equipo." %}{% else %}{% translate "En el préstamo externo es la evidencia que exige el expediente." %}{% endif %}</small></label>
+  </div>
+  <fieldset class="unit-console-operation__impacto"><legend>{% translate "Calendario" %}</legend>
+    <label><input type="checkbox" name="bloquea_agenda" checked><span><b>{% translate "Reservar el equipo en el calendario" %}</b><small>{% translate "Cierra esas fechas en la agenda: el equipo está afuera y nadie puede reservarlo hasta que vuelva." %}</small></span></label>
+  </fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar préstamo" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'inventario' %}
+<form class="unit-console-operation" data-agenda-operation-form="inventario" data-reload-view="recursos" data-reload-resources-mode="inventario" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="inventario">
+  <header><span>{% translate "MOVIMIENTO TRAZABLE" %}</span><h3>{% translate "Ingreso, consumo o pérdida" %}</h3><p>{% translate "Registra qué ocurrió, sobre qué lote, en qué equipo y quién asume su costo." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Insumo o material" %}<select name="consumible_id" required><option value="">{% translate "Selecciona una existencia" %}</option>{% for item in consumibles %}<option value="{{ item.pk }}" data-compatible-equipment-ids="{{ item.equipos_unidad_compatibles_ids_csv }}" data-unit-cost="{{ item.precio_unitario|default:'' }}" data-inventory-unit="{{ item.unidad_medida|default:'unidades' }}" data-presentation-size="{{ item.cantidad_por_presentacion }}" data-presentation-name="{{ item.nombre_presentacion }}">{{ item.codigo }} · {{ item.nombre }} · {{ item.stock_total }} {{ item.unidad_medida }}</option>{% endfor %}</select></label>
+    <label>{% translate "Operación" %}<select name="tipo" data-inventory-type><option value="ingreso">{% translate "Ingreso" %}</option><option value="salida">{% translate "Salida o consumo" %}</option><option value="ajuste">{% translate "Ajustar al saldo indicado" %}</option></select></label>
+    <label>{% translate "Cantidad o nuevo saldo (" %}<span data-inventory-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="cantidad" min="0" step="0.001" required><small data-inventory-quantity-help>{% translate "Selecciona un insumo para ver la unidad exacta." %}</small></label>
+    <label>{% translate "Motivo" %}<select name="motivo" data-inventory-reason>{% for codigo, nombre in motivos_movimiento_inventario %}<option value="{{ codigo }}" data-inventory-direction="{% if codigo == 'recepcion' or codigo == 'devolucion' or codigo == 'ajuste_positivo' %}ingreso{% else %}salida{% endif %}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Lote físico" %}<select name="lote_inventario_id" data-inventory-lot><option value="">{% translate "Sin lote / existencia heredada" %}</option>{% for lote in lotes_inventario %}{% if lote.cantidad_actual > 0 %}{% if lote.estado == 'bodega' or lote.estado == 'en_uso' %}<option value="{{ lote.pk }}" data-consumible-id="{{ lote.consumible_id }}" data-lot-status="{{ lote.estado }}" data-lot-quantity="{{ lote.cantidad_actual }}" data-equipment-id="{{ lote.equipo_en_uso_id|default:'' }}" data-unit-cost="{{ lote.costo_unitario|default:'' }}">{{ lote.codigo }} · {{ lote.get_estado_display|ui }} · {{ lote.cantidad_actual|floatformat:"-3" }} {{ lote.consumible.unidad_medida }}</option>{% endif %}{% endif %}{% endfor %}</select><small data-inventory-lot-help>{% translate "Para consumir, selecciona la presentación abierta que está asignada a un equipo." %}</small></label>
+    <label>{% translate "Equipo relacionado" %}<select name="equipo_id"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} data-inventory-equipment><option value="">{% translate "Sin equipo específico" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Reserva o atención" %}<select name="reserva_id"><option value="">{% translate "Sin reserva vinculada" %}</option>{% for reserva in reservas_inventario %}<option value="{{ reserva.pk }}">{{ reserva.codigo_reserva }} · {{ reserva.fecha|date:"d/m/Y" }} · {% firstof reserva.titulo_solicitud reserva.equipo_nombre "Solicitud" %}</option>{% endfor %}</select></label>
+    <label>{% translate "Incidencia causante" %}<select name="incidencia_id"><option value="">{% translate "Sin incidencia" %}</option>{% for incidencia in incidencias_inventario %}<option value="{{ incidencia.pk }}">{{ incidencia.equipo.codigo_unidad }} · {{ incidencia.titulo }}</option>{% endfor %}</select></label>
+    <label>{% translate "Costo por" %} <span data-inventory-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="costo_unitario" min="0" step="0.0001"></label>
+    <label>{% translate "Responsable del costo" %}<select name="responsable_costo">{% for codigo, nombre in responsables_costo_inventario %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Referencia" %}<input name="referencia" maxlength="100" placeholder="{% translate "Factura, acta u orden" %}"></label>
+    <label class="is-wide">{% translate "Nota" %}<textarea name="nota" rows="4" required></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Registrar movimiento" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'inventario' %}
+<form class="unit-console-operation" data-agenda-operation-form="lote_consumible" data-reload-view="recursos" data-reload-resources-mode="inventario" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="lote_consumible"><input type="hidden" name="registro_id">
+  <header><span>{% translate "TRAZABILIDAD FÍSICA" %}</span><h3>{% translate "Rollo, envase o lote" %}</h3><p>{% translate "Identifica cada presentación, su ubicación en bodega y el equipo donde se encuentra en uso." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Insumo o material" %}<select name="consumible_id" required><option value="">{% translate "Selecciona una ficha" %}</option>{% for item in consumibles %}<option value="{{ item.pk }}" data-compatible-equipment-ids="{{ item.equipos_unidad_compatibles_ids_csv }}" data-inventory-unit="{{ item.unidad_medida|default:'unidades' }}" data-presentation-size="{{ item.cantidad_por_presentacion }}" data-presentation-name="{{ item.nombre_presentacion }}">{{ item.codigo }} · {{ item.nombre }} · {{ item.cantidad_por_presentacion|floatformat:"-3" }} {{ item.unidad_medida }} {% translate "por presentación" %}</option>{% endfor %}</select></label>
+    <label>{% translate "Código de lote o serie" %}<input name="codigo" maxlength="100" required><small>{% translate "Si recibes varias presentaciones, el sistema añadirá -02, -03… para identificarlas por separado." %}</small></label>
+    <label>{% translate "Presentaciones comerciales recibidas" %}<input type="number" name="numero_presentaciones" min="1" step="1" required data-inventory-presentation-count><small>{% translate "Registra bobinas, rollos, envases, cajas o paquetes completos; siempre como número entero." %}</small></label>
+    <label>{% translate "Total contabilizado (" %}<span data-inventory-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="cantidad_inicial" min="0.001" step="0.001" readonly required data-inventory-calculated-quantity><small data-inventory-quantity-help>{% translate "El sistema calculará la cantidad base según la presentación comercial." %}</small></label>
+    <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_lote_consumible %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Equipo donde está en uso" %}<select name="equipo_en_uso_id" data-inventory-equipment><option value="">{% translate "Permanece en bodega" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Bodega o ambiente" %}<input name="bodega" maxlength="120" placeholder="{% translate "Ej. Bodega FabLab" %}"></label>
+    <label>{% translate "Estantería" %}<input name="estanteria" maxlength="80" placeholder="{% translate "Ej. Estantería FDM" %}"></label>
+    <label>{% translate "Posición" %}<input name="posicion" maxlength="80" placeholder="{% translate "Ej. Nivel 2 · Caja A" %}"></label>
+    <label>{% translate "Fecha de ingreso" %}<input type="date" name="fecha_ingreso" value="{% now 'Y-m-d' %}"></label>
+    <label>{% translate "Fecha de apertura" %}<input type="date" name="fecha_apertura"></label>
+    <label>{% translate "Fecha de vencimiento" %}<input type="date" name="fecha_vencimiento"></label>
+    <label>{% translate "Costo por" %} <span data-inventory-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="costo_unitario" min="0" step="0.0001"></label>
+    <label>{% translate "Documento de recepción" %}<input name="documento_recepcion" maxlength="120"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="4"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-archive"></i> {% translate "Retirar lote" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar lote" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'insumos' or vista_gestion == 'recursos' and modo_recursos == 'inventario' %}
+<form class="unit-console-operation" data-agenda-operation-form="consumible" data-reload-view="recursos" data-reload-resources-mode="inventario" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="consumible"><input type="hidden" name="registro_id">
+  <header><span>{% translate "CATÁLOGO DE ABASTECIMIENTO" %}</span><h3>{% translate "Ficha del insumo o material" %}</h3><p>{% translate "Define exactamente qué se admite, cómo se compra y cuándo debe reponerse. Las existencias solo cambian mediante movimientos trazables." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Código" %}<input name="codigo" maxlength="50" required></label>
+    <label>{% translate "Nombre" %}<input name="nombre" maxlength="200" required></label>
+    <label>{% translate "Tipo" %}<select name="clasificacion">{% for codigo, nombre in clasificaciones_consumible %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Familia" %}<input name="familia" maxlength="100" placeholder="{% translate "Ej. Filamentos" %}"></label>
+    <label>{% translate "Variante" %}<input name="variante" maxlength="120" placeholder="{% translate "Ej. PLA, 1,75 mm" %}"></label>
+    <label>{% translate "Color" %}<input name="color" maxlength="50"></label>
+    <label>{% translate "Marca admitida" %}<input name="marca" maxlength="100"></label>
+    <label>{% translate "Presentación comercial" %}<input name="presentacion" maxlength="120" placeholder="{% translate "Ej. Bobina de 1 kg" %}"></label>
+    <label>{% translate "Contenido por presentación" %}<input type="number" name="cantidad_por_presentacion" min="0.001" step="0.001" value="1" required></label>
+    <label>{% translate "Unidad base" %}<input name="unidad_medida" maxlength="50" placeholder="{% translate "g, mL, lámina, unidad" %}" data-consumable-base-unit required><small>{% translate "Esta unidad se mostrará en todo ingreso, consumo, stock y costo." %}</small></label>
+    <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="3"></textarea></label>
+    <label class="is-wide">{% translate "Especificación técnica autorizada" %}<textarea name="especificacion_tecnica" rows="3" placeholder="{% translate "Composición, diámetro, tolerancias, calidad y demás requisitos que evitan dañar el equipo." %}"></textarea></label>
+    <label class="is-wide">{% translate "Orientación para solicitar" %}<textarea name="instrucciones_solicitud" rows="3" placeholder="{% translate "Indica al usuario cómo estimar o solicitar la cantidad." %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__section-head"><span>{% translate "PLAN DE REPOSICIÓN" %}</span><h3>{% translate "Niveles y abastecimiento" %}</h3><p>{% translate "El sistema usa estos valores y el consumo de los últimos 90 días para anticipar la compra." %}</p></div>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Punto de reposición (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="minimo" min="0" step="0.001" value="0" required></label>
+    <label>{% translate "Stock de seguridad (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="stock_seguridad" min="0" step="0.001" value="0" required></label>
+    <label>{% translate "Stock objetivo (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="stock_objetivo" min="0" step="0.001" value="0" required></label>
+    <label>{% translate "Plazo de reposición (días)" %}<input type="number" name="plazo_reposicion_dias" min="0" step="1" value="0" required></label>
+    <label>{% translate "Costo por" %} <span data-stock-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="precio_unitario" min="0" step="0.0001"></label>
+    <label>{% translate "Origen habitual" %}<select name="origen_abastecimiento">{% for codigo, nombre in origenes_abastecimiento %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Proveedor o dependencia de referencia" %}<input name="proveedor_referencia" maxlength="180"></label>
+    <label class="is-wide">{% translate "Ubicación general de referencia" %}<input name="ubicacion" maxlength="200" placeholder="{% translate "La ubicación exacta se registra por lote: bodega, estantería y posición" %}"></label>
+  </div>
+  <div class="unit-console-operation__section-head"><span>{% translate "COMPATIBILIDAD TÉCNICA" %}</span><h3>{% translate "Equipos autorizados" %}</h3><p>{% translate "Si eliges modelos, el sistema impedirá solicitar este insumo con equipos incompatibles. Déjalo vacío únicamente para materiales de uso general." %}</p></div>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Modelos compatibles" %}<select name="equipos_compatibles"{% if catalogos_remotos %} data-resource-select="modelos_unidad" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} multiple size="6">{% for equipo in catalogos_equipos_unidad %}<option value="{{ equipo.pk }}">{{ equipo.codigo }} · {{ equipo.nombre }}{% if equipo.marca %} · {{ equipo.marca }} {{ equipo.modelo }}{% endif %}</option>{% endfor %}</select></label>
+    <label>{% translate "Fotografía" %}<input type="file" name="imagen" accept="image/png,image/jpeg,image/webp"></label>
+    <label>{% translate "Ficha técnica PDF" %}<input type="file" name="ficha_tecnica" accept="application/pdf"></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Disponibilidad" %}</legend><label><input type="checkbox" name="visible_en_reservas" checked> {% translate "Visible en reservas" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Registro activo" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar ficha" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'finanzas' %}
+<form class="unit-console-operation" data-agenda-operation-form="finanzas" data-reload-view="recursos" data-reload-resources-mode="finanzas" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="finanzas"><input type="hidden" name="registro_id">
+  <header><span>{% translate "CONTROL FINANCIERO" %}</span><h3>{% translate "Ingreso o egreso documentado" %}</h3><p>{% translate "Registra valores reales. Una cotización de servicio no se considera ingreso hasta que este movimiento sea confirmado." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Tipo" %}<select name="tipo" data-financial-type data-financial-field required>{% for codigo, nombre in tipos_movimiento_financiero %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Categoría" %}<select name="categoria" data-financial-category data-financial-field required>{% for codigo, nombre in categorias_movimiento_financiero %}<option value="{{ codigo }}" data-financial-category-type="{% if codigo == 'servicio' or codigo == 'producto' or codigo == 'aporte_proyecto' or codigo == 'otro_ingreso' %}ingreso{% else %}egreso{% endif %}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Fuente del fondo" %}<select name="fuente_fondos" data-financial-field required>{% for codigo, nombre in fuentes_movimiento_financiero %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Estado" %}<select name="estado" data-financial-field required>{% for codigo, nombre in estados_movimiento_financiero %}<option value="{{ codigo }}"{% if codigo == 'anulado' %} disabled{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Fecha" %}<input type="date" name="fecha_movimiento" value="{% now 'Y-m-d' %}" data-financial-field required></label>
+    <label>{% translate "Monto real (USD)" %}<input type="number" name="monto" min="0.01" step="0.01" data-financial-field required></label>
+    <label>{% translate "Método o respaldo" %}<select name="metodo" data-financial-field>{% for codigo, nombre in metodos_movimiento_financiero %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Referencia" %}<input name="referencia" maxlength="120" data-financial-field placeholder="{% translate "Factura, depósito u orden" %}"></label>
+    <label class="is-wide">{% translate "Concepto" %}<input name="descripcion" maxlength="240" data-financial-field required></label>
+    <label class="is-wide">{% translate "Reserva de servicio" %}<select name="reserva_id" data-financial-field><option value="">{% translate "Sin reserva vinculada" %}</option>{% for reserva in reservas_servicio_finanzas %}<option value="{{ reserva.pk }}">{{ reserva.codigo_reserva }} · {{ reserva.fecha|date:"d/m/Y" }} · {% firstof reserva.titulo_solicitud reserva.equipo_nombre "Servicio" %}{% if reserva.costo_estimado is not None %} {% translate "· cotizado $" %}{{ reserva.costo_estimado|floatformat:2 }}{% endif %}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Ingreso físico de inventario" %}<select name="movimiento_inventario_id" data-financial-field><option value="">{% translate "Sin movimiento vinculado" %}</option>{% for movimiento in ingresos_inventario_finanzas %}<option value="{{ movimiento.pk }}">#{{ movimiento.pk }} · {{ movimiento.fecha|date:"d/m/Y" }} · {{ movimiento.consumible.nombre }} · {{ movimiento.cantidad|floatformat:"-3" }} {{ movimiento.consumible.unidad_medida }}</option>{% endfor %}</select></label>
+    <details class="is-wide" data-financial-egreso hidden>
+      <summary>{% translate "Equipo, intervención y respaldo administrativo del egreso" %}</summary>
+      <p>{% translate "Registra la revisión y autorización ya emitidas por el área competente. Este formulario no autoriza compras. Los recursos de autogestión también requieren el procedimiento y los respaldos aplicables." %}</p>
+      <div class="unit-console-operation__grid">
+        <label class="is-wide">{% translate "Equipo relacionado" %}<select name="equipo_financiero_id" data-financial-field data-financial-egreso-field><option value="">{% translate "Sin equipo específico" %}</option>{% for equipo in equipos_finanzas %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
+        <label class="is-wide">{% translate "Orden de mantenimiento o reparación" %}<select name="mantenimiento_financiero_id" data-financial-field data-financial-egreso-field><option value="">{% translate "Sin orden vinculada" %}</option>{% for orden in mantenimientos_finanzas %}<option value="{{ orden.pk }}">{{ orden.codigo }} · {{ orden.equipo.codigo_unidad }} · {{ orden.titulo }}</option>{% endfor %}</select><small>{% translate "Al elegir una orden, el equipo se vincula automáticamente. El monto se registra una sola vez; el costo técnico de la orden no genera otro egreso." %}</small></label>
+        <label>{% translate "Procedimiento revisado" %}<select name="procedimiento_solicitado" data-financial-field data-financial-egreso-field>{% for codigo, nombre in procedimientos_movimiento_financiero %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+        <label>{% translate "Autorización y autoridad responsable" %}<input name="referencia_autorizacion" maxlength="240" data-financial-field data-financial-egreso-field placeholder="{% translate "Oficio o acto y autoridad o delegado" %}"></label>
+        <label class="is-wide">{% translate "Certificación o fondo autorizado" %}<input name="certificacion_presupuestaria" maxlength="240" data-financial-field data-financial-egreso-field placeholder="{% translate "Referencia de disponibilidad certificada o del fondo autorizado" %}"></label>
+        <label class="is-wide">{% translate "Reglamento o fundamento aplicable" %}<input name="fundamento_procedimiento" maxlength="240" data-financial-field data-financial-egreso-field><small>{% translate "Para caja chica u otro procedimiento, identifica la norma y vigencia que revisó el área competente. El importe por sí solo no habilita una excepción." %}</small></label>
+        <label class="is-wide"><span><input type="checkbox" name="procedimiento_verificado" data-financial-field data-financial-egreso-field> {% translate "Consta la revisión administrativa ya emitida y su respaldo en el expediente." %}</span></label>
+      </div>
+      <small>{% translate "Antes de confirmar un egreso, completa estas referencias y adjunta su comprobante. Puedes guardar el registro pendiente mientras se reúnen los respaldos." %}</small>
+    </details>
+    <label>{% translate "Comprobante" %}<input type="file" name="comprobante" data-financial-field accept="application/pdf,image/png,image/jpeg,image/webp"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="3" data-financial-field></textarea></label>
+  </div>
+  <div class="unit-console-operation__section-head" data-financial-cancellation hidden><span>{% translate "CORRECCIÓN TRAZABLE" %}</span><h3>{% translate "Anular sin borrar" %}</h3><p>{% translate "El registro original permanecerá visible. Explica la corrección y crea después el movimiento correcto." %}</p></div>
+  <label class="unit-console-operation__standalone-label" data-financial-cancellation hidden>{% translate "Motivo de anulación" %}<textarea name="motivo_anulacion" rows="3"></textarea></label>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete data-agenda-delete-action="anular" hidden><i class="fas fa-ban"></i> {% translate "Anular movimiento" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cerrar" %}</button><button type="submit" class="is-primary" data-financial-save><i class="fas fa-save"></i> {% translate "Guardar movimiento" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'configuracion' %}
+<form class="unit-console-operation" data-agenda-operation-form="responsable" data-reload-view="configuracion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="responsable"><input type="hidden" name="registro_id">
+  <header><span>{% translate "EQUIPO HUMANO" %}</span><h3>{% translate "Responsable de la unidad" %}</h3><p>{% translate "El administrador principal es único y se define en la unidad. Coordinación supervisa la operación; el laboratorista atiende el trabajo diario." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <div class="is-wide" data-responsible-search data-search-url="{% url 'buscar_usuarios_reserva' %}" data-unidad="{{ unidad.slug }}"
+         data-msg-min="{% translate 'Escribe al menos dos caracteres para buscar una cuenta activa.' %}"
+         data-msg-loading="{% translate 'Buscando cuentas…' %}"
+         data-msg-empty="{% translate 'No se encontraron cuentas activas.' %}"
+         data-msg-error="{% translate 'No fue posible buscar. Vuelve a intentarlo.' %}"
+         data-msg-selected="{% translate 'Cuenta seleccionada:' %}">
+      <label>{% translate "Buscar cuenta institucional" %}<input type="search" data-responsible-query autocomplete="off" maxlength="120" placeholder="{% translate 'Nombre, usuario o correo' %}"></label>
+      <small data-responsible-status role="status" aria-live="polite">{% translate "Escribe al menos dos caracteres para buscar una cuenta activa." %}</small>
+      <div data-responsible-results></div>
+    </div>
+    <label class="is-wide">{% translate "Cuenta institucional" %}<select name="usuario_id"><option value="">{% translate "Sin acceso al panel (solo contacto público)" %}</option>{% for usuario in usuarios_responsables_disponibles %}<option value="{{ usuario.pk }}">{% firstof usuario.get_full_name usuario.username %} · {{ usuario.email|default:usuario.username }}</option>{% endfor %}</select><small>{% translate "Es obligatoria para recibir reservas, entrar al panel o conservar trazabilidad personal." %}</small></label>
+    <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" required></label>
+    <label>{% translate "Rol" %}<select name="rol">{% if request.user.is_superuser or unidad.administrador_id == request.user.pk %}<option value="coordinacion">{% translate "Coordinación" %}</option>{% endif %}<option value="responsable_tecnico">{% translate "Responsable técnico" %}</option><option value="laboratorista">{% translate "Laboratorista" %}</option><option value="tecnico">{% translate "Técnico especialista" %}</option><option value="soporte">{% translate "Soporte operativo" %}</option><option value="otro">{% translate "Otro" %}</option></select></label>
+    <label>{% translate "Correo" %}<input type="email" name="email"></label>
+    <label>{% translate "Teléfono" %}<input name="telefono" maxlength="60"></label>
+    <label>{% translate "Horario de atención" %}<input name="horario_atencion" maxlength="120"></label>
+    <label class="is-wide">{% translate "Descripción" %}<input name="descripcion" maxlength="240"></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Visibilidad y asignación" %}</legend><label><input type="checkbox" name="publico" checked> {% translate "Contacto público" %}</label><label><input type="checkbox" name="recibe_reservas" checked> {% translate "Puede recibir reservas" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Responsable activo" %}</label></fieldset>
+  <fieldset class="unit-console-operation__checks unit-console-operation__checks--stack"><legend>{% translate "Permisos del panel" %}</legend>{% if permisos_operativos.reservas %}<label><input type="checkbox" name="permiso_reservas" checked> {% translate "Gestionar y decidir reservas" %}</label>{% endif %}{% if permisos_operativos.agenda %}<label><input type="checkbox" name="permiso_agenda" checked> {% translate "Jornadas, bloqueos y excepciones" %}</label>{% endif %}{% if permisos_operativos.recursos %}<label><input type="checkbox" name="permiso_recursos" checked> {% translate "Espacios, equipos y software" %}</label>{% endif %}{% if permisos_operativos.mantenimiento %}<label><input type="checkbox" name="permiso_mantenimiento" checked> {% translate "Incidencias y mantenimiento" %}</label>{% endif %}{% if permisos_operativos.inventario %}<label><input type="checkbox" name="permiso_inventario" checked> {% translate "Insumos y movimientos" %}</label>{% endif %}{% if permisos_operativos.finanzas %}<label><input type="checkbox" name="permiso_finanzas"> {% translate "Costos y sostenibilidad financiera" %}</label>{% endif %}{% if permisos_operativos.practicas %}<label><input type="checkbox" name="permiso_practicas" checked> {% translate "Prácticas y ejecución" %}</label>{% endif %}{% if permisos_operativos.produccion %}<label><input type="checkbox" name="permiso_produccion"> {% translate "Producción, lotes y salidas" %}</label>{% endif %}{% if permisos_operativos.reportes %}<label><input type="checkbox" name="permiso_reportes" checked> {% translate "Indicadores y reportes" %}</label>{% endif %}{% if permisos_operativos.configuracion %}<label><input type="checkbox" name="permiso_configuracion"> {% translate "Configuración de la unidad" %}</label>{% endif %}{% if permisos_operativos.corregir_cerradas %}<label><input type="checkbox" name="permiso_corregir_cerradas"> {% translate "Corregir solicitudes cerradas" %}</label>{% endif %}</fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar responsable" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'configuracion' %}
+<form class="unit-console-operation" data-agenda-operation-form="capacidad" data-reload-view="configuracion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="capacidad">
+  <header><span>{% translate "CAPACIDAD OPERATIVA" %}</span><h3>{% translate "Nueva vigencia" %}</h3><p>{% translate "Registra una fotografía histórica; la capacidad efectiva será el menor de los cuatro límites." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Vigente desde" %}<input type="date" name="vigente_desde" value="{% now 'Y-m-d' %}" required></label>
+    <label>{% translate "Aforo de seguridad" %}<input type="number" name="aforo_seguridad" min="1" value="{% if capacidad %}{{ capacidad.aforo_seguridad }}{% else %}1{% endif %}" required></label>
+    <label>{% translate "Puestos con mobiliario" %}<input type="number" name="puestos_mobiliario" min="1" value="{% if capacidad %}{{ capacidad.puestos_mobiliario }}{% else %}1{% endif %}" required></label>
+    <label>{% translate "Puestos equipados" %}<input type="number" name="puestos_equipados" min="1" value="{% if capacidad %}{{ capacidad.puestos_equipados }}{% else %}1{% endif %}" required></label>
+    <label>{% translate "Capacidad del personal" %}<input type="number" name="capacidad_personal" min="1" value="{% if capacidad %}{{ capacidad.capacidad_personal }}{% else %}1{% endif %}" required></label>
+    <label class="is-wide">{% translate "Fuente" %}<input name="fuente" maxlength="180" placeholder="{% translate "Acta, inspección o inventario" %}"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="4"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Registrar capacidad" %}</button></footer>
+</form>
+{% endif %}
+
+{% if not carga_selectiva_panel or vista_gestion == 'configuracion' %}
+<form class="unit-console-operation" data-agenda-operation-form="configuracion" data-reload-view="configuracion" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="configuracion">
+  <header><span>{% translate "PERMISOS OPERATIVOS" %}</span><h3>{% translate "Módulos habilitados" %}</h3><p>{% translate "Define qué operaciones estarán disponibles para esta unidad." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Referencia espacio (USD/h)" %}<input type="number" name="tarifa_referencial_hora_espacio" min="0" step="0.01" value="{{ configuracion_operativa.tarifa_referencial_hora_espacio|floatformat:'2u' }}" required></label>
+    <label>{% translate "Referencia equipo (USD/h por unidad)" %}<input type="number" name="tarifa_referencial_hora_equipo" min="0" step="0.01" value="{{ configuracion_operativa.tarifa_referencial_hora_equipo|floatformat:'2u' }}" required></label>
+    <label>{% translate "Referencia software (USD/h por licencia)" %}<input type="number" name="tarifa_referencial_hora_software" min="0" step="0.01" value="{{ configuracion_operativa.tarifa_referencial_hora_software|floatformat:'2u' }}" required></label>
+    <label>{% translate "Referencia acompañamiento (USD/h)" %}<input type="number" name="tarifa_referencial_hora_acompanamiento" min="0" step="0.01" value="{{ configuracion_operativa.tarifa_referencial_hora_acompanamiento|floatformat:'2u' }}" required></label>
+    <p class="is-wide"><strong>{% translate "Aporte UPEC: 100 % de recursos y personal." %}</strong> {% translate "Los valores por hora son referencias del aporte institucional. El usuario paga únicamente los materiales consumidos." %}</p>
+    {% if configuracion_operativa.registra_produccion %}<label>{% translate "Tarifa de energía (USD/kWh)" %}<input type="number" name="tarifa_energia_kwh" min="0" step="0.0001" value="{{ configuracion_operativa.tarifa_energia_kwh|floatformat:'4u' }}"></label>
+    <label>{% translate "Hora-persona en producción (USD/h)" %}<input type="number" name="costo_hora_persona" min="0" step="0.01" value="{{ configuracion_operativa.costo_hora_persona|floatformat:'2u' }}"></label>
+    <p class="is-wide">{% translate "Dan el costo de cada corrida: la potencia de cada equipo por su tiempo y las horas-persona de cada etapa. Vacías, esa parte queda sin dato." %}</p>{% endif %}
+  </div>
+  <fieldset class="unit-console-operation__checks unit-console-operation__checks--stack"><legend>{% translate "Capacidades" %}</legend>
+    <label><input type="checkbox" name="solicitudes_servicio"{% if configuracion_operativa.solicitudes_servicio %} checked{% endif %}> {% translate "Solicitudes de servicios" %}</label><label><input type="checkbox" name="reservas_espacios"{% if configuracion_operativa.reservas_espacios %} checked{% endif %}> {% translate "Reservas de espacios" %}</label><label><input type="checkbox" name="reservas_equipos"{% if configuracion_operativa.reservas_equipos %} checked{% endif %}> {% translate "Reservas de equipos" %}</label><label><input type="checkbox" name="inventario_equipos"{% if configuracion_operativa.inventario_equipos %} checked{% endif %}> {% translate "Catálogo de equipos" %}</label><label><input type="checkbox" name="mantenimiento_equipos"{% if configuracion_operativa.mantenimiento_equipos %} checked{% endif %}> {% translate "Mantenimiento" %}</label><label><input type="checkbox" name="incidencias_equipos"{% if configuracion_operativa.incidencias_equipos %} checked{% endif %}> {% translate "Incidencias" %}</label><label><input type="checkbox" name="ciclo_vida_equipos"{% if configuracion_operativa.ciclo_vida_equipos %} checked{% endif %}> {% translate "Ciclo de vida de equipos" %}</label><label><input type="checkbox" name="consumibles"{% if configuracion_operativa.consumibles %} checked{% endif %}> {% translate "Inventario y consumibles" %}</label><label><input type="checkbox" name="revision_tecnica"{% if configuracion_operativa.revision_tecnica %} checked{% endif %}> {% translate "Revisión técnica" %}</label><label><input type="checkbox" name="cotizacion_costos"{% if configuracion_operativa.cotizacion_costos %} checked{% endif %}> {% translate "Cotización y costos" %}</label><label><input type="checkbox" name="ordenes_trabajo"{% if configuracion_operativa.ordenes_trabajo %} checked{% endif %}> {% translate "Órdenes de trabajo" %}</label><label><input type="checkbox" name="indicadores_reportes"{% if configuracion_operativa.indicadores_reportes %} checked{% endif %}> {% translate "Indicadores y reportes" %}</label><label><input type="checkbox" name="seguimiento"{% if configuracion_operativa.seguimiento %} checked{% endif %}> {% translate "Seguimiento" %}</label><label><input type="checkbox" name="registra_produccion"{% if configuracion_operativa.registra_produccion %} checked{% endif %}> {% translate "Producción: productos, recetas, órdenes y lotes" %}</label>
+  </fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar permisos" %}</button></footer>
+</form>
+{% endif %}

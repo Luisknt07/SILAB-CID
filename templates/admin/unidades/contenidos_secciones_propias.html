@@ -1,0 +1,44 @@
+{% load i18n %}{% comment %}Las secciones que la unidad creó con plantilla dentro de una pestaña: se renombran, ordenan, ocultan y se
+eliminan mientras solo tengan muestras; su contenido se edita en su propia página.{% endcomment %}
+<ul class="arbol">
+  {% for propia in pestana.propias %}
+  <li id="seccion-propia-{{ propia.pk }}">
+    <div class="arbol__nodo is-automatica{% if not propia.activa %} is-oculta{% endif %}">
+      {% include "admin/unidades/contenidos_icono.html" with tipo='automatica' %}
+      <span class="arbol__tipo">{% translate "Sección con plantilla" %}{% if propia.numero %} {{ propia.numero }}{% endif %}</span>
+      {% if puede_editar %}{% translate "Nombre de la sección" as etiqueta %}{% include "admin/unidades/contenidos_nombre.html" with accion='renombrar_seccion_propia' campo1='seccion_propia' valor1=propia.pk nombre=propia.titulo volver=pestana.ancla etiqueta=etiqueta campo2='' campo3='' vacio=False marcador='' maximo=120 clase='' %}{% else %}<strong class="arbol__nombre">{{ propia.titulo }}</strong>{% endif %}
+      <ul class="contenidos-ficha__estados">
+        <li>{{ propia.get_plantilla_display }}</li>
+        <li>{% blocktranslate count total=propia.total %}{{ total }} elemento{% plural %}{{ total }} elementos{% endblocktranslate %}{% if propia.muestras %} · {% blocktranslate count total=propia.muestras %}{{ total }} de muestra{% plural %}{{ total }} de muestra{% endblocktranslate %}{% endif %}</li>
+      </ul>
+      <div class="contenidos-ficha__acciones">
+        {% if puede_editar %}
+        {% if not propia.primera %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="ordenar_seccion_propia"><input type="hidden" name="direccion" value="subir"><input type="hidden" name="seccion_propia" value="{{ propia.pk }}"><input type="hidden" name="volver" value="{{ pestana.ancla }}"><button type="submit" class="is-secundario" aria-label="{% translate 'Subir un lugar' %}">↑</button></form>{% endif %}
+        {% if not propia.ultima %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="ordenar_seccion_propia"><input type="hidden" name="direccion" value="bajar"><input type="hidden" name="seccion_propia" value="{{ propia.pk }}"><input type="hidden" name="volver" value="{{ pestana.ancla }}"><button type="submit" class="is-secundario" aria-label="{% translate 'Bajar un lugar' %}">↓</button></form>{% endif %}
+        {% include "admin/unidades/contenidos_interruptor.html" with accion='alternar_seccion_propia' campo1='seccion_propia' valor1=propia.pk activo=propia.activa volver=pestana.ancla campo2='' campo3='' %}
+        {% endif %}
+        <a class="arbol__enlace" href="{{ propia.url }}" target="_blank" rel="noopener">{% translate "Abrir y editar" %}</a>
+        {% if puede_editar and propia.eliminable %}
+        <details class="arbol__mas is-peligro"><summary>{% translate "Eliminar" %}</summary><div class="arbol__menu"><form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+          <input type="hidden" name="accion" value="eliminar_seccion_propia"><input type="hidden" name="seccion_propia" value="{{ propia.pk }}"><input type="hidden" name="volver" value="{{ pestana.ancla }}">
+          <span>{% translate "Solo tiene elementos de muestra. Se elimina para siempre." %}</span><button type="submit" class="is-peligro">{% translate "Eliminar sección" %}</button>
+        </form></div></details>
+        {% endif %}
+      </div>
+    </div>
+  </li>
+  {% endfor %}
+  {% if puede_editar %}
+  <li class="arbol__agregar">
+    <details class="contenidos-ficha__nueva">
+      <summary>{% translate "+ Nueva sección con plantilla" %}</summary>
+      <form method="post" class="contenidos-ficha__formulario">{% csrf_token %}
+        <input type="hidden" name="accion" value="crear_seccion_propia"><input type="hidden" name="modulo" value="{{ pestana.modulo.pk }}"><input type="hidden" name="volver" value="{{ pestana.ancla }}">
+        <label>{% translate "Título" %} <input type="text" name="nombre" maxlength="120" required></label>
+        <label>{% translate "Plantilla" %} <select name="plantilla">{% for clave, nombre in plantillas_seccion %}<option value="{{ clave }}">{{ nombre }}</option>{% endfor %}</select></label>
+        <button type="submit">{% translate "Crear sección" %}</button>
+      </form>
+    </details>
+  </li>
+  {% endif %}
+</ul>

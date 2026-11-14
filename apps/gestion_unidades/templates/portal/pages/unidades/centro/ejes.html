@@ -1,0 +1,18 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "Ejes productivos" %}{% endblock %}
+{% block encabezado %}{% translate "Ejes productivos" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué produce cada eje del centro, cómo trabaja, con qué áreas y a dónde va lo que produce" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Ejes" %}</dt><dd>{{ ejes|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Ejes productivos" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+<ul class="centro-ejes">{% for item in ejes %}{% with eje=item.eje %}<li>
+  <a class="centro-ejes__foto" href="{% url 'eje_centro' unidad.slug eje.codigo %}">{% if item.portada %}<img src="{{ item.portada.imagen.url }}" alt="{{ item.portada.titulo }}" loading="lazy">{% endif %}</a>
+  <h3><i class="{{ eje.icono }}" aria-hidden="true"></i><a href="{% url 'eje_centro' unidad.slug eje.codigo %}">{{ eje.titulo }}</a></h3>
+  <p>{{ eje.resumen }}</p>
+  {% if eje.lista_rubros %}<ul class="centro-ejes__rubros">{% for rubro in eje.lista_rubros %}<li>{{ rubro }}</li>{% endfor %}</ul>{% endif %}
+</li>{% endwith %}{% empty %}<li><p>{% translate "El centro todavía no define sus ejes productivos." %}</p></li>{% endfor %}</ul>
+{% translate "Nuevo eje productivo" as titulo_nuevo %}{% translate "Agregar un eje" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='eje_productivo' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="titulo descripcion"><title id="titulo">Tres indicadores con significado claro</title><desc id="descripcion">Cuenta productos; evita sumar kilogramos, cajas y unidades como si fueran iguales</desc>
+<rect x="0" y="0" width="1200" height="144" rx="0" fill="#122d2a"/>
+<text x="42" y="38" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#ffda50">APLICACIONES LOGÍSTICAS CON IA</text>
+<text x="42" y="85" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">Tres indicadores con significado claro</text>
+<text x="42" y="131" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#c9ded6">Cuenta productos; evita sumar kilogramos, cajas y unidades como si fueran iguales</text>
+<rect x="40" y="190" width="350" height="255" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="40" y="190" width="8" height="255" rx="3" fill="#24623c"/>
+<circle cx="80" cy="230" r="21" fill="#24623c"/>
+<text x="71" y="236" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">1</text>
+<text x="115" y="235" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#24623c">Productos</text>
+<text x="64" y="299" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Número de registros del</text>
+<text x="64" y="330" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">catálogo. Ejemplo demo: 4.</text>
+<rect x="425" y="190" width="350" height="255" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="425" y="190" width="8" height="255" rx="3" fill="#087c87"/>
+<circle cx="465" cy="230" r="21" fill="#087c87"/>
+<text x="456" y="236" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">2</text>
+<text x="500" y="235" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#087c87">Bajo mínimo</text>
+<text x="449" y="299" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Existencia menor al mínimo.</text>
+<text x="449" y="330" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Ejemplo demo: 2.</text>
+<rect x="810" y="190" width="350" height="255" rx="18" fill="#ffffff" stroke="#d4e1db" stroke-width="2"/>
+<rect x="810" y="190" width="8" height="255" rx="3" fill="#3266af"/>
+<circle cx="850" cy="230" r="21" fill="#3266af"/>
+<text x="841" y="236" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#ffffff">3</text>
+<text x="885" y="235" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#3266af">Sin stock</text>
+<text x="834" y="299" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Existencia igual a cero.</text>
+<text x="834" y="330" font-family="Arial, sans-serif" font-size="23" font-weight="400" fill="#122d2a">Ejemplo demo: 0.</text>
+<rect x="65" y="490" width="1070" height="160" rx="18" fill="#fff4cc" stroke="#e7c96c" stroke-width="2"/>
+<text x="90" y="536" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#122d2a">Antes de importar un CSV</text>
+<text x="90" y="582" font-family="Arial, sans-serif" font-size="24" font-weight="400" fill="#122d2a">codigo, nombre, unidad, minimo. Revisa encabezados y errores; el kit rechaza el archivo</text>
+<text x="90" y="614" font-family="Arial, sans-serif" font-size="24" font-weight="400" fill="#122d2a">completo si una fila es inválida.</text>
+<line x1="40" y1="704" x2="1160" y2="704" stroke="#d4e1db" stroke-width="2" stroke-linecap="round"/>
+<text x="42" y="739" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#4c6662">Caso docente Andina Distribución · Datos ficticios · Aprende, prueba y comprueba</text>
+</svg>

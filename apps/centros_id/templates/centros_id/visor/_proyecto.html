@@ -1,0 +1,14 @@
+{% load i18n %}{% comment %}Un proyecto con la tarjeta de actividad de Laboratorios: su estado, de qué trata, quién lo lleva, hasta
+dónde llegó en la ruta y su avance; abre su ficha en ventana.{% endcomment %}<a class="area__actividad cv-tarjeta-enlace" href="{% url 'fragmento_centro_id' centro.slug 'proyecto' proyecto.pk %}" data-modal="{% url 'fragmento_centro_id' centro.slug 'proyecto' proyecto.pk %}"{% if abrir == proyecto.pk %} data-abrir-auto{% endif %} data-aparecer>
+  <header><i class="fas fa-rocket" aria-hidden="true"></i><div><span class="ficha__rol">{% if proyecto.estado_catalogo %}{{ proyecto.estado_catalogo }}{% else %}{{ proyecto.estado_publico }}{% endif %}</span>{% if proyecto.codigo %}<span class="ficha__rol cv-rol--suave">{{ proyecto.codigo }}</span>{% endif %}</div></header>
+  <h3>{{ proyecto.titulo }}</h3>
+  {% if proyecto.resumen %}<p>{{ proyecto.resumen|truncatewords:26 }}</p>{% endif %}
+  {% if proyecto.linea or proyecto.responsable or proyecto.inicio or proyecto.financiador %}<ul class="ficha__medios">
+    {% if proyecto.linea %}<li><i class="fas fa-compass" aria-hidden="true"></i>{{ proyecto.linea.nombre }}</li>{% endif %}
+    {% if proyecto.responsable %}<li><i class="fas fa-user" aria-hidden="true"></i>{{ proyecto.responsable.nombre }}</li>{% endif %}
+    {% if proyecto.inicio %}<li><i class="fas fa-calendar" aria-hidden="true"></i>{{ proyecto.inicio|date:"Y" }}{% if proyecto.fin %}–{{ proyecto.fin|date:"Y" }}{% endif %}</li>{% endif %}
+    {% if proyecto.financiador %}<li><i class="fas fa-coins" aria-hidden="true"></i>{{ proyecto.financiador }}</li>{% endif %}
+  </ul>{% endif %}
+
+  <footer><span>{% translate "Etapa:" %} <strong>{{ proyecto.get_etapa_display }}</strong></span>{% if proyecto.avance_acreditado %}<span><strong>{{ proyecto.avance }}%</strong> {% translate "de avance" %}</span>{% endif %}</footer>
+</a>

@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}La ficha de un aliado: qué aporta, con qué convenio y en qué proyectos y casos participa.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande{% if aliado.logo %} con-foto cv-ilustracion--logo{% endif %}" aria-hidden="true">{% if aliado.logo %}<img src="{{ aliado.logo.url }}" alt="">{% else %}<i class="{{ aliado.icono }}"></i>{% endif %}</span>
+  <div><span class="ficha__rol">{{ aliado.get_tipo_display }}{% if aliado.pais %} · {{ aliado.pais }}{% endif %}</span><h3>{{ aliado.nombre }}</h3>{% if aliado.aporte %}<p>{{ aliado.aporte }}</p>{% endif %}</div>
+</header>
+<div class="area__dialogo-cuerpo">
+  <p><strong>{{ aliado.get_rol_colaboracion_display }}</strong> · {{ aliado.estado_vinculo }}</p>
+  {% if aliado.actividades %}<h4>{% translate "Actividades de colaboración" %}</h4><div class="area__texto">{{ aliado.actividades|linebreaks }}</div>{% endif %}
+  {% if aliado.convenio or aliado.vigencia_hasta %}<table class="area__tabla area__tabla--ficha"><caption>{% translate "La alianza" %}</caption><tbody>
+    {% if aliado.convenio %}<tr><th scope="row">{% translate "Convenio" %}</th><td>{{ aliado.convenio }}</td></tr>{% endif %}
+    {% if aliado.vigencia_hasta %}<tr><th scope="row">{% translate "Vigente hasta" %}</th><td>{{ aliado.vigencia_hasta|date:"d/m/Y" }}</td></tr>{% endif %}
+  </tbody></table>{% endif %}
+  {% if proyectos or casos %}<div class="area__dialogo-listas">
+    {% if proyectos %}<div><h4><i class="fas fa-rocket" aria-hidden="true"></i> {% translate "Proyectos en común" %}</h4><ul class="area__lista">{% for proyecto in proyectos %}{% if proyecto.publicado %}<li>{{ proyecto.titulo }} <small class="cv-mudo">{{ proyecto.estado_publico }}</small></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+    {% if casos %}<div><h4><i class="fas fa-award" aria-hidden="true"></i> {% translate "Casos de transferencia" %}</h4><ul class="area__lista">{% for caso in casos %}{% if caso.publicado %}<li>{{ caso.titulo }} <small class="cv-mudo">{{ caso.anio }}</small></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+  </div>{% endif %}
+  {% if aliado.enlace %}<div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ aliado.enlace }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt" aria-hidden="true"></i> {% translate "Sitio web" %}</a></div>{% endif %}
+</div>

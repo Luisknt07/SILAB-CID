@@ -1,0 +1,912 @@
+{
+  "version": 1,
+  "slug": "laboratorio-logistica-comercio-internacional",
+  "source_git_commit": "27a715c2f5742a357cae22f90d6e61051163ba9d",
+  "source_path": "apps/formacion/management/cursos_precargados/odoo.py",
+  "source_sha256": "7c4af4ff40c5a66c8c39d49483ffea2b4ad8d01554329191e2b4aa82b646b7e9",
+  "curso_nombre": "Odoo Lab: monta, opera y programa el ERP de tu cadena de suministro",
+  "curso_campos": {
+    "lema": "b41eec7d2d525bb2705d758810d29f111fcbcc8c605eb8dbff58309bcf63494d",
+    "clasificacion": "a5be03502ece33ca1d8554cccaf65664d20503fc0e2034d577d4ee409ced55cf",
+    "modalidad": "f87d439185c069c2f50ec129d92a697b3d6d0c19340de81aa1d0779ff46975f2",
+    "duracion_horas": "d59eced1ded07f84c145592f65bdf854358e009c5cd705f5215bf18697fed103",
+    "inscripcion": "9e41c97685b16888569c6305f555154a5e2760a4ac3ea1f156558d7ad29901f3",
+    "emite_certificado": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+    "video_url": "8c714e15b6827e12f50dc6cdbb4498f38cec6ab52b38f62714130daef8c97a5f",
+    "descripcion": "c529960617c232bafb090a6e8fe8210648d47c395352a9305bee5e310fdfde4d",
+    "aprendizajes": "01948437e7b2f3e739798fa4cadf40b03abaa7051f50af046950ef51a7193e25",
+    "dirigido_a": "13f26f0a523248bb5b364c1b5422937bd99b9a07e1a01eec40510f06ffca8e7a",
+    "requisitos": "8da33ab9f122f763721cdd6d388f029b234d45c5c72a08d7c13c6f973269893a",
+    "instructores": "f7f42f8138d9b4ee1b483e185b18e777644debfcbc516a3d77b70f78967ad4d0"
+  },
+  "edicion_nombre": "2026-II",
+  "edicion_campos": {
+    "inicio": "29e711f12700d286a6aebc79dec000008dda2bc54544eeeb4d3a4537762b33e5",
+    "fin": "d6db6f9dfd2a382e0b13b0b61597df7dbf2c9babea964eaf6f395bad44b09d7e",
+    "inscripciones_desde": "789d5b13f14185b9d0341f2c2e413f7c0c0a613f642dc6e734ada228a56c497b",
+    "inscripciones_hasta": "88d20455f00265913d14921ec27c5bc577aadb9af4f9f2bd57ebdc96d054f58e",
+    "cupo": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b",
+    "horario": "01d0f604f2743999201a6970c9b854e68ca24ba7a495b5f851574e1349bfca07",
+    "lugar": "3f3e7e744e33d33c15f7d24109dc77ece7155a34b36632a697530b9eeb405108"
+  },
+  "modulos": [
+    {
+      "titulo": "Bienvenida: el ERP de Andina Trade",
+      "campos": {
+        "descripcion": "bec520b2540f67ad83bd7524e039719fbbaa32854237df279a42049264d3e43e"
+      },
+      "lecciones": [
+        {
+          "titulo": "Cómo funciona el curso y la empresa del caso",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "53d30c2932347ffd22adfd9d9f9c64c83c1fe89309b7aba492bc824d0d2d7d4d",
+            "duracion_min": "e629fa6598d732768f7c726b4b621285f9c3b85303900aa912017db7617d8bdb"
+          }
+        },
+        {
+          "titulo": "Qué es un ERP y por qué Odoo",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "954fd2c94974b5b37f024fc02bf44e48e733d6cabd336677334d89fc425b6287",
+            "duracion_min": "e629fa6598d732768f7c726b4b621285f9c3b85303900aa912017db7617d8bdb"
+          }
+        },
+        {
+          "titulo": "¿Qué es Odoo? En menos de un minuto",
+          "tipo": "video",
+          "campos": {
+            "video_url": "8c714e15b6827e12f50dc6cdbb4498f38cec6ab52b38f62714130daef8c97a5f",
+            "duracion_min": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "contenido": "92d06cc4ca8d507d0e5c929af5a34e0b66d6f1f3bf63d3affaf7910149b566f2",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Lo mejor de Odoo 20",
+          "tipo": "video",
+          "campos": {
+            "video_url": "2d23353da8479ec0635f81b762c6a3056674cca5344b3ff1b8155dc4bffdd49b",
+            "duracion_min": "8527a891e224136950ff32ca212b45bc93f69fbb801c3b1ebedac52775f99e61",
+            "contenido": "1a504bf3bda2d872fc7d15bc88f2172880b8121eab9b0dbbc6380af37191106d",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 1: el ERP de Andina Trade",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "251dd9de48ecb36eb8a7a94ce394d38a52d89e232d60129be4681745caf61430",
+            "fecha_hora": "4397ea0afeaba3122bcfb8e68fc3a83844ca8482cddfae1421431c24ef2e5d86",
+            "duracion_min": "69f59c273b6e669ac32a6dd5e1b2cb63333d8b004f9696447aee2d422ce63763",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Odoo en línea: ediciones, planes y tu base educativa",
+      "campos": {
+        "descripcion": "1df7de23aeb699b45410495a2bc62147c591beb5bbb927c97536be1461dbb054"
+      },
+      "lecciones": [
+        {
+          "titulo": "Community, Enterprise y las formas de usar Odoo",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "40db37a859c5daaa9a9212a8ed2c9162447a47ad0829c0fde7ccdf744d836fdb",
+            "duracion_min": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b"
+          }
+        },
+        {
+          "titulo": "Primeros pasos con Odoo: configuración inicial",
+          "tipo": "video",
+          "campos": {
+            "video_url": "48eec9dd866d9cbf5826e9bda047c3c88493a6f9f1195c12be1dc441706fc18b",
+            "duracion_min": "e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683",
+            "contenido": "2e477f915212f5bd55db3476cbda5c5662f58b9c8b136f03be7ac4aeb30da3fb",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Evaluación: ediciones y planes",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "4c250f0bf1d25869ec3cd24f6b983fa54c8c76284154b5ce1b9362ef09c46f4b",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Montarlo con Docker",
+      "campos": {
+        "descripcion": "ca1562b2608679c1a4deb304dcdf8fd1d08147b51d944dbf8e26c0dfc2732feb"
+      },
+      "lecciones": [
+        {
+          "titulo": "Odoo 20 con Docker Compose, paso a paso",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "980976226779a9a63cfea25fe8975740aa9cb99cd5872755fa6b9afc4bdac013",
+            "duracion_min": "b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569"
+          }
+        },
+        {
+          "titulo": "Instalar Odoo con Docker paso a paso",
+          "tipo": "video",
+          "campos": {
+            "video_url": "92e32c01c9d5c0d05ca18e4fd21e025cab98b632e25579d8fa9e720d47a3a014",
+            "duracion_min": "4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8",
+            "contenido": "b65cee1db009ebf39998889360e84ff6e68b6b10f4e55a6a96e90ada5706940f",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Crear una instancia de Odoo 19 con Docker",
+          "tipo": "video",
+          "campos": {
+            "video_url": "fa6150ba7504384ec3515aaf7e82fb9cbe3f88fa102db74796c8c11fd53747bc",
+            "duracion_min": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+            "contenido": "4a94e8e1bb7449d81688926a0978419526fdbae50e647c8249d1715ba7b95363",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Deber: tu Odoo 20 con Docker",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "a896c5be0f45c39c2c6075cb9f7e81738dd413cebccb2a52df9f9c5eb8c78a80",
+            "duracion_min": "39fa9ec190eee7b6f4dff1100d6343e10918d044c75eac8f9e9a2596173f80c9",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Montarlo desde el código fuente",
+      "campos": {
+        "descripcion": "59b1bc233b459c0b94785f5206c24bb83ed3df8ecd684ac57f7fce1c2d5f5121"
+      },
+      "lecciones": [
+        {
+          "titulo": "Instalación desde el código fuente en Ubuntu 24.04",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "74f4cca95964af4dfa34d542d1bb420a1e9f14ab39a01e476df8d09616ed2691",
+            "duracion_min": "b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569"
+          }
+        },
+        {
+          "titulo": "Instala Odoo de forma local (serie oficial para desarrolladores)",
+          "tipo": "video",
+          "campos": {
+            "video_url": "e4e2ab70c9681ac8a39a143ddac29fd30cebff70d689cc09e8745b75627af9f3",
+            "duracion_min": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+            "contenido": "5586fd194c663201be7aa58544c146be7d47b2be05912d7845794d57ab15228e",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Guía de instalación y del caso Andina Trade (PDF)",
+          "tipo": "material",
+          "campos": {
+            "contenido": "f4eff5c958bf85c90c83d27439f1f7251e13c7cd6a3d84ae61abad70c2287257",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 2: taller de instalación",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "eb486878c0ef9c3a73a19ff4fcbc8769231a50a7de24e1cc344784147389a739",
+            "fecha_hora": "6d8687c45ddd463e3ac5d4697646407013877d2dd98d5f64038c991e0cea87e7",
+            "duracion_min": "69f59c273b6e669ac32a6dd5e1b2cb63333d8b004f9696447aee2d422ce63763",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        },
+        {
+          "titulo": "Evaluación: montar Odoo",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "23143b633f1181bcf79b1a4b8f7f018b81353ea8d7340e3ac9bc16b8adeefcc2",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Configurar la empresa ecuatoriana",
+      "campos": {
+        "descripcion": "6af4bedc71fa5ca7d133f5ecc3fab9fc7fed3f197cec221b59d28f1ec2195c4b"
+      },
+      "lecciones": [
+        {
+          "titulo": "La empresa, la localización de Ecuador y los datos maestros",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "5a695a61d309ad2fa431449e9084d07a37bc30262d31a89fb9a4816063c9247d",
+            "duracion_min": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b"
+          }
+        },
+        {
+          "titulo": "Datos maestros de la localización de Ecuador",
+          "tipo": "video",
+          "campos": {
+            "video_url": "a910f8fb1a320cd4cc0137003212d7e13aa953162f008193610f67de2f3947c4",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5",
+            "contenido": "aeb8ad190fe3fe6dd417e8cffe79396fdc3bc88d713a7c499b013a7953d86b0a",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Módulos y conceptos básicos de la localización de Ecuador",
+          "tipo": "video",
+          "campos": {
+            "video_url": "70624fe854c38be1eaacf1b95895d10173d30a540c50546494dd2ef32fed768b",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5",
+            "contenido": "a66d6f1a3bfa7c369970a1a8c6b5d29737244dda7ed1e9226efa6d8e2d61f95c",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Deber: Andina Trade lista para operar",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "3ed2c93b89ab6df7dff6415a676ab6c66619dafcd894be436f5c126e482d873f",
+            "duracion_min": "39fa9ec190eee7b6f4dff1100d6343e10918d044c75eac8f9e9a2596173f80c9",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Compras y reabastecimiento",
+      "campos": {
+        "descripcion": "832b4a4641c5e8525810167d3f366791e204dd8549d9c8e3d331e2990d1d0694"
+      },
+      "lecciones": [
+        {
+          "titulo": "El ciclo de compras y el reabastecimiento automático",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "16640ccbe2276350cb2fb4d6395ba2b5b6c244fbd417729a2948ad51183075b3",
+            "duracion_min": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b"
+          }
+        },
+        {
+          "titulo": "Primeros pasos con Odoo: comprar, recibir y registrar",
+          "tipo": "video",
+          "campos": {
+            "video_url": "60b459c3d1752d8af545bc52f35b44a4bf23b20bd0b6c55e90afd62a7fe0e21e",
+            "duracion_min": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+            "contenido": "8a54acaced26cf4e100b5e055125155d7d9c0ac2d568d19f221ad9196f06bff7",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Reabastecimiento automático paso a paso",
+          "tipo": "video",
+          "campos": {
+            "video_url": "fad8150f56a06055f0660296f49911b9d5026dac3c4a50d18e420f0659727657",
+            "duracion_min": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+            "contenido": "aa63a32e504277aea9228ab904aae8cb2b92aae95c4a2f144b53830a2cd00296",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Fabricar o comprar bajo pedido (MTO)",
+          "tipo": "video",
+          "campos": {
+            "video_url": "b142db4fac58d3e3f239078a3cc13ca7c145e2335280ee8ec9bdbfc4348b7853",
+            "duracion_min": "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
+            "contenido": "39454f766e9abec8699b048bfa119f08c86d4510232e8e47b453ad033715dd48",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 3: comprar con datos, no a ojo",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "ac8149910bca2b4ce09c194fe7ad4a63420a819783db417aa5d427c4872c1a25",
+            "fecha_hora": "3dd659754904402254f2a2d672d9851fe4427d3e13990a565c310744158086e0",
+            "duracion_min": "69f59c273b6e669ac32a6dd5e1b2cb63333d8b004f9696447aee2d422ce63763",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        },
+        {
+          "titulo": "Evaluación: compras y reabastecimiento",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "4c250f0bf1d25869ec3cd24f6b983fa54c8c76284154b5ce1b9362ef09c46f4b",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Inventario I: almacenes, ubicaciones y rutas",
+      "campos": {
+        "descripcion": "66a8b83cb8fc0f58a4a9b6b14d190844c1a435bec5189184c041689a1e80557c"
+      },
+      "lecciones": [
+        {
+          "titulo": "Almacenes, ubicaciones, rutas y reglas de almacenamiento",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "1cbddc0adc5c107cde6daeb1dc365c0cfd29c985eb6181657204bd601841a951",
+            "duracion_min": "b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569"
+          }
+        },
+        {
+          "titulo": "Gestiona tus almacenes y rutas",
+          "tipo": "video",
+          "campos": {
+            "video_url": "f5e913919f4d7c85602b57baef47092ad652675885cd21960d9a43c316f093ed",
+            "duracion_min": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+            "contenido": "81ca4d9d41131ca1e0c185d0ea2fb8f5e5b0fcb35699ab549bc25de1bf3037cf",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Rutas de varios pasos: entradas y salidas en 2 y 3 pasos",
+          "tipo": "video",
+          "campos": {
+            "video_url": "14a7258ebb6f831c5a5790b43487a9595a53100ad70f9b3cded6b545854c9efa",
+            "duracion_min": "4ec9599fc203d176a301536c2e091a19bc852759b255bd6818810a42c5fed14a",
+            "contenido": "498e5cd0880a1b3570b94a60e61d824c0d03c733a9b3b2b7de0bd52e58927d7f",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Entrega en 3 pasos con paquetes",
+          "tipo": "video",
+          "campos": {
+            "video_url": "6f5c60c117ab76b6efecabf663dece321ca26a69c8b1980143e825538ebb3b1f",
+            "duracion_min": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+            "contenido": "da496bb6cdd62de74a80394ed5432f88c049e303e91b05622a0972f0ef335aa3",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Práctica presencial: el minialmacén en Odoo",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "cf901039a7e41f86fb00345ea623ad9e11b376f6822a603e30ace163c9ca04b4",
+            "lugar": "c244c7c8ad923e7018fe349a6a3cb6f4c2faaa0f94416c5da951e586cba752b3",
+            "duracion_min": "7b69759630f869f2723875f873935fed29d2d12b10ef763c1c33b8e0004cb405",
+            "sala": "37fab92da9c69e9e7cfca50579b7c433c39cfbab83b1214f6ebe577aa78bf788"
+          }
+        },
+        {
+          "titulo": "Deber: diseña el almacén TUL",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "50ce9a905406dc42f6c7b3b7f1b2ee245299d8c0122e42d4578d70bbd8127402",
+            "duracion_min": "39fa9ec190eee7b6f4dff1100d6343e10918d044c75eac8f9e9a2596173f80c9",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Inventario II: lotes, caducidad, conteos y valoración",
+      "campos": {
+        "descripcion": "65938a846ced401c60354e44fab1b062f605b9fd90f25e934176ab5b1bb37c77"
+      },
+      "lecciones": [
+        {
+          "titulo": "Lotes, series, FEFO, conteos y valoración",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "3b4cc177be94f6f609a4a0cbeff8e578da392e1867c8fddfd80482479d43e8e5",
+            "duracion_min": "b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569"
+          }
+        },
+        {
+          "titulo": "Lotes, fechas de caducidad, FIFO y FEFO",
+          "tipo": "video",
+          "campos": {
+            "video_url": "60e0d7fcce5d44fca3c6d66d444153d98f141311b5b5ce699180651391b0f21b",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "ae7f36bf27897fa688e5edfca0db66a49780fc31232bcef0e64035be2894f048",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Números de serie, lotes y fechas de vencimiento",
+          "tipo": "video",
+          "campos": {
+            "video_url": "6e51a84cf4ffcc291a1cfa7668cd48274b5af18b95630611479fe088277d5828",
+            "duracion_min": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+            "contenido": "1c3c1b6234b91e54e0e8742a9a322918dbec70b2ccf2dbc10f919efbb864df92",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Ajuste de existencias",
+          "tipo": "video",
+          "campos": {
+            "video_url": "ae3928f9cdd065dcdb8356a82ce37b276f6252164af5436a4fa758e7e4dc1448",
+            "duracion_min": "6b51d431df5d7f141cbececcf79edf3dd861c3b4069f0b11661a3eefacbba918",
+            "contenido": "03bcdfd1d89dfe8ccd01fa146c3c251872002a08e34d63ba114827b9bf7d7465",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Costos en destino: flete, seguro y aranceles",
+          "tipo": "video",
+          "campos": {
+            "video_url": "0327a0d4b85cc5b65cc2db33b21d6dee8d60fe9f91a34ae762a6890d6b4ab9eb",
+            "duracion_min": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+            "contenido": "3ceb8e1a99c004e8348e5ce78cc82eed019636d07b83f9dd07f2cd9ef5a1f946",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Valoración automatizada de inventario",
+          "tipo": "video",
+          "campos": {
+            "video_url": "10c521b1eab6fca2e7bcaebad479737676c7216b64f37315d8f911ea8ebc1567",
+            "duracion_min": "6f4b6612125fb3a0daecd2799dfd6c9c299424fd920f9b308110a2c1fbd8f443",
+            "contenido": "638b676e6f5b38764f51d83a6ad93b7a458fb949030d04e2706ffa622e4355db",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Código de barras: lo básico",
+          "tipo": "video",
+          "campos": {
+            "video_url": "1452950df685e35279bc2217610f3e73e3e28297f5743aaf21a35e7b4b389693",
+            "duracion_min": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+            "contenido": "2980bbd3ba75334a3c12cbaff9aaa1953ce295f2e1e942d52f8ee6b4bb0c7b47",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 4: simulacro de retiro de un lote",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "de5ec2bb2ba78d7434d20ec89ba85f36a2f256d49466ff869b294d37623c64b6",
+            "fecha_hora": "9845885f2034fe08c5e647751563972a073a9cc2572668893df855bdf8822466",
+            "duracion_min": "69f59c273b6e669ac32a6dd5e1b2cb63333d8b004f9696447aee2d422ce63763",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        },
+        {
+          "titulo": "Evaluación: trazabilidad y valoración",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "4c250f0bf1d25869ec3cd24f6b983fa54c8c76284154b5ce1b9362ef09c46f4b",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Ventas y negocios internacionales",
+      "campos": {
+        "descripcion": "056ffbdf9f85ffa9c4ffc3e103c565dc4bca5da543c9c72ed252501f3fcbd10a"
+      },
+      "lecciones": [
+        {
+          "titulo": "Vender en Ecuador y al exterior",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "5366ed464f19d3096884c15527a94b168429327a07808d1f62b2a330e661ad88",
+            "duracion_min": "b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569"
+          }
+        },
+        {
+          "titulo": "Primeros pasos con Odoo: vender, entregar y facturar",
+          "tipo": "video",
+          "campos": {
+            "video_url": "aff231cf429f1b90c4d2b92bf07de7f235a855f104c3e803f4fa3bbf0bbb0c87",
+            "duracion_min": "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
+            "contenido": "412348d33720a7fd723bd8a10bdc058da555026568249682231599247ee7cc63",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Configura listas de precios y promociones",
+          "tipo": "video",
+          "campos": {
+            "video_url": "00ee77a1204eeea6f1dad7953b807d82e575fbca0c91597f020410a759021b73",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "add5e753f3e84ef21baf10c8d6b423cdc094c97ae4d0c401e183554b6df8d920",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Facturación en otra moneda",
+          "tipo": "video",
+          "campos": {
+            "video_url": "b4b21f62a794d4662b17ad5f601468a7052bfa0be60761c48aa113c5e6899cbf",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "1eafc6a6f5a42c70e638fab2590c5daf3af4a77194d3105e14b4e39952006a3b",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 5: una exportación por Rumichaca",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "2e1691e6e258dd8221ccef7ec2fd790153dd986106e6180905faae2b0641ea1b",
+            "fecha_hora": "ec27599a07f7577fec2c61c7f224799517ec7d694903ecbba8f97c9a981e7044",
+            "duracion_min": "69f59c273b6e669ac32a6dd5e1b2cb63333d8b004f9696447aee2d422ce63763",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        },
+        {
+          "titulo": "Deber: tu primera exportación",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "235fcf6b1579d3d57590c9b66c6286a3c4f3ef49682a258b09edb04c8b0036c8",
+            "duracion_min": "f369cb89fc627e668987007d121ed1eacdc01db9e28f8bb26f358b7d8c4f08ac",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Facturación y contabilidad con el SRI",
+      "campos": {
+        "descripcion": "4ec63e13bb40d5f9672e511e5204deb7980c05d0bbdc9f8c63983c0b349249e9"
+      },
+      "lecciones": [
+        {
+          "titulo": "Facturar en Ecuador con Odoo",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "02b14c62387787a9544d21d9a40cffe41301ad5eb8f85aabd703a8744fa1e781",
+            "duracion_min": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b"
+          }
+        },
+        {
+          "titulo": "Factura a cliente desde el pedido de venta",
+          "tipo": "video",
+          "campos": {
+            "video_url": "f1b0e2e64d56f7df47102a0fe791348a146c8fe003381c1a48b6225f84d1e3db",
+            "duracion_min": "e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683",
+            "contenido": "1c3c1b6234b91e54e0e8742a9a322918dbec70b2ccf2dbc10f919efbb864df92",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Conciliación bancaria",
+          "tipo": "video",
+          "campos": {
+            "video_url": "a6fb07b57a22e76b2ee30f8f82f99e42b92d753003419d96df52a3ed2a60deda",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "1c3c1b6234b91e54e0e8742a9a322918dbec70b2ccf2dbc10f919efbb864df92",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Ambiente de pruebas: localización Ecuador",
+          "tipo": "video",
+          "campos": {
+            "video_url": "854c60ce64f3f79a881d348aae4a962e6257a38a7bb75b9588f683776c0ac015",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5",
+            "contenido": "835798c3477d170587d98ff299c97875fcdd07bae14bce12832115d23b32509e",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Flujo base de la factura electrónica: localización Ecuador",
+          "tipo": "video",
+          "campos": {
+            "video_url": "851afb47bc4a0af5f9168d90f0518b5388d25c1ea15e06cebf3e76b2de9000c8",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "3b1008ab6ce400f17597fcdc6299bb286890a8c06ed943eb981e866b295b2fe0",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Guía de remisión: localización Ecuador",
+          "tipo": "video",
+          "campos": {
+            "video_url": "188de02d5b444f40ac383a4ab3bda04c59b6c9afd4c2e0dbb15bb10b35d8fad3",
+            "duracion_min": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+            "contenido": "cfbdecccab18b2b76496e05407c69725f3f01919303825c89814e11a7a83f080",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Webinar: localización de Ecuador en Odoo 18",
+          "tipo": "video",
+          "campos": {
+            "video_url": "1b22f3b2dad80c5c089b3e9808bf44547b6c4234cf2fbb72d3d36ffc2e52d563",
+            "duracion_min": "aea92132c4cbeb263e6ac2bf6c183b5d81737f179f21efdc5863739672f0f470",
+            "contenido": "387d283cf22c092484dbefcc479427e2ce0af10d7882c5b5480264a0bed3dfb2",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Evaluación: facturación y SRI",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "4c250f0bf1d25869ec3cd24f6b983fa54c8c76284154b5ce1b9362ef09c46f4b",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Fabricación con la minifábrica",
+      "campos": {
+        "descripcion": "f2ebc326875bed8e4c96e6139a138db0a497aade83c016beb67931e14a57e446"
+      },
+      "lecciones": [
+        {
+          "titulo": "Fabricar en Odoo: del pedido a la producción",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "c33f80b30f76ed47778af219e50b71143a8bfd3c0aa94e0a115e1a7870b17ba1",
+            "duracion_min": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b"
+          }
+        },
+        {
+          "titulo": "Lo que nadie te había mostrado de Manufactura",
+          "tipo": "video",
+          "campos": {
+            "video_url": "14cd08bc8040e3ea047dc34240d370712d31db58d3a14b7450141a5b1f0a057a",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "40e170731919828d0ca3bc62624b73753afe2dbe0b3140f87da689d2eae6760f",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Lista de materiales: lo básico",
+          "tipo": "video",
+          "campos": {
+            "video_url": "ebfc98a259388444be3b6fc9213be6a3678e21fcdfac9deaeb7753bbc3025be9",
+            "duracion_min": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+            "contenido": "aa7961480cb44396a05c056e37b18b4c672f5d8b1636521b3a39757aa0c8bd0a",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Práctica presencial: la minifábrica conectada a Odoo",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "73d379316e2295c01d516b25b3495ffa4a17d08c9974c79521565f29cae9e3d6",
+            "lugar": "e0b00eb087b738cb9e25095c803705900d115822b8c530b8c2deb6d6b0bd5ee3",
+            "duracion_min": "7b69759630f869f2723875f873935fed29d2d12b10ef763c1c33b8e0004cb405",
+            "sala": "37fab92da9c69e9e7cfca50579b7c433c39cfbab83b1214f6ebe577aa78bf788"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Reportes e indicadores logísticos",
+      "campos": {
+        "descripcion": "2c245348eec0d3bdcea6385de5bb1a99b6753f582672fc1bfb012db92dfd3d6a"
+      },
+      "lecciones": [
+        {
+          "titulo": "Medir la operación en Odoo",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "7dca494efa0cf428ec24d1720d76795db8b89b0b2e156eeb24b8819e5c370b2c",
+            "duracion_min": "f5ca38f748a1d6eaf726b8a42fb575c3c71f1864a8143301782de13da2d9202b"
+          }
+        },
+        {
+          "titulo": "Conceptos básicos de tableros",
+          "tipo": "video",
+          "campos": {
+            "video_url": "4b3055c23edbed12e8837060fb29483cda4f7ee3858527b918d091f45ad0c89e",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5",
+            "contenido": "5977c49bec0f1e3f8758f6c7a8544e94af7d437dc1426f98de2c166bd9f0431c",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Deber: el tablero de Andina Trade",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "3cebe9a80c7ec73baa7243123a06ab220da65f14c807c85f2ad4a63c0891b052",
+            "duracion_min": "39fa9ec190eee7b6f4dff1100d6343e10918d044c75eac8f9e9a2596173f80c9",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Programar Odoo I: tu primer módulo",
+      "campos": {
+        "descripcion": "1d275b6c0213a8edf079b8eae506d80921044a3288e7021884c7d87652008f6e"
+      },
+      "lecciones": [
+        {
+          "titulo": "Un módulo de Odoo 20 desde cero",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "2e2109b2c17e9709dbe00e173652a67bc9740d45532fb186861250cec35f02f7",
+            "duracion_min": "624b60c58c9d8bfb6ff1886c2fd605d2adeb6ea4da576068201b6c6958ce93f4"
+          }
+        },
+        {
+          "titulo": "Comencemos con un módulo (serie oficial para desarrolladores)",
+          "tipo": "video",
+          "campos": {
+            "video_url": "a2274d55ae001ae554c72d6f57a32704a6479f323b249a19ac27771321e508cf",
+            "duracion_min": "2c624232cdd221771294dfbb310aca000a0df6ac8b66b696d90ef06fdefb64a3",
+            "contenido": "045da6d019724b9c3ed6cb77dfedf9253f0d0f425ec3f80c442d2c6c8720a926",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Modelos y campos en Odoo",
+          "tipo": "video",
+          "campos": {
+            "video_url": "66cc8806603f5b22b0ad242f9e72cf13503bab78d29078a71bc469f89c2dabbf",
+            "duracion_min": "19581e27de7ced00ff1ce50b2047e7a567c76b1cbaebabe5ef03f7c3017bb5b7",
+            "contenido": "609c8d6fe81d36457a2fec33bda1d4f567b84d4a37c97a4cf0d1fdf1adac4ba0",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Aprende a crear vistas",
+          "tipo": "video",
+          "campos": {
+            "video_url": "e120c6de8ce82440d7333475447b89e039f6c8d6645d2df1c2e91d98493f56a5",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5",
+            "contenido": "2657d8463bd81800e86ebbd3a1fa67ca52285a6b2ec0c587dbe4cdc313e018d3",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Seguridad: permisos de acceso",
+          "tipo": "video",
+          "campos": {
+            "video_url": "43009373a37cc07c729a170cde5e50abcbe631ac8fdc876455285cf5ffd314ca",
+            "duracion_min": "e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683",
+            "contenido": "bd22d48c1d923c60eca9c1ef6a044f075428e8e4d085e42d664f2de1b48f401b",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 6: programamos el módulo de importaciones",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "da68f90a04a2d0f03adca748ab292a7ea62b8675cb839961739b14ce8f7229cc",
+            "fecha_hora": "c9cebeaf900e7f1757b3600242d7a434f88c0eddc3c35e7b8424cc2f1bb77158",
+            "duracion_min": "69f59c273b6e669ac32a6dd5e1b2cb63333d8b004f9696447aee2d422ce63763",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        },
+        {
+          "titulo": "Deber: tu módulo andina_importaciones",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "4d3d16e6c694aa933ad67473963fe6559c14939350e94540509a816cc2a8afc2",
+            "duracion_min": "2abaca4911e68fa9bfbf3482ee797fd5b9045b841fdff7253557c5fe15de6477",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Programar Odoo II: herencia y API externa",
+      "campos": {
+        "descripcion": "99615cfc458af92e074f166dc14a7f04fc542c151ebe8ca2ad90037996e04fe7"
+      },
+      "lecciones": [
+        {
+          "titulo": "Herencia, botones de acción y la API JSON-2",
+          "tipo": "texto",
+          "campos": {
+            "contenido": "d16f77c4c3c11224d7778445fdbaa3736ae76887671199627afc84de7d07af93",
+            "duracion_min": "624b60c58c9d8bfb6ff1886c2fd605d2adeb6ea4da576068201b6c6958ce93f4"
+          }
+        },
+        {
+          "titulo": "Herencia de modelos y vistas",
+          "tipo": "video",
+          "campos": {
+            "video_url": "ad5b418325144732837b0b2bc4dd3fb5c9fceb266ca0376b5851a46c62e099d2",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5",
+            "contenido": "e29ff50932d42593c6ee1d6e150d4731fc55d327d0f7cdce9426c87424a4f3f9",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Herencia de métodos",
+          "tipo": "video",
+          "campos": {
+            "video_url": "d24ffacf3a6899d7a4ac4dd0131b91bcc00d178afd6adfed208d2d874e716bf9",
+            "duracion_min": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+            "contenido": "4cd85416a8e2777d38ad2392ec0bb6bc6fd11e140eb73a2bb814c6bc23a8794a",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "La API de Odoo: cómo funciona y qué cambió",
+          "tipo": "video",
+          "campos": {
+            "video_url": "086f24e49529225646a8fde57dc0c29e875268e9ebe3b2c6d742821840cc41da",
+            "duracion_min": "b7a56873cd771f2c446d369b649430b65a756ba278ff97ec81bb6f55b2e73569",
+            "contenido": "c52508ee48f696449f47b62ac8d29558f5bd30cdcb108816b9cee7e0f2ea4916",
+            "obligatoria": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          }
+        },
+        {
+          "titulo": "Integración externa con la API JSON-2",
+          "tipo": "video",
+          "campos": {
+            "video_url": "2d5ba989769bd16412da29564726fc1af9493462ee33c48e8f5b2418ca4e2fe2",
+            "duracion_min": "35135aaa6cc23891b40cb3f378c53a17a1127210ce60e125ccf03efcfdaec458",
+            "contenido": "04b6c9f48256c5dba110d81db376f3b4521ed1ce0b65a3133d867d7f4afbdf3d",
+            "obligatoria": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+          }
+        },
+        {
+          "titulo": "Evaluación: programar Odoo",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "23143b633f1181bcf79b1a4b8f7f018b81353ea8d7340e3ac9bc16b8adeefcc2",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    },
+    {
+      "titulo": "Proyecto final y evaluación final",
+      "campos": {
+        "descripcion": "8731d268bf58b90cfae137f9edc13a07081e8e49456989abc2df9a2dbcd6d664"
+      },
+      "lecciones": [
+        {
+          "titulo": "Proyecto final: Andina Trade en producción",
+          "tipo": "deber",
+          "campos": {
+            "contenido": "81a3f23d96cd57237534e1b78c1b07f2788dac1e97d1cb88d8a2fd2d8628698f",
+            "duracion_min": "983bd614bb5afece5ab3b6023f71147cd7b6bc2314f9d27af7422541c6558389",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a"
+          }
+        },
+        {
+          "titulo": "Clase en vivo 7: sustentación del proyecto final",
+          "tipo": "en_vivo",
+          "campos": {
+            "contenido": "54da4caba880c66529da902ad055b903291422a15b37945effcabd651f9cc9e0",
+            "fecha_hora": "c9606fa18dd04cf0566e700924487d530e97980ec58e4e5f724746ddd3bda5dc",
+            "duracion_min": "9ae2bdd7beedc2e766c6b76585530e16925115707dc7a06ab5ee4aa2776b2c7b",
+            "lugar": "4734edb83870e63541bf2d097e84d6cc9cc0245ce50c64eaf70eb2c976c6a7b7",
+            "sala": "ef284fc2dab77d3507379724511413ca07c54f5f3ae76ee8beac43d26c194554"
+          }
+        },
+        {
+          "titulo": "Evaluación final",
+          "tipo": "evaluacion",
+          "campos": {
+            "contenido": "25e08b06c2a6301aace49c517a8b0093f0396e489beb499f3ff8fe829a85204a",
+            "nota_minima": "ff5a1ae012afa5d4c889c50ad427aaf545d31a4fac04ffc1c4d03d403ba4250a",
+            "intentos": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+            "duracion_min": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+          }
+        }
+      ]
+    }
+  ]
+}

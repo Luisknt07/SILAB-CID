@@ -1,0 +1,132 @@
+{% load static i18n idiomas marca %}
+<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Ficha de proceso ·" %} {{ receta.nombre_publico }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  {% if aula_moderna %}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/aula_moderna.css' %}?v=20261004-aula-v2">{% endif %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    /* Diagramas del proceso: se leen a su tamaño y se desplazan si la pantalla es angosta. */
+    .unit-report__diagram { margin: 0; padding: 12px; overflow-x: auto; border: 1px solid #dbe7df; border-radius: 6px; background: #fff; }
+    .unit-report__diagram svg { display: block; min-width: 640px; margin: 0 auto; }
+    .control-etapa { display: inline-block; padding: 1px 6px; border-radius: 3px; background: #b8860b; color: #fff; font-size: 10px; font-weight: 700; }
+    .control-etapa.is-pcc { background: #a12c2c; }
+    .unit-report__diagram figcaption { margin-top: 8px; color: #4b5c53; font-size: 11px; line-height: 1.5; }
+    .aula-citar { padding: 7px 12px; border: 1px solid #b9cdc1; border-radius: 4px; background: #fff; color: var(--institucion-texto, #173b2c); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .aula-relacionadas { display: flex; align-items: center; gap: 7px; margin: -4px 0 16px; padding: 9px 12px; border: 1px solid var(--institucion-primario-suave, #d8e6de); border-radius: 6px; background: #f7faf8; overflow-x: auto; }
+    .aula-relacionadas > strong { flex: 0 0 auto; color: var(--institucion-texto, #173b2c); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .aula-relacionadas a { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 6px 9px; border: 1px solid var(--institucion-primario-suave, #cbdcd2); border-radius: 999px; background: #fff; color: var(--institucion-texto, #1f5d46); font-size: 10.5px; font-weight: 700; text-decoration: none; }
+    .aula-relacionadas a small { color: #788c82; }
+    .repositorio-ficha header { display:flex; justify-content:space-between; align-items:center; }
+    .repositorio-lista { display:grid; gap:8px; }.repositorio-lista article { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:10px; align-items:center; padding:11px 12px; border:1px solid var(--institucion-primario-suave, #dbe7df); border-radius:7px; background:#fff; }.repositorio-lista article>i { display:grid; width:34px; height:34px; place-items:center; border-radius:7px; background:var(--institucion-primario-suave, #eaf5f0); color:var(--institucion-texto, #17624a); }.repositorio-lista p,.repositorio-lista small { display:block; margin:2px 0; color:#60776b; font-size:11px; }.repositorio-acciones { display:flex; gap:5px; }.repositorio-acciones a,.repositorio-subir { padding:6px 9px; border:1px solid #c7d9d0; border-radius:4px; color:var(--institucion-texto, #17624a); font-size:10.5px; font-weight:800; text-decoration:none; }
+    @media print { .unit-report__diagram { overflow: visible; break-inside: avoid; } .unit-report__diagram svg { min-width: 0; width: 100%; } }
+  </style>
+  {% include 'portal/components/marco_incrustado.html' %}
+{% include 'portal/components/navegacion/idiomas_assets.html' %}
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page{% if aula_moderna %} aula-moderna{% endif %}">
+  <main class="unit-report">
+    <header class="unit-report__masthead{% if aula_moderna and foto_portada %} con-foto{% endif %}"{% if aula_moderna and foto_portada %} style="--aula-foto: url('{{ foto_portada }}')"{% endif %}>
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{% translate "Ficha de proceso" %}</h1>
+        <small>{{ receta.nombre_publico }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl><div><dt>{% translate "Código" %}</dt><dd>{{ receta.codigo }}</dd></div><div><dt>{% translate "Producto" %}</dt><dd>{{ receta.producto.nombre }}</dd></div><div><dt>{% translate "Generada" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div></dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones de la ficha" %}">
+      {% if publica %}<a class="es-navegacion" href="{{ volver_url }}" target="_top">{% translate "← Volver a la unidad" %}</a>{% else %}<a class="es-navegacion" href="{% url 'erp_planta' unidad.slug %}?view=produccion">{% translate "← Volver a producción" %}</a>{% endif %}
+      <div>
+        {% if publica %}{% for item in acciones_proceso %}<a class="accion-proceso{% if item.activa %} is-active{% endif %}" href="{{ item.url }}"{% if item.activa %} aria-current="page"{% endif %}{% if item.clave == 'ficha' %} title="{% translate "Abrir proceso técnico" %}"{% endif %}>{{ item.nombre }}</a>{% endfor %}{% endif %}
+        {% if cita %}<button class="aula-citar" type="button" data-cita="{{ cita|escape }}"><i class="fas fa-quote-right"></i> {% translate "Citar" %}</button>{% endif %}
+        {% if publica %}{% if operar_url %}<a href="{{ operar_url }}" target="_top" title="{% translate "Abrir el módulo donde esto se opera" %}">{% translate "Operar en la consola" %}</a>{% endif %}{% endif %}
+        {% if ver_documento_url %}<a href="{{ ver_documento_url }}" data-ver-pdf data-pdf-descarga="{{ descargar_documento_url }}" data-pdf-titulo="Ficha del proceso · {{ receta.nombre_publico }}">{% translate "Ver el documento" %}</a>
+        <a class="is-primary" href="{{ descargar_documento_url }}">{% translate "Descargar documento" %}</a>{% endif %}
+        {% if not publica %}<a href="{% url 'gestion_reporte_unidad_xlsx' unidad.slug %}?categoria_reporte=procesos&buscar={{ receta.nombre|urlencode }}">{% translate "Descargar etapas en hoja de cálculo" %}</a>{% endif %}
+      </div>
+    </section>
+
+    {% if fichas_relacionadas %}<nav class="aula-relacionadas" aria-label="{% translate "Fichas relacionadas" %}"><strong>{% translate "Relacionado con" %}</strong>{% for ficha in fichas_relacionadas %}<a href="{{ ficha.url }}"><i class="{{ ficha.icono }}"></i><span>{{ ficha.nombre }}</span><small>{{ ficha.tipo }}</small></a>{% endfor %}</nav>{% endif %}
+
+    <section class="unit-report__context">
+      <span>PROCESO</span>
+      <h2>{{ receta.nombre_publico }}</h2>
+      <p>{% translate "Corrida base de" %} {{ proceso.cantidad_base }} {{ proceso.unidad_base }} {% translate "que rinde" %} {{ proceso.rendimiento_esperado }} {{ proceso.unidad_producto }} de {{ proceso.producto }}. {% if receta.instrucciones %}{{ receta.instrucciones }}{% endif %}</p>
+      {% if proceso.software %}<p>{% translate "Software del proceso:" %} {{ proceso.software|join:", " }}.</p>{% endif %}
+    </section>
+
+    <section class="unit-report__summary" aria-label="{% translate "Resumen del proceso" %}">
+      <article><span>{% translate "Etapas" %}</span><strong>{{ resumen.etapas }}</strong><small>{{ resumen.conteo.operacion }} {% translate "operaciones ·" %} {{ resumen.conteo.inspeccion }} inspecciones</small></article>
+      <article><span>{% translate "Duración estándar" %}</span><strong>{{ resumen.duracion_texto }}</strong><small>{{ resumen.trabajo_texto }} {% translate "de trabajo" %}</small></article>
+      <article><span>{% translate "Personas" %}</span><strong>{{ resumen.personas_max }}</strong><small>{% translate "máximo en una etapa" %}</small></article>
+      <article><span>{% translate "Puntos críticos" %}</span><strong>{{ resumen.puntos_criticos }}</strong><small>{% translate "de control" %}</small></article>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "DIAGRAMA DE FLUJO DEL PROCESO" %}</span></header>
+      <figure class="unit-report__diagram">{{ diagrama_flujo|safe }}<figcaption>{% translate "Todas las etapas en orden, con lo que entra y lo que sale en cada una y los puntos críticos de control numerados (Codex Alimentarius CXC 1-1969; símbolos ASME Y15.3; inicio y fin según ISO 5807)." %}</figcaption></figure>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "DIAGRAMA DE OPERACIONES DEL PROCESO (DOP)" %}</span></header>
+      <figure class="unit-report__diagram">{{ diagrama_sinoptico|safe }}<figcaption>{% translate "Diagrama sinóptico: operaciones (O-n) e inspecciones (I-n) sobre la línea del producto; cada material entra por la izquierda en la etapa donde se incorpora." %}</figcaption></figure>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "ETAPAS DEL PROCESO" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Dónde" %}</th><th>{% translate "Trabajo" %}</th><th>{% translate "Espera" %}</th><th>{% translate "Personas" %}</th><th>{% translate "Continúa" %}</th><th>{% translate "Entra" %}</th><th>{% translate "Sale" %}</th><th>{% translate "Control" %}</th></tr></thead><tbody>
+        {% for etapa in proceso.etapas %}<tr><td>{{ etapa.orden }}</td><td><strong>{{ etapa.nombre }}</strong>{% if etapa.instrucciones %}<br><small>{{ etapa.instrucciones }}</small>{% endif %}</td><td>{{ etapa.tipo_nombre }}</td><td>{{ etapa.equipo|default:etapa.espacio|default:"—" }}{% if etapa.equipo and etapa.espacio %}<br><small>{{ etapa.espacio }}</small>{% endif %}{% if etapa.auxiliares %}<br><small>{% translate "Con" %} {{ etapa.auxiliares|join:", " }}</small>{% endif %}</td><td>{{ etapa.duracion_min }} min</td><td>{% if etapa.espera_min %}{{ etapa.espera_min }} min{% else %}—{% endif %}</td><td>{{ etapa.personas }}</td><td>{{ etapa.rendimiento_pct }} %</td><td>{% for insumo in etapa.insumos %}{{ insumo.nombre }} {{ insumo.cantidad }} {{ insumo.unidad }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td><td>{% for salida in etapa.salidas %}{{ salida.nombre }} {{ salida.cantidad }} {{ salida.unidad }}{% if salida.externa_al_flujo %} <small>{% translate "(salida externa al flujo)" %}</small>{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td><td>{% if etapa.punto_critico or etapa.punto_control %}<span class="control-etapa{% if etapa.punto_critico %} is-pcc{% endif %}">{% if etapa.punto_critico %}PCC · inocuidad{% else %}PC · calidad{% endif %}</span><br><strong>{{ etapa.parametro }}</strong><br><small>{{ etapa.limite }}</small>{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="11">{% translate "Esta receta todavía no tiene etapas." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "CURSOGRAMA ANALÍTICO" %}</span></header>
+      <figure class="unit-report__diagram">{{ cursograma_svg|safe }}<figcaption>{% translate "Formato OIT: la marca de cada etapa en la columna de su símbolo, unida con la siguiente; tiempos, distancias y resumen por símbolo." %}</figcaption></figure>
+    </section>
+
+    {% if diagrama_recorrido %}
+    <section class="unit-report__section">
+      <header><span>{% translate "DIAGRAMA DE RECORRIDO" %}</span></header>
+      <figure class="unit-report__diagram">{{ diagrama_recorrido|safe }}<figcaption>{% translate "El camino del producto entre los equipos, según las coordenadas del levantamiento de planta." %}</figcaption></figure>
+    </section>
+    {% endif %}
+
+    <section class="unit-report__section">
+      <header><span>{% translate "BALANCE DE MASA DE LA CORRIDA BASE" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Entra" %}</th><th>{% translate "Se incorpora" %}</th><th>{% translate "Continúa" %}</th><th>{% translate "Sale declarado" %}</th><th>{% translate "Pérdida" %}</th></tr></thead><tbody>
+        {% for fila in balance.filas %}<tr><td>{{ fila.orden }}</td><td>{{ fila.nombre }} <small>({{ fila.rendimiento_pct }} %)</small></td><td>{{ fila.entra }}</td><td>{% if fila.agregado != "0" %}+{{ fila.agregado }}{% else %}—{% endif %}</td><td>{{ fila.continua }}</td><td>{% for salida in fila.salidas %}{{ salida }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td><td>{% if fila.exceso %}+{{ fila.exceso }} {% translate "(declarado por encima de lo que sale)" %}{% else %}{{ fila.perdida }}{% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>
+      <p class="unit-report__notice">{% translate "El balance corre en" %} {{ balance.unidad_base }} {% translate "por porcentaje de cada etapa, sumando lo que se incorpora al producto en kilos o litros; el agua de lavado es externa al flujo. De" %} {{ balance.entrada }} {{ balance.unidad_base }} llegan {{ balance.producto_por_balance }} {% translate "al producto, frente a" %} {{ balance.producto_esperado }} {{ balance.unidad_producto }} {% translate "esperados por la receta (diferencia" %} {{ balance.diferencia }}).</p>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "CRONOGRAMA DE LA CORRIDA" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Inicio" %}</th><th>{% translate "Fin" %}</th><th>{% translate "Duración" %}</th><th>{% translate "Dónde" %}</th><th>{% translate "Personas" %}</th></tr></thead><tbody>
+        {% for fila in cronograma.filas %}<tr><td>{{ fila.orden }}</td><td>{{ fila.nombre }}</td><td>+{{ fila.inicio_min }} min</td><td>+{{ fila.fin_min }} min</td><td>{{ fila.duracion_min }} min</td><td>{{ fila.equipo|default:fila.espacio|default:"—" }}</td><td>{{ fila.personas }}</td></tr>{% endfor %}
+      </tbody></table></div>
+      <p class="unit-report__notice">{% translate "Las etapas van una tras otra desde el inicio de la corrida:" %} {{ cronograma.total_texto }} {% translate "en total." %}</p>
+    </section>
+
+    {% if costo %}<section class="unit-report__section">
+      <header><span>{% translate "COSTO ESTÁNDAR DE LA CORRIDA BASE" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Concepto" %}</th><th>{% translate "Base de cálculo" %}</th><th>{% translate "Costo" %}</th></tr></thead><tbody>
+        {% for concepto, base, monto in costo.filas %}<tr><td>{{ concepto }}</td><td>{{ base|default:"—" }}</td><td>{{ monto|default:"—" }}</td></tr>{% endfor %}
+      </tbody></table></div>
+      <p class="unit-report__notice">{% translate "Insumos a su precio de inventario, energía por la potencia de cada equipo durante su etapa y mano de obra por las horas-persona. Es un dato interno de la planta: la ficha del aula no lo publica." %}</p>
+    </section>{% endif %}
+
+    {% include 'portal/pages/unidades/repositorio/includes/adjuntos_ficha.html' %}
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Ficha de proceso generada desde la receta" %} {{ receta.codigo }}</div></footer>
+  </main>
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+  <script>document.addEventListener('click',async function(e){const b=e.target.closest('[data-cita]');if(!b)return;const c=b.dataset.cita;try{await navigator.clipboard.writeText(c)}catch(_e){const a=document.createElement('textarea');a.value=c;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}b.innerHTML='<i class="fas fa-check"></i> Cita copiada'});</script>
+</body>
+</html>

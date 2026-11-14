@@ -1,0 +1,74 @@
+{
+  "filename": "bienvenida-logistica-ia.mp4",
+  "duration_seconds": 169.024,
+  "width": 1280,
+  "height": 720,
+  "fps": 24,
+  "audio": "AAC mono, narración sintética española Microsoft Sabina (es-MX)",
+  "voice_rate_sapi": 1,
+  "video": "H.264 yuv420p, faststart",
+  "study_minutes": 5,
+  "open_captions": true,
+  "subtitle_timing": "Bloques de palabras repartidos proporcionalmente dentro del audio de cada escena.",
+  "sha256": "eac054e31c328130411160111347636c456376a3b84388f0a899c55e53f7ebf8",
+  "bytes": 3061144,
+  "scenes": [
+    {
+      "escena": 1,
+      "inicio": 0,
+      "duracion": 18,
+      "voz_segundos": 16.41873015873016,
+      "titulo": "Tu primera aplicación logística"
+    },
+    {
+      "escena": 2,
+      "inicio": 18,
+      "duracion": 21,
+      "voz_segundos": 18.9,
+      "titulo": "Puedes empezar desde cero"
+    },
+    {
+      "escena": 3,
+      "inicio": 39,
+      "duracion": 20,
+      "voz_segundos": 17.90439909297052,
+      "titulo": "Una ruta de cinco unidades"
+    },
+    {
+      "escena": 4,
+      "inicio": 59,
+      "duracion": 22,
+      "voz_segundos": 20.073560090702948,
+      "titulo": "Aprender con un caso concreto"
+    },
+    {
+      "escena": 5,
+      "inicio": 81,
+      "duracion": 21,
+      "voz_segundos": 19.710113378684806,
+      "titulo": "Así se estudia cada unidad"
+    },
+    {
+      "escena": 6,
+      "inicio": 102,
+      "duracion": 23,
+      "voz_segundos": 21.06498866213152,
+      "titulo": "Comprueba antes de avanzar"
+    },
+    {
+      "escena": 7,
+      "inicio": 125,
+      "duracion": 25,
+      "voz_segundos": 23.005260770975056,
+      "titulo": "IA que ayuda; datos que se verifican"
+    },
+    {
+      "escena": 8,
+      "inicio": 150,
+      "duracion": 19,
+      "voz_segundos": 17.38,
+      "titulo": "Pausa, pregunta y continúa"
+    }
+  ],
+  "timeline_seconds": 169
+}

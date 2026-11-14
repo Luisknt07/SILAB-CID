@@ -1,0 +1,5 @@
+{% load i18n %}
+<dialog class="cidg-modal" id="cidGestionModal" aria-labelledby="cidGestionTitulo" data-url="{% url 'gestion_centro_id' centro.slug %}">
+  <header class="cidg-cabecera"><i class="fas fa-sliders-h" aria-hidden="true"></i><div><small>{% translate 'Gestión y operación' %}</small><h2 id="cidGestionTitulo">{% translate 'Gestionar centro' %}</h2><p>{{ centro.nombre }}</p></div><button class="cidg-cerrar" type="button" data-gestion-cerrar aria-label="{% translate 'Cerrar gestión del centro' %}"><i class="fas fa-times" aria-hidden="true"></i></button></header>
+  <div class="cidg-cuerpo"><p class="cidg-carga" data-gestion-cargando hidden role="status"><i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> {% translate 'Cargando panel del centro…' %}</p><div class="cidg-error" data-gestion-error hidden role="alert"><p></p><button type="button" class="cidg-boton" data-gestion-reintentar>{% translate 'Reintentar' %}</button></div><div data-gestion-contenido aria-live="polite"></div></div>
+</dialog>

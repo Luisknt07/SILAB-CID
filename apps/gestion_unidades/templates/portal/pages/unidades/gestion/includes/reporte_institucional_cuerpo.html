@@ -1,0 +1,89 @@
+{% load static i18n idiomas marca %}
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }}</span>
+        <h1>{% translate "Reporte institucional" %}</h1>
+        <small>{% translate "Lo que cada unidad hizo en el período, en un mismo informe" %}</small>
+        <p>{{ totales.unidades }} unidad{{ totales.unidades|pluralize:"es" }} {% translate "bajo tu administración" %}</p>
+      </div>
+      <dl>
+        <div><dt>{% translate "Período" %}</dt><dd>{{ desde|date:"d/m/Y" }} a {{ hasta|date:"d/m/Y" }}</dd></div>
+        <div><dt>{% translate "Atenciones" %}</dt><dd>{{ totales.atendidas }}</dd></div>
+        <div><dt>{% translate "Participaciones" %}</dt><dd>{{ totales.personas }}</dd></div>
+        <div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver al panel" %}</a>
+      <div>
+        <form method="get" class="inst-form">
+          <label>{% translate "Unidad" %}<select name="unidad"><option value="">{% translate "Todas las autorizadas" %}</option>{% for opcion in unidades_disponibles %}<option value="{{ opcion.slug }}"{% if unidad_seleccionada == opcion.slug %} selected{% endif %}>{{ opcion.nombre }}</option>{% endfor %}</select></label>
+          {% if tipo_seleccionado %}<input type="hidden" name="tipo" value="{{ tipo_seleccionado }}">{% endif %}
+          <label>{% translate "Desde" %}<input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}"></label>
+          <label>{% translate "Hasta" %}<input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}"></label>
+          <button type="submit">{% translate "Aplicar" %}</button>
+        </form>
+        {% if not solo_centros %}
+        <a href="{{ docx_url }}">{% translate "Descargar Word" %}</a>
+        <a href="{{ xlsx_url }}">{% translate "Descargar hoja de cálculo" %}</a>
+        {% if en_admin %}
+        <a class="documento-accion is-pdf" href="{{ ver_documento_url }}" data-ver-pdf data-pdf-titulo="Reporte institucional">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% translate "Ver documento" %}</a>
+        <a href="{{ descargar_documento_url }}">{% translate "Descargar documento" %}</a>
+        {% else %}{% include 'portal/components/acciones_documento.html' %}{% endif %}
+        {% endif %}
+        {% if puede_reportar_centros %}<a href="{% url 'reportes_centros_id' %}">{% translate "Reportes de Centros I+D" %}</a>{% endif %}
+      </div>
+    </section>
+
+    {% if solo_centros %}<section class="unit-report__context"><h2>{% translate "Centros de investigación y desarrollo" %}</h2><p>{% translate "Consulta los indicadores y documentos de los centros que administras." %}</p><a href="{% url 'reportes_centros_id' %}">{% translate "Abrir reportes de Centros I+D" %}</a></section>{% else %}
+    <section class="unit-report__summary" aria-label="{% translate "Totales del período" %}">
+      <article><span>{% translate "Solicitudes" %}</span><strong>{{ totales.solicitudes }}</strong><small>{{ totales.atendidas }} atendidas</small></article>
+      <article><span>{% translate "Participaciones atendidas" %}</span><strong>{{ totales.personas }}</strong><small>{% translate "en atenciones cerradas y registradas" %}</small></article>
+      <article><span>{% translate "Corridas terminadas" %}</span><strong>{{ totales.corridas }}</strong><small>{% translate "iniciadas en el período" %} · {{ totales.lotes }} {% translate "lotes producidos" %}</small></article>
+      <article><span>{% translate "Conformidad" %}</span><strong>{% if totales.controles %}{{ totales.conformidad_pct }} %{% else %}{% translate "Sin controles" %}{% endif %}</strong><small>{{ totales.controles }} {% translate "controles de calidad" %}</small></article>
+      <article><span>{% translate "Lotes liberados" %}</span><strong>{{ totales.liberados }}</strong><small>{{ totales.rechazados }} rechazados</small></article>
+      <article><span>{% translate "No conformidades abiertas" %}</span><strong{% if totales.no_conformidades %} class="inst-alerta"{% endif %}>{{ totales.no_conformidades }}</strong><small>{% translate "estado actual" %}</small></article>
+      <article><span>{% translate "Ejercicios con actividad" %}</span><strong>{{ totales.ejercicios }}</strong><small>{{ totales.entregas }} {% translate "entregas calificadas" %}</small></article>
+      <article><span>{% translate "Ingresos" %}</span><strong>${{ totales.ingresos|floatformat:2 }}</strong><small>{% translate "movimientos del período" %}</small></article>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "UNIDAD POR UNIDAD" %}</span><small>{{ filas|length }} {% translate "en el período" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Unidad" %}</th><th>{% translate "Solicitudes" %}</th><th>{% translate "Atendidas" %}</th><th>{% translate "Participaciones" %}</th><th>{% translate "Corridas" %}</th><th>{% translate "Lotes" %}</th><th>{% translate "Liberados" %}</th><th>{% translate "Controles" %}</th><th>{% translate "No conformidades" %}</th><th>{% translate "Aula" %}</th><th>{% translate "Ingresos" %}</th></tr></thead><tbody>
+        {% for fila in filas %}<tr>
+          <td><strong>{{ fila.unidad.nombre }}</strong><br><small>{% if en_admin %}<a href="{% url 'admin:reportes-cumplimiento-expediente' %}?unidad={{ fila.unidad.slug }}">{% translate "Revisar entregas" %}</a>{% else %}<a href="{{ fila.panel_url }}">{% translate "abrir su panel" %}</a>{% endif %}</small></td>
+          <td>{{ fila.solicitudes }}</td>
+          <td>{{ fila.atendidas }}</td>
+          <td>{{ fila.personas }}</td>
+          <td>{{ fila.corridas }}</td>
+          <td>{{ fila.lotes }}</td>
+          <td>{{ fila.liberados }}{% if fila.rechazados %}<br><small class="inst-alerta">{{ fila.rechazados }} rechazados</small>{% endif %}</td>
+          <td>{{ fila.controles }}{% if fila.controles %}<br><small>{{ fila.conformes }} conformes</small>{% endif %}</td>
+          <td>{% if fila.no_conformidades %}<span class="inst-alerta">{{ fila.no_conformidades }}</span>{% else %}0{% endif %}</td>
+          <td>{{ fila.ejercicios }}{% if fila.entregas %}<br><small>{{ fila.entregas }} entregas</small>{% endif %}</td>
+          <td>{% if fila.ingresos %}${{ fila.ingresos|floatformat:2 }}{% else %}—{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="11">{% translate "No administras ninguna unidad con movimiento en el período." %}</td></tr>{% endfor %}
+        {% if filas %}<tr class="inst-total"><td>{% translate "Total" %}</td><td>{{ totales.solicitudes }}</td><td>{{ totales.atendidas }}</td><td>{{ totales.personas }}</td><td>{{ totales.corridas }}</td><td>{{ totales.lotes }}</td><td>{{ totales.liberados }}</td><td>{{ totales.controles }}</td><td>{{ totales.no_conformidades }}</td><td>{{ totales.ejercicios }}</td><td>${{ totales.ingresos|floatformat:2 }}</td></tr>{% endif %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__summary" aria-label="{% translate "Formación del período" %}">
+      <article><span>{% translate "Cursos y eventos" %}</span><strong>{{ totales.cursos }}</strong><small>{% translate "catálogo actual" %} · {{ totales.cursos_nativos }} {% translate "propios" %} · {{ totales.cursos_externos }} {% translate "externos" %}</small></article>
+      <article><span>{% translate "Ediciones iniciadas" %}</span><strong>{{ totales.ediciones }}</strong><small>{% translate "inicio en el período" %}</small></article>
+      <article><span>{% translate "Inscripciones" %}</span><strong>{{ totales.inscripciones }}</strong><small>{% translate "registradas en el período" %}</small></article>
+      <article><span>{% translate "Certificados vigentes" %}</span><strong>{{ totales.certificados }}</strong><small>{% translate "emitidos en el período" %}</small></article>
+    </section>
+    <section class="unit-report__section"><header><span>{% translate "FORMACIÓN POR UNIDAD" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Unidad" %}</th><th>{% translate "Cursos y eventos" %}</th><th>{% translate "Publicados" %}</th><th>{% translate "Ediciones iniciadas" %}</th><th>{% translate "Inscripciones" %}</th><th>{% translate "Aceptadas" %}</th><th>{% translate "Certificados vigentes emitidos" %}</th><th>{% translate "Horas acreditadas" %}</th><th>{% translate "Propios" %}</th><th>{% translate "Externos" %}</th></tr></thead><tbody>
+      {% for fila in filas %}<tr><td>{{ fila.unidad.nombre }}</td><td>{{ fila.cursos }}</td><td>{{ fila.cursos_publicados }}</td><td>{{ fila.ediciones }}</td><td>{{ fila.inscripciones }}</td><td>{{ fila.aceptadas }}</td><td>{{ fila.certificados }}</td><td>{{ fila.horas_acreditadas }}</td><td>{{ fila.cursos_nativos }}</td><td>{{ fila.cursos_externos }}</td></tr>{% empty %}<tr><td colspan="10">{% translate "Sin unidades para los filtros seleccionados." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    <section class="unit-report__context"><h2>{% translate "Criterios de formación" %}</h2>{% for nota in notas_formacion %}<p>{{ nota }}</p>{% endfor %}</section>
+    <section class="unit-report__context"><span>{% translate "CÓMO SE LEE" %}</span><h2>{% translate "Fechas y criterios de los indicadores" %}</h2>{% for nota in notas_operacion %}<p>{{ nota }}</p>{% endfor %}<p>{% translate "Para consultar el detalle, abre el panel de la unidad. El detalle de producción incluye corridas que se solapan con el período. Aula incluye intentos asignados, entregados o calificados durante el período, aunque el ejercicio se hubiera creado antes." %}</p></section>
+
+    {% endif %}
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }}</span></div><div>{% translate "Reporte institucional ·" %} {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>

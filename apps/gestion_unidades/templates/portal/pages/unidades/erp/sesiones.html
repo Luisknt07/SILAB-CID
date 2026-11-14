@@ -1,0 +1,38 @@
+{% load i18n idiomas %}<section class="unit-console__view{% if vista_gestion == 'sesiones' %} is-active{% endif %}" data-management-view="sesiones" role="tabpanel"{% if vista_gestion != 'sesiones' %} hidden{% endif %}>
+  <div class="unit-console__report-actions"><div><span>{% translate "SESIONES DEL ERP" %}</span><strong>{% translate "Cada práctica opera en su sesión: sus planes, pedidos, órdenes y lotes no tocan la producción real ni se mezclan con los de otra sesión. Las existencias parten de una foto del inventario al abrirla." %}</strong></div></div>
+  <div class="unit-console__split">
+    <article class="unit-console__card">
+      <header><div><span>{% translate "ENTRAR" %}</span><h3>{% translate "Unirse a una práctica" %}</h3><p>{% translate "Escribe la clave de seis letras que dictó tu docente." %}</p></div></header>
+      <form method="post" action="{% url 'erp_sesion_accion' unidad.slug %}" class="unit-console__session-form">
+        {% csrf_token %}<input type="hidden" name="accion" value="unirse">
+        <label>{% translate "Clave" %}<input name="clave" maxlength="6" required autocomplete="off" placeholder="K7Q2MX"></label>
+        <button type="submit"><i class="fas fa-sign-in-alt"></i> {% translate "Entrar" %}</button>
+      </form>
+    </article>
+    <article class="unit-console__card">
+      <header><div><span>{% translate "ABRIR" %}</span><h3>{% translate "Nueva sesión" %}</h3><p>{% if puede_abrir_practica %}{% translate "Una sesión de práctica es para tu grupo: al abrirla recibes la clave para tus estudiantes. Una individual es solo tuya." %}{% else %}{% translate "Tu propia sesión para practicar la cadena completa, del plan a la venta." %}{% endif %}</p></div></header>
+      <form method="post" action="{% url 'erp_sesion_accion' unidad.slug %}" class="unit-console__session-form">
+        {% csrf_token %}<input type="hidden" name="accion" value="crear">
+        <label class="is-wide">{% translate "Nombre" %}<input name="nombre" maxlength="160" required placeholder="{% translate "Práctica de quesos frescos, paralelo A" %}"></label>
+        {% if puede_abrir_practica %}<label>{% translate "Tipo" %}<select name="tipo">{% for codigo, nombre in tipos_sesion %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+        {% if practicas_para_sesion %}<label>{% translate "Práctica aprobada" %}<select name="reserva_id"><option value="">{% translate "Sin vincular" %}</option>{% for reserva in practicas_para_sesion %}<option value="{{ reserva.pk }}">{{ reserva.codigo_reserva }} · {{ reserva.fecha|date:"d/m/Y" }}</option>{% endfor %}</select></label>{% endif %}
+        {% else %}<input type="hidden" name="tipo" value="individual">{% endif %}
+        <button type="submit"><i class="fas fa-plus"></i> {% translate "Abrir sesión" %}</button>
+      </form>
+    </article>
+  </div>
+  <article class="unit-console__card">
+    <header><div><span>{% translate "SESIONES" %}</span><h3>{% if personal_planta %}{% translate "Las sesiones de la planta" %}{% else %}{% translate "Tus sesiones en la planta" %}{% endif %}</h3><p>{% translate "Una sesión cerrada queda para que el docente revise lo que hizo el grupo. La demostrativa muestra el flujo completo con datos de ejemplo." %}</p></div></header>
+    <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Sesión" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Responsable" %}</th><th>{% translate "Participantes" %}</th><th>{% translate "Órdenes" %}</th><th>{% translate "Estado" %}</th><th></th></tr></thead><tbody>
+    {% for sesion in sesiones_erp %}<tr{% if sesion_erp and sesion.pk == sesion_erp.pk %} class="is-selected"{% endif %}>
+      <td><strong>{{ sesion.codigo }}</strong><br><small>{{ sesion.nombre }}</small>{% if sesion.tipo == 'practica' and sesion.abierta %}{% if sesion.responsable_id == request.user.pk or personal_planta %}<br><small>{% translate "Clave:" %} <b>{{ sesion.clave_acceso }}</b></small>{% endif %}{% endif %}</td>
+      <td>{{ sesion.get_tipo_display|ui }}{% if sesion.reserva_id %}<br><small>{{ sesion.reserva.codigo_reserva }}</small>{% endif %}</td>
+      <td>{% if sesion.responsable %}{{ sesion.responsable.get_full_name|default:sesion.responsable.username }}{% else %}—{% endif %}</td>
+      <td>{{ sesion.participantes }}</td>
+      <td>{{ sesion.ordenes }}</td>
+      <td><span class="unit-console__status{% if sesion.abierta %} is-confirmada{% endif %}">{{ sesion.get_estado_display|ui }}</span></td>
+      <td><a class="unit-console__row-action unit-console__row-action--text" href="{% url 'erp_planta' unidad.slug %}?sesion={{ sesion.codigo }}"><i class="fas fa-door-open"></i> {% translate "Abrir" %}</a>{% if sesion.abierta and sesion.tipo != 'demostrativa' %}{% if sesion.responsable_id == request.user.pk or personal_planta %}<form method="post" action="{% url 'erp_sesion_accion' unidad.slug %}" class="unit-console__session-close">{% csrf_token %}<input type="hidden" name="accion" value="cerrar"><input type="hidden" name="sesion_erp" value="{{ sesion.codigo }}"><button type="submit" class="unit-console__row-action unit-console__row-action--text"><i class="fas fa-lock"></i> {% translate "Cerrar" %}</button></form>{% endif %}{% endif %}</td>
+    </tr>{% empty %}<tr><td colspan="7"><div class="unit-console__empty"><strong>{% translate "Todavía no hay sesiones" %}</strong><span>{% translate "Abre una o entra con la clave de tu docente." %}</span></div></td></tr>{% endfor %}
+    </tbody></table></div>
+  </article>
+</section>

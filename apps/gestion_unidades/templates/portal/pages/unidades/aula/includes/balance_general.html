@@ -1,0 +1,31 @@
+
+{% load i18n idiomas %}
+<section class="unit-report__section">
+  <header><span>{% translate "BALANCE DE MATERIA DE TODA LA CORRIDA" %}</span><small>{% translate "lo que entra, lo que sale y lo que se pierde" %}</small></header>
+  <div class="doc-general">
+    <div class="doc-general__lado">
+      {% for fila in general.entradas %}<div class="doc-general__linea{% if fila.clase == 'base' %} is-base{% endif %}"><b>{{ fila.nombre }}<i>{{ fila.detalle }}</i></b><span>{{ fila.cantidad }} {{ fila.unidad }}</span></div>{% endfor %}
+    </div>
+    <div class="doc-general__caja">
+      <em>{% translate "Proceso" %}</em>
+      <strong>{{ proceso.nombre }}</strong>
+      <span>{{ general.etapas }} {% translate "etapas ·" %} {{ resumen.duracion_texto }}</span>
+      <span>{% translate "Entra" %} <b>{{ general.entra_total }}</b> {{ general.unidad_base }}</span>
+    </div>
+    <div class="doc-general__lado is-derecha">
+      {% for fila in general.salidas %}<div class="doc-general__linea{% if fila.clase == 'merma' %} is-merma{% endif %}"><b>{{ fila.nombre }}<i>{{ fila.detalle }}</i></b><span>{{ fila.cantidad }} {{ fila.unidad }}</span></div>{% endfor %}
+    </div>
+  </div>
+  <div class="doc-general__cierre{% if not general.cuadra %} is-descuadre{% endif %}">
+    <span>{% translate "Entra" %} <b>{{ general.entra_total }} {{ general.unidad_base }}</b></span>
+    <span>{% translate "Sale" %} <b>{{ general.sale_total }} {{ general.unidad_base }}</b></span>
+    <span>{% translate "Merma" %} <b>{{ general.merma_total }} {{ general.unidad_base }}</b> ({{ general.proporcion_merma }} {% translate "% de lo que entra)" %}</span>
+    {% if not general.cuadra %}<span>{% translate "Descuadre de" %} <b>{{ general.diferencia }} {{ general.unidad_base }}</b>: {% for fila in general.descuadres %}{% translate "la etapa" %} {{ fila.orden }} «{{ fila.nombre }}{% translate "» declara" %} {{ fila.exceso }} {% translate "más de lo que pierde" %}{% if not forloop.last %}; {% endif %}{% endfor %}{% translate ". Hay que revisar la receta." %}</span>{% endif %}
+  </div>
+  {% if general.auxiliares or general.externas %}
+  <p class="doc-general__fuera">
+    {% if general.auxiliares %}<b>{% translate "Se consumen sin quedar en el producto:" %}</b> {% for fila in general.auxiliares %}{{ fila.nombre }} ({{ fila.cantidad }} {{ fila.unidad }}){% if not forloop.last %} · {% endif %}{% endfor %}.{% endif %}
+    {% if general.externas %}<b>{% translate "Salen sin haber sido parte del producto:" %}</b> {% for fila in general.externas %}{{ fila.nombre }} ({{ fila.cantidad }} {{ fila.unidad }}){% if not forloop.last %} · {% endif %}{% endfor %}.{% endif %}
+  </p>
+  {% endif %}
+</section>

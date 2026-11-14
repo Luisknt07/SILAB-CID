@@ -1,0 +1,135 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Plan maestro" %} {{ plan.codigo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <style>
+    .plan-holgado { color: var(--institucion-texto, #1f6b46); font-weight: 700; }
+    .plan-ajustado { color: var(--institucion-acento-tinta, #8a6a10); font-weight: 700; }
+    .plan-excedido { color: #a12c2c; font-weight: 700; }
+    .plan-falta { color: #a12c2c; font-weight: 700; }
+    .plan-cubierto { color: var(--institucion-texto, #1f6b46); }
+    .plan-barra { display: block; height: 5px; margin-top: 4px; border-radius: 3px; background: var(--institucion-primario-suave, #e6eeea); }
+    .plan-barra i { display: block; height: 5px; border-radius: 3px; background: var(--institucion-primario, #1f6b46); }
+    .plan-barra.is-ajustado i { background: var(--institucion-acento, #c9a227); }
+    .plan-barra.is-excedido i { background: #a12c2c; }
+  </style>
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· PLANIFICACIÓN" %}</span>
+        <h1>{% translate "Plan maestro" %} {{ plan.codigo }}</h1>
+        <small>{{ plan.nombre }} · {{ plan.get_estado_display|ui }}{% if plan.responsable %} · {% translate "responsable:" %} {{ plan.responsable.nombre_publico }}{% endif %}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>
+        <div><dt>{% translate "Período" %}</dt><dd>{{ plan.desde|date:"d/m/Y" }} a {{ plan.hasta|date:"d/m/Y" }}</dd></div>
+        <div><dt>{% translate "Corridas" %}</dt><dd>{{ lineas|length }} · {{ horas_totales|floatformat:"-2" }} h</dd></div>
+        <div><dt>{% translate "Insumos por pedir" %}</dt><dd>{{ faltantes|length }}</dd></div>
+        <div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver a planificación" %}</a>
+      <div>{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+
+    <section class="unit-report__context"><span>{% translate "QUÉ DICE ESTE PLAN" %}</span><h2>{% translate "Qué producir, qué pedir y cuándo" %}</h2><p>{% translate "Las corridas del período con su escala y su producto esperado; la carga que dejan sobre las horas de jornada; y la explosión de materiales, que descuenta lo que hay en bodega y lo que viene en camino para dejar solo lo que falta comprar, con la fecha límite para pedirlo." %}{% if plan.observaciones %} {{ plan.observaciones }}{% endif %}</p></section>
+
+    {% if plan_ventas %}<section class="unit-report__section">
+      <header><span>{% translate "DEMANDA Y PLAN DE VENTAS" %}</span><small>{{ plan_ventas.codigo }} · {{ plan_ventas.get_estado_display|ui }} · ${{ valor_plan_ventas|floatformat:2 }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Período" %}</th><th>{% translate "Producto" %}</th><th>{% translate "Histórico" %}</th><th>{% translate "Pronóstico" %}</th><th>{% translate "Compromisos" %}</th><th>{% translate "Docencia" %}</th><th>{% translate "Ajuste" %}</th><th>{% translate "Total" %}</th></tr></thead><tbody>
+        {% for linea in lineas_ventas %}<tr>
+          <td>{{ linea.periodo_inicio|date:"d/m/Y" }}–{{ linea.periodo_fin|date:"d/m/Y" }}</td>
+          <td><strong>{{ linea.producto.nombre }}</strong><br><small>{{ linea.receta.nombre }}</small></td>
+          <td>{{ linea.historico_promedio|floatformat:"-3" }}</td>
+          <td>{{ linea.pronostico|floatformat:"-3" }}</td>
+          <td>{{ linea.compromisos|floatformat:"-3" }}</td>
+          <td>{{ linea.docencia|floatformat:"-3" }}</td>
+          <td>{{ linea.ajuste_manual|floatformat:"-3" }}</td>
+          <td><strong>{{ linea.cantidad_planificada|floatformat:"-3" }} {{ linea.producto.unidad_medida }}</strong></td>
+        </tr>{% empty %}<tr><td colspan="8">{% translate "El plan de ventas todavía no tiene demanda calculada." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "PLAN AGREGADO" %}</span><small>{% translate "equivalente de materia prima base por familia" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Período" %}</th><th>{% translate "Familia" %}</th><th>{% translate "Productos" %}</th><th>{% translate "Carga equivalente" %}</th><th>{% translate "Valor estimado" %}</th></tr></thead><tbody>
+        {% for grupo in plan_agregado %}<tr>
+          <td>{{ grupo.periodo_inicio|date:"d/m/Y" }}–{{ grupo.periodo_fin|date:"d/m/Y" }}</td>
+          <td><strong>{{ grupo.familia_nombre }}</strong></td>
+          <td>{% for linea in grupo.productos %}{{ linea.producto.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+          <td>{{ grupo.equivalente_base|floatformat:"-3" }} {{ grupo.unidad_base }}</td>
+          <td>${{ grupo.valor_estimado|floatformat:2 }}</td>
+        </tr>{% empty %}<tr><td colspan="5">{% translate "Sin demanda para agregar." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>{% endif %}
+
+    <section class="unit-report__section">
+      <header><span>{% translate "PROGRAMA DE PRODUCCIÓN" %}</span><small>{{ lineas|length }} corrida{{ lineas|length|pluralize }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Día" %}</th><th>{% translate "Proceso" %}</th><th>{% translate "Escala" %}</th><th>{% translate "Producto esperado" %}</th><th>{% translate "Horas" %}</th><th>{% translate "Origen" %}</th><th>{% translate "Orden" %}</th></tr></thead><tbody>
+        {% for linea in lineas %}<tr>
+          <td><strong>{{ linea.fecha|date:"D d/m/Y" }}</strong></td>
+          <td>{{ linea.receta.nombre }}{% if linea.observaciones %}<br><small>{{ linea.observaciones }}</small>{% endif %}</td>
+          <td>{% translate "×" %} {{ linea.factor|floatformat:"-3" }}</td>
+          <td>{{ linea.cantidad|floatformat:"-3" }} {{ linea.producto.unidad_medida }} de {{ linea.producto.nombre|lower }}</td>
+          <td>{{ linea.horas|floatformat:"-2" }} h</td>
+          <td>{{ linea.get_origen_display|ui }}</td>
+          <td>{% if linea.orden %}{{ linea.orden.codigo }}<br><small>{{ linea.orden.get_estado_display|ui }}</small>{% else %}<small>{% translate "sin orden" %}</small>{% endif %}</td>
+        </tr>{% empty %}<tr><td colspan="7">{% translate "El plan todavía no tiene corridas." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "CARGA DE LA CAPACIDAD" %}</span><small>{% translate "horas de proceso frente a horas de jornada" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Día" %}</th><th>{% translate "Corridas" %}</th><th>{% translate "Horas de proceso" %}</th><th>{% translate "Horas de jornada" %}</th><th>{% translate "Carga" %}</th></tr></thead><tbody>
+        {% for fila in carga %}<tr>
+          <td><strong>{{ fila.fecha|date:"D d/m/Y" }}</strong></td>
+          <td>{% for linea in fila.lineas %}{{ linea.receta.nombre }} {% translate "×" %} {{ linea.factor|floatformat:"-3" }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+          <td>{{ fila.horas|floatformat:"-2" }} h</td>
+          <td>{{ fila.disponibles|floatformat:"-2" }} h</td>
+          <td><span class="plan-{{ fila.semaforo }}">{{ fila.porcentaje }} %</span><span class="plan-barra{% if fila.semaforo != 'holgado' %} is-{{ fila.semaforo }}{% endif %}"><i style="width: {% if fila.porcentaje > 100 %}100{% else %}{{ fila.porcentaje }}{% endif %}%"></i></span></td>
+        </tr>{% empty %}<tr><td colspan="5">{% translate "Sin días que medir en el período." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "EXPLOSIÓN DE MATERIALES" %}</span><small>{% translate "qué falta y cuándo pedirlo" %}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Insumo" %}</th><th>{% translate "Plazo" %}</th><th>{% translate "Pide el plan" %}</th><th>{% translate "En camino" %}</th><th>{% translate "Falta" %}</th><th>{% translate "Pedir antes de" %}</th><th>{% translate "Detalle día a día" %}</th></tr></thead><tbody>
+        {% for item in materiales %}<tr>
+          <td><strong>{{ item.consumible.nombre }}</strong><br><small>{{ item.consumible.codigo }} {% translate "· en bodega" %} {{ item.consumible.stock_total|floatformat:"-3" }} {{ item.consumible.unidad_medida }}</small></td>
+          <td>{{ item.plazo }} {% translate "día" %}{{ item.plazo|pluralize }}</td>
+          <td>{{ item.requerido_total|floatformat:"-3" }} {{ item.consumible.unidad_medida }}</td>
+          <td>{% if item.en_camino_total %}{{ item.en_camino_total|floatformat:"-3" }}{% else %}—{% endif %}</td>
+          <td>{% if item.falta_total %}<span class="plan-falta">{{ item.falta_total|floatformat:"-3" }}</span>{% else %}<span class="plan-cubierto">cubierto</span>{% endif %}</td>
+          <td>{% if item.pedir_antes_de %}{{ item.pedir_antes_de|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+          <td>{% for fila in item.filas %}<small>{{ fila.fecha|date:"d/m" }}{% translate ": pide" %} {{ fila.requerido|floatformat:"-3" }}{% if fila.en_camino %}{% translate ", llega" %} {{ fila.en_camino|floatformat:"-3" }}{% endif %}{% translate ", queda" %} {{ fila.saldo|floatformat:"-3" }}{% if fila.falta %} · <span class="plan-falta">faltan {{ fila.falta|floatformat:"-3" }}</span>{% endif %}</small>{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
+        </tr>{% empty %}<tr><td colspan="7">{% translate "Sin materiales que explotar: el plan no tiene corridas." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "PEDIDOS DEL PLAN" %}</span><small>{{ pedidos|length }} pedido{{ pedidos|length|pluralize }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Pedido" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Proveedor" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Entregas" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+        {% for pedido in pedidos %}<tr>
+          <td><strong>{{ pedido.codigo }}</strong><br><small>{% translate "pedido el" %} {{ pedido.fecha_pedido|date:"d/m/Y" }}</small></td>
+          <td>{{ pedido.consumible.nombre }}</td>
+          <td>{{ pedido.proveedor|default:"—" }}</td>
+          <td>{{ pedido.cantidad|floatformat:"-3" }} {{ pedido.consumible.unidad_medida }}{% if pedido.costo_unitario %}<br><small>${{ pedido.costo_total|floatformat:2 }}</small>{% endif %}</td>
+          <td>{% for entrega in pedido.entregas.all %}<small>{{ entrega.fecha|date:"d/m" }}: {{ entrega.cantidad|floatformat:"-3" }}{% if entrega.recibida %} {% translate "· recibida" %}{% elif entrega.atrasada %} {% translate "· atrasada" %}{% endif %}</small>{% if not forloop.last %}<br>{% endif %}{% empty %}<small>{% translate "Entrega única" %}</small>{% endfor %}</td>
+          <td>{{ pedido.get_estado_display|ui }}</td>
+        </tr>{% empty %}<tr><td colspan="6">{% translate "El plan todavía no generó pedidos." %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Plan maestro" %} {{ plan.codigo }} · {{ generado_en|date:"d/m/Y H:i" }}</div></footer>
+  </main>
+</body>
+</html>

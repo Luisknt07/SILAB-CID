@@ -1,0 +1,10 @@
+{% with d=casilla.documento lectura=casilla.documento.resumen_interfaz %}
+<tr class="citt-matriz__soporte" data-soporte-planificacion="{{ d.exigido.codigo }}" data-avance-documento="{{ d.pk }}">
+  <th scope="row" class="citt-matriz__nombre"><span class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>↳ {{ d.nombre_documental }}</span></span><small>Anexo de planificación · {{ d.etiqueta_corte }}</small></th>
+  <td><span class="documento-validacion is-{% if lectura.automatizacion.estado == 'bloqueado' or lectura.automatizacion.estado == 'revision' %}rojo{% elif d.estado == 'validado' %}verde{% else %}amarillo{% endif %}">{% if lectura.automatizacion.estado == 'bloqueado' or lectura.automatizacion.estado == 'revision' %}Con observaciones{% elif d.estado == 'validado' %}{% if lectura.automatizacion.vigente and lectura.automatizacion.aplicado %}Validado automáticamente{% else %}Revisado por la unidad{% endif %}{% elif d.recurso_id %}Por revisar{% else %}Pendiente{% endif %}</span></td>
+  <td class="citt-matriz__avance">{% include 'portal/pages/unidades/gestion/includes/avance_documental.html' with avance=lectura.avance nombre_documento=d.nombre_documental %}</td>
+  <td class="documento-fechas">{% if d.generado_en %}<small>Actualizado: {{ d.generado_en|date:'d/m/Y' }}</small>{% endif %}</td>
+  <td><a data-evaluar-documento class="citt-matriz__seguimiento" href="{{ casilla.soporte_planificacion.url_director }}">Detalle</a></td>
+  <td class="citt-matriz__decision">{% if d.recurso_id %}<a class="revision-documental__boton is-ver" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-titulo="{{ d.nombre_documental }}">Ver</a>{% else %}<span>Sin archivo</span>{% endif %}</td>
+</tr>
+{% endwith %}

@@ -1,0 +1,336 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ area.espacio.nombre }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261014-area-v16">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipo_editar.css' %}?v=20261009-editor-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+{% with espacio=area.espacio ficha=contenido.ficha %}
+<body class="conoce ficha area">
+  {% if revisar_ficha_url %}<p class="conoce__borrador area__borrador"><i class="fas fa-eye-slash" aria-hidden="true"></i> {% translate "Ficha en borrador: el público todavía no ve la explicación, el equipamiento ni la documentación. La unidad la revisa y la publica." %} <a href="{{ revisar_ficha_url }}" target="_top">{% translate "Revisar y publicar" %}</a></p>{% endif %}
+  <header class="conoce__portada area__portada{% if medios.portada %} con-foto{% else %} area__portada--plano{% endif %}"{% if medios.portada %} style="--conoce-foto: url('{{ medios.portada.url }}')"{% endif %}>
+    {% if medios.portada.referencial %}<span class="area__rotulo-referencial"><i class="fas fa-image" aria-hidden="true"></i> {% translate "Imagen referencial" %}</span>{% endif %}
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{{ antetitulo }} · {{ unidad.nombre }}</span>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=datos#datos" data-editar-ficha data-editar-titulo="Datos del área"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar datos del área" %}</a>{% endif %}
+      <h1>{{ espacio.nombre }}</h1>
+      {% if espacio.descripcion_publica %}<p class="conoce__lema">{{ espacio.descripcion_publica }}</p>{% endif %}
+      <ul class="conoce__datos">
+        <li><i class="{{ area.icono }}" aria-hidden="true"></i>{{ espacio.get_tipo_display|ui }}</li>
+        {% if espacio.ubicacion %}<li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ espacio.ubicacion }}</li>{% endif %}
+        <li><i class="fas fa-tag" aria-hidden="true"></i>{{ espacio.codigo }}</li>
+      </ul>
+      <div class="conoce__portada-acciones">
+        {% if espacio.reservable %}<button type="button" class="conoce__boton is-principal" data-accion="reservar"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Reservar" %}</button>{% endif %}
+        {% if persona %}<a class="conoce__boton" href="#responsable"><i class="fas fa-user" aria-hidden="true"></i> {% translate "Quién la atiende" %}</a>{% endif %}
+        <a class="conoce__boton" href="{{ todas_url }}"><i class="fas fa-th-large" aria-hidden="true"></i> {% translate "Todas las áreas" %}</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "El área en cifras" %}">
+    <div data-aparecer><i class="fas fa-toolbox" aria-hidden="true"></i><strong data-contar="{{ cifra_equipos }}">{{ cifra_equipos }}</strong><span>{% if solo_fichas_equipamiento %}{% translate "Fichas de equipamiento" %}{% else %}{% translate "Equipos registrados" %}{% endif %}</span></div>
+    {% if contenido.insumos %}<div data-aparecer><i class="fas fa-boxes" aria-hidden="true"></i><strong data-contar="{{ contenido.insumos|length }}">{{ contenido.insumos|length }}</strong><span>{% translate "Insumos y materiales" %}</span></div>{% endif %}
+    {% if procesos %}<div data-aparecer><i class="fas fa-project-diagram" aria-hidden="true"></i><strong data-contar="{{ procesos|length }}">{{ procesos|length }}</strong><span>{% translate "Procesos que pasan por aquí" %}</span></div>{% endif %}
+    {% if aforo_pendiente %}<div><i class="fas fa-users" aria-hidden="true"></i><strong>—</strong><span>{% translate "Aforo por verificar" %}</span></div>{% elif espacio.capacidad %}<div data-aparecer><i class="fas fa-users" aria-hidden="true"></i><strong data-contar="{{ espacio.capacidad }}">{{ espacio.capacidad }}</strong><span>{% translate "Personas a la vez" %}</span></div>{% endif %}
+  </section>
+
+  {% if editar_area_url and not ficha %}<p class="area__completar"><i class="fas fa-pen-nib" aria-hidden="true"></i> <span><strong>{% translate "Esta área todavía no tiene su página." %}</strong> {% translate "Escribe qué es, cómo funciona, sus aplicaciones y sube sus fotos y videos." %}</span> <a class="equipo__editar" href="{{ editar_area_url }}">{% translate "Completar la página del área" %}</a></p>{% endif %}
+  <nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+    {% if ficha %}<a href="#tecnologia" data-indice="tecnologia">{% translate "Cómo funciona" %}</a>{% endif %}
+    {% if medios.galeria %}<a href="#galeria" data-indice="galeria">{% translate "Galería" %}</a>{% endif %}
+    {% if ficha.lista_aplicaciones or caracteristicas %}<a href="#aplicaciones" data-indice="aplicaciones">{% translate "Qué se hace" %}</a>{% endif %}
+    {% if medios.videos %}<a href="#videos" data-indice="videos">{% translate "Videos" %}</a>{% endif %}
+    {% if contenido.zonas %}<a href="#distribucion" data-indice="distribucion">{% translate "Distribución" %}</a>{% endif %}
+    {% if procesos %}<a href="#procesos" data-indice="procesos">{% translate "Procesos" %}</a>{% endif %}
+    <a href="#equipos" data-indice="equipos">{% translate "Equipos" %}</a>
+    {% if contenido.insumos %}<a href="#insumos" data-indice="insumos">{% translate "Insumos" %}</a>{% endif %}
+    {% if area.software or contenido.software or area.recursos %}<a href="#software" data-indice="software">{% translate "Software" %}</a>{% endif %}
+    {% if contenido.documentos %}<a href="#documentacion" data-indice="documentacion">{% translate "Documentación" %}</a>{% endif %}
+    <a href="#uso" data-indice="uso">{% translate "Reserva" %}</a>
+    {% if ficha.lista_seguridad or ficha.lista_conexiones %}<a href="#seguridad" data-indice="seguridad">{% translate "Seguridad" %}</a>{% endif %}
+    {% if otras_areas %}<a href="#otras" data-indice="otras">{% translate "Otras áreas" %}</a>{% endif %}
+  </nav>
+
+  {% if ficha %}
+  <section class="conoce__seccion" id="tecnologia">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "La tecnología" %}</span><h2>{% translate "Qué es y cómo funciona" %}</h2>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=contenido#contenido" data-editar-ficha data-editar-titulo="Qué es y cómo funciona"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}</header>
+    <div class="area__explicacion">
+      {% if ficha.que_es %}<article class="ficha__bloque ficha__bloque--creacion" data-aparecer><header><i class="fas fa-lightbulb" aria-hidden="true"></i><h2>{% translate "Qué es" %}</h2></header><div class="area__texto">{{ ficha.que_es|linebreaks }}</div></article>{% endif %}
+      {% if ficha.como_funciona %}<article class="ficha__bloque" data-aparecer><header><i class="fas fa-cogs" aria-hidden="true"></i><h2>{% translate "Cómo funciona" %}</h2></header><div class="area__texto">{{ ficha.como_funciona|linebreaks }}</div></article>{% endif %}
+    </div>
+    {% if contenido.pasos %}
+    <div class="area__diagrama" data-diagrama data-aparecer>
+      <header><i class="fas fa-project-diagram" aria-hidden="true"></i><div><strong>{% translate "Diagrama: cómo funciona, paso a paso" %}</strong><small>{% translate "Toca cada paso para ver qué pasa en él." %}</small></div></header>
+      <ol class="area__diagrama-pasos">
+        {% for titulo, explicacion in contenido.pasos %}<li><button type="button" data-paso="{{ forloop.counter0 }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"><b>{{ forloop.counter }}</b><span>{{ titulo }}</span></button></li>{% endfor %}
+      </ol>
+      {% for titulo, explicacion in contenido.pasos %}<div class="area__diagrama-panel" data-panel-paso="{{ forloop.counter0 }}"{% if not forloop.first %} hidden{% endif %}><span>{% translate "Paso" %} {{ forloop.counter }} {% translate "de" %} {{ contenido.pasos|length }}</span><strong>{{ titulo }}</strong><p>{{ explicacion }}</p></div>{% endfor %}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if medios.galeria %}
+  <section class="conoce__seccion" id="galeria">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "En imágenes" %}</span><h2>{% translate "Galería del área" %}</h2>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=fotos#fotos" data-editar-ficha data-editar-titulo="Fotos del área"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}</header>
+    <div class="area__collage area__collage--{{ medios.galeria|length|stringformat:'s' }}" data-aparecer>
+      {% for imagen in medios.galeria %}<button type="button" class="area__collage-pieza" data-abrir-imagen="{{ forloop.counter0 }}" aria-label="{% translate "Ampliar" %}: {{ imagen.titulo }}">
+        <img src="{{ imagen.url }}" alt="{{ imagen.titulo }}" loading="lazy">
+        <span class="area__collage-pie"><strong>{{ imagen.titulo }}</strong>{% if imagen.referencial %}<small>{% translate "Imagen referencial" %}</small>{% else %}<small>{% translate "Foto del área" %}</small>{% endif %}</span>
+        <i class="fas fa-expand area__collage-ampliar" aria-hidden="true"></i>
+      </button>{% endfor %}
+    </div>
+    <details class="ficha__nota"><summary>{% translate "Créditos y fuentes de las imágenes" %}</summary><ul>{% for imagen in medios.galeria %}{% if imagen.credito %}<li>{{ imagen.titulo }} · {{ imagen.credito }}{% if imagen.fuente %} · <a href="{{ imagen.fuente }}" target="_blank" rel="noopener noreferrer">{% translate "Fuente y licencia" %}</a>{% endif %}</li>{% endif %}{% endfor %}</ul></details>
+    {% if editar_url %}<p class="ficha__nota">{% translate "Las fotos y videos propios se suben en el editor de la unidad, en el bloque «por dentro: fotos y videos», eligiendo esta área. Van primero y reemplazan a las referenciales en la portada." %}</p>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if ficha.lista_aplicaciones or caracteristicas %}
+  <section class="conoce__seccion" id="aplicaciones">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Qué se hace aquí" %}</span><h2>{% translate "Qué se puede hacer" %}</h2>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=aplicaciones#aplicaciones" data-editar-ficha data-editar-titulo="Aplicaciones"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}</header>
+    <ul class="area__puntos" data-aparecer>{% for punto in ficha.lista_aplicaciones %}<li><i class="fas fa-check" aria-hidden="true"></i>{{ punto }}</li>{% endfor %}{% for punto in caracteristicas %}<li><i class="fas fa-check" aria-hidden="true"></i>{{ punto }}</li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if medios.franja and ficha.lista_aplicaciones %}
+  <section class="area__franja" style="--franja: url('{{ medios.franja.url }}')" aria-label="{% translate "Lo que se hace en el área" %}">
+    <div class="area__franja-texto" data-aparecer>
+      <span class="conoce__antetitulo">{% translate "Aprender haciendo" %}</span>
+      <p>{{ ficha.lista_aplicaciones.0 }}</p>
+      {% if ficha.lista_aplicaciones|length > 1 %}<p class="area__franja-secundaria">{{ ficha.lista_aplicaciones.1 }}</p>{% endif %}
+    </div>
+    {% if medios.franja.referencial %}<span class="area__rotulo-referencial">{% translate "Imagen referencial" %}</span>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if contenido.zonas %}
+  <section class="conoce__seccion" id="distribucion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Boceto del área" %}</span><h2>{% translate "Cómo se distribuye" %}</h2>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=proceso#proceso" data-editar-ficha data-editar-titulo="Distribución"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}</header>
+    <p class="ficha__nota">{% translate "Esquema de referencia de las zonas de trabajo. Toca una zona para resaltar sus equipos en la tabla." %}</p>
+    <div class="area__plano" data-plano data-aparecer>
+      <div class="area__plano-rotulo"><i class="fas fa-ruler-combined" aria-hidden="true"></i> {{ espacio.nombre }}{% if espacio.capacidad and not aforo_pendiente %} · {{ espacio.capacidad }} {% translate "personas" %}{% endif %}</div>
+      {% for zona in contenido.zonas %}<button type="button" class="area__zona" data-zona="{{ forloop.counter0 }}" style="--zona: {{ forloop.counter }}">
+        <span class="area__zona-numero">{{ forloop.counter }}</span>
+        <strong>{{ zona.nombre }}</strong>
+        <small>{{ zona.uso }}</small>
+        {% if zona.equipos %}<span class="area__zona-equipos">{% for nombre in zona.equipos %}<em>{{ nombre }}</em>{% endfor %}</span>{% endif %}
+      </button>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if procesos %}
+  <section class="conoce__seccion" id="procesos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Paso a paso" %}</span><h2>{% translate "Procesos que se hacen aquí" %}</h2></header>
+    <div class="area__actividades">
+      {% for item in procesos %}<a class="area__actividad area__actividad--enlace" href="{{ item.url }}" data-aparecer>
+        <header><i class="fas fa-project-diagram" aria-hidden="true"></i><div><span class="ficha__rol">{{ item.resumen }}</span>{% if not item.proceso.activa %}<span class="area__estado is-uso">{% translate "Borrador" %}</span>{% endif %}</div></header>
+        <h3>{{ item.proceso.nombre }}</h3>
+        <ol class="area__mini-flujo">{% for etapa in item.etapas %}<li><b>{{ etapa.orden }}</b>{{ etapa.nombre }}</li>{% endfor %}</ol>
+        <footer><span>{% translate "Entrega:" %} <strong>{{ item.proceso.producto.nombre }}</strong></span><span>{% translate "Ver paso a paso" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></span></footer>
+      </a>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if medios.videos %}
+  <section class="conoce__seccion" id="videos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Míralo en acción" %}</span><h2>{% translate "Videos" %}</h2>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=videos#videos" data-editar-ficha data-editar-titulo="Videos"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}</header>
+    <div class="area__videos" data-videos data-aparecer>
+      <div class="area__video-principal">
+        <button type="button" class="area__video-pantalla" data-reproducir data-video="{{ medios.videos.0.id }}" aria-label="{% translate "Reproducir" %}: {{ medios.videos.0.titulo }}" style="--miniatura: url('https://i.ytimg.com/vi/{{ medios.videos.0.id }}/hqdefault.jpg')">
+          <span class="area__video-play"><i class="fas fa-play" aria-hidden="true"></i></span>
+        </button>
+        <div class="area__video-datos"><strong data-video-titulo>{{ medios.videos.0.titulo }}</strong><small data-video-canal>{% if medios.videos.0.propio %}{% translate "Video de la unidad" %}{% else %}{{ medios.videos.0.canal }}{% endif %}</small><p data-video-descripcion>{{ medios.videos.0.descripcion }}</p></div>
+      </div>
+      {% if medios.videos|length > 1 %}<ol class="area__video-lista">
+        {% for video in medios.videos %}<li><button type="button" data-elegir-video="{{ video.id }}" data-titulo="{{ video.titulo }}" data-canal="{% if video.propio %}{% translate "Video de la unidad" %}{% else %}{{ video.canal }}{% endif %}" data-descripcion="{{ video.descripcion }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+          <img src="https://i.ytimg.com/vi/{{ video.id }}/mqdefault.jpg" alt="" loading="lazy"><span><strong>{{ video.titulo }}</strong><small>{% if video.propio %}{% translate "Video de la unidad" %}{% else %}{{ video.canal }}{% endif %}</small></span>
+        </button></li>{% endfor %}
+      </ol>{% endif %}
+    </div>
+    <p class="ficha__nota">{% translate "Los videos se cargan desde YouTube solo al reproducirlos." %}</p>
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion" id="equipos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Con qué se trabaja" %}</span><h2>{% translate "Equipos y máquinas" %}</h2></header>
+    {% if contenido.equipos %}
+    <div class="area__filtros" role="group" aria-label="{% translate "Filtrar equipos" %}" data-filtros>
+      <button type="button" data-filtro="todos" aria-pressed="true">{% translate "Todos" %} <b>{{ contenido.total_equipos }}</b></button>
+      <button type="button" data-filtro="basico" aria-pressed="false">{% translate "Básicos" %}</button>
+      <button type="button" data-filtro="alta" aria-pressed="false">{% translate "Alta capacidad" %}</button>
+      <button type="button" data-filtro="disponible" aria-pressed="false">{% translate "Disponibles para reservar" %}</button>
+      <span class="area__filtro-estado" data-filtro-estado aria-live="polite"></span>
+    </div>
+    <div class="area__tabla-envoltura" data-aparecer>
+      <table class="area__tabla area__tabla--equipos">
+        <thead><tr><th scope="col">{% translate "Equipo" %}</th><th scope="col">{% translate "Para qué sirve" %}</th><th scope="col">{% translate "Marca y modelo" %}</th><th scope="col">{% translate "En inventario" %}</th><th scope="col">{% translate "Nivel" %}</th><th scope="col"><span class="sr-only">{% translate "Ficha técnica" %}</span></th></tr></thead>
+        <tbody>
+          {% for equipo in contenido.equipos %}<tr data-equipo data-elementos="{% for origen in equipo.elementos_origen %}{{ origen.id }}{% if not forloop.last %} {% endif %}{% endfor %}" data-nivel="{{ equipo.nivel|default:'basico' }}"{% if equipo.disponibles %} data-disponible{% endif %} data-zonas="{% for zona in equipo.zonas %}{{ zona }}{% if not forloop.last %} {% endif %}{% endfor %}">
+            <td><div class="area__equipo-celda">{% include 'portal/pages/unidades/detalle/includes/ilustracion_equipo.html' with tamano='mini' %}<span><strong>{{ equipo.nombre }}</strong>{% if equipo.solo_referencia %}<small class="area__estado is-uso">{% translate "Propuesta por evaluar · no adquirida" %}</small>{% elif equipo.modelo_registrado %}<small class="area__en-inventario">{% translate "Modelo vinculado al inventario" %}</small>{% else %}<small class="area__estado is-uso">{% translate "Ficha de referencia · existencia por verificar" %}</small>{% endif %}</span></div></td>
+            <td>{{ equipo.para_que }}</td>
+            <td>{{ equipo.modelo_mostrado|default:"—" }}{% if not equipo.modelo_registrado %}<br><small>{% translate "Referencia técnica" %}</small>{% endif %}</td>
+            <td>{% include 'portal/pages/unidades/detalle/includes/existencia_equipo_ficha.html' %}</td>
+            <td><span class="area__nivel is-{{ equipo.nivel|default:'basico' }}">{{ equipo.get_nivel_display|default:_("Básico") }}</span></td>
+            <td><button type="button" class="area__boton-ficha" data-abrir-ficha="ficha-equipo-{{ equipo.pk }}"><i class="fas fa-file-alt" aria-hidden="true"></i> {% translate "Ficha técnica" %}</button></td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% for equipo in contenido.equipos %}
+    <dialog class="area__dialogo" id="ficha-equipo-{{ equipo.pk }}" aria-labelledby="titulo-equipo-{{ equipo.pk }}">
+      <header>
+        {% include 'portal/pages/unidades/detalle/includes/ilustracion_equipo.html' with tamano='grande' %}
+        <div><span class="ficha__rol">{{ equipo.get_nivel_display|default:_("Básico") }}</span><h3 id="titulo-equipo-{{ equipo.pk }}">{{ equipo.nombre }}</h3><p>{{ equipo.para_que }}</p></div>
+        <button type="button" class="area__cerrar" data-cerrar-ficha aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+      </header>
+      <div class="area__dialogo-cuerpo">
+        <table class="area__tabla area__tabla--ficha"><caption>{% translate "Especificaciones técnicas" %}</caption><tbody>
+          <tr><th scope="row">{% if equipo.modelo_registrado %}{% translate "Marca y modelo registrados" %}{% else %}{% translate "Modelo de referencia" %}{% endif %}</th><td>{{ equipo.modelo_mostrado|default:"—" }}</td></tr>
+          <tr><th scope="row">{% translate "Unidades en inventario del área" %}</th><td>{% for fisica in equipo.unidades %}<a class="area__codigo" href="{% url 'ficha_equipo_publica' unidad.slug fisica.codigo_unidad %}">{{ fisica.codigo_unidad }}</a> <small>{{ fisica.get_estado_unidad_display|ui }}</small>{% if not forloop.last %}<br>{% endif %}{% empty %}{% include 'portal/pages/unidades/detalle/includes/existencia_equipo_ficha.html' %}{% endfor %}</td></tr>
+          {% for clave, valor in equipo.especificaciones_mostradas %}<tr><th scope="row">{{ clave }}</th><td>{{ valor|default:"—" }}</td></tr>{% empty %}{% if equipo.modelo_registrado %}<tr><th scope="row">{% translate "Datos técnicos del modelo" %}</th><td>{% translate "Sin especificaciones registradas. Consulte la ficha completa del equipo." %}</td></tr>{% endif %}{% endfor %}
+        </tbody></table>
+        {% if equipo.caracteristicas_mostradas %}<p>{{ equipo.caracteristicas_mostradas }}</p>{% endif %}
+        {% if equipo.elementos_origen|length > 1 %}<details><summary>{% translate "Puestos de la ficha agrupados en este modelo" %}</summary><ul class="area__lista">{% for origen in equipo.elementos_origen %}<li><a href="{% url 'ficha_equipo_referencia' unidad.slug origen.id %}">{{ origen.nombre }}</a></li>{% endfor %}</ul></details>{% endif %}
+        <div class="area__dialogo-listas">
+          {% if equipo.consumibles_mostrados %}<div><h4><i class="fas fa-box" aria-hidden="true"></i> {% translate "Insumos que usa" %}</h4><ul class="area__lista">{% for insumo in equipo.consumibles_mostrados %}<li>{{ insumo }}</li>{% endfor %}</ul></div>{% endif %}
+          {% if equipo.cuidados_mostrados %}<div><h4><i class="fas fa-shield-alt" aria-hidden="true"></i> {% translate "Cuidados y uso seguro" %}</h4><ul class="area__lista">{% for cuidado in equipo.cuidados_mostrados %}<li>{{ cuidado }}</li>{% endfor %}</ul></div>{% endif %}
+        </div>
+        {% if equipo.modelo_registrado %}<a class="ficha__boton" href="{% url 'ficha_equipo_publica' unidad.slug equipo.registrado.codigo_unidad %}"><i class="fas fa-file-alt" aria-hidden="true"></i> {% translate "Abrir la ficha completa del equipo" %}</a>{% else %}<a class="ficha__boton" href="{% url 'ficha_equipo_referencia' unidad.slug equipo.pk %}"><i class="fas fa-file-alt" aria-hidden="true"></i> {% translate "Abrir ficha técnica individual" %}</a>{% endif %}
+      </div>
+    </dialog>
+    {% endfor %}
+    {% endif %}
+    {% if otros_registrados %}
+    <h3 class="area__subtitulo">{% if contenido.equipos %}{% translate "Otros equipos registrados en el área" %}{% else %}{% translate "Registrados en el área" %}{% endif %}</h3>
+    <div class="area__equipos">{% for unidad_equipo in otros_registrados %}{% include 'portal/pages/unidades/detalle/includes/tarjeta_equipo.html' %}{% endfor %}</div>
+    {% elif not contenido.equipos %}
+    <p class="ficha__nota">{% translate "El área todavía no tiene equipos registrados en su inventario." %}</p>
+    {% endif %}
+  </section>
+
+  {% if contenido.insumos %}
+  <section class="conoce__seccion" id="insumos">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que se consume" %}</span><h2>{% translate "Insumos y materiales" %}</h2></header>
+    <div class="area__tabla-envoltura" data-aparecer>
+      <table class="area__tabla">
+        <thead><tr><th scope="col">{% translate "Insumo o material" %}</th><th scope="col">{% translate "Para qué se usa" %}</th><th scope="col">{% translate "Consumo de referencia" %}</th><th scope="col">{% translate "Presentación" %}</th><th scope="col">{% translate "En inventario" %}</th></tr></thead>
+        <tbody>{% for insumo in contenido.insumos %}{% with registro=insumo.insumo_registrado %}<tr><td><div class="area__equipo-celda"><span class="area__ilustracion area__ilustracion--mini{% if registro.imagen_publica_url %} con-foto{% endif %}" aria-hidden="true">{% if registro.imagen_publica_url %}<img src="{{ registro.imagen_publica_url }}" alt="" loading="lazy">{% else %}<i class="{{ registro.icono|default:'fas fa-box-open' }}"></i>{% endif %}</span><span><strong>{{ insumo.nombre }}</strong>{% if insumo.solo_referencia %}<small class="area__estado is-uso">{% translate "Propuesta por evaluar · no adquirida" %}</small>{% elif registro %}<small class="area__en-inventario"><i class="fas fa-barcode" aria-hidden="true"></i> {{ registro.codigo }} · {{ registro.get_clasificacion_display }}</small>{% endif %}</span></div></td><td>{{ insumo.para_que|default:"—" }}</td><td>{{ insumo.cantidad|default:"—" }}</td><td>{{ insumo.ejemplo|default:"—" }}</td><td>{% if insumo.solo_referencia %}{% translate "No adquirida" %}{% elif registro %}{{ registro.stock_total|floatformat:"-3" }} {{ registro.unidad_medida|default:"" }}{% else %}{% translate "Existencia por verificar" %}{% endif %}</td></tr>{% endwith %}{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if area.software or contenido.software or area.recursos %}
+  <section class="conoce__seccion" id="software">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Herramientas digitales" %}</span><h2>{% translate "Software y aplicaciones" %}</h2></header>
+    {% if area.software %}<h3 class="area__subtitulo">{% translate "Instalado en los equipos del área" %}</h3><ul class="ficha__lineas" data-aparecer>{% for programa in area.software %}<li><i class="fas fa-laptop-code" aria-hidden="true"></i>{{ programa }}</li>{% endfor %}</ul>{% endif %}
+    {% if contenido.software %}
+    <div class="area__tabla-envoltura" data-aparecer>
+      <table class="area__tabla">
+        <thead><tr><th scope="col">{% translate "Programa" %}</th><th scope="col">{% translate "Para qué se usa" %}</th><th scope="col">{% translate "Licencia" %}</th><th scope="col"><span class="sr-only">{% translate "Sitio oficial" %}</span></th></tr></thead>
+        <tbody>{% for programa in contenido.software %}{% with registro=programa.software_registrado %}<tr><td><div class="area__equipo-celda">{% if registro %}<span class="area__logo" aria-hidden="true"><img src="{{ registro.logo_publico_url }}" alt="" loading="lazy"></span>{% else %}<span class="area__logo" aria-hidden="true"><i class="fas fa-laptop-code"></i></span>{% endif %}<span><strong>{{ programa.nombre }}</strong>{% if programa.solo_referencia %}<small class="area__estado is-uso">{% translate "Propuesta por evaluar · no adquirida" %}</small>{% elif registro %}<small class="area__en-inventario"><i class="fas fa-desktop" aria-hidden="true"></i> {{ registro.get_tipo_acceso_display }}{% with instalado=registro.equipos_instalados.count %}{% if instalado %} · {% blocktranslate count total=instalado %}en {{ total }} equipo{% plural %}en {{ total }} equipos{% endblocktranslate %}{% endif %}{% endwith %}</small>{% endif %}</span></div></td><td>{{ programa.para_que|default:"—" }}</td><td><span class="area__licencia">{{ programa.licencia|default:"—" }}</span></td><td>{% if programa.url %}<a class="area__enlace" href="{{ programa.url }}" target="_blank" rel="noopener">{% translate "Sitio oficial" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% endif %}</td></tr>{% endwith %}{% endfor %}</tbody>
+      </table>
+    </div>
+    {% endif %}
+    {% if area.recursos %}<h3 class="area__subtitulo">{% translate "Recursos en línea del área" %}</h3><div class="area__recursos">{% for recurso in area.recursos %}<a href="{% url 'artefacto_externo' unidad.slug recurso.codigo %}" data-aparecer><i class="fas fa-cube" aria-hidden="true"></i><span><strong>{{ recurso.nombre }}</strong><small>{{ recurso.get_tipo_display }}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endfor %}</div>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if contenido.documentos %}
+  <section class="conoce__seccion" id="documentacion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para saber más" %}</span><h2>{% translate "Documentación" %}</h2></header>
+    <div class="area__recursos">{% for documento in contenido.documentos %}<a href="{{ documento.url }}" data-aparecer><i class="fas fa-book" aria-hidden="true"></i><span><strong>{{ documento.nombre }}</strong>{% if documento.para_que %}<small>{{ documento.para_que }}</small>{% endif %}</span><i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion" id="uso">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para usarla" %}</span><h2>{% translate "Cómo se reserva y quién la atiende" %}</h2></header>
+    <div class="ficha__datos">
+      <article class="ficha__bloque ficha__bloque--creacion" data-aparecer>
+        <header><i class="fas fa-calendar-check" aria-hidden="true"></i><h2>{% translate "Cómo se reserva" %}</h2></header>
+        <dl>
+          <div><dt>{% translate "Uso" %}</dt><dd>{% if espacio.reservable %}{{ espacio.get_politica_reserva_display }}{% else %}{% translate "No se reserva por separado" %}{% endif %}</dd></div>
+          {% if espacio.instrucciones_uso %}<div><dt>{% translate "Antes de entrar" %}</dt><dd>{{ espacio.instrucciones_uso|linebreaksbr }}</dd></div>{% endif %}
+        </dl>
+        {% if espacio.reservable %}<div class="ficha__documento-acciones"><button type="button" class="ficha__boton" data-accion="reservar"><i class="fas fa-calendar-plus" aria-hidden="true"></i> {% translate "Reservar el área" %}</button></div>{% endif %}
+      </article>
+      <article class="ficha__bloque" data-aparecer>
+        <header><i class="fas fa-ruler-combined" aria-hidden="true"></i><h2>{% translate "El espacio" %}</h2></header>
+        <dl>
+          <div><dt>{% translate "Tipo" %}</dt><dd>{{ espacio.get_tipo_display|ui }}</dd></div>
+          {% if espacio.capacidad %}<div><dt>{% translate "Capacidad" %}</dt><dd>{{ espacio.capacidad }} persona{{ espacio.capacidad|pluralize }}</dd></div>{% endif %}
+          {% if espacio.ubicacion %}<div><dt>{% translate "Ubicación" %}</dt><dd>{{ espacio.ubicacion }}</dd></div>{% endif %}
+          {% if mobiliario %}<div><dt>{% translate "Mobiliario incluido" %}</dt><dd>{{ mobiliario|join:", " }}</dd></div>{% endif %}
+        </dl>
+      </article>
+      {% if persona %}
+      <article class="ficha__persona is-coordina area__responsable" id="responsable" data-aparecer>
+        <div class="ficha__avatar">{% if persona.foto %}<img src="{{ persona.foto }}" alt="{{ persona.nombre }}">{% else %}{{ persona.iniciales }}{% endif %}</div>
+        <div class="ficha__persona-datos">
+          <span class="ficha__rol">{% translate "Responsable del área" %}</span>
+          <h3>{{ persona.nombre }}</h3>
+          <p>{{ persona.rol|ui }}{% if persona.descripcion %} · {{ persona.descripcion }}{% endif %}</p>
+          <ul class="ficha__medios">
+            {% if persona.email %}<li><a href="mailto:{{ persona.email }}"><i class="fas fa-envelope" aria-hidden="true"></i>{{ persona.email }}</a></li>{% endif %}
+            {% if persona.telefono %}<li><a href="{{ persona.enlace_telefono }}"><i class="fas fa-phone-alt" aria-hidden="true"></i>{{ persona.telefono }}</a></li>{% endif %}
+            {% if persona.horario %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ persona.horario }}</li>{% endif %}
+          </ul>
+        </div>
+      </article>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if ficha.lista_seguridad or ficha.lista_conexiones %}
+  <section class="conoce__seccion" id="seguridad">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Antes de trabajar" %}</span><h2>{% translate "Seguridad e infraestructura" %}</h2>{% if editar_area_url %}<a class="equipo__editar" href="{{ editar_area_url }}?seccion=aplicaciones#aplicaciones" data-editar-ficha data-editar-titulo="Seguridad e infraestructura"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar" %}</a>{% endif %}</header>
+    <div class="area__explicacion">
+      {% if ficha.lista_seguridad %}
+      <article class="ficha__bloque ficha__bloque--creacion area__verificacion" data-verificacion data-aparecer>
+        <header><i class="fas fa-shield-alt" aria-hidden="true"></i><h2>{% translate "Lista de verificación" %}</h2></header>
+        <p class="ficha__nota">{% translate "Marca cada regla antes de entrar al área." %}</p>
+        <ul>{% for regla in ficha.lista_seguridad %}<li><label><input type="checkbox" data-regla> <span>{{ regla }}</span></label></li>{% endfor %}</ul>
+        <div class="area__progreso" aria-hidden="true"><span data-progreso></span></div>
+        <p class="area__verificacion-estado" data-verificacion-estado aria-live="polite">0 {% translate "de" %} {{ ficha.lista_seguridad|length }} {% translate "reglas revisadas" %}</p>
+      </article>
+      {% endif %}
+      {% if ficha.lista_conexiones %}<article class="ficha__bloque" data-aparecer><header><i class="fas fa-plug" aria-hidden="true"></i><h2>{% translate "Conexiones e infraestructura" %}</h2></header><ul class="area__lista">{% for conexion in ficha.lista_conexiones %}<li>{{ conexion }}</li>{% endfor %}</ul></article>{% endif %}
+    </div>
+    {% if ficha.fuente %}<p class="ficha__nota">{% translate "Fuente:" %} {% if ficha.fuente|slice:":20" == "CAF-LINEA v2;sha256:" %}{% translate "Contenido técnico original de la cadena de café · revisión 2." %}{% else %}{{ ficha.fuente }}{% endif %}</p>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if otras_areas %}
+  <section class="conoce__seccion area__otras-seccion" id="otras">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Sigue recorriendo" %}</span><h2>{% translate "Otras áreas de la unidad" %}</h2></header>
+    <ul class="area__otras" data-aparecer>{% for otra in otras_areas %}<li><a href="{{ otra.url }}"><i class="{{ otra.icono }}" aria-hidden="true"></i><span><strong>{{ otra.espacio.nombre }}</strong><small>{{ otra.equipos|length }} equipo{{ otra.equipos|length|pluralize }} {% translate "registrado" %}{{ otra.equipos|length|pluralize }}</small></span></a></li>{% endfor %}</ul>
+  </section>
+  {% endif %}
+
+  {% if medios.galeria %}
+  <dialog class="area__visor" data-visor aria-label="{% translate "Galería del área" %}">
+    <button type="button" class="area__cerrar" data-cerrar-visor aria-label="{% translate "Cerrar" %}"><i class="fas fa-times" aria-hidden="true"></i></button>
+    <button type="button" class="area__visor-paso is-anterior" data-visor-paso="-1" aria-label="{% translate "Anterior" %}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+    <figure><img data-visor-imagen src="" alt=""><figcaption><strong data-visor-titulo></strong><small data-visor-rotulo></small><span data-visor-cuenta></span></figcaption></figure>
+    <button type="button" class="area__visor-paso is-siguiente" data-visor-paso="1" aria-label="{% translate "Siguiente" %}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+    <script type="application/json" data-visor-imagenes>[{% for imagen in medios.galeria %}{"url": "{{ imagen.url|escapejs }}", "titulo": "{{ imagen.titulo|escapejs }}", "rotulo": "{% if imagen.referencial %}{% translate "Imagen referencial" %}{% else %}{% translate "Foto del área" %}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
+  </dialog>
+  {% endif %}
+  {% if editar_area_url %}<p class="ficha__editar"><a href="{{ editar_area_url }}" class="equipo__editar"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar toda la página del área" %}</a></p>{% elif editar_url %}<p class="ficha__editar"><a href="{{ editar_url }}" target="_top"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar el área" %}</a></p>{% endif %}
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+  <script src="{% static 'portal/js/pages/unidades/area_unidad.js' %}?v=20261004-area-v4"></script>
+  {% if editar_area_url %}<script src="{% static 'portal/js/components/edicion_en_ficha.js' %}?v=20261003-altas-v1"></script><script src="{% static 'portal/js/components/editor_videos.js' %}?v=20261003-videos-v1"></script>{% endif %}
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+{% endwith %}
+</html>

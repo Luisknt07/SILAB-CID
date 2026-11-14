@@ -1,0 +1,33 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Documentos y normativa: los documentos del centro por tipo (reglamentos, ética, datos, propiedad intelectual,
+seguridad, estudios y descargas), la seguridad de cada área y las carpetas propias que el centro publica aquí. Los de
+gobierno (plan, informes y actas) viven en «Gobierno y gestión».{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Las normas con las que trabaja el centro y sus documentos para leer y descargar: reglamento, ética, datos y propiedad intelectual, seguridad, catálogos y estudios." %}</p>{% endblock %}
+
+{% block acciones %}<a class="conoce__boton" href="{% url 'reporte_centro_id' centro.slug %}" data-ver-pdf data-pdf-titulo="Ficha del centro · {{ centro.nombre }}" data-pdf-descarga="{% url 'reporte_centro_id' centro.slug %}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate 'Ver ficha del centro' %} (PDF)</a>{% endblock %}
+
+{% block contenido %}
+{% if documentos %}
+<section class="conoce__seccion" id="documentos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para leer y descargar" %}</span><h2>{% translate "Documentos del centro" %}</h2></header>
+  <div class="area__recursos">{% for tipo, filas in documentos.items %}{% for documento in filas %}{% include 'centros_id/visor/_documento.html' %}{% endfor %}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if seguridad %}
+<section class="conoce__seccion" id="seguridad">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Antes de trabajar" %}</span><h2>{% translate "Seguridad por área" %}</h2></header>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Área" %}</th><th scope="col">{% translate "Riesgos o necesidades" %}</th><th scope="col">{% translate "Control requerido" %}</th></tr></thead><tbody>{% for area, control in seguridad %}<tr><td><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug area.codigo %}"><i class="{{ area.icono }}" aria-hidden="true"></i> {{ area.nombre_corto|default:area.nombre }}</a></td><td>{{ control.0 }}</td><td>{{ control.1 }}</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endif %}
+
+{% if carpetas %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Del centro" %}</span><h2>{% translate "Carpetas del centro" %}</h2></header>
+  <div class="area__recursos">{% for carpeta in carpetas %}<a href="{% url 'carpeta_centro_id' centro.slug carpeta.pk %}" data-aparecer><i class="{{ carpeta.icono }}" aria-hidden="true"></i><span><strong>{{ carpeta.nombre }}</strong><small>{{ carpeta.recursos.count }} {% translate "recursos" %}{% if carpeta.descripcion %} · {{ carpeta.descripcion|truncatewords:12 }}{% endif %}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% endblock %}

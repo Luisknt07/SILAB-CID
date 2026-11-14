@@ -1,0 +1,39 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Alianzas y financiamiento: los aliados por tipo de organización, quién financia los proyectos, los emprendimientos que
+nacieron del centro y con quién puede trabajar, con las piezas de Laboratorios.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Con quién trabaja el centro: aliados y convenios vigentes, quién financia sus proyectos y los emprendimientos que nacieron de él." %}</p>{% endblock %}
+{% block acciones %}<a class="conoce__boton is-principal" href="{{ solicitar_url }}?tipo=reto"><i class="fas fa-handshake" aria-hidden="true"></i> {% translate "Proponer una alianza" %}</a>{% endblock %}
+
+{% block contenido %}
+{% for tipo, lista in aliados.items %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Aliados" %}</span><h2>{{ tipo }}</h2></header>
+  <div class="area__actividades">{% for aliado in lista %}{% include 'centros_id/visor/_aliado.html' %}{% endfor %}</div>
+</section>
+{% endfor %}
+
+{% if financiadores %}
+<section class="conoce__seccion" id="financiamiento">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Financiamiento" %}</span><h2>{% translate "Quién financia los proyectos" %}</h2></header>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Entidad" %}</th><th scope="col">{% translate "Proyectos" %}</th><th scope="col">{% translate "Monto divulgado" %}</th></tr></thead><tbody>{% for fila in financiadores %}<tr><td><strong>{{ fila.nombre }}</strong></td><td>{{ fila.proyectos }}</td><td>{% if fila.monto %}USD {{ fila.monto|floatformat:"0g" }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endif %}
+
+{% if emprendimientos %}
+<section class="conoce__seccion" id="emprendimientos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Nacieron del centro" %}</span><h2>{% translate "Emprendimientos y spin-offs" %}</h2></header>
+  <div class="area__actividades">{% for aliado in emprendimientos %}{% include 'centros_id/visor/_aliado.html' %}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if externos %}
+<section class="conoce__seccion" id="externos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Puertas abiertas" %}</span><h2>{% translate "Con quién puede trabajar el centro" %}</h2></header>
+  <ul class="area__puntos" data-aparecer>{% for fila in externos %}<li><i class="fas fa-handshake" aria-hidden="true"></i><span>{{ fila.actor }}{% if fila.forma %}<small>{{ fila.forma }}</small>{% endif %}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if not aliados and not financiadores and not emprendimientos and not externos %}<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no registra aliados, financiadores ni emprendimientos.") enlace=completar %}</section>{% endif %}
+{% endblock %}

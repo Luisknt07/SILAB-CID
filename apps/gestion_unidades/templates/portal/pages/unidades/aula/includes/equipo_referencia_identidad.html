@@ -1,0 +1,12 @@
+{% load i18n %}
+<dl class="equipo__info-tabla">
+  <div><dt><i class="{{ detalle.icono }}" aria-hidden="true"></i>{% translate "Categoría" %}</dt><dd>{{ detalle.estandar.grupo }}</dd></div>
+  <div><dt><i class="fas fa-tag" aria-hidden="true"></i>{% translate "Marca y modelo" %}</dt><dd class="equipo__pendiente">{% if detalle.es_propuesta %}{{ elemento.ejemplo|default:_("Por definir al evaluar la propuesta") }}{% else %}{% translate "Por confirmar en el inventario" %}{% endif %}</dd></div>
+  <div><dt><i class="fas fa-file-alt" aria-hidden="true"></i>{% translate "Código de ficha" %}</dt><dd class="equipo__codigo">{{ codigo_referencia }}</dd></div>
+  <div><dt><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{% translate "Área de trabajo" %}</dt><dd><a href="{{ area_url }}">{{ area.nombre }}</a></dd></div>
+  <div><dt><i class="fas fa-info-circle" aria-hidden="true"></i>{% translate "Estado del registro" %}</dt><dd>{% if detalle.es_propuesta %}{% translate "Propuesta por evaluar · no adquirida" %}{% else %}{% translate "Ficha técnica de referencia" %}{% endif %}</dd></div>
+  {% if detalle.es_propuesta %}<div><dt><i class="fas fa-cubes" aria-hidden="true"></i>{% translate "Cantidad propuesta (referencial)" %}</dt><dd>{{ detalle.cantidad_referencia|default:_("Por definir") }}</dd></div>{% else %}<div><dt><i class="fas fa-cubes" aria-hidden="true"></i>{% translate "Cantidad instalada" %}</dt><dd class="equipo__pendiente">{% translate "Por verificar en planta" %}</dd></div>{% endif %}
+  <div><dt><i class="fas fa-wrench" aria-hidden="true"></i>{% translate "Mantenimiento" %}</dt><dd><a href="#uso">{% translate "Ver limpieza y cuidados" %}</a></dd></div>
+  <div><dt><i class="fas fa-calendar-check" aria-hidden="true"></i>{% translate "Uso en la unidad" %}</dt><dd>{% translate "Se habilita al registrar y verificar el activo" %}</dd></div>
+</dl>
+<div class="equipo__acciones"><a class="equipo__accion" href="{{ area_url }}"><i class="fas fa-vector-square" aria-hidden="true"></i>{% translate "Ver su área" %}</a>{% if editar_url %}<a class="equipo__accion" href="{{ editar_url }}" target="_top"><i class="fas fa-pen" aria-hidden="true"></i>{% translate "Editar equipamiento" %}</a>{% endif %}</div>

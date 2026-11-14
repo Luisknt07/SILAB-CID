@@ -1,0 +1,28 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}La cartera de proyectos con las tarjetas de actividad de Laboratorios, filtrable por estado, línea y área; cada proyecto
+abre su ficha.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Consulta el problema, los objetivos, la actividad actual, el equipo y los resultados de cada proyecto. El avance se publica con método, fecha y respaldo." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if total %}
+<section class="conoce__seccion" id="cartera">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Investigación en marcha" %}</span><h2>{% translate "Cartera de proyectos" %}</h2></header>
+  <form class="cv-filtros" method="get" data-auto>
+    <label>{% translate "Estado" %}<select name="estado"><option value="">{% translate "Todos" %}</option>{% for clave, nombre in estados %}<option value="{{ clave }}"{% if filtro.estado == clave %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Línea" %}<select name="linea"><option value="">{% translate "Todas" %}</option>{% for linea in lineas_filtro %}<option value="{{ linea.pk }}"{% if filtro.linea == linea.pk|stringformat:"s" %} selected{% endif %}>{{ linea.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Área" %}<select name="area"><option value="">{% translate "Todas" %}</option>{% for area in areas_filtro %}<option value="{{ area.codigo }}"{% if filtro.area == area.codigo %} selected{% endif %}>{{ area.nombre_corto|default:area.nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Año de inicio" %}<select name="anio"><option value="">{% translate "Todos" %}</option>{% for anio in anios %}<option value="{{ anio }}"{% if filtro.anio == anio|stringformat:'s' %} selected{% endif %}>{{ anio }}</option>{% endfor %}</select></label>
+    <label>{% translate "Sector" %}<select name="sector"><option value="">{% translate "Todos" %}</option>{% for sector in sectores %}<option{% if filtro.sector == sector %} selected{% endif %}>{{ sector }}</option>{% endfor %}</select></label>
+    <label>{% translate "Buscar" %}<input type="search" name="q" value="{{ filtro.q }}"></label><button class="ficha__boton" type="submit">{% translate "Filtrar" %}</button>
+    {% if filtro.estado or filtro.linea or filtro.area or filtro.anio or filtro.sector or filtro.q %}<a class="cv-filtros__limpiar" href="{% url 'seccion_centro_id' centro.slug 'proyectos' %}">{% translate "Limpiar" %}</a>{% endif %}
+    <p class="cv-filtros__cuenta"><strong>{{ coincidencias }}</strong> {% translate "de" %} {{ total }} {% translate "proyectos" %}{% if financiado %} · USD {{ financiado|floatformat:"0g" }} {% translate "con monto autorizado para publicación" %}{% endif %}</p>
+  </form>
+  <div class="area__actividades">{% for proyecto in proyectos %}{% include 'centros_id/visor/_proyecto.html' %}{% empty %}<p class="ficha__nota"><i class="fas fa-search" aria-hidden="true"></i> {% translate "Ningún proyecto coincide con el filtro." %}</p>{% endfor %}</div>
+  {% include 'centros_id/visor/_paginacion.html' %}
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no registra proyectos.") enlace=completar %}</section>
+{% endif %}
+{% endblock %}

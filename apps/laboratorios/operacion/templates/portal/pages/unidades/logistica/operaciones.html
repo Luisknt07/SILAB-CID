@@ -1,0 +1,78 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Prácticas de logística con escenas 3D navegables, decisiones operativas y evidencia de resultados del laboratorio UPEC.">
+  <title>Simuladores de operaciones · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/logistica_operaciones.css' %}?v=20261012-cd-v2">
+  <script src="{% static 'portal/js/pages/unidades/logistica_operaciones.js' %}?v=20261012-cd-v3" defer></script>
+</head>
+<body class="logistica-operaciones">
+  <a class="lo-saltar" href="#operaciones">Ir al simulador</a>
+  <header class="lo-institucion">
+    <img src="{% static 'img/logo_upec.png' %}" width="151" height="57" alt="UPEC · Universidad Politécnica Estatal del Carchi">
+    <div><span>Laboratorio de Logística, Transporte y Cadena de Suministro</span><strong>Entorno de experimentación</strong></div>
+    <a href="{{ unidad.get_absolute_url }}" target="_top">Volver al laboratorio <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="operaciones" class="lo-main" data-api="{{ api_url }}" data-login="{{ login_url }}" data-auth="{% if request.user.is_authenticated %}1{% else %}0{% endif %}">
+    <div hidden>{% csrf_token %}</div>
+    <section class="lo-intro" aria-labelledby="lo-titulo">
+      <div><p class="lo-eyebrow"><span aria-hidden="true"></span> Operar · medir · explicar</p><h1 id="lo-titulo">Una decisión cambia todo el flujo.</h1><p>Explora las operaciones en 3D. Inicia una práctica para intervenir, observar sus efectos y conservar la evidencia de tus decisiones.</p></div>
+      <div class="lo-intro__sello"><strong>3D navegable</strong><span>Geometría propia · WebGL nativo</span><span>Modelo educativo, sin conexión a equipos físicos</span></div>
+    </section>
+    <section class="lo-catalogo" aria-labelledby="lo-catalogo-titulo">
+      <div class="lo-seccion-cabecera"><h2 id="lo-catalogo-titulo">Elige una operación</h2><span>{{ catalogo|length }} escenarios de práctica</span></div>
+      <div class="lo-casos" id="lo-casos">
+        {% for caso in catalogo %}<a class="lo-caso" href="?caso={{ caso.id|urlencode }}&amp;semilla={{ semilla_inicial }}" data-caso="{{ caso.id }}"><span class="lo-caso__numero" aria-hidden="true">0{{ forloop.counter }}</span><span class="lo-caso__texto"><strong>{{ caso.titulo }}</strong><small>{{ caso.area }}</small></span><span class="lo-caso__flecha" aria-hidden="true">↗</span></a>{% endfor %}
+      </div>
+      <noscript><p class="lo-aviso">Activa JavaScript para navegar por la escena y ejecutar las prácticas. Las referencias y el catálogo siguen disponibles en esta página.</p></noscript>
+    </section>
+    <section class="lo-practica" aria-labelledby="lo-caso-titulo">
+      <div class="lo-practica__cabecera"><div><p class="lo-eyebrow" id="lo-area">Escenario logístico</p><h2 id="lo-caso-titulo">Exploración del entorno</h2><p id="lo-objetivo">Selecciona una operación del catálogo.</p></div><div class="lo-modo"><span class="lo-punto" aria-hidden="true"></span><strong id="lo-modo">Exploración</strong><small id="lo-revision">Sin partida iniciada</small></div></div>
+      <div class="lo-sesion-barra">
+        <label for="lo-semilla">Semilla del escenario <input id="lo-semilla" type="number" inputmode="numeric" min="0" max="2147483647" value="{{ semilla_inicial }}" step="1" aria-describedby="lo-semilla-ayuda"></label>
+        <span id="lo-semilla-ayuda">La misma semilla permite comparar estrategias.</span>
+        {% if distribucion_url %}<a id="lo-guia-distribucion" class="lo-boton" href="{{ distribucion_url }}">Guía del centro de distribución</a>{% endif %}
+        {% if comparador_url %}<a id="lo-comparar" class="lo-boton" href="{{ comparador_url }}">Comparar resultados</a>{% endif %}
+        {% if request.user.is_authenticated %}<button id="lo-iniciar" class="lo-boton is-principal" type="button">Iniciar práctica guardada <span aria-hidden="true">→</span></button><button id="lo-partidas-abrir" class="lo-boton" type="button" aria-expanded="false" aria-controls="lo-partidas">Mis prácticas</button>{% else %}<a class="lo-boton is-principal" href="{{ login_url }}" target="_top">Acceder para guardar una práctica <span aria-hidden="true">→</span></a>{% endif %}
+      </div>
+      <div id="lo-partidas" class="lo-partidas" hidden><div class="lo-seccion-cabecera"><h3>Prácticas guardadas</h3><button id="lo-partidas-cerrar" class="lo-boton is-pequeno" type="button">Cerrar</button></div><ul id="lo-partidas-lista"></ul><div class="lo-paginacion"><button id="lo-partidas-anterior" class="lo-boton is-pequeno" type="button" disabled>Anterior</button><span id="lo-partidas-pagina"></span><button id="lo-partidas-siguiente" class="lo-boton is-pequeno" type="button" disabled>Siguiente</button></div></div>
+      <p class="lo-mensaje" id="lo-mensaje" role="status" aria-live="polite">Explora libremente. Las decisiones y los resultados se registran únicamente en una práctica iniciada.</p>
+      <section id="lo-cd-panel" class="lo-cd-panel" aria-labelledby="lo-cd-titulo" hidden>
+        <div class="lo-cd-resumen"><div><p class="lo-eyebrow">Centro de distribución</p><h3 id="lo-cd-titulo">Cada pedido tiene una ruta verificable</h3><p id="lo-cd-progreso" role="status"></p></div><span id="lo-cd-reloj" class="lo-cd-reloj"></span></div>
+        <ol id="lo-cd-etapas" class="lo-cd-etapas" aria-label="Estado del flujo operativo"></ol>
+        <div class="lo-cd-inferior"><div id="lo-cd-ocupacion" class="lo-cd-ocupacion" aria-label="Ocupación de las ubicaciones"></div><details class="lo-cd-datasets"><summary>Datos replicables del escenario</summary><p>Archivos sintéticos para analizar el mismo caso fuera del simulador. Conserva la semilla y la versión para comparar estrategias.</p><div id="lo-cd-descargas"></div></details></div>
+      </section>
+      <div class="lo-workspace">
+        <div class="lo-visor">
+          <div class="lo-visor__barra"><strong><span class="lo-punto" aria-hidden="true"></span> Escena de operaciones</strong><span id="lo-render-estado">Preparando vista 3D…</span></div>
+          <div class="lo-escena" id="lo-escena">
+            <canvas id="lo-canvas" tabindex="0" role="img" aria-label="Escenario logístico tridimensional navegable" aria-describedby="lo-navegacion lo-escena-leyenda"></canvas>
+            <div class="lo-etiquetas" id="lo-etiquetas" aria-label="Seleccionar objetos en la escena"></div>
+            <div class="lo-fallback" id="lo-fallback" hidden><span aria-hidden="true">◇</span><strong>Vista 3D no disponible en este dispositivo</strong><p>Usa la lista de objetos para explorar las operaciones y ejecutar las mismas decisiones. No necesitas la vista 3D para completar la práctica.</p></div>
+            <div class="lo-brujula" aria-hidden="true"><span>N</span><i></i><small>UPEC · LOG</small></div>
+          </div>
+          <div class="lo-camara" aria-label="Controles de la cámara"><button type="button" data-camara="reiniciar" title="Restablecer cámara">Vista inicial</button><button type="button" data-camara="planta" title="Vista superior de la operación">Planta</button><button type="button" data-camara="acercar" aria-label="Acercar cámara">+</button><button type="button" data-camara="alejar" aria-label="Alejar cámara">−</button><button id="lo-pantalla" type="button" hidden>Pantalla completa</button></div>
+          <p id="lo-navegacion" class="lo-navegacion"><strong>Navegar:</strong> arrastra para girar; activa el lienzo y usa la rueda, o dos dedos, para acercar. Teclado: flechas para girar, W A S D para desplazar, + / − para acercar, Inicio para restablecer. Selecciona objetos con su etiqueta o desde la lista.</p>
+          <p class="lo-leyenda" id="lo-escena-leyenda"><span><i class="is-operacion"></i> Operación</span><span><i class="is-seleccion"></i> Objeto seleccionado</span><span><i class="is-flujo"></i> Flujo y conexiones</span><small>Esquema 3D educativo; no representa el plano ni el inventario del laboratorio.</small></p>
+        </div>
+        <aside class="lo-inspector" aria-labelledby="lo-inspector-titulo">
+          <div class="lo-inspector__cabecera"><p class="lo-eyebrow">Decisión contextual</p><h3 id="lo-inspector-titulo">Observa antes de actuar</h3></div>
+          <label class="lo-etiqueta-campo" for="lo-objeto">Objeto o estación <select id="lo-objeto"><option value="">Selecciona un objeto</option></select></label>
+          <div class="lo-objeto" id="lo-objeto-detalle"><span class="lo-chip" id="lo-objeto-estado">Exploración</span><h4 id="lo-objeto-nombre">Selecciona una estación</h4><p id="lo-objeto-descripcion">Cada objeto conecta una operación con decisiones medibles.</p><dl id="lo-objeto-datos"></dl></div>
+          <div id="lo-acciones" class="lo-acciones" aria-label="Decisiones disponibles"></div>
+          <p id="lo-acciones-ayuda" class="lo-ayuda">Inicia una práctica para habilitar decisiones operativas.</p>
+          <details class="lo-reglas" open><summary>Reglas de la práctica</summary><ul id="lo-reglas"></ul></details>
+        </aside>
+      </div>
+    </section>
+    <section class="lo-resultados" aria-labelledby="lo-resultados-titulo"><div class="lo-seccion-cabecera"><div><p class="lo-eyebrow">Evidencia de la operación</p><h2 id="lo-resultados-titulo">Datos para explicar tus decisiones</h2></div><span id="lo-datos-origen">Vista inicial del escenario</span></div><div class="lo-kpis" id="lo-kpis"></div><div id="lo-tabla-operativa" class="lo-tabla-operativa"></div><div class="lo-analitica"><div class="lo-graficos" id="lo-graficos"><p class="lo-vacio">Las series aparecerán a medida que avances en una práctica.</p></div><div class="lo-historial"><h3>Bitácora de decisiones</h3><ol id="lo-historial"><li class="lo-vacio">Todavía no hay decisiones registradas.</li></ol></div></div><div class="lo-evidencia" id="lo-evidencia" hidden><div><strong>Práctica finalizada</strong><p>Descarga la evidencia registrada por el servidor y comprueba que el motor reproduce el mismo resultado.</p></div><button id="lo-exportar" type="button" class="lo-boton is-principal">Descargar evidencia JSON</button><button id="lo-verificar" type="button" class="lo-boton">Verificar reproducción</button><p id="lo-verificacion" role="status"></p></div></section>
+    <section class="lo-metodo" aria-labelledby="lo-metodo-titulo"><div><p class="lo-eyebrow">Del modelo a la práctica</p><h2 id="lo-metodo-titulo">Experimentación con límites claros</h2><p>Este entorno representa relaciones operativas simplificadas. Sus resultados dependen de las reglas, la semilla y las decisiones de cada caso; no sustituyen una medición de campo ni predicen por sí solos una operación real.</p><p>La visualización se ejecuta en tu equipo. Las decisiones, revisiones y evidencias de las prácticas guardadas se validan en el servidor.</p><p class="lo-xr" id="lo-xr">Este entorno usa navegación 3D en pantalla. No activa sesiones inmersivas de realidad virtual o aumentada.</p>{% if cerveza_url %}<a class="lo-enlace" href="{{ cerveza_url }}">Explorar también el juego de la cerveza <span aria-hidden="true">→</span></a>{% endif %}</div><div><h3>Referencias del escenario</h3><ul id="lo-fuentes"></ul><noscript>{% for caso in catalogo %}<h4>{{ caso.titulo }}</h4><ul>{% for fuente in caso.fuentes %}<li><a href="{{ fuente.url }}" target="_blank" rel="noopener noreferrer">{{ fuente.titulo }}</a></li>{% endfor %}</ul>{% endfor %}</noscript></div></section>
+  </main>
+  <footer class="lo-footer"><strong>UPEC</strong><span>Laboratorio de Logística, Transporte y Cadena de Suministro · Docencia y experimentación formativa</span></footer>
+  {{ catalogo|json_script:"logistica-catalogo" }}
+  {{ caso_inicial|json_script:"logistica-caso-inicial" }}
+  {{ datos_iniciales|json_script:"logistica-datos-iniciales" }}
+</body>
+</html>

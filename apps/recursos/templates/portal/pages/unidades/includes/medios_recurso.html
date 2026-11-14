@@ -1,0 +1,13 @@
+{% load i18n %}{% with medios=recurso.medios_publicos %}{% if medios %}
+<div class="recurso-medios" data-medios-recurso>
+  <small class="recurso-medios__estado" title="{{ medios.limite }}">{{ medios.rotulo }}</small>
+  {% if medios.identidad_propuesta %}<p class="recurso-medios__identidad"><strong>{{ medios.identidad_propuesta.marca }} {{ medios.identidad_propuesta.modelo }}</strong>{% if medios.identidad_propuesta.sku %} · {{ medios.identidad_propuesta.sku }}{% endif %}{% if medios.identidad_propuesta.variante %} · {{ medios.identidad_propuesta.variante }}{% endif %}{% if medios.identidad_propuesta.presentacion %} · {{ medios.identidad_propuesta.presentacion }}{% endif %}</p>{% endif %}
+  {% if medios.limite and not compacto %}<p>{{ medios.limite }}</p>{% endif %}
+  {% if medios.descripcion_referencia and not compacto %}<p>{{ medios.descripcion_referencia }}</p>{% endif %}
+  {% if medios.documentos or medios.videos %}<ul>
+    {% if not omitir_documentos %}{% for medio in medios.documentos %}{% if not compacto or forloop.counter < 3 %}<li><a href="{{ medio.url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-book" aria-hidden="true"></i> {{ medio.titulo }}</a></li>{% endif %}{% endfor %}{% endif %}
+    {% if not omitir_videos %}{% for medio in medios.videos %}{% if not compacto or forloop.first %}<li><a href="{{ medio.url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-play-circle" aria-hidden="true"></i> {{ medio.titulo }}</a>{% if medio.canal %}<small>{{ medio.canal }}</small>{% endif %}</li>{% endif %}{% endfor %}{% endif %}
+  </ul>{% endif %}
+  {% if medios.imagen.fuente and not recurso.imagen and not recurso.logo %}<small class="recurso-medios__credito">{{ medios.imagen.credito }} · <a href="{{ medios.imagen.fuente }}" target="_blank" rel="noopener noreferrer">{% translate "Fuente de la imagen" %}</a></small>{% endif %}
+</div>
+{% endif %}{% endwith %}

@@ -1,0 +1,9 @@
+.recurso-medios { margin-top: .65rem; padding-top: .5rem; border-top: 1px solid var(--institucion-primario-suave, #dce7df); font-size: .8rem; line-height: 1.45; text-align: left; }
+.recurso-medios__estado { display: block; color: var(--institucion-primario, #27613b); font-weight: 700; }
+.recurso-medios p { margin: .3rem 0; color: var(--institucion-texto, #47594d); font-size: inherit; }
+.recurso-medios ul { display: grid; gap: .35rem; padding: 0; margin: .4rem 0; list-style: none; }
+.recurso-medios a { color: var(--institucion-primario, #27613b); overflow-wrap: anywhere; font-weight: 600; }
+.recurso-medios li > small, .recurso-medios__credito { display: block; color: #52665b; font-size: .72rem; }
+.recurso-medios i { margin-right: .25rem; }
+.ficha__identidad > .recurso-medios { grid-column: 1 / -1; min-width: 0; }
+.ficha__identidad:has(> .recurso-medios) .ficha__foto img { object-fit: contain; background: #fff; }

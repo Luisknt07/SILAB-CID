@@ -1,0 +1,7 @@
+{% load i18n %}{% comment %}Un aliado con la tarjeta de actividad de Laboratorios: su logo, qué aporta y hasta cuándo está vigente; abre su
+ficha en ventana.{% endcomment %}<a class="area__actividad cv-tarjeta-enlace" href="{% url 'fragmento_centro_id' centro.slug 'aliado' aliado.pk %}" data-modal="{% url 'fragmento_centro_id' centro.slug 'aliado' aliado.pk %}"{% if abrir == aliado.pk %} data-abrir-auto{% endif %} data-aparecer>
+  <header>{% if aliado.logo %}<span class="area__logo"><img src="{{ aliado.logo.url }}" alt="" loading="lazy"></span>{% else %}<i class="{{ aliado.icono }}" aria-hidden="true"></i>{% endif %}<div><span class="ficha__rol">{{ aliado.get_tipo_display }}</span>{% if aliado.pais %}<span class="ficha__rol cv-rol--suave">{{ aliado.pais }}</span>{% endif %}</div></header>
+  <h3>{{ aliado.nombre }}</h3><p class="ficha__nota">{{ aliado.get_rol_colaboracion_display }} · {{ aliado.estado_vinculo }}</p>
+  {% if aliado.aporte %}<p>{{ aliado.aporte|truncatewords:22 }}</p>{% endif %}
+  {% if aliado.vigencia_hasta or aliado.convenio %}<footer>{% if aliado.convenio %}<span><i class="fas fa-file-signature" aria-hidden="true"></i> {{ aliado.convenio }}</span>{% endif %}{% if aliado.vigencia_hasta %}<span>{% translate "fin del instrumento" %} <strong>{{ aliado.vigencia_hasta|date:"m/Y" }}</strong></span>{% endif %}</footer>{% endif %}
+</a>

@@ -1,0 +1,35 @@
+{% load i18n %}{% comment %}Preguntas y comentarios de la lección, en el panel derecho del aula: quien está en el aula pregunta,
+aporta, responde y marca «Me gusta»; se ordenan por los más votados o los más recientes, el instructor se distingue y la
+unidad oculta lo que no corresponda.{% endcomment %}<section class="comentarios" id="comentarios" aria-label="{% translate "Comentarios de la lección" %}">
+  {% if comentarios %}
+  <header class="comentarios__cabecera">
+    <h3>{% translate "Comentarios" %} <span>{{ comentarios.total }}</span></h3>
+    <nav class="comentarios__orden" aria-label="{% translate "Ordenar comentarios" %}">
+      <a href="?orden=votos{% if edicion_seleccionada %}&amp;edicion={{ edicion_seleccionada.pk }}{% endif %}#comentarios"{% if comentarios.orden == 'votos' %} class="is-activo" aria-current="true"{% endif %}><i class="fas fa-sort-amount-down" aria-hidden="true"></i> {% translate "Más votados" %}</a>
+      <a href="?orden=recientes{% if edicion_seleccionada %}&amp;edicion={{ edicion_seleccionada.pk }}{% endif %}#comentarios"{% if comentarios.orden == 'recientes' %} class="is-activo" aria-current="true"{% endif %}>{% translate "Más recientes" %}</a>
+    </nav>
+  </header>
+  <form method="post" action="{% url 'comentar_leccion' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}" class="comentarios__nuevo">{% csrf_token %}
+    <textarea name="texto" rows="1" maxlength="{{ comentarios.largo }}" required placeholder="{% translate "Escribe tu pregunta o aporte" %}" aria-label="{% translate "Tu pregunta o aporte" %}"></textarea>
+    <button type="submit" aria-label="{% translate "Publicar" %}" title="{% translate "Publicar" %}"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
+  </form>
+  <div class="comentarios__lista">
+    {% for comentario in comentarios.preguntas %}
+    <article class="comentario{% if comentario.oculto %} is-oculto{% endif %}" id="comentario-{{ comentario.pk }}">
+      {% include 'portal/pages/unidades/aula/includes/comentario.html' %}
+      {% if comentario.lista_respuestas %}<div class="comentario__respuestas">
+        {% for respuesta in comentario.lista_respuestas %}<article class="comentario comentario--respuesta{% if respuesta.oculto %} is-oculto{% endif %}" id="comentario-{{ respuesta.pk }}">{% include 'portal/pages/unidades/aula/includes/comentario.html' with comentario=respuesta respuesta=True %}</article>{% endfor %}
+      </div>{% endif %}
+      <form method="post" action="{% url 'comentar_leccion' unidad.slug curso.codigo actual.pk %}{{ edicion_query }}" class="comentarios__nuevo comentario__responder" id="responder-{{ comentario.pk }}" hidden>{% csrf_token %}<input type="hidden" name="respuesta_a" value="{{ comentario.pk }}">
+        <textarea name="texto" rows="1" maxlength="{{ comentarios.largo }}" required placeholder="{% translate "Escribe tu respuesta" %}" aria-label="{% translate "Tu respuesta" %}"></textarea>
+        <button type="submit" aria-label="{% translate "Responder" %}"><i class="fas fa-reply" aria-hidden="true"></i></button>
+      </form>
+    </article>
+    {% empty %}
+    <p class="comentarios__vacio"><i class="far fa-comments" aria-hidden="true"></i> {% translate "Todavía no hay comentarios en esta lección. ¡Sé el primero en preguntar o aportar!" %}</p>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="comentarios__vacio"><i class="fas fa-lock" aria-hidden="true"></i> {% translate "Los comentarios son para quienes están inscritos en el curso." %}</p>
+  {% endif %}
+</section>

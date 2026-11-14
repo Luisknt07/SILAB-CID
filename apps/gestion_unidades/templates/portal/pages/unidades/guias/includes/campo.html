@@ -1,0 +1,8 @@
+
+{% load i18n idiomas %}
+<div class="guide-field{% if wide %} guide-field--wide{% endif %}">
+  {{ field.label_tag }}
+  {{ field }}
+  {% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}
+  {{ field.errors }}
+</div>

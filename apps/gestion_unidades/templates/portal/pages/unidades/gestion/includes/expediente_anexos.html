@@ -1,0 +1,91 @@
+{% load i18n reportes_estilo %}
+            {% comment %}Las metas que la planificación comprometió, medidas con los registros de
+            la plataforma: el sistema dice cuáles se cumplieron. Lo que no se mide solo lo
+            reporta la unidad en el informe y lo juzga la Dirección.{% endcomment %}
+            {% if entrega.metas %}
+            <section class="explorador__metas{% if entrega.metas.incumplidas %} is-con-faltas{% endif %}" data-reporte-informacion>
+              <header class="explorador__metas-cabecera">
+                <i class="fas fa-bullseye" aria-hidden="true"></i>
+                <strong>{% translate "Metas del período" %}</strong>
+                {% if entrega.metas.hay_plan %}
+                <small>{% translate "lo que la planificación comprometió, medido con los registros de la plataforma" %}</small>
+                <b class="{% if entrega.metas.medibles and entrega.metas.cumplidas == entrega.metas.medibles %}is-ok{% elif entrega.metas.incumplidas %}is-bad{% endif %}">{{ entrega.metas.cumplidas }}/{{ entrega.metas.medibles }} {% translate "cumplidas" %}</b>
+                {% else %}
+                <small class="is-bad">{% translate "sin planificación redactada en el sistema: no hay metas que medir" %}</small>
+                {% endif %}
+                {% if entrega.metas.filas %}<button type="button" class="guia-reportes__accion" data-reporte-informacion-abrir data-modal-titulo="Metas del período · {{ periodo.etiqueta }}" aria-haspopup="dialog">Consultar metas</button>{% endif %}
+              </header>
+              {% if entrega.metas.filas %}
+              <template data-reporte-informacion-contenido>
+              <ul class="explorador__lista is-metas">
+                {% for meta in entrega.metas.filas %}
+                <li class="explorador__meta is-{{ meta.veredicto }}">
+                  <i class="fas {% if meta.veredicto == 'cumple' %}fa-check-circle{% elif meta.veredicto == 'no_cumple' %}fa-times-circle{% else %}fa-minus-circle{% endif %}" aria-hidden="true"></i>
+                  <div><strong>{{ meta.nombre }}</strong><small>{% translate "meta" %}: {{ meta.meta|default:meta.minimo|default:"—" }}{% if meta.registrado is not None %} · {% translate "registrado" %}: {{ meta.registrado }}{% endif %}</small></div>
+                  <span class="explorador__veredicto">{{ meta.nombre_veredicto }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              </template>
+              {% endif %}
+            </section>
+            {% endif %}
+            {% comment %}Los anexos, a la vista: lo que el sistema produce con lo registrado, con
+            las fechas del período. Se generan solos en cuanto el período empieza,
+            se revisan aquí y se validan con el documento. Cada documento se abre en el
+            visualizador de la plataforma, conservando el expediente abierto.{% endcomment %}
+            <section class="explorador__anexos" id="anexos-{% if entrega.documento.pk %}{{ entrega.documento.pk }}{% else %}{{ entrega.documento.exigido.codigo }}-{{ entrega.documento.anio }}-{{ periodo.corte }}{% endif %}{% if en_modal %}-modal{% endif %}">
+              <header class="explorador__anexos-cabecera">
+                <i class="fas fa-folder-open" aria-hidden="true"></i>
+                <strong>{% translate "Anexos de" %} {{ entrega.nombre }} · {{ periodo.etiqueta }}</strong>
+                <small>{% if unidad|es_unidad_auditable %}El sistema comprueba y valida los anexos conformes; atiende las incidencias señaladas.{% else %}{% translate "los produce el sistema; ábrelos, comprueba la información y márcalos como revisados antes de enviar" %}{% endif %}</small>
+                <b class="{% if entrega.anexos and entrega.anexos_validados == entrega.anexos|length %}is-ok{% endif %}">{{ entrega.anexos_validados }}/{{ entrega.anexos|length }} {% translate "revisados" %}</b>
+
+              </header>
+                <div class="reportes-anexos__barra">
+                {% if unidad|es_unidad_auditable and not solo_lectura and entrega.documento.estado != 'validado' and entrega.anexos %}
+                <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="reportes-anexos__comprobar">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="accion" value="automatizar"><button type="submit"><i class="fas fa-shield-alt" aria-hidden="true"></i> Comprobar y validar automáticamente</button></form>
+                {% endif %}
+                {% if entrega.documento.pk and not solo_lectura and entrega.documento.estado != 'validado' and entrega.anexos %}
+                <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="explorador__actualizar">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ entrega.documento.pk }}"><input type="hidden" name="accion" value="anexos"><button type="submit" title="{% translate "Vuelve a producir los anexos con lo registrado hasta hoy" %}"><i class="fas fa-sync-alt" aria-hidden="true"></i> {% translate "Actualizar con lo registrado" %}</button></form>
+                {% endif %}
+                </div>
+              <div class="reportes-anexos__tabla-scroll" role="region" aria-label="Anexos de {{ entrega.nombre }}" tabindex="0">
+              <table class="reportes-anexos__tabla">
+                <colgroup><col class="col-anexo"><col class="col-avance"><col class="col-control"><col class="col-acciones"></colgroup>
+                <thead><tr><th scope="col">Anexo de planificación</th><th scope="col">Avance</th><th scope="col">Control</th><th scope="col">Acciones</th></tr></thead>
+                <tbody>
+                {% for anexo in entrega.anexos %}
+                <tr class="reportes-anexos__fila"{% if anexo.pk %} id="entrega-{{ anexo.pk }}{% if en_modal %}-modal{% endif %}"{% endif %} data-reporte-anexo{% if anexo.soporte_planificacion %} data-soporte-planificacion="{{ anexo.exigido.codigo }}"{% endif %}>
+                  <th scope="row"><span class="reportes-anexos__documento documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span><strong>{{ anexo.nombre_documental }}</strong><small><span class="explorador__etiqueta">{{ anexo.exigido.get_carpeta_display|upper }}</span>{% if anexo.recurso %} · v{{ anexo.version }}{% endif %}</small></span></span></th>
+                  <td data-columna="Avance">{% include 'portal/pages/unidades/gestion/includes/avance_documental.html' with avance=anexo.avance_documental nombre_documento=anexo.nombre_documental %}</td>
+                  <td data-columna="Control">
+                    {% if unidad|es_unidad_auditable %}{% include 'portal/pages/unidades/gestion/includes/control_automatico.html' with control=anexo.automatizacion %}{% endif %}
+                    {% if not anexo.recurso %}<span class="reportes-anexos__estado">Archivo pendiente</span>
+                    {% elif anexo.estado == 'validado' %}{% if not unidad|es_unidad_auditable or not anexo.automatizacion.vigente or not anexo.automatizacion.aplicado %}<span class="reportes-anexos__estado is-ok">Revisado por la unidad</span>{% endif %}
+                    {% else %}{% if not unidad|es_unidad_auditable or not anexo.automatizacion %}<span class="reportes-anexos__estado">{% if anexo.soporte_planificacion %}Por revisar{% else %}Por comprobar{% endif %}</span>{% endif %}{% endif %}
+                  </td>
+                  <td data-columna="Acciones"><div class="reportes-anexos__acciones">
+                    {% if anexo.recurso %}<a class="entregas__ver documento-accion is-pdf" href="{% url 'recurso_unidad' anexo.recurso.pk %}" data-ver-pdf data-pdf-descarga="{% url 'recurso_unidad' anexo.recurso.pk %}?download=1" data-pdf-titulo="{{ anexo.nombre_documental }} · {{ anexo.etiqueta_corte }} · v{{ anexo.version }}"{% if anexo.url_informe %} data-pdf-rango="{{ anexo.url_informe }}" data-pdf-desde="{{ anexo.desde }}" data-pdf-hasta="{{ anexo.hasta }}"{% endif %} aria-label="Abrir documento de {{ anexo.nombre_documental }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver documento</a>
+                    {% elif anexo.url_informe %}<a class="entregas__ver documento-accion is-borrador" href="{{ anexo.url_informe }}&amp;desde={{ anexo.desde }}&amp;hasta={{ anexo.hasta }}" data-ver-pdf data-pdf-titulo="{{ anexo.nombre_documental }}" data-pdf-rango="{{ anexo.url_informe }}" data-pdf-desde="{{ anexo.desde }}" data-pdf-hasta="{{ anexo.hasta }}" aria-label="Abrir consulta al día de {{ anexo.nombre_documental }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Consultar al día</a>{% endif %}
+                    <div data-reporte-informacion><button type="button" class="reportes-anexos__gestionar" data-reporte-informacion-abrir data-modal-titulo="Gestionar anexo · {{ anexo.nombre_documental }}" aria-haspopup="dialog"><i class="fas fa-ellipsis-h" aria-hidden="true"></i><span class="visually-hidden">Gestionar {{ anexo.nombre_documental }}</span></button>
+                    <template data-reporte-informacion-contenido>
+                      <p>Este anexo respalda la planificación semestral. Su avance se calcula con los registros de origen; marcar el archivo como revisado no acredita actividades ejecutadas.</p>
+                      {% if anexo.recurso %}<p>Archivo v{{ anexo.version }}{% if anexo.generado_en %} · generado {{ anexo.generado_en|date:"d/m/Y H:i" }}{% endif %}.</p>{% else %}<p>Se archivará con los datos del período. La consulta al día permite revisar lo registrado antes de generarlo.</p>{% endif %}
+                      {% if anexo.validado_en %}<p>Revisión de la unidad: {{ anexo.validado_en|date:"d/m/Y H:i" }}{% if anexo.validado_por %} · {{ anexo.validado_por.get_full_name|default:anexo.validado_por.username }}{% endif %}.</p>{% endif %}
+                      <div class="reportes-anexos__operaciones">
+                        {% if not solo_lectura and anexo.recurso and anexo.estado != 'validado' and entrega.documento.estado != 'validado' %}
+                        <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="explorador__validar-anexo">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ anexo.pk }}"><input type="hidden" name="accion" value="validar_anexo"><button type="submit"><i class="fas fa-check" aria-hidden="true"></i> Marcar revisado por la unidad</button></form>
+                        {% endif %}
+                        {% if not solo_lectura and anexo.recurso and entrega.documento.estado != 'validado' %}
+                        <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ anexo.pk }}"><input type="hidden" name="version" value="{{ anexo.version }}"><input type="hidden" name="accion" value="{% if anexo.estado == 'validado' %}rectificar_anexo{% else %}actualizar_anexo{% endif %}"><button type="submit">{% if anexo.estado == 'validado' %}Volver a revisar{% else %}Actualizar con lo registrado{% endif %}</button></form>
+                        {% endif %}
+                      </div>
+                    </template></div>
+                  </div></td>
+                </tr>
+                {% empty %}<tr><td colspan="4">Este documento no lleva anexos.</td></tr>{% endfor %}
+                </tbody>
+              </table>
+              </div>
+            </section>

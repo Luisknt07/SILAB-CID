@@ -1,0 +1,15 @@
+{% if recurso %}
+<a class="cierre-ver documento-accion is-pdf" href="{% url 'recurso_unidad' recurso %}" data-ver-pdf data-pdf-descarga="{% url 'recurso_unidad' recurso %}?download=1" data-pdf-titulo="{{ nombre }}" aria-label="Abrir documento de {{ nombre }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver documento</a>
+{% elif anexo.url_informe and not modo_admin %}
+<a class="cierre-ver documento-accion is-borrador" href="{{ anexo.url_informe }}&amp;desde={{ anexo.desde }}&amp;hasta={{ anexo.hasta }}" data-ver-pdf data-pdf-titulo="{{ nombre }}" data-pdf-rango="{{ anexo.url_informe }}" data-pdf-desde="{{ anexo.desde }}" data-pdf-hasta="{{ anexo.hasta }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Consultar al día</a>
+{% else %}<small>Sin archivo</small>{% endif %}
+{% if not modo_admin and not solo_lectura and anexo.pk and recurso and documento_principal.estado != 'validado' %}
+<div data-reporte-informacion>
+  <button type="button" class="meta-detalle__consulta" data-reporte-informacion-abrir data-modal-titulo="Gestionar anexo · {{ nombre }}" aria-haspopup="dialog">Gestionar</button>
+  <template data-reporte-informacion-contenido>
+    <p>Respalda {{ documento_principal.nombre_documental }}. Revisar el archivo no acredita actividades ejecutadas.</p>
+    {% if anexo.estado != 'validado' %}<form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ anexo.pk }}"><input type="hidden" name="accion" value="validar_anexo"><button type="submit">Marcar revisado por la unidad</button></form>{% endif %}
+    <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ anexo.pk }}"><input type="hidden" name="version" value="{{ anexo.version }}"><input type="hidden" name="accion" value="{% if anexo.estado == 'validado' %}rectificar_anexo{% else %}actualizar_anexo{% endif %}"><button type="submit">{% if anexo.estado == 'validado' %}Volver a revisar{% else %}Actualizar con lo registrado{% endif %}</button></form>
+  </template>
+</div>
+{% endif %}

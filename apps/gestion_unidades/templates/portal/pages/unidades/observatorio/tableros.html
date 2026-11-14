@@ -1,0 +1,23 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Tableros del observatorio" %}{% endblock %}
+{% block encabezado %}{% translate "Tableros del observatorio" %}{% endblock %}
+{% block subtitulo %}{% translate "Armados con los datos del propio observatorio: se actualizan solos con cada valor publicado" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Tableros" %}</dt><dd>{{ tableros|length }}</dd></div><div><dt>{% translate "Vistas" %}</dt><dd>{{ vistas|join:", "|default:"—" }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Tableros" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% regroup tableros by linea as por_linea %}
+{% for grupo in por_linea %}
+<section class="unit-report__section">
+  <header><span>{% if grupo.grouper %}{{ grupo.grouper.titulo|upper }}{% else %}{% translate "OTROS TABLEROS" %}{% endif %}</span></header>
+  <ul class="obs-oferta">{% for tablero in grupo.list %}<li><i class="fas fa-{% if tablero.vista == 'mapa' %}map{% elif tablero.vista == 'semaforo' %}traffic-light{% elif tablero.vista == 'comparacion' %}chart-bar{% else %}chart-line{% endif %}" aria-hidden="true"></i><div><strong><a href="{% url 'tablero_observatorio' unidad.slug tablero.pk %}">{{ tablero.titulo }}</a></strong><p>{{ tablero.descripcion|default:"" }}</p><p><small>{{ tablero.get_vista_display }} · {{ tablero.indicadores.count }} {% translate "indicadores" %}</small></p></div></li>{% endfor %}</ul>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "El observatorio todavía no arma tableros." %}</p>
+{% endfor %}
+{% translate "Nuevo tablero" as titulo_nuevo %}{% translate "Armar un tablero" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='tablero_observatorio' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+<div class="obs-descargas">{% if territoriales %}<a href="{% url 'mapas_observatorio' unidad.slug %}"><i class="fas fa-map-marked-alt" aria-hidden="true"></i> {% translate "Comparación por territorio" %} ({{ territoriales }})</a>{% endif %}<a href="{% url 'visores_observatorio' unidad.slug %}"><i class="fas fa-external-link-square-alt" aria-hidden="true"></i> {% translate "Visores de otras instituciones" %}</a></div>
+<p class="unit-report__notice">{% translate "Cada tablero ofrece la descarga de sus datos. Las vistas posibles son: series en el tiempo, semáforo frente a umbrales, comparación entre cantones y mapa cantonal." %}</p>
+{% endblock %}

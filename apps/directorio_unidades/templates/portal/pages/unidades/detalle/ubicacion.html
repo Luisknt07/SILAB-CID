@@ -1,0 +1,33 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Ubicación" %} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'js/vendor/leaflet/leaflet.css' %}?v=1.9.4">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/mapa_unidad.css' %}?v=20260928-piso-foto-v1">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="mapa-unidad-pagina">
+  <main class="mapa-unidad-pagina__lienzo">
+    <div class="mapa-unidad" data-mapa-unidad role="region" aria-label="{% translate "Mapa de ubicación de" %} {{ unidad.nombre }}"></div>
+    <div class="mapa-unidad__aviso" data-mapa-aviso{% if mapa.punto %} hidden{% endif %}>{% if not mapa.punto %}
+      <strong>{% translate "Punto exacto por marcar" %}</strong>
+      <span>{% if unidad.direccion_completa %}{{ unidad.direccion_completa }}. {% endif %}{% translate "Mientras tanto se muestran las sedes de la" %} {{ identidad_institucion.siglas }}.</span>
+      {% if editar_url %}<a href="{{ editar_url }}" target="_top">{% translate "Marcarlo en el editor" %} →</a>{% elif mapa.comoLlegar %}<a href="{{ mapa.comoLlegar }}" target="_blank" rel="noopener">{% translate "Buscar la dirección" %} ↗</a>{% endif %}
+    {% endif %}</div>
+    <aside class="mapa-unidad__leyenda">
+      <span><i class="mapa-unidad__muestra mapa-unidad__muestra--sede" aria-hidden="true"></i>{% translate "Sedes de la" %} {{ identidad_institucion.siglas }}</span>
+      <span><i class="mapa-unidad__muestra" aria-hidden="true"></i>{% translate "Edificios" %}</span>
+      {% if mapa.punto or editar_url %}<div>
+        {% if mapa.punto %}<button type="button" data-mapa-ver="unidad">{% translate "Ver la unidad" %}</button>{% endif %}
+        {% if editar_url and mapa.punto %}<a href="{{ editar_url }}" target="_top">{% translate "Editar ubicación" %}</a>{% endif %}
+      </div>{% endif %}
+    </aside>
+  </main>
+  {{ mapa|json_script:"datosMapaUnidad" }}
+  <script src="{% static 'js/vendor/leaflet/leaflet.js' %}?v=1.9.4"></script>
+  <script src="{% static 'portal/js/pages/unidades/mapa_unidad.js' %}?v=20260928-piso-foto-v1"></script>
+</body>
+</html>

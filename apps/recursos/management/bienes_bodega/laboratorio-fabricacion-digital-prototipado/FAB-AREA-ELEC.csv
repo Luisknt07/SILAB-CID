@@ -1,0 +1,3 @@
+codigo_bien;tipo_bien;descripcion;modelo;marca;color;material;dimensiones;ubicacion_bodega;custodio;fecha_ingreso;valor_contable;observaciones;codigo_sistema;nombre_equipo
+40530524;BLD;HORNO DE SOLDADURA;T-962;PUHUI;GRIS/NEGRO;MIXTO;SN:T-962-FW-OX541;PROYECTOS DE INVESTIGACION;NARANJO CEDEÑO JEFFERY ALEX;27/10/2025;1850;;;Horno de reflujo para soldadura SMD
+40530523;BLD;MICROSCOPIO DIGITAL CON PANTALLA;;ANDONSTAR;NEGRO / CELESTE;METALICO ELECTRONICO;;PROYECTOS DE INVESTIGACION;NARANJO CEDEÑO JEFFERY ALEX;27/10/2025;1850;;;Microscopio digital con pantalla

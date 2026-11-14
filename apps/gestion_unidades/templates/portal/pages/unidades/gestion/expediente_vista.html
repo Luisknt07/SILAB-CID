@@ -1,0 +1,75 @@
+{% load static i18n idiomas marca %}
+<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ compuesto.titulo }} · {{ documento.etiqueta_corte }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/expediente.css' %}?v=20261018-tipografia-formal">
+<link rel="stylesheet" href="{% static 'portal/css/components/progreso_general.css' %}?v=20261018-indicadores-1">
+  <link rel="stylesheet" href="{% static 'portal/css/components/reportes_indicadores.css' %}?v=20261017-diseno-4">
+  {% include 'portal/components/reportes_interfaz_assets.html' %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page expediente-page vista-previa">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} · {% translate "Vista previa" %}</span>
+        <h1>{{ compuesto.titulo }}</h1>
+        <small>{{ compuesto.codigo_etiqueta }}: {{ compuesto.codigo_formato }} · {{ compuesto.periodo }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>
+        <div><dt>{% translate "Tramo" %}</dt><dd>{{ compuesto.tramo.0|date:"d/m/Y" }} – {{ compuesto.tramo.1|date:"d/m/Y" }}</dd></div>
+        <div><dt>{% translate "Avance" %}</dt><dd>{{ progreso.porcentaje }} %</dd></div>
+        <div><dt>{% translate "Estado" %}</dt><dd>{{ documento.get_estado_display }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ url_editor }}">{% translate "← Seguir editando" %}</a>
+      <a href="{{ url_expediente }}">{% translate "Ir al expediente" %}</a>
+      <a href="{{ url_pdf_borrador }}" data-ver-pdf data-pdf-descarga="{{ url_pdf_borrador }}" data-pdf-titulo="{{ compuesto.titulo }} · {{ compuesto.periodo }} · {{ unidad.nombre }}">{% translate "Ver documento" %}</a>
+      {% if not faltantes and documento.estado != 'validado' %}
+      <form method="post" action="{{ url_editor }}" class="vista-previa__generar">{% csrf_token %}<input type="hidden" name="version_base" value="{{ redaccion.version }}"><input type="hidden" name="accion" value="generar_guardado"><button type="submit">{% translate "Generar para firma" %}</button></form>
+      {% endif %}
+    </section>
+
+    {% if faltantes %}
+    <section class="expediente__mensajes"><p class="is-warning"><strong>{% translate "Todavía falta:" %}</strong> {{ faltantes|join:" · " }}</p></section>
+    {% endif %}
+
+    {% for seccion in compuesto.secciones %}
+    <section class="unit-report__section vista-previa__seccion">
+      <header><span>{{ seccion.numero }} · {{ seccion.titulo|upper }}</span></header>
+      <div class="vista-previa__cuerpo">
+        {% for bloque in seccion.bloques %}
+        <div class="vista-previa__bloque">
+          {% if bloque.titulo %}<h3>{{ bloque.titulo }}</h3>{% endif %}
+          {% if bloque.tipo == 'pares' %}<dl class="vista-previa__pares">{% for etiqueta, valor in bloque.pares %}<div><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}</dl>
+          {% elif bloque.tipo == 'parrafo' %}<p>{{ bloque.texto|linebreaksbr }}</p>
+          {% elif bloque.tipo == 'rico' %}<div class="vista-previa__rico guide-richtext">{{ bloque.html|safe }}</div>
+          {% elif bloque.tipo == 'lista' %}<ul>{% for item in bloque.items %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.texto }}</a>{% elif item.texto %}{{ item.texto }}{% else %}{{ item }}{% endif %}</li>{% empty %}<li class="is-empty">{% translate "Sin registros en la plataforma." %}</li>{% endfor %}</ul>
+          {% elif bloque.tipo == 'tabla' %}<div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr>{% for c in bloque.cabecera %}<th>{{ c }}</th>{% endfor %}</tr></thead><tbody>{% for fila in bloque.filas %}<tr>{% for c in fila %}<td>{{ c }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ bloque.cabecera|length }}" class="is-empty">{% translate "Sin registros en la plataforma." %}</td></tr>{% endfor %}</tbody></table></div>
+          {% elif bloque.tipo == 'cronograma' %}<div class="unit-report__table-wrap"><table class="unit-report__table vista-previa__cronograma"><thead><tr><th>{% translate "Actividad" %}</th>{% for m in bloque.meses %}<th>{{ m }}</th>{% endfor %}</tr></thead><tbody>{% for nombre, marcas in bloque.filas %}<tr><td>{{ nombre }}</td>{% for m in marcas %}<td class="{% if m %}is-on{% endif %}">{% if m %}●{% endif %}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ bloque.meses|length|add:1 }}" class="is-empty">{% translate "El plan no tiene meses marcados." %}</td></tr>{% endfor %}</tbody></table></div>
+          {% elif bloque.tipo == 'vacio' %}<p class="is-empty">{{ bloque.texto }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    {% if compuesto.firmas %}
+    <section class="vista-previa__firmas">
+      {% for rol, nombre, cargo in compuesto.firmas %}{% if nombre %}<div><span class="vista-previa__linea"></span><strong>{{ nombre }}</strong><small>{{ cargo }}</small><em>{{ rol }}</em></div>{% endif %}{% endfor %}
+    </section>
+    {% endif %}
+  </main>
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

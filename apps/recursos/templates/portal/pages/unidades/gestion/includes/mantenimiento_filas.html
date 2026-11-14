@@ -1,0 +1,19 @@
+{% load i18n idiomas %}
+        {% for fila in categoria.filas %}
+        <tr class="mant-fila is-{{ fila.semaforo }}">
+          {% comment %}El motivo no se repite: las columnas de próximo, órdenes
+          y vida útil ya lo dicen con su fecha. Queda en el título para quien
+          quiera leerlo, y completo en la ficha del activo.{% endcomment %}
+          <td><span class="mant-semaforo is-{{ fila.semaforo }}" title="{% for motivo in fila.motivos %}{{ motivo }} {% endfor %}">{{ fila.etiqueta }}</span></td>
+          <td class="mant-equipo"><div><a class="mant-ficha" href="{% url 'ficha_equipo_unidad' unidad.slug fila.equipo.pk %}"><strong>{{ fila.equipo.codigo_unidad }}</strong></a>{% if fila.equipo.codigo_bien %}<small>{% translate "Bodega" %}: {{ fila.equipo.codigo_bien }}</small>{% endif %}{% if fila.equipo.numero_serie %}<small>{% translate "Serie" %}: {{ fila.equipo.numero_serie }}</small>{% endif %}{% if fila.en_garantia %}<small>{% translate "En garantía" %}</small>{% endif %}{% if fila.areas_compartidas %}<small>{% translate "Compartido con" %}: {% for area in fila.areas_compartidas %}{{ area.nombre }}{% if not forloop.last %}; {% endif %}{% endfor %}</small>{% endif %}</div></td>
+          <td><span class="mant-criticidad is-{{ fila.equipo.criticidad }}" title="{{ fila.criticidad }}">{{ fila.criticidad_corta }}</span></td>
+          <td>{% if fila.planes %}{% for plan in fila.planes %}<strong>{{ plan.nombre }}</strong><small>{{ plan.get_tipo_display|ui }} · {% blocktranslate with dias=plan.frecuencia_dias %}cada {{ dias }} días{% endblocktranslate %}{% if plan.responsable %} · {% firstof plan.responsable.get_full_name plan.responsable.username %}{% elif plan.proveedor %} · {{ plan.proveedor }}{% endif %}</small>{% endfor %}{% else %}<span class="is-empty">{% translate "Sin plan" %}</span>{% endif %}</td>
+          <td>{% if fila.ultimo %}{{ fila.ultimo|date:"d/m/Y" }}{% else %}—{% endif %}{% if fila.dias_detenido %}<small>{{ fila.dias_detenido }} {% translate "días detenido" %}</small>{% endif %}</td>
+          <td>{% if fila.proximo %}{{ fila.proximo|date:"d/m/Y" }}<small>{% if fila.dias_para_proximo < 0 %}{% blocktranslate with dias=fila.dias_para_proximo|stringformat:"d" %}vencido{% endblocktranslate %}{% else %}{% blocktranslate with dias=fila.dias_para_proximo %}en {{ dias }} días{% endblocktranslate %}{% endif %}</small>{% else %}—{% endif %}</td>
+          <td>{{ fila.completados }}/{{ fila.programados }}{% if fila.incidencias_abiertas %}<small class="is-alerta">{{ fila.incidencias_abiertas }} {% translate "incidencia(s)" %}</small>{% endif %}</td>
+          <td>{% if fila.vida_util is not None %}<span class="mant-vida"><i style="width: {% if fila.vida_util > 100 %}100{% else %}{{ fila.vida_util }}{% endif %}%" class="{% if fila.vida_util >= 100 %}is-critico{% elif fila.vida_util >= 80 %}is-atencion{% else %}is-al_dia{% endif %}"></i></span><small>{{ fila.vida_util }} %{% if fila.fin_vida_util %} · {% translate "hasta" %} {{ fila.fin_vida_util|date:"m/Y" }}{% endif %}</small>{% else %}<span class="is-empty">{% translate "Sin definir" %}</span>{% endif %}</td>
+          <td>{{ fila.costo|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9"><div class="unit-console__empty"><strong>{% translate "La unidad no tiene equipos registrados." %}</strong></div></td></tr>
+        {% endfor %}

@@ -1,0 +1,60 @@
+{% load static i18n idiomas marca %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Orden de compra" %} {{ orden_compra.codigo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/reporte_gestion.css' %}?v=20260920-contraste-v215">
+{% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="unit-report-page">
+  <main class="unit-report">
+    <header class="unit-report__masthead">
+      <div class="unit-report__brandmark">{% marca_institucional identidad_institucion 'oscuro' %}</div>
+      <div>
+        <span>{{ identidad_producto.nombre_corto }} {% translate "· ABASTECIMIENTO" %}</span>
+        <h1>{% translate "Orden de compra" %} {{ orden_compra.codigo }}</h1>
+        <small>{{ orden_compra.proveedor.nombre }} · {{ orden_compra.get_estado_display|ui }}</small>
+        <p>{{ unidad.nombre }}</p>
+      </div>
+      <dl>
+        <div><dt>{% translate "Emitida" %}</dt><dd>{{ orden_compra.fecha_emision|date:"d/m/Y" }}</dd></div>
+        <div><dt>{% translate "Líneas" %}</dt><dd>{{ lineas|length }}</dd></div>
+        <div><dt>{% translate "Total" %}</dt><dd>{{ total_texto }}</dd></div>
+        <div><dt>{% translate "Generado" %}</dt><dd>{{ generado_en|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
+    </header>
+
+    <section class="unit-report__toolbar" aria-label="{% translate "Acciones" %}">
+      <a href="{{ volver_url }}">{% translate "← Volver a planificación" %}</a>
+      <div>{% include 'portal/components/acciones_documento.html' %}</div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "PROVEEDOR" %}</span></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Proveedor" %}</th><th>{% translate "RUC o cédula" %}</th><th>{% translate "Contacto" %}</th><th>{% translate "Teléfono y correo" %}</th><th>{% translate "Dirección" %}</th></tr></thead><tbody>
+        <tr><td><strong>{{ orden_compra.proveedor.nombre }}</strong>{% if orden_compra.proveedor.rubro %}<br><small>{{ orden_compra.proveedor.rubro }}</small>{% endif %}</td><td>{{ orden_compra.proveedor.ruc|default:"—" }}</td><td>{{ orden_compra.proveedor.contacto|default:"—" }}</td><td>{{ orden_compra.proveedor.telefono|default:"—" }}{% if orden_compra.proveedor.email %}<br><small>{{ orden_compra.proveedor.email }}</small>{% endif %}</td><td>{{ orden_compra.proveedor.direccion|default:"—" }}</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="unit-report__section">
+      <header><span>{% translate "LO QUE SE PIDE" %}</span><small>{{ lineas|length }} línea{{ lineas|length|pluralize }}</small></header>
+      <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Pedido" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Cantidad" %}</th><th>{% translate "Costo unitario" %}</th><th>{% translate "Subtotal" %}</th><th>{% translate "Entregas" %}</th></tr></thead><tbody>
+        {% for linea in lineas %}<tr>
+          <td><strong>{{ linea.pedido.codigo }}</strong>{% if linea.pedido.plan %}<br><small>{{ linea.pedido.plan.codigo }}</small>{% endif %}</td>
+          <td>{{ linea.pedido.consumible.nombre }}<br><small>{{ linea.pedido.consumible.codigo }}</small></td>
+          <td>{{ linea.cantidad }} {{ linea.pedido.consumible.unidad_medida }}</td>
+          <td>{{ linea.costo_unitario|default:"—" }}</td>
+          <td>{{ linea.subtotal }}</td>
+          <td>{% for entrega in linea.entregas %}{{ entrega.fecha|date:"d/m/Y" }} · {{ entrega.cantidad }}{% if entrega.recibida %} {% translate "(recibida)" %}{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}{{ linea.pedido.fecha_entrega_prevista|date:"d/m/Y" }}{% endfor %}</td>
+        </tr>{% endfor %}
+        <tr><td colspan="4"><strong>{% translate "Total de la orden" %}</strong></td><td><strong>{{ total_texto }}</strong></td><td></td></tr>
+      </tbody></table></div>
+      {% if orden_compra.condiciones %}<p class="unit-report__notice"><strong>{% translate "Condiciones de entrega y pago:" %}</strong> {{ orden_compra.condiciones|linebreaksbr }}</p>{% endif %}
+      <p class="unit-report__notice">{% translate "Cada entrega se recibe en la planta con su lote, su fecha de vencimiento y su documento de entrega, y pasa por el control de recepción antes de usarse." %}</p>
+    </section>
+
+    <footer class="unit-report__footer"><div><strong>{{ identidad_institucion.nombre }}</strong><span>{{ identidad_producto.nombre_corto }} · {{ unidad.nombre }}</span></div><div>{% translate "Emitida por" %} {% if orden_compra.emitida_por %}{{ orden_compra.emitida_por.get_full_name|default:orden_compra.emitida_por.username }}{% else %}—{% endif %} · {{ orden_compra.codigo }}</div></footer>
+  </main>
+</body>
+</html>

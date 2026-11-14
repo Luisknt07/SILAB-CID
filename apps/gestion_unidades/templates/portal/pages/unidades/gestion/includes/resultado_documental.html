@@ -1,0 +1,26 @@
+{% load l10n reportes_estilo %}
+{% if lectura.aprobacion_qr and not lectura.cierre_operativo %}
+<div class="resultado-documental"><small>Sin puntuación independiente</small>{% if lectura.aprobacion_qr.actor %}<small class="resultado-documental__fuente">Aprobado por {{ lectura.aprobacion_qr.actor }}</small>{% elif lectura.aprobacion_qr.rechazado %}<small>Debe corregirse y reenviarse</small>{% endif %}</div>
+{% elif lectura.permanente %}
+<div class="resultado-documental resultado-documental--vigencia is-{% if lectura.aprobacion.vigente %}verde{% elif lectura.aprobacion.revocada or lectura.estado == 'Observado' %}rojo{% else %}neutro{% endif %}">
+  <strong class="reporte-estado is-{% if lectura.aprobacion.vigente %}cumple{% elif lectura.aprobacion.revocada or lectura.estado == 'Observado' %}no-cumple{% else %}pendiente{% endif %}">{% if lectura.aprobacion.vigente %}Vigente{% elif lectura.aprobacion.revocada or lectura.estado == 'Observado' %}Observado{% else %}Pendiente de aprobación{% endif %}</strong>
+  <small class="resultado-documental__fuente">Documento permanente · aprobación única</small>
+</div>
+{% elif lectura.conformidad_plan or lectura.modalidad == 'conformidad' %}
+{% with conformidad=lectura.conformidad %}
+<div class="resultado-documental resultado-documental--conformidad is-{% if conformidad.etapa_actual %}{{ conformidad.etapa_actual.color }}{% elif conformidad.estado == 'conforme' %}verde{% elif conformidad.estado == 'corregir' %}rojo{% else %}amarillo{% endif %}">
+  <strong class="reporte-estado is-{% if conformidad.etapa_actual.pendiente_unidad %}pendiente{% elif conformidad.estado == 'conforme' %}cumple{% elif conformidad.estado == 'corregir' %}no-cumple{% else %}pendiente{% endif %}">{% if conformidad.etapa_actual.etiqueta %}{{ conformidad.etapa_actual.etiqueta }}{% elif conformidad.etiqueta %}{{ conformidad.etiqueta }}{% else %}Conformidad pendiente{% endif %}</strong>
+  {% if conformidad.fuente %}<small class="resultado-documental__fuente">Fuente de conformidad: {{ conformidad.fuente }}</small>{% endif %}
+</div>
+{% if conformidad.historica %}<div class="entregas__resultado-detalle" data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Revisión histórica · {{ nombre_documento }}" aria-haspopup="dialog">Revisión histórica</button><template data-reporte-informacion-contenido><p>Antecedente conservado. No acredita la conformidad actual de esta versión y archivo.</p>{% if conformidad.historica.nota is not None %}<p><strong>Calificación histórica registrada: {{ conformidad.historica.nota }} %.</strong></p>{% endif %}{% if conformidad.historica.fuente %}<p>Fuente histórica: {{ conformidad.historica.fuente }}</p>{% endif %}{% if conformidad.historica.fecha %}<p>Fecha de la revisión: {{ conformidad.historica.fecha|date:'d/m/Y H:i' }}</p>{% endif %}{% if conformidad.historica.version %}<p>Versión revisada: {{ conformidad.historica.version }}</p>{% endif %}{% if conformidad.historica.observacion %}<p>{{ conformidad.historica.observacion }}</p>{% endif %}</template></div>{% endif %}
+{% endwith %}
+{% elif lectura.nota is not None %}
+<div class="resultado-documental is-{% if pendiente_correspondencia or lectura.nota > 0 and lectura.integridad.aplica and not lectura.integridad.correspondencia_verificada %}neutro{% else %}{{ lectura.nota|semaforo_avance }}{% endif %}">
+  {% if lectura.cierre_operativo %}<small class="resultado-documental__etiqueta">Cumplimiento de metas · escala de 0 a 100 %</small>{% endif %}
+  <strong class="resultado-documental__valor">{{ lectura.nota }} %</strong>
+  <progress max="100" value="{{ lectura.nota|unlocalize }}" aria-label="Resultado de {{ nombre_documento }}" {% if pendiente_correspondencia or lectura.nota > 0 and lectura.integridad.aplica and not lectura.integridad.correspondencia_verificada %}title="Nota registrada: correspondencia por revisar" aria-valuetext="{{ lectura.nota }} % registrado; correspondencia por revisar"{% else %}title="{{ lectura.nota|etiqueta_avance }}" aria-valuetext="{{ lectura.nota }} % · {{ lectura.nota|etiqueta_avance }}"{% endif %}>{{ lectura.nota }} %</progress>
+  {% if pendiente_correspondencia or lectura.nota > 0 and lectura.integridad.aplica and not lectura.integridad.correspondencia_verificada %}<small class="resultado-documental__pendiente">Correspondencia por revisar</small>{% endif %}
+</div>
+{% else %}<span class="entregas__sin-nota">{% if lectura.cierre_operativo %}Resultado pendiente{% else %}{{ sin_nota|default:'Sin calificar' }}{% endif %}</span>{% endif %}
+{% if not lectura.permanente and not lectura.conformidad_plan and lectura.control_documental and lectura.fuente_nota_etiqueta %}<small class="resultado-documental__fuente">Fuente: {{ lectura.fuente_nota_etiqueta }}</small>{% endif %}
+{% if lectura.priorizacion_inversion and not sin_priorizacion %}{% include 'portal/pages/unidades/gestion/includes/priorizacion_compras.html' with priorizacion=lectura.priorizacion_inversion compacto=True %}{% endif %}

@@ -1,0 +1,62 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ familia.nombre }} · {% translate "Equipamiento institucional" %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipamiento_institucional.css' %}?v=20261005-institucional-v1">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce institucional">
+  <header class="conoce__portada institucional__portada{% if familia.imagen %} con-foto{% endif %}"{% if familia.imagen %} style="--conoce-foto: url('{{ familia.imagen }}')"{% endif %}>
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% translate "Familia de producto" %}{% if familia.grupo %} · {{ familia.grupo }}{% endif %}</span>
+      <h1>{{ familia.nombre }}</h1>
+      <p class="conoce__lema">{{ familia.etiqueta }}: {{ familia.horas }} h {% translate "en el último año" %}, {{ familia.horas_por_equipo }} h {% translate "por equipo" %}.</p>
+      <div class="conoce__portada-acciones">
+        <a class="conoce__boton" href="{% url 'equipamiento_institucional' %}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Todas las familias" %}</a>
+        <a class="conoce__boton is-principal" href="?formato=csv"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar CSV" %}</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="conoce__cifras">
+    <div><i class="fas fa-cubes" aria-hidden="true"></i><strong>{{ familia.total }}</strong><span>{% translate "Equipos" %}</span></div>
+    <div><i class="fas fa-calendar-check" aria-hidden="true"></i><strong>{{ familia.disponibles }}</strong><span>{% translate "Disponibles" %}</span></div>
+    <div><i class="fas fa-building" aria-hidden="true"></i><strong>{{ familia.unidades|length }}</strong><span>{% translate "Unidades" %}</span></div>
+    <div><i class="fas fa-tools" aria-hidden="true"></i><strong>{{ familia.fuera_de_servicio }}</strong><span>{% translate "Fuera de servicio" %}</span></div>
+  </section>
+
+  {% if familia.recomendacion %}<p class="institucional__recomendacion institucional__aviso"><i class="fas fa-lightbulb" aria-hidden="true"></i> {{ familia.recomendacion }}</p>{% endif %}
+
+  <section class="conoce__seccion">
+    <header class="conoce__titulo"><span class="conoce__antetitulo">{% translate "Distribución" %}</span><h2>{% translate "Por unidad" %}</h2></header>
+    <div class="area__tabla-envoltura">
+      <table class="area__tabla">
+        <thead><tr><th scope="col">{% translate "Unidad" %}</th><th scope="col">{% translate "Equipos" %}</th><th scope="col">{% translate "Disponibles" %}</th><th scope="col">{% translate "Sesiones" %}</th><th scope="col">{% translate "Horas por equipo" %}</th><th scope="col">{% translate "Diagnóstico" %}</th></tr></thead>
+        <tbody>{% for unidad in familia.unidades %}<tr><td><strong>{{ unidad.unidad.nombre }}</strong></td><td>{{ unidad.total }}</td><td>{{ unidad.disponibles }}</td><td>{{ unidad.sesiones }}</td><td>{{ unidad.horas_por_equipo }} h</td><td><span class="institucional__estado is-{{ unidad.estado }}">{% if unidad.estado == 'sin_uso' %}{% translate "Sin uso" %}{% elif unidad.estado == 'subutilizada' %}{% translate "Poco uso" %}{% elif unidad.estado == 'demandada' %}{% translate "Muy demandada" %}{% else %}{% translate "Equilibrado" %}{% endif %}</span></td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="conoce__seccion">
+    <header class="conoce__titulo"><span class="conoce__antetitulo">{% translate "Trazabilidad" %}</span><h2>{% translate "Cada equipo" %}</h2></header>
+    <div class="area__tabla-envoltura">
+      <table class="area__tabla">
+        <thead><tr><th scope="col">{% translate "Equipo" %}</th><th scope="col">{% translate "Unidad y área" %}</th><th scope="col">{% translate "Código del bien" %}</th><th scope="col">{% translate "Estado" %}</th><th scope="col">{% translate "Uso (12 meses)" %}</th></tr></thead>
+        <tbody>{% for fila in filas %}<tr>
+          <td><a class="area__enlace" href="{{ fila.url }}"><strong>{{ fila.equipo.equipo.nombre }}</strong></a><small class="area__en-inventario">{{ fila.equipo.codigo_unidad }}</small></td>
+          <td>{{ fila.unidad_actual.nombre }}{% if fila.areas %}<br><small>{{ fila.areas }}</small>{% endif %}</td>
+          <td>{% if fila.equipo.codigo_bien %}<span class="area__codigo">{{ fila.equipo.codigo_bien }}</span>{% else %}<span class="area__estado is-uso">{% translate "Pendiente" %}</span>{% endif %}</td>
+          <td><span class="area__estado {% if fila.equipo.estado_unidad == 'disponible' %}is-ok{% elif fila.equipo.estado_unidad == 'en_uso' or fila.equipo.estado_unidad == 'prestado' %}is-uso{% else %}is-fuera{% endif %}">{{ fila.equipo.get_estado_unidad_display|ui }}</span></td>
+          <td>{{ fila.horas }} h · {{ fila.sesiones }} {% translate "sesiones" %}</td>
+        </tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Cómo trabaja el centro, con las piezas de Laboratorios: la ruta del reto a la solución como diagrama paso a paso,
+la cadena integrada de área en área y las modalidades de funcionamiento.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Toda necesidad entra por una ruta: se registra, se evalúa, se diseña, se prototipa, se integra en las plataformas, se valida y se transfiere. Y un producto recorre el centro de área en área." %}</p>{% endblock %}
+{% block acciones %}<a class="conoce__boton is-principal" href="{{ solicitar_url }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% translate "Entrar por la ruta" %}</a>{% endblock %}
+
+{% block contenido %}
+{% if ruta %}
+<section class="conoce__seccion" id="ruta">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Ruta operativa" %}</span><h2>{% translate "Del reto a la solución transferida" %}</h2></header>
+  <div class="area__diagrama" data-diagrama data-aparecer>
+    <header><i class="fas fa-route" aria-hidden="true"></i><div><strong>{% translate "La ruta, etapa por etapa" %}</strong><small>{% translate "Toca cada etapa para ver qué pasa en ella, quién la lleva y qué entrega." %}</small></div></header>
+    <ol class="area__diagrama-pasos">{% for etapa in ruta %}<li><button type="button" data-paso="{{ forloop.counter0 }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"><b>{{ forloop.counter }}</b><span>{{ etapa.nombre }}</span></button></li>{% endfor %}</ol>
+    {% for etapa in ruta %}<div class="area__diagrama-panel" data-panel-paso="{{ forloop.counter0 }}"{% if not forloop.first %} hidden{% endif %}><span>{% translate "Etapa" %} {{ forloop.counter }} {% translate "de" %} {{ ruta|length }}</span><strong>{{ etapa.nombre }}</strong><p>{{ etapa.proposito }}</p><ul class="ficha__medios">{% if etapa.responsable %}<li><i class="fas fa-user-cog" aria-hidden="true"></i>{% translate "La lleva:" %} {{ etapa.responsable }}</li>{% endif %}<li><i class="fas fa-box-open" aria-hidden="true"></i>{% translate "Entrega:" %} {{ etapa.resultado }}</li></ul></div>{% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("La ruta operativa no está registrada.") enlace=completar %}</section>
+{% endif %}
+
+{% if cadena %}
+<section class="conoce__seccion" id="cadena">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "De área en área" %}</span><h2>{% translate "Cómo viaja un producto por el centro" %}</h2></header>
+  <ol class="area__pasos">{% for paso in cadena %}<li class="area__paso" data-aparecer><span class="area__paso-numero">{{ forloop.counter }}</span><div class="area__paso-datos"><h3>{{ paso.etapa }}</h3>{% if paso.area %}<a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug paso.area.codigo %}"><i class="{{ paso.area.icono }}" aria-hidden="true"></i> {{ paso.texto }}</a>{% else %}<p>{{ paso.texto }}</p>{% endif %}<p class="area__control"><i class="fas fa-arrow-right" aria-hidden="true"></i> {{ paso.resultado }}</p></div></li>{% endfor %}</ol>
+</section>
+{% endif %}
+
+{% if modalidades %}
+<section class="conoce__seccion" id="modalidades">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cómo se usa" %}</span><h2>{% translate "Modalidades de funcionamiento" %}</h2></header>
+  <div class="area__actividades">{% for modalidad in modalidades %}<article class="area__actividad" data-aparecer><header><i class="{{ modalidad.icono }}" aria-hidden="true"></i><div><span class="ficha__rol">{% translate "Modalidad" %}</span></div></header><h3>{{ modalidad.nombre }}</h3><p>{{ modalidad.proposito }}</p>{% if modalidad.usuarios %}<ul class="ficha__medios"><li><i class="fas fa-users" aria-hidden="true"></i>{{ modalidad.usuarios }}</li></ul>{% endif %}</article>{% endfor %}</div>
+</section>
+{% endif %}
+
+{% endblock %}

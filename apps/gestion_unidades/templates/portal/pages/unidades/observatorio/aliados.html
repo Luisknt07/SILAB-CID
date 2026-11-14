@@ -1,0 +1,24 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Aliados y convenios" %}{% endblock %}
+{% block encabezado %}{% translate "Aliados y convenios" %}{% endblock %}
+{% block subtitulo %}{% translate "Las instituciones que aportan datos, usan los resultados o integran el comité del observatorio" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Aliados" %}</dt><dd>{{ total }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Aliados del observatorio" %}{% endblock %}
+{% block contenido %}
+{% for grupo in grupos %}
+<section class="unit-report__section">
+  <header><span>{{ grupo.titulo|upper }}</span><small>{{ grupo.aliados|length }}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Institución" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Qué aporta o cómo usa los datos" %}</th><th>{% translate "Convenio" %}</th></tr></thead><tbody>
+    {% for aliado in grupo.aliados %}<tr>
+      <td><strong>{% if aliado.enlace %}<a href="{{ aliado.enlace }}" target="_blank" rel="noopener noreferrer">{{ aliado.nombre }}</a>{% else %}{{ aliado.nombre }}{% endif %}</strong>{% include 'portal/pages/unidades/includes/editar.html' with clave='aliado_observatorio' pk=aliado.pk titulo=aliado.nombre %}</td>
+      <td>{{ aliado.get_tipo_display }}</td><td>{{ aliado.aporte|default:"—" }}</td><td>{{ aliado.convenio|default:_("Por firmar") }}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "El observatorio todavía no registra aliados." %}</p>
+{% endfor %}
+{% translate "Nuevo aliado" as titulo_nuevo %}{% translate "Agregar un aliado" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='aliado_observatorio' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

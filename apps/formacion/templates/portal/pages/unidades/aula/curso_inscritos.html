@@ -1,0 +1,96 @@
+{% load static i18n idiomas notas_cursos %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Inscritos" %} · {{ curso.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/gestion_cursos.css' %}?v=20261009-visores-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/certificado_acreditacion.css' %}?v=20261010-v1">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce aula-curso">
+  <header class="aula-curso__cabecera">
+    <a class="aula-curso__volver" href="{{ curso_url }}"><i class="fas fa-arrow-left" aria-hidden="true"></i> {% translate "Página del curso" %}</a>
+    <div>
+      <span class="conoce__antetitulo">{% translate "Inscritos" %} · {{ unidad.nombre }}</span>
+      <h1>{{ curso.nombre }}</h1>
+    </div>
+    {% if elegida %}<p class="aula-curso__previa"><i class="fas fa-users" aria-hidden="true"></i> {{ elegida.nombre }}: {% if elegida.cupo is not None %}{{ cupos }} {% translate "de" %} {{ elegida.cupo }} {% translate "cupos libres" %}{% else %}{% translate "sin límite de cupos" %}{% endif %} · {{ curso.get_inscripcion_display }}</p>{% endif %}
+    <a class="aula-curso__previa" href="{% url 'calificaciones_curso' unidad.slug curso.codigo %}{% if elegida %}?edicion={{ elegida.pk }}{% endif %}"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Calificaciones" %}</a>
+  </header>
+
+  <main class="inscritos">
+    {% if messages %}<div class="portal-messages" role="status" aria-live="polite">{% for message in messages %}<p class="gestion__mensaje is-{{ message.tags|default:'info' }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    <div class="curso-gestion__acciones"><a class="conoce__boton is-principal" href="{{ grupos_url }}"><i class="fas fa-layer-group" aria-hidden="true"></i> {% translate "Crear o editar grupos" %}</a><a class="conoce__boton" href="{{ diseno_certificado_url }}" data-curso-modal="Personalizar certificado"><i class="fas fa-certificate" aria-hidden="true"></i> {% translate "Diseñar certificado" %}</a><a class="conoce__boton" href="{% url 'calificaciones_curso' unidad.slug curso.codigo %}{% if elegida %}?edicion={{ elegida.pk }}{% endif %}">{% translate "Libro de notas y exportación" %}</a></div>
+    {% if elegida %}<div class="curso-gestion__resumen"><article><strong>{{ resumen_grupo.matriculados }}</strong><span>{% translate "Matrículas del grupo" %}</span></article><article><strong>{{ resumen_grupo.aprobados }}</strong><span>{% translate "Aprobados" %}</span></article><article><strong>{{ resumen_grupo.certificados }}</strong><span>{% translate "Certificados vigentes" %}</span></article><article><strong>{{ resumen_grupo.por_revisar }}</strong><span>{% translate "Actividades por calificar" %}</span></article></div>{% endif %}
+    {% include 'portal/pages/unidades/aula/includes/gestion_inscripciones.html' %}
+    {% if ediciones_curso|length > 1 %}
+    <nav class="cursos__anios" aria-label="{% translate "Edición" %}">
+      {% for edicion in ediciones_curso %}<a href="?edicion={{ edicion.pk }}"{% if edicion == elegida %} class="is-activo" aria-current="true"{% endif %}>{{ edicion.nombre }}</a>{% endfor %}
+    </nav>
+    {% endif %}
+    <form method="get" class="curso-gestion__filtros" aria-label="{% translate 'Filtrar participantes' %}">
+      <label>{% translate "Grupo" %}<select name="edicion">{% for edicion in ediciones_curso %}<option value="{{ edicion.pk }}"{% if edicion == elegida %} selected{% endif %}>{{ edicion.nombre }}</option>{% endfor %}</select></label>
+      <label>{% translate "Resultado académico" %}<select name="estado"><option value="">{% translate "Todos" %}</option><option value="aprobado"{% if filtro_estado == 'aprobado' %} selected{% endif %}>{% translate "Aprobados" %}</option><option value="reprobado"{% if filtro_estado == 'reprobado' %} selected{% endif %}>{% translate "Sin aprobar: oportunidades agotadas" %}</option><option value="pendiente"{% if filtro_estado == 'pendiente' %} selected{% endif %}>{% translate "En proceso" %}</option></select></label>
+      <label>{% translate "Certificado" %}<select name="certificado"><option value="">{% translate "Todos" %}</option><option value="emitido"{% if filtro_certificado == 'emitido' %} selected{% endif %}>{% translate "Disponible" %}</option><option value="pendiente"{% if filtro_certificado == 'pendiente' %} selected{% endif %}>{% translate "Requisitos pendientes" %}</option><option value="anulado"{% if filtro_certificado == 'anulado' %} selected{% endif %}>{% translate "Anulado" %}</option></select></label>
+      <label>{% translate "Nombre, correo o cédula" %}<input type="search" name="q" value="{{ busqueda }}" maxlength="200"></label><button type="submit" class="conoce__boton is-principal">{% translate "Filtrar" %}</button>
+    </form>
+    {% if inscritos %}
+    <div class="inscritos__tabla-envoltura">
+      <table class="inscritos__tabla">
+        <thead><tr><th>{% translate "Persona" %}</th><th>{% translate "Matrícula" %}</th><th>{% translate "Avance y resultado" %}</th>{% for leccion in en_vivo %}<th title="{{ leccion.titulo }}"><i class="fas fa-video" aria-hidden="true"></i> {{ leccion.titulo|truncatechars:22 }}</th>{% endfor %}<th>{% translate "Certificado" %}</th><th>{% translate "Acciones" %}</th></tr></thead>
+        <tbody>
+          {% for inscrito in inscritos %}<tr class="is-{{ inscrito.estado }}">
+            <td><strong>{{ inscrito.seguimiento.nombre }}</strong>{% if inscrito.documento %}<small>{% translate "Documento" %}: {{ inscrito.documento }}</small>{% endif %}<small>{{ inscrito.usuario.email }}{% if inscrito.usuario.profile.carrera %} · {{ inscrito.usuario.profile.carrera }}{% endif %}</small></td>
+            <td><span class="curso__estado">{{ inscrito.get_estado_display }}</span>{% if inscrito.pago %}<small>{% translate "Pago" %}: {{ inscrito.pago.get_estado_display }}{% if inscrito.pago.monto %} · ${{ inscrito.pago.monto }}{% endif %}</small>{% endif %}<small>{{ inscrito.fecha_inscripcion|date:"d/m/Y" }}</small></td>
+            <td>{% if inscrito.estado == 'aceptada' %}<div class="inscritos__avance"><span><i style="width: {{ inscrito.avance.porcentaje }}%"></i></span><b>{{ inscrito.avance.porcentaje }} %</b></div>{% else %}—{% endif %}<span class="curso-gestion__estado is-{{ inscrito.seguimiento.estado }}">{{ inscrito.seguimiento.rotulo }}</span>{% if inscrito.seguimiento.promedio_10 != None %}<span class="curso-gestion__nota">{{ inscrito.seguimiento.promedio_10|floatformat:"-3" }}/10{% if not inscrito.seguimiento.promedio_completo %} · {% translate "parcial" %}{% endif %}</span>{% endif %}<small>{{ inscrito.seguimiento.intentos_usados }} {% translate "intentos rendidos" %} · {{ inscrito.seguimiento.oportunidades }} {% translate "oportunidades restantes" %}</small><a href="{% url 'seguimiento_participante_curso' unidad.slug curso.codigo inscrito.pk %}">{% translate "Ver reporte del participante" %}</a></td>
+            {% for leccion, asistio in inscrito.asistencias %}<td>{% if inscrito.estado == 'aceptada' %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="asistencia"><input type="hidden" name="inscripcion" value="{{ inscrito.pk }}"><input type="hidden" name="leccion" value="{{ leccion.pk }}"><input type="hidden" name="asistio" value="{% if asistio %}0{% else %}1{% endif %}"><button type="submit" class="inscritos__asistencia{% if asistio %} is-asistio{% endif %}" aria-pressed="{% if asistio %}true{% else %}false{% endif %}" title="{% if asistio %}{% translate "Asistió: quitar la asistencia" %}{% else %}{% translate "Registrar la asistencia" %}{% endif %}"><i class="fas fa-{% if asistio %}check{% else %}minus{% endif %}" aria-hidden="true"></i></button></form>{% endif %}</td>{% endfor %}
+            <td class="inscritos__certificado">{% with certificado=inscrito.certificado_emitido %}{% if certificado %}<a href="{% url 'verificar_certificado' certificado.codigo %}">{{ certificado.codigo }}</a>{% if certificado.anulado %}<small class="is-anulado">{% translate "Anulado" %}: {{ certificado.motivo_anulacion }}</small><form method="post" action="{% url 'reemitir_certificado' unidad.slug curso.codigo certificado.pk %}">{% csrf_token %}<button type="submit" class="conoce__boton">{% translate "Volver a emitir" %}</button></form>{% else %}<a class="conoce__boton" href="{% url 'certificado_curso_gestor' unidad.slug curso.codigo certificado.pk %}" data-ver-pdf data-pdf-titulo="Certificado · {{ certificado.nombre }}">{% translate "Ver PDF" %}</a><details><summary>{% translate "Anular" %}</summary><form method="post" action="{% url 'anular_certificado' unidad.slug curso.codigo certificado.pk %}">{% csrf_token %}<input name="motivo" maxlength="300" required placeholder="{% translate "Motivo de la anulación" %}"><button type="submit" class="conoce__boton">{% translate "Anular" %}</button></form></details>{% endif %}{% elif inscrito.seguimiento.certificado_estado == 'listo' %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="emitir_certificado_academico"><input type="hidden" name="inscripcion" value="{{ inscrito.pk }}"><input type="hidden" name="edicion" value="{{ elegida.pk }}"><button type="submit" class="conoce__boton is-principal">{% translate "Emitir certificado académico" %}</button></form>{% else %}—{% endif %}{% endwith %}</td>
+            <td class="inscritos__acciones">
+              {% if inscrito.estado != 'aceptada' %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="aceptar"><input type="hidden" name="inscripcion" value="{{ inscrito.pk }}"><button type="submit" class="conoce__boton is-principal"{% if cupos == 0 %} disabled title="{% translate "No quedan cupos" %}"{% endif %}>{% translate "Aceptar" %}</button></form>{% endif %}
+              {% if inscrito.estado == 'pendiente' %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="rechazar"><input type="hidden" name="inscripcion" value="{{ inscrito.pk }}"><button type="submit" class="conoce__boton">{% translate "No aceptar" %}</button></form>{% endif %}
+              {% if inscrito.estado == 'aceptada' %}<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="retirar"><input type="hidden" name="inscripcion" value="{{ inscrito.pk }}"><button type="submit" class="conoce__boton">{% translate "Retirar" %}</button></form>{% endif %}
+              {% if inscrito.estado == 'aceptada' and not inscrito.certificado_emitido %}
+              <details class="cert-acreditacion">
+                <summary>{% translate "Acreditar participación" %}</summary>
+                <form method="post" action="{% url 'emitir_certificado_manual' unidad.slug curso.codigo %}">
+                  {% csrf_token %}<input type="hidden" name="inscripcion" value="{{ inscrito.pk }}">
+                  <p>{% translate "Usa esta opción después de comprobar la asistencia o la función desempeñada. La aprobación académica se obtiene mediante los requisitos del curso." %}</p>
+                  <label for="acreditacion-tipo-{{ inscrito.pk }}">{% translate "Tipo de participación" %}</label>
+                  <select id="acreditacion-tipo-{{ inscrito.pk }}" name="tipo" required><option value="participacion">{% translate "Participante" %}</option><option value="asistencia">{% translate "Asistente" %}</option><option value="ponente">{% translate "Ponente" %}</option><option value="organizador">{% translate "Organizador" %}</option></select>
+                  <label for="acreditacion-motivo-{{ inscrito.pk }}">{% translate "Registro que respalda la acreditación" %}</label>
+                  <textarea id="acreditacion-motivo-{{ inscrito.pk }}" name="motivo" minlength="10" maxlength="300" rows="3" required placeholder="{% translate 'Ejemplo: asistencia verificada en el registro del evento.' %}"></textarea>
+                  <small>{% translate "Las horas certificadas provienen del grupo. Si ponentes o asistentes acreditan una duración distinta, crea grupos con las horas correspondientes." %}</small>
+                  <label class="cert-acreditacion__confirmacion"><input type="checkbox" name="confirmacion" value="1" required><span>{% translate "Confirmo el registro de asistencia, participación o función desempeñada." %}</span></label>
+                  <button type="submit" class="conoce__boton is-principal">{% translate "Emitir certificado" %}</button>
+                </form>
+              </details>
+              {% endif %}
+            </td>
+          </tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if en_vivo %}<p class="ficha__nota">{% translate "Cada columna con cámara es una clase en vivo: marque quién asistió; la asistencia cuenta en el avance." %}</p>{% endif %}
+    {% else %}
+    <p class="ficha__nota">{% translate "No hay participantes que coincidan con este grupo y los filtros seleccionados." %}</p>
+    {% endif %}
+    {% if participantes_evento %}
+    <section class="gestion__bloque gestion__bloque--ancho"><h2>Participantes externos del evento · {{ elegida.nombre }}</h2><p>Estas acreditaciones no crean cuentas ni matrículas académicas.</p>
+    <div class="inscritos__tabla-envoltura"><table class="inscritos__tabla"><thead><tr><th>Persona</th><th>Certificado</th><th>Acciones</th></tr></thead><tbody>
+    {% for participante in participantes_evento %}<tr><td><strong>{{ participante.nombres_completos }}</strong><small>{{ participante.documento }}</small></td>
+    {% with certificado=participante.certificado_emitido %}<td>{% if certificado %}{{ certificado.get_tipo_display }}<small>{{ certificado.codigo }}</small>{% if certificado.anulado %}<small class="is-anulado">Anulado: {{ certificado.motivo_anulacion }}</small>{% else %}<a class="conoce__boton" href="{% url 'certificado_curso_gestor' unidad.slug curso.codigo certificado.pk %}" data-ver-pdf data-pdf-titulo="Certificado · {{ participante.nombres_completos }}">Ver PDF</a>{% endif %}{% endif %}</td>
+    <td>{% if certificado %}{% if certificado.anulado %}<form method="post" action="{% url 'reemitir_certificado' unidad.slug curso.codigo certificado.pk %}">{% csrf_token %}<button type="submit" class="conoce__boton">Volver a emitir</button></form>{% else %}<details><summary>Anular certificado</summary><form method="post" action="{% url 'anular_certificado' unidad.slug curso.codigo certificado.pk %}">{% csrf_token %}<input name="motivo" maxlength="300" required placeholder="Motivo de la anulación"><button type="submit" class="conoce__boton">Anular</button></form></details>{% endif %}{% endif %}</td>{% endwith %}</tr>{% endfor %}
+    </tbody></table></div></section>
+    {% endif %}
+  </main>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+<script src="{% static 'portal/js/pages/unidades/gestion_cursos_ui.js' %}?v=20261009-visores-v2" defer></script>
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

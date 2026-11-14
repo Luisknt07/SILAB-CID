@@ -1,0 +1,31 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Política de datos" %}{% endblock %}
+{% block encabezado %}{% translate "Política de datos" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué datos son abiertos, cuáles se piden o requieren convenio, cuáles nunca se entregan y qué se cobra" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Licencia" %}</dt><dd>{{ politica.licencia }}</dd></div><div><dt>{% translate "Actualizada" %}</dt><dd>{{ politica.actualizada|date:"d/m/Y" }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Política de datos" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% translate "Política de datos" as titulo_politica %}{% include 'portal/pages/unidades/includes/editar.html' with clave='politica_datos' pk='unidad' titulo=titulo_politica %}
+<section class="unit-report__section">
+  <header><span>{% translate "NIVELES DE ACCESO" %}</span></header>
+  <ul class="obs-oferta">{% for icono, titulo, costo, texto in niveles %}<li><i class="{{ icono }}" aria-hidden="true"></i><div><strong>{{ titulo }}</strong> <small>· {{ costo }}</small><p>{{ texto }}</p></div></li>{% endfor %}</ul>
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "LICENCIA Y CITA" %}</span></header>
+  <p>{% blocktranslate with licencia=politica.licencia %}Los datos abiertos se publican con licencia {{ licencia }}: se pueden copiar, transformar y usar con cualquier fin, citando la fuente.{% endblocktranslate %}</p>
+  <p><strong>{% translate "Cómo citar:" %}</strong> «{{ cita }}».</p>
+</section>
+<section class="unit-report__section">
+  <header><span>{% translate "MARCO LEGAL" %}</span></header>
+  <ul class="aula-lista">
+    <li>{% translate "Ley Orgánica de Transparencia y Acceso a la Información Pública (2023): la información pública es gratuita y se entrega en formato de datos abiertos; solo se cobra la reproducción física (arts. 5, 7, 31 y 33). La ley no obliga a crear información nueva ni a hacer análisis a pedido (art. 35)." %}</li>
+    <li>{% translate "Ley Orgánica de Protección de Datos Personales (2021): los datos anonimizados quedan fuera de la ley; los personales solo con una base de licitud y nunca se publican." %}</li>
+    <li>{% translate "Código Ingenios (2016), art. 116: las bases de datos de investigaciones financiadas con recursos públicos son de acceso abierto." %}</li>
+    <li>{% translate "LOES, arts. 20 y 28: la universidad puede cobrar consultorías, estudios y capacitaciones como fuentes complementarias de ingresos." %}</li>
+  </ul>
+  <p class="unit-report__notice">{% translate "Para pedir datos, un análisis o el uso de la sala, usa «Solicitar datos o un análisis» en Acceso y servicios." %} <a href="{% url 'solicitudes_observatorio' unidad.slug %}">{% translate "Ir al formulario" %} →</a></p>
+</section>
+{% endblock %}

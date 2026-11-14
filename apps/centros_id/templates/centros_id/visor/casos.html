@@ -1,0 +1,43 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Casos de transferencia con las tarjetas de novedad de Laboratorios: quién se benefició, qué reto tenía y qué resultado
+dejó; cada caso abre su ficha. Debajo, los proyectos ya transferidos.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Casos con receptor, mecanismo y evidencia de aceptación o uso. Las mediciones de impacto incluyen referencia, unidad, período y método." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if c.casos %}
+<section class="conoce__seccion" id="casos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Impacto" %}</span><h2>{% translate "Casos de transferencia" %}</h2></header>
+  {% if sectores|length > 1 or c.areas|length > 1 %}<form class="cv-filtros" method="get" data-auto>
+    {% if sectores|length > 1 %}<label>{% translate "Sector" %}<select name="sector"><option value="">{% translate "Todos" %}</option>{% for sector in sectores %}<option{% if filtro.sector == sector %} selected{% endif %}>{{ sector }}</option>{% endfor %}</select></label>{% endif %}
+    <label>{% translate "Área" %}<select name="area"><option value="">{% translate "Todas" %}</option>{% for area in c.areas %}<option value="{{ area.codigo }}"{% if filtro.area == area.codigo %} selected{% endif %}>{{ area.nombre_corto|default:area.nombre }}</option>{% endfor %}</select></label>
+    {% if filtro.sector or filtro.area %}<a class="cv-filtros__limpiar" href="{% url 'seccion_centro_id' centro.slug 'casos' %}">{% translate "Limpiar" %}</a>{% endif %}
+    <p class="cv-filtros__cuenta"><strong>{{ casos|length }}</strong> {% translate "de" %} {{ c.casos|length }} {% translate "casos" %}</p>
+  </form>{% endif %}
+  <div class="area__novedades">
+    {% for caso in casos %}
+    <article class="area__novedad{% if forloop.first %} is-destacada{% endif %}" data-aparecer>
+      {% if caso.imagen %}<span class="area__novedad-foto"><img src="{{ caso.imagen.url }}" alt="" loading="lazy"></span>{% endif %}
+      <div class="area__novedad-datos">
+        <div class="area__novedad-etiquetas"><span class="ficha__rol">{{ caso.anio }}</span>{% if caso.sector %}<span class="ficha__rol cv-rol--suave">{{ caso.sector }}</span>{% endif %}{% if caso.componente %}<span class="ficha__rol cv-rol--suave">{{ caso.componente }}</span>{% endif %}</div>
+        <h3>{{ caso.titulo }}</h3>
+        <p><strong>{{ caso.beneficiario }}</strong> · {{ caso.reto|truncatewords:28 }}</p>
+        <p class="area__control"><i class="fas fa-chart-line" aria-hidden="true"></i> {% if caso.impacto_documentado %}{{ caso.resultado }} · {{ caso.unidad_medida }} · {{ caso.periodo_medicion }}{% else %}{% translate 'Aceptación documentada; medición de impacto pendiente.' %}{% endif %}</p>
+        <button type="button" class="area__boton-ficha cv-boton-caso" data-modal="{% url 'fragmento_centro_id' centro.slug 'caso' caso.pk %}"{% if abrir == caso.pk %} data-abrir-auto{% endif %}><i class="fas fa-award" aria-hidden="true"></i> {% translate "Ver el caso completo" %}</button>
+      </div>
+    </article>
+    {% empty %}<p class="ficha__nota"><i class="fas fa-search" aria-hidden="true"></i> {% translate "Ningún caso coincide con el filtro." %}</p>{% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no documenta casos de transferencia.") enlace=completar %}</section>
+{% endif %}
+
+{% if transferidos %}
+<section class="conoce__seccion" id="transferidos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Ya en manos de quien lo usa" %}</span><h2>{% translate "Proyectos transferidos" %}</h2></header>
+  <div class="area__actividades">{% for proyecto in transferidos %}{% include 'centros_id/visor/_proyecto.html' %}{% endfor %}</div>
+</section>
+{% endif %}
+{% endblock %}

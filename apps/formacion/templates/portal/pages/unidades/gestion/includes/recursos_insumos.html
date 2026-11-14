@@ -1,0 +1,38 @@
+{% load i18n idiomas %}
+<div class="recursos-cabecera">
+  <div><h2>{% translate "Insumos y materiales" %}</h2><p>{% translate "Consulta cada material por su familia. Su ficha reúne presentación, compatibilidad y documentación; los movimientos se gestionan en «Existencias y consumo»." %}</p></div>
+  {% if puede_operar_inventario %}<div class="recursos-cabecera__acciones"><button type="button" class="is-primary" data-agenda-operation-open="consumible"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Nuevo insumo" %}</button><a href="{% url 'gestion_etiquetas_inventario_pdf' unidad.slug %}"><i class="fas fa-tags" aria-hidden="true"></i> {% translate "Etiquetas A4" %}</a></div>{% endif %}
+</div>
+<div class="catalogo-recursos" data-catalogo-browser data-tabla>
+  {% include 'portal/pages/unidades/gestion/includes/catalogo_categorias.html' %}
+  {% if not catalogos_remotos %}<label class="inventario__buscar"><i class="fas fa-search" aria-hidden="true"></i><input type="search" placeholder="{% translate 'Buscar por nombre, código, tipo o equipo' %}" data-tabla-buscar aria-label="{% translate 'Buscar insumos' %}"></label>{% endif %}
+  <p class="catalogo-recursos__ayuda">{% translate "Las áreas de uso proceden de equipos compatibles. Un área de referencia indica un uso documentado o propuesto; no confirma compatibilidad ni existencias. Cada ficha y su stock se muestran una sola vez." %}</p>
+  <div class="catalogo-recursos__lista">
+  {% for grupo in insumos_grupos %}
+    <section class="catalogo-recursos__grupo" data-catalogo-grupo>
+      <h3 class="sr-only">{{ grupo.clase }} · {{ grupo.familia }} · {{ grupo.items|length }} {% translate "registros mostrados" %}</h3>
+        {% for item in grupo.items %}{% with medios=item.medios_publicos %}
+          <article class="catalogo-recurso{% if not item.activo %} is-inactivo{% endif %}" data-catalogo-item data-texto="{{ item.nombre|lower }} {{ item.codigo|lower }} {{ item.get_clasificacion_display|lower }} {{ item.familia|default:''|lower }} {{ item.equipos_compatibles_resumen|default:''|lower }} {{ item.areas_catalogo_resumen|lower }} {{ item.areas_catalogo_referencia_resumen|lower }} {{ item.variante|lower }} {{ item.color|lower }}">
+            <div class="catalogo-recurso__media">{% if item.imagen_publica_url %}<img src="{{ item.imagen_publica_url }}" alt="" loading="lazy">{% else %}<i class="{{ item.icono }}" aria-hidden="true"></i>{% endif %}</div>
+            <div class="catalogo-recurso__contenido">
+              <p class="catalogo-recurso__categoria" title="{{ grupo.clase }} · {{ grupo.familia }}">{{ grupo.clase }} · {{ grupo.familia }}</p>
+              <h4>{{ item.nombre }}</h4>{% if item.variante or item.color %}<p class="catalogo-recurso__variante">{{ item.variante }}{% if item.variante and item.color %} · {% endif %}{{ item.color }}</p>{% endif %}
+              <div class="catalogo-recurso__estados">{% if not item.activo %}<span class="catalogo-recurso__estado is-inactivo">{% translate "Inactivo" %}</span>{% endif %}{% if item.referencia_catalogo_pendiente %}<span class="catalogo-recurso__estado is-provisional">{% translate "Referencia por evaluar" %}</span>{% elif medios.estado == 'referencia_provisional' %}<span class="catalogo-recurso__estado is-provisional">{% translate "Referencia provisional" %}</span>{% elif medios.estado == 'identidad_pendiente' or medios.estado == 'documentado_por_confirmar' %}<span class="catalogo-recurso__estado is-provisional">{% translate "Por confirmar" %}</span>{% endif %}</div>
+              <dl class="catalogo-recurso__meta"><div><dt>{% translate "Presentación" %}</dt><dd>{{ item.presentacion|default:'Por definir'|truncatechars:65 }}</dd></div><div><dt>{% translate "Existencia" %}</dt><dd>{% if not item.activo %}<span class="catalogo-recurso__estado is-inactivo">Referencia sin existencia</span>{% elif item.referencia_catalogo_pendiente %}<span class="catalogo-recurso__estado is-provisional">{% translate "Sin existencias" %}</span>{% else %}<span class="catalogo-recurso__estado is-{{ item.estado_stock }}">{{ item.stock_total|floatformat:'-3' }} {{ item.unidad_medida|default:'' }}{% if item.estado_stock == 'agotado' %} · {% translate "Agotado" %}{% elif item.estado_stock == 'critico' %} · {% translate "Crítico" %}{% endif %}</span>{% endif %}</dd></div>{% if item.areas_catalogo_resumen %}<div><dt>{% translate "Área de uso" %}</dt><dd>{{ item.areas_catalogo_resumen|truncatechars:80 }}</dd></div>{% endif %}{% if item.areas_catalogo_referencia_resumen %}<div><dt>{% translate "Área de referencia" %}</dt><dd>{{ item.areas_catalogo_referencia_resumen|truncatechars:80 }}</dd></div>{% endif %}{% if not item.areas_catalogo_resumen and not item.areas_catalogo_referencia_resumen %}<div><dt>{% translate "Área" %}</dt><dd>{% translate "Sin área asociada" %}</dd></div>{% endif %}</dl>
+              <div class="catalogo-recurso__acciones"><button type="button" data-catalogo-detalle-open="catalogo-detalle-insumo-{{ unidad.pk }}-{{ item.pk }}" aria-controls="catalogo-detalle-insumo-{{ unidad.pk }}-{{ item.pk }}" aria-haspopup="dialog">{% translate "Ver ficha" %}<span class="sr-only">: {{ item.nombre }}</span><i class="fas fa-arrow-right" aria-hidden="true"></i></button>{% if puede_operar_inventario %}{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='consumible' entidad='' registro=item.pk activo=item.activo modo='insumos' confirmar='' %}{% include 'portal/pages/unidades/gestion/includes/ciclo_recurso_botones.html' with tipo='consumible' registro=item.pk activo=item.activo %}{% endif %}</div>
+            </div>
+            {% include 'portal/pages/unidades/gestion/includes/catalogo_insumo_detalle.html' %}
+          </article>
+        {% endwith %}{% endfor %}
+    </section>
+  {% empty %}<div class="unit-console__empty"><i class="fas fa-box-open" aria-hidden="true"></i><strong>{% translate "Aún no hay insumos registrados" %}</strong>{% if puede_operar_inventario %}<span>{% translate "Crea la primera ficha con «Nuevo insumo»." %}</span>{% endif %}</div>{% endfor %}
+  </div>
+  <p class="inventario__vacio" data-tabla-vacio hidden>{% translate "Ningún insumo coincide con la búsqueda." %}</p>
+  {% include 'portal/pages/unidades/gestion/includes/catalogo_paginas.html' %}
+</div>
+{% if consumibles_inactivos %}
+<details class="inventario__area is-retirados">
+  <summary><i class="fas fa-archive" aria-hidden="true"></i><span class="inventario__area-nombre"><strong>{% translate "Insumos desactivados" %}</strong><small>{% translate "No se ofrecen en las reservas; se reactivan con su interruptor." %}</small></span><span class="inventario__chips"><b>{{ consumibles_inactivos|length }}</b></span></summary>
+  <table class="inventario__unidades"><tbody>{% for item in consumibles_inactivos %}<tr class="is-inactivo"><td><span class="inventario__codigo">{{ item.codigo }}</span></td><td>{{ item.nombre }}</td><td>{{ item.get_clasificacion_display }}</td><td class="inventario__acciones">{% if puede_operar_inventario %}{% include 'portal/pages/unidades/gestion/includes/interruptor_registro.html' with modulo='consumible' entidad='' registro=item.pk activo=item.activo modo='insumos' confirmar='' %}{% endif %}</td></tr>{% endfor %}</tbody></table>
+</details>
+{% endif %}

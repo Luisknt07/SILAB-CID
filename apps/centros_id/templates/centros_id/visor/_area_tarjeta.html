@@ -1,0 +1,10 @@
+{% load i18n %}{% comment %}Área principal y accesos a sus módulos sin duplicar tarjetas.{% endcomment %}<div class="cv-area-conjunto"><a class="area__tarjeta" href="{% url 'componente_centro_id' centro.slug tarjeta.area.codigo %}" data-aparecer>
+  <span class="area__tarjeta-foto"{% if tarjeta.imagen %} style="background-image: url('{{ tarjeta.imagen }}')"{% endif %}><i class="{{ tarjeta.area.icono }}" aria-hidden="true"></i></span>
+  <span class="area__tarjeta-datos">
+    <small>{{ tarjeta.area.get_tipo_display }}{% if tarjeta.area.nivel %} · {{ tarjeta.area.nivel }}{% endif %}</small>
+    <strong>{{ tarjeta.area.nombre_corto|default:tarjeta.area.nombre }}</strong>
+    <span>{{ tarjeta.area.resumen|truncatewords:22 }}</span>
+    {% if tarjeta.cuentas %}<em>{% for icono, texto in tarjeta.cuentas %}{% if not forloop.first %} · {% endif %}<i class="{{ icono }}" aria-hidden="true"></i>{{ texto }}{% endfor %}</em>{% endif %}
+  </span>
+</a>
+{% if tarjeta.modulos %}<ul class="cv-modulos" aria-label="{% translate 'Módulos integrados' %}">{% for modulo in tarjeta.modulos %}<li><a href="{% url 'componente_centro_id' centro.slug modulo.codigo %}"><i class="{{ modulo.icono }}" aria-hidden="true"></i><span><strong>{{ modulo }}</strong><small>{% translate 'Integrado en' %} {{ tarjeta.area }}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a></li>{% endfor %}</ul>{% endif %}</div>

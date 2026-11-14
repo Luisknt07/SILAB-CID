@@ -1,0 +1,283 @@
+{% extends 'portal/layouts/base.html' %}
+{% load static i18n redaccion %}
+{% comment %}
+Editor guiado de la planificacion y del informe semestral: apartados numerados,
+lo automatico marcado como tal, zonas de texto enriquecido con el mismo editor
+y las mismas sugerencias que las guias, avance por apartado y ayuda final.
+{% endcomment %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/guias_practica.css' %}?v=20260920-contraste-v215">
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/expediente_editor.css' %}?v=20261018-aprobacion-qr-1">
+{% if tipo == 'protocolo' %}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/protocolo_seguridad.css' %}?v=20261020-contexto-2">{% endif %}
+{% if tipo == 'compras' %}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/pac_editor.css' %}?v=20261021-pestanas-contraste-1">{% endif %}
+<link rel="stylesheet" href="{% static 'portal/css/components/reportes_indicadores.css' %}?v=20261017-diseno-4">
+<link rel="stylesheet" href="{% static 'portal/css/components/reportes_cierre.css' %}?v=20261018-avance-1">
+{% include 'portal/components/reportes_interfaz_assets.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+{% block portal_content %}
+<section class="guide-shell redaccion" data-redaccion data-redaccion-tipo="{{ tipo }}" data-aprobacion-en-linea="{{ aprobacion_en_linea|yesno:'true,false' }}" data-envio-qr="{{ envio_qr_disponible|yesno:'true,false' }}" data-plan-recalculado="{{ plan_recalculado|yesno:'true,false' }}" data-redaccion-solo-lectura="{% if documento.estado == 'validado' %}true{% else %}false{% endif %}">
+  <header class="guide-hero guide-hero--compact">
+    <div>
+      <span class="guide-eyebrow">{% translate "EXPEDIENTE DE CALIDAD" %} · {{ codigo_etiqueta }}: {{ codigo_formato }}</span>
+      <h1>{{ nombre_tipo }}{% if tipo != 'protocolo' %} · {% if anio_planificado %}Año planificado {{ anio_planificado }}{% else %}{{ documento.etiqueta_corte }}{% endif %}{% endif %}</h1>
+      <p>{{ unidad.nombre }}{% if tipo == 'protocolo' %} · Documento permanente · Se actualiza cuando cambian sus condiciones{% else %}{% if anio_planificado %} · Expediente {{ documento.anio }}{% endif %} · {{ inicio|date:"d/m/Y" }} – {{ fin|date:"d/m/Y" }}{% if documento.vence_el %} · {% translate "plazo" %} {{ documento.vence_el|date:"d/m/Y" }}{% endif %}{% endif %}</p>
+    </div>
+    <div class="guide-hero__actions">
+      <div class="guide-modebar__modes redaccion__modos" role="tablist" aria-label="{% translate "Modo del documento" %}">
+        <button type="button" class="is-on" data-redaccion-modo="edicion" role="tab" aria-selected="true"><i class="fas fa-pencil-alt" aria-hidden="true"></i> {% translate "Editar contenido" %}</button>
+        <button type="button" data-redaccion-modo="final" role="tab" aria-selected="false"><i class="fas fa-eye" aria-hidden="true"></i> {% translate "Vista final" %}</button>
+      </div>
+      <a class="guide-btn guide-btn--ghost" href="{{ url_expediente }}">{% translate "Cerrar" %}</a>
+    </div>
+  </header>
+
+  {% if messages %}{% for mensaje in messages %}<div class="guide-alert guide-alert--{% if mensaje.tags == 'error' %}error{% else %}success{% endif %}">{{ mensaje }}</div>{% endfor %}{% endif %}
+  {% if documento.estado == 'observado' and documento.observacion %}<div class="guide-alert guide-alert--warning"><strong>{% translate "Observación de la Dirección:" %}</strong> {{ documento.observacion }}</div>{% endif %}
+  {% if documento.exigido.fuente_reporte == 'compras' and priorizacion_inversion %}{% include 'portal/pages/unidades/gestion/includes/priorizacion_compras.html' with priorizacion=priorizacion_inversion compacto=False %}{% endif %}
+  {% if pendientes_actividades %}<details class="guide-alert"><summary>Actividades pendientes de completar ({{ pendientes_actividades|length }})</summary><p>El avance de redacción no acredita que las actividades estén listas para firma.</p><ul>{% for pendiente in pendientes_actividades %}<li>{{ pendiente }}</li>{% endfor %}</ul></details>{% endif %}
+
+  <div class="redaccion__layout">
+    <aside class="redaccion__indice guide-editor-keep" aria-label="{% translate "Avance del documento" %}">
+      <div class="redaccion__avance">
+        <div class="redaccion__anillo" data-avance-anillo style="--avance: {{ progreso.porcentaje }}"><strong data-avance-numero>{{ progreso.porcentaje }}</strong><span>%</span></div>
+        <div><b>{% translate "Avance de redacción" %}</b><small data-avance-texto>{{ progreso.llenos }} {% translate "de" %} {{ progreso.requeridos }} {% translate "apartados obligatorios" %}</small></div>
+      </div>
+      <ol class="redaccion__pasos">
+        {% for bloque in secciones %}
+        <li data-indice-seccion="{{ bloque.seccion.codigo }}"{% if progreso.secciones|get_item:bloque.seccion.codigo %} class="is-completa"{% endif %}>
+          <a href="#seccion-{{ bloque.seccion.codigo }}"><span>{{ bloque.numero|stringformat:"02d" }}</span>{{ bloque.seccion.titulo }}</a>
+        </li>
+        {% endfor %}
+      </ol>
+      <div class="redaccion__estado" data-guide-status data-state="idle" aria-live="polite">{% if redaccion.version %}{% translate "Guardado" %} {{ redaccion.actualizado_en|date:"H:i" }}{% else %}{% translate "Sin guardar todavía" %}{% endif %}</div>
+      <p class="redaccion__pista">{% if respaldo_compras %}Registra las compras y revisa el resumen de importes por clase. El sustento se relaciona con las necesidades por cada &aacute;rea.{% elif diagnostico_compras %}Revisa el diagnóstico, añade las necesidades y completa su sustento y mes de compra. Los datos de la unidad se toman del sistema.{% else %}{% translate "Pulsa sobre un texto para editarlo: aparece la barra con formato y «Contenido listo para incluir», redactado para este tipo de unidad." %}{% endif %}</p>
+    </aside>
+
+    <form method="post" class="guide-form redaccion__form" novalidate data-redaccion-form action="{{ request.path }}">
+      {% csrf_token %}
+      <input type="hidden" name="version_base" value="{{ redaccion.version }}" data-version-base>
+      <input type="hidden" name="accion" value="guardar" data-accion>
+      {% if tipo == 'protocolo' %}
+      <input type="hidden" name="protocolo_fuentes" value="{{ protocolo_fuentes }}">
+      <p class="protocolo-orientacion">Los datos de la unidad y su personal se muestran automáticamente. Revisa las propuestas de cada actividad, indica si aplica y ajusta sus medidas. Al final confirma que revisaste el contenido.</p>
+      {% endif %}
+
+      {% for bloque in secciones %}
+      <section class="guide-section redaccion__seccion" id="seccion-{{ bloque.seccion.codigo }}" data-seccion="{{ bloque.seccion.codigo }}">
+        <div class="guide-section__heading"><span>{{ bloque.numero|stringformat:"02d" }}</span><div><h2>{{ bloque.seccion.titulo }}</h2>{% if bloque.seccion.descripcion %}<p>{{ bloque.seccion.descripcion }}</p>{% endif %}</div></div>
+
+        {% if bloque.seccion.codigo == 'diagnostico_compras' %}
+        {% include 'portal/pages/unidades/gestion/includes/diagnostico_compras.html' %}
+        {% elif bloque.seccion.automatico %}{% with automaticos|get_item:bloque.seccion.automatico as autos %}
+        {% if autos %}
+        <div class="guide-managed-data redaccion__auto guide-editor-keep">
+          <header><span class="guide-source-badge guide-source-badge--auto">{% translate "Automático" %}</span><strong>{% translate "Lo que el sistema ya sabe" %}</strong><small>{% translate "Se toma de la plataforma al generar el PDF; si algo está mal, corrígelo en su módulo." %}</small></header>
+          {% for auto in autos %}
+          <div class="redaccion__auto-bloque">
+            {% if auto.titulo %}<h4>{{ auto.titulo }}</h4>{% endif %}
+            {% if auto.tipo == 'pares' %}<dl class="redaccion__pares">{% for etiqueta, valor in auto.pares %}<div><dt>{{ etiqueta }}</dt><dd>{{ valor }}</dd></div>{% endfor %}</dl>
+            {% elif auto.tipo == 'lista' %}<ul>{% for item in auto.items %}<li>{% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.texto }}</a>{% elif item.texto %}{{ item.texto }}{% else %}{{ item }}{% endif %}</li>{% empty %}<li class="is-empty">{% translate "Sin registros en la plataforma." %}</li>{% endfor %}</ul>
+            {% elif auto.tipo == 'tabla' %}<div class="guide-table-wrap"><table class="guide-table__grid"><thead><tr>{% for c in auto.cabecera %}<th>{{ c }}</th>{% endfor %}</tr></thead><tbody>{% for fila in auto.filas %}<tr>{% for c in fila %}<td>{{ c }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ auto.cabecera|length }}" class="is-empty">{% translate "Sin registros en la plataforma." %}</td></tr>{% endfor %}</tbody></table></div>
+            {% elif auto.tipo == 'cronograma' %}<div class="guide-table-wrap"><table class="guide-table__grid redaccion__cronograma" data-cronograma><thead><tr><th>{% translate "Actividad" %}</th>{% for m in auto.meses %}<th>{{ m }}</th>{% endfor %}</tr></thead><tbody>{% for nombre, marcas in auto.filas %}<tr><td>{{ nombre }}</td>{% for m in marcas %}<td class="{% if m %}is-on{% endif %}">{% if m %}●{% endif %}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ auto.meses|length|add:1 }}" class="is-empty">{% translate "El cronograma se completa automáticamente con las actividades del plan." %}</td></tr>{% endfor %}</tbody></table></div>
+            {% elif auto.tipo == 'parrafo' or auto.tipo == 'vacio' %}<p{% if auto.tipo == 'vacio' %} class="is-empty"{% endif %}>{{ auto.texto }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}{% endwith %}{% endif %}
+
+        {% if bloque.campos %}
+        <div class="guide-grid redaccion__campos">
+          {% for dato in bloque.campos %}{% with campo=dato.campo %}
+          {% if campo.tipo == 'texto' %}
+          <div class="guide-field guide-editor-keep" data-campo="{{ campo.clave }}">
+            <label for="campo_{{ campo.clave }}">{{ campo.etiqueta }}{% if campo.requerido %} <em>*</em>{% endif %}</label>
+            <input class="guide-form__control" type="text" id="campo_{{ campo.clave }}" name="{{ campo.clave }}" value="{{ dato.valor|default_if_none:'' }}" maxlength="240">
+            {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+          </div>
+          {% elif campo.tipo == 'rico' %}
+          <div class="guide-field guide-field--wide redaccion__rico" data-campo="{{ campo.clave }}">
+            <label id="etiqueta_{{ campo.clave }}">{{ campo.etiqueta }}{% if campo.requerido %} <em>*</em>{% endif %}</label>
+            <input type="hidden" name="{{ campo.clave }}" value="{{ dato.html }}" data-guide-field="{{ campo.clave }}">
+            <div class="guide-zone guide-richtext redaccion__zona" data-guia-campo="{{ campo.clave }}" data-guia-tipo="{{ dato.politica }}" data-guia-etiqueta="{{ campo.etiqueta }}"{% if campo.requerido %} data-guia-requerido="1"{% endif %}>{{ dato.html|safe }}</div>
+            {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+            {% if dato.protocolo.ejemplo %}<div class="protocolo-ejemplo"><strong>Cómo completarlo</strong><p>{{ dato.protocolo.ejemplo }}</p></div>{% endif %}
+          </div>
+          {% elif campo.tipo == 'opcion' %}
+          <div class="guide-field guide-field--wide guide-editor-keep" data-campo="{{ campo.clave }}">
+            <label for="campo_{{ campo.clave }}">{{ campo.etiqueta }}{% if campo.requerido %} <em>*</em>{% endif %}</label>
+            <select class="guide-form__control" id="campo_{{ campo.clave }}" name="{{ campo.clave }}"><option value="">{% translate "Selecciona" %}</option>{% for valor, etiqueta in campo.opciones %}<option value="{{ valor }}"{% if valor == dato.valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select>
+            {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+          </div>
+          {% elif campo.tipo == 'marcas' %}
+          <div class="guide-field guide-field--wide guide-editor-keep" data-campo="{{ campo.clave }}">
+            <label>{{ campo.etiqueta }}{% if campo.requerido %} <em>*</em>{% endif %}</label>
+            <div class="redaccion__marcas">{% for valor, etiqueta in campo.opciones %}<label><input type="checkbox" class="guide-form__check" name="{{ campo.clave }}" value="{{ valor }}"{% if valor in dato.valor %} checked{% endif %}> <span>{{ etiqueta }}</span></label>{% endfor %}</div>
+            {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+          </div>
+          {% elif campo.tipo == 'tabla' and tipo == 'protocolo' %}
+          {% include 'portal/pages/unidades/gestion/includes/protocolo_tabla.html' %}
+          {% elif campo.tipo == 'tabla' and dato.pac %}
+          {% include 'portal/pages/unidades/gestion/includes/pac_editor.html' %}
+          {% elif campo.tipo == 'tabla' %}
+          <div class="guide-field guide-field--wide redaccion__tabla guide-editor-keep" data-campo="{{ campo.clave }}" data-tabla="{{ campo.clave }}">
+            <label>{{ campo.etiqueta }}{% if campo.requerido %} <em>*</em>{% endif %}</label>
+            {% if campo.clave == tabla_compras and sugerencias_compra %}
+            <section class="redaccion__sugerencias-compras" data-sugerencias-compras="{{ campo.clave }}" aria-label="Necesidades detectadas para el plan">
+              <header><div><h3><i class="fas fa-lightbulb" aria-hidden="true"></i> Necesidades detectadas</h3><p>Incorpora las que correspondan y completa su costo, fuente y programación en la tabla editable.</p></div><span>{{ sugerencias_compra|length }} sugerencia{{ sugerencias_compra|length|pluralize:"s" }}</span></header>
+              <ul tabindex="0" aria-label="Necesidades detectadas: desplaza esta lista para consultar todas las sugerencias">{% for propuesta in sugerencias_compra %}<li data-sugerencia-compra-tarjeta>
+                <div>{% if propuesta.requiere_atencion %}<span class="redaccion__sugerencia-atencion"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> Requiere atención</span>{% endif %}<strong>{% if propuesta.item %}{{ propuesta.item }}{% else %}{{ propuesta.titulo }}{% endif %}</strong>{% if propuesta.codigo_equipo %}<small>{{ propuesta.codigo_equipo }}</small>{% endif %}{% if propuesta.referencia is not None %}<small>Valor registrado del activo: USD {{ propuesta.referencia|floatformat:2 }} (referencial; confirmar cotización).</small>{% endif %}<p>{{ propuesta.motivo }}</p>{% if propuesta.requiere_atencion and tabla_compras == 'compras' %}<p class="redaccion__sugerencia-decision">Si la dejas fuera, explica el tratamiento de <b>{{ propuesta.codigo_equipo|default:propuesta.item }}</b> en <a href="{% if diagnostico_compras %}#seccion-diagnostico_compras{% else %}#seccion-capacidad{% endif %}">Diagn&oacute;stico y sustento de la necesidad</a>.</p>{% endif %}</div>
+                <div class="redaccion__sugerencia-acciones">{% if propuesta.gestion_url %}<a href="{{ propuesta.gestion_url }}" target="_blank" rel="noopener">Gestionar incidencia actual</a>{% endif %}{% if propuesta.url_equipo %}<a href="{{ propuesta.url_equipo }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt" aria-hidden="true"></i> Consultar ficha</a>{% endif %}<button type="button" data-sugerencia-compra="{{ forloop.counter0 }}"{% if documento.estado == 'validado' %} disabled{% endif %}><i class="fas fa-plus" aria-hidden="true"></i> <span data-sugerencia-compra-etiqueta>Incorporar al plan</span></button></div>
+              </li>{% endfor %}</ul>
+              <p class="redaccion__sugerencias-estado" data-sugerencias-compras-estado role="status" aria-live="polite">{% if documento.estado == 'validado' %}Documento enviado: las sugerencias se consultan aquí y se incorporan cuando la entrega esté abierta para edición.{% endif %}</p>
+            </section>
+            {% endif %}
+            <div class="guide-table-wrap">
+              <table class="guide-table__grid redaccion__tabla-grid">
+                <thead><tr>{% for col, etiqueta, tipo_col, opciones in campo.columnas %}<th>{{ etiqueta }}</th>{% endfor %}<th></th></tr></thead>
+                <tbody>
+                  {% for fila in dato.valor %}
+                  <tr>{% for col, etiqueta, tipo_col, opciones in campo.columnas %}<td>{% if tipo_col == 'opcion' %}<select class="guide-form__control" name="{{ campo.clave }}__{{ col }}" aria-label="{{ etiqueta }}"><option value="">—</option>{% for v, e in opciones %}<option value="{{ v }}"{% if fila|get_item:col == v %} selected{% endif %}>{{ e }}</option>{% endfor %}</select>{% elif tipo_col == 'numero' %}<input class="guide-form__control" type="number" step="any" min="0" name="{{ campo.clave }}__{{ col }}" value="{{ fila|get_item:col }}" aria-label="{{ etiqueta }}">{% elif tipo_col == 'multilinea' %}<textarea class="guide-form__control" name="{{ campo.clave }}__{{ col }}" rows="4" aria-label="{{ etiqueta }}">{{ fila|get_item:col }}</textarea>{% else %}<input class="guide-form__control" type="text" name="{{ campo.clave }}__{{ col }}" value="{{ fila|get_item:col }}" maxlength="300" aria-label="{{ etiqueta }}">{% endif %}</td>{% endfor %}<td><button type="button" class="redaccion__quitar" data-quitar-fila aria-label="{% translate "Quitar fila" %}">×</button></td></tr>
+                  {% endfor %}
+                  <tr data-fila-plantilla>{% for col, etiqueta, tipo_col, opciones in campo.columnas %}<td>{% if tipo_col == 'opcion' %}<select class="guide-form__control" name="{{ campo.clave }}__{{ col }}" aria-label="{{ etiqueta }}"><option value="">—</option>{% for v, e in opciones %}<option value="{{ v }}">{{ e }}</option>{% endfor %}</select>{% elif tipo_col == 'numero' %}<input class="guide-form__control" type="number" step="any" min="0" name="{{ campo.clave }}__{{ col }}" value="" aria-label="{{ etiqueta }}">{% elif tipo_col == 'multilinea' %}<textarea class="guide-form__control" name="{{ campo.clave }}__{{ col }}" rows="4" aria-label="{{ etiqueta }}"></textarea>{% else %}<input class="guide-form__control" type="text" name="{{ campo.clave }}__{{ col }}" value="" maxlength="300" aria-label="{{ etiqueta }}">{% endif %}</td>{% endfor %}<td><button type="button" class="redaccion__quitar" data-quitar-fila aria-label="{% translate "Quitar fila" %}">×</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <button type="button" class="guide-btn guide-btn--soft redaccion__anadir" data-anadir-fila>+ {% translate "Añadir fila" %}</button>
+            {% if campo.ayuda %}<small>{{ campo.ayuda }}</small>{% endif %}
+          </div>
+          {% elif campo.tipo == 'presupuesto_uso' %}
+          {% include 'portal/pages/unidades/gestion/includes/presupuesto_uso_editor.html' with presupuesto=dato %}
+          {% elif campo.tipo == 'actividades' %}
+          <div class="guide-field guide-field--wide redaccion__plan guide-editor-keep" data-campo="{{ campo.clave }}" data-plan>
+            {% include 'portal/pages/unidades/gestion/includes/capacidad_plan.html' with capacidad=dato.capacidad %}
+            {% if dato.cronograma_auto %}<div class="redaccion__calendario-auto"><strong>{% translate "Programación automática" %}</strong><span>{{ dato.cronograma_auto.descripcion }}</span><div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Calendario de la planificación" aria-haspopup="dialog">{% translate "Ver calendario de referencia" %} <i class="fas fa-info-circle" aria-hidden="true"></i></button><template data-reporte-informacion-contenido><p>{{ dato.cronograma_auto.descripcion }}</p><p><strong>{% translate "Gestión semestral:" %}</strong> {{ inicio|date:'d/m/Y' }} – {{ fin|date:'d/m/Y' }}.</p>{% if dato.cronograma_auto.periodo_codigo %}<p><strong>{% translate "Período académico de referencia:" %}</strong> {{ dato.cronograma_auto.periodo_codigo }}.</p>{% endif %}{% if dato.cronograma_auto.meses_academicos %}<p><strong>{% translate "Meses académicos:" %}</strong></p><ul>{% for numero, nombre in dato.meses %}{% if numero in dato.cronograma_auto.meses_academicos %}<li>{{ nombre }}</li>{% endif %}{% endfor %}</ul>{% endif %}{% for aviso in dato.cronograma_auto.avisos %}<p>{{ aviso }}</p>{% endfor %}<p>{% translate "La actividad fuera del calendario académico también se conserva en el seguimiento del semestre de gestión." %}</p></template></div></div>{% endif %}
+            <div class="guide-table-wrap">
+              <table class="guide-table__grid redaccion__plan-grid redaccion__plan-grid--programacion">
+                <thead><tr><th>{% translate "Exigencia" %}</th><th>{% translate "Documento o actividad" %}</th><th>{% translate "Indicador" %}</th><th>{% translate "Origen de la meta" %}</th><th>{% translate "Meta del período" %}</th><th>{% translate "Meses" %}</th></tr></thead>
+                <tbody>
+                  {% for fila in dato.filas %}{% if not fila.propia and not fila.solo_anexo %}
+                  <tr class="{% if fila.aplica %}is-on{% endif %}{% if fila.obligatoria %} is-obligatoria{% endif %}" data-plan-fila>
+                    <td>{% if fila.requisito %}<strong>{% if fila.institucional %}{% translate "Obligatoria institucional" %}{% else %}{% translate "Obligatoria según tipo de unidad" %}{% endif %}</strong><input type="hidden" name="act__{{ fila.codigo }}__exigencia" value="obligatoria">{% else %}<select class="guide-form__control" name="act__{{ fila.codigo }}__exigencia" data-plan-exigencia aria-label="Exigencia de {{ fila.nombre }}"><option value="no_aplica"{% if not fila.aplica %} selected{% endif %}>{% translate "No aplica" %}</option><option value="opcional"{% if fila.aplica and not fila.obligatoria %} selected{% endif %}>{% translate "Opcional" %}</option><option value="obligatoria"{% if fila.aplica and fila.obligatoria %} selected{% endif %}>{% translate "Obligatoria del período" %}</option></select>{% endif %}</td>
+                    <td><strong data-plan-nombre>{{ fila.nombre_reporte|default:fila.nombre }}</strong><input type="hidden" name="act__{{ fila.codigo }}__responsable" value="{{ fila.responsable }}">{% if fila.anexos or fila.contador %}<div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Registros y evidencia · {{ fila.nombre }}" aria-haspopup="dialog">Registros y evidencia <i class="fas fa-info-circle" aria-hidden="true"></i></button><template data-reporte-informacion-contenido><p><strong>{{ fila.nombre }}</strong></p>{% if fila.contador %}<p>{% translate "Se mide con los registros verificables del sistema." %}</p>{% endif %}{% if fila.anexos %}<ul>{% for anexo in fila.anexos %}<li>{{ anexo }}</li>{% endfor %}</ul>{% endif %}</template></div>{% endif %}</td>
+                    <td>{{ fila.indicador }}{% if fila.ficha_indicador %}{% include 'portal/pages/unidades/gestion/includes/indicador_origen.html' with ficha=fila.ficha_indicador %}{% endif %}</td>
+                    <td>{% if fila.meta_origen %}Regla central del semestre{% else %}{{ fila.minimo|default:"—" }}{% endif %}</td>
+                    <td>{% if fila.control_meta.numerica %}<input type="hidden" name="act__{{ fila.codigo }}__meta" value="{{ fila.control_meta.valor }}"><strong class="redaccion__meta-fija">{{ fila.control_meta.valor }}{% if fila.control_meta.porcentaje %} %{% endif %}</strong><small>Calculada por el sistema · reglas de Dirección</small>{% else %}<input type="hidden" name="act__{{ fila.codigo }}__meta" value="{{ fila.meta }}"><strong>{{ fila.meta }}</strong><small>Según programación de la función.</small>{% endif %}</td>
+                    <td class="redaccion__plan-meses"><div class="redaccion__meses redaccion__meses--automaticos" role="list" aria-label="Meses programados de {{ fila.nombre }}">{% for numero, nombre in dato.meses %}<span class="redaccion__mes-automatico{% if numero in fila.meses %} is-on{% endif %}" role="listitem" data-plan-mes data-plan-programado="{% if numero in fila.meses %}true{% else %}false{% endif %}" aria-label="{{ nombre }}: {% if numero in fila.meses %}programado{% else %}sin programación{% endif %}">{{ nombre }}</span>{% endfor %}</div>{% if fila.aplica and not fila.meses %}<small class="redaccion__cronograma-pendiente">{% if fila.sin_programacion_exigible %}{% translate "Sin programación exigible" %}{% else %}{% translate "Pendiente de programar" %}{% endif %}</small>{% endif %}{% if fila.cronograma_texto or fila.cronograma_origen %}<div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Programación · {{ fila.nombre }}" aria-haspopup="dialog">{% translate "Ver programación" %} <i class="fas fa-info-circle" aria-hidden="true"></i></button><template data-reporte-informacion-contenido><p><strong>{{ fila.nombre }}</strong></p>{% if fila.cronograma_texto %}<p>{{ fila.cronograma_texto }}</p>{% else %}<p>{{ fila.cronograma_origen }}</p>{% endif %}</template></div>{% endif %}</td>
+                  </tr>
+                  {% endif %}{% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <p class="redaccion__plan-aclaracion">Esta planificación se entrega al inicio. El avance y las evidencias de ejecución se consultan en el informe de cierre, con las mismas metas conservadas del plan.</p>
+            <div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Referencias y metas del plan" aria-haspopup="dialog">Cómo se determinan las metas <i class="fas fa-info-circle" aria-hidden="true"></i></button><template data-reporte-informacion-contenido><p>Los números se calculan con reglas centrales por tipo de unidad. La carga docente usa las sesiones con fechas y horarios concretos en agenda y FT02; se contrasta con las horas disponibles. Dirección administra las reglas y revisa las limitaciones; la unidad no cambia sus números desde este editor. Las metas de versiones firmadas se conservan para el cierre.</p></template></div>
+            <h4 class="redaccion__subtitulo">Anexos automáticos del período</h4>
+            <p>Se incluyen con el informe a partir de sus registros. No requieren inventar una meta de préstamos, consumos o movimientos. Sin actividad se informa «Sin movimientos», sin sumar ni descontar puntos por una meta inexistente.</p>
+            <div class="guide-table-wrap"><table class="guide-table__grid"><thead><tr><th>Documento de respaldo</th><th>Tratamiento</th></tr></thead><tbody>
+              {% for fila in dato.filas %}{% if fila.solo_anexo %}<tr><th scope="row">{{ fila.nombre_reporte|default:fila.nombre }}</th><td>Anexo del informe · sin meta independiente</td></tr>{% endif %}{% endfor %}
+            </tbody></table></div>
+            <h4 class="redaccion__subtitulo">{% translate "Otras actividades propias de la unidad" %}</h4>
+            <p class="redaccion__plan-aclaracion">{% translate "Las actividades propias parten de los meses del semestre. Ajusta su programación cuando correspondan a una fecha específica." %}</p>
+            <div class="guide-table-wrap">
+              <table class="guide-table__grid redaccion__plan-grid redaccion__plan-grid--propias" data-otras>
+                <thead><tr><th>{% translate "Actividad" %}</th><th>{% translate "Indicador" %}</th><th>{% translate "Meta" %}</th><th>{% translate "Meses" %}</th><th></th></tr></thead>
+                <tbody>
+                  {% for fila in dato.filas %}{% if fila.propia %}
+                  <tr class="is-on" data-plan-fila data-otra-indice="{{ fila.indice }}">
+                    <td><input class="guide-form__control" type="text" name="otra__nombre" value="{{ fila.nombre }}" maxlength="240" data-otra-nombre><input type="hidden" name="otra__responsable" value="{{ fila.responsable }}"><input type="hidden" name="otra__meses_presentes__{{ fila.indice }}" value="1" data-otra-meses-presentes></td>
+                    <td><input class="guide-form__control" type="text" name="otra__indicador" value="{{ fila.indicador }}" maxlength="160"></td>
+                    <td><input class="guide-form__control" type="text" name="otra__meta" value="{{ fila.meta }}" maxlength="120"></td>
+                    <td class="redaccion__plan-meses"><div class="redaccion__meses" role="group" aria-label="Meses de {{ fila.nombre }}">{% for numero, nombre in dato.meses %}<label><input type="checkbox" name="otra__meses__{{ fila.indice }}" value="{{ numero }}"{% if numero in fila.meses %} checked{% endif %} data-plan-mes><span>{{ nombre }}</span></label>{% endfor %}</div></td>
+                    <td><button type="button" class="redaccion__quitar" data-quitar-fila aria-label="{% translate "Quitar fila" %}">×</button></td>
+                  </tr>
+                  {% endif %}{% endfor %}
+                  <tr data-fila-plantilla data-plan-fila data-otra-indice="__i__">
+                    <td><input class="guide-form__control" type="text" name="otra__nombre" value="" maxlength="240" data-otra-nombre placeholder="{% translate "Nombre de la actividad" %}"><input type="hidden" name="otra__responsable" value=""><input type="hidden" name="otra__meses_presentes____i__" value="1" data-otra-meses-presentes></td>
+                    <td><input class="guide-form__control" type="text" name="otra__indicador" value="" maxlength="160"></td>
+                    <td><input class="guide-form__control" type="text" name="otra__meta" value="" maxlength="120"></td>
+                    <td class="redaccion__plan-meses"><div class="redaccion__meses" role="group" aria-label="Meses de la actividad propia">{% for numero, nombre in dato.meses %}<label><input type="checkbox" name="otra__meses____i__" value="{{ numero }}" checked data-plan-mes data-plan-default="true"><span>{{ nombre }}</span></label>{% endfor %}</div></td>
+                    <td><button type="button" class="redaccion__quitar" data-quitar-fila aria-label="{% translate "Quitar fila" %}">×</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button type="button" class="guide-btn guide-btn--soft redaccion__anadir" data-anadir-otra>+ {% translate "Añadir actividad propia" %}</button>
+          </div>
+          {% elif campo.tipo == 'cumplimiento' %}
+          <div class="guide-field guide-field--wide redaccion__cumplimiento guide-editor-keep" data-campo="{{ campo.clave }}">
+            {% if not dato.hay_plan %}
+            <div class="guide-note">{% translate "Este período no tiene planificación semestral redactada en el sistema, así que no hay plan con el que comparar. Si la planificación existe en papel, redáctala primero en el expediente; el informe la tomará solo." %}</div>
+            {% elif not dato.filas %}
+            <div class="guide-note">{% translate "La planificación del período no comprometió actividades." %}</div>
+            {% else %}
+            <div class="guide-table-wrap">
+              <table class="guide-table__grid redaccion__plan-grid">
+                <thead><tr><th>{% translate "Actividad" %}</th><th>{% translate "Meta" %}</th><th>{% translate "Registrado en el sistema" %}</th><th>{% translate "Reportado por la unidad" %}</th><th>{% translate "Observación" %}</th></tr></thead>
+                <tbody>
+                  {% for fila in dato.filas %}
+                  <tr>
+                    <td><strong>{{ fila.nombre }}</strong><small>{{ fila.indicador }}</small></td>
+                    <td>{{ fila.meta|default:fila.minimo|default:"—" }}</td>
+                    <td class="redaccion__registrado">{% if fila.registrado is None %}<span class="is-manual">{% translate "Lo reporta la unidad" %}</span>{% else %}<b>{{ fila.registrado }}</b>{% endif %}</td>
+                    <td><input class="guide-form__control" type="text" name="cum__{{ fila.codigo }}__realizado" value="{{ fila.realizado }}" maxlength="60"></td>
+                    <td><input class="guide-form__control" type="text" name="cum__{{ fila.codigo }}__observacion" value="{{ fila.observacion }}" maxlength="300" placeholder="{% translate "Si difiere de lo registrado, explica por qué" %}"></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% endwith %}{% endfor %}
+        </div>
+        {% endif %}
+      </section>
+      {% endfor %}
+
+      <section class="guide-section redaccion__cierre guide-editor-keep" data-cierre>
+        <div class="guide-section__heading"><span>✓</span><div><h2>{% translate "Para finalizar" %}</h2><p>{% if aprobacion_en_linea %}Completa los apartados, revisa la vista final y envía el documento a Dirección para su aprobación.{% else %}{% translate "El sistema revisa lo obligatorio; cuando esté completo, genera el PDF, fírmalo electrónicamente y cárgalo en el expediente." %}{% endif %}</p></div></div>
+        <div class="redaccion__faltantes" data-faltantes {% if not faltantes %}hidden{% endif %}>
+          <strong>{% translate "Todavía falta:" %}</strong>
+          <ul data-faltantes-lista>{% for f in faltantes %}<li>{{ f }}</li>{% endfor %}</ul>
+        </div>
+        <div class="redaccion__listo" data-listo {% if faltantes %}hidden{% endif %}>
+          <strong>{% translate "Todo lo obligatorio está completo." %}</strong>
+          <span>Revisa el documento y envíalo desde esta pantalla.</span>
+        </div>
+        {% if aprobacion_en_linea %}<p>Revisa el contenido y pulsa <strong>{% if envio_qr_disponible %}Generar y enviar{% else %}Preparar documento{% endif %}</strong>. Dirección aprueba u observa la versión dentro del sistema. El QR permite comprobar su aprobación; la descarga es opcional.</p>{% else %}        <ol class="redaccion__pasos-cierre">
+          <li><b>{% translate "Guarda el borrador" %}</b> {% translate "· se guarda solo mientras escribes." %}</li>
+          <li><b>{% translate "Ver borrador" %}</b> · revisa el contenido al día dentro de esta pantalla; el borrador se identifica con marca de agua.</li>
+          <li><b>{% translate "Generar para firma" %}</b> · abre en el visor la versión sin marca de borrador, lista para descargar y firmar.</li>
+          <li><b>{% translate "Firmar y cargar" %}</b> · descarga desde «Ver para firma», firma electrónicamente y carga el archivo en el expediente; el sistema comprueba la entrega.</li>
+        </ol>{% endif %}
+      </section>
+
+      <footer class="guide-form__footer guide-editor-keep">
+        <a class="guide-btn guide-btn--outline" href="{{ url_expediente }}">{% translate "Volver al expediente" %}</a>
+        <div>
+          {% if url_exportar_pac %}<a class="guide-btn guide-btn--outline pac-descargar-excel" href="{{ url_exportar_pac }}" data-exportar-pac><i class="fas fa-file-excel" aria-hidden="true"></i> Descargar Excel</a>{% endif %}
+          <button class="guide-btn guide-btn--soft" type="submit" data-enviar="guardar">{% translate "Guardar borrador" %}</button>
+          <button class="guide-btn guide-btn--outline" type="button" data-pdf-borrador data-pdf-url="{{ url_pdf_borrador }}" data-pdf-titulo="Borrador · {{ nombre_tipo }} · {{ documento.etiqueta_corte }}"><i class="fas fa-file-pdf" aria-hidden="true"></i> {% translate "Ver borrador" %}</button>
+          {% if url_pdf_preparado_anterior %}<a class="guide-btn guide-btn--soft" href="{{ url_pdf_preparado_anterior }}" data-pdf-anterior data-ver-pdf data-pdf-titulo="Versión preparada anterior · {{ nombre_tipo }}" title="Archivo ya generado; los cambios actuales requieren generar otra versión para firma."><i class="fas fa-history" aria-hidden="true"></i> Ver preparado anterior</a>{% endif %}
+          <button class="guide-btn guide-btn--outline" type="button" data-pdf-firma data-pdf-url="{{ url_pdf_firma }}" data-pdf-titulo="Versión para firma · {{ nombre_tipo }}"{% if not url_pdf_firma %} hidden{% endif %}><i class="fas fa-file-signature" aria-hidden="true"></i>{% if aprobacion_en_linea %} Ver documento{% else %} Ver para firma{% endif %}</button>
+          <button class="guide-btn guide-btn--primary" type="submit" data-enviar="generar" data-generar {% if faltantes %}disabled title="{% translate "Completa lo obligatorio para generar el documento" %}"{% endif %}>{% if envio_qr_disponible %}Generar y enviar{% elif aprobacion_en_linea %}Preparar documento{% else %}{% translate "Generar para firma" %}{% endif %}</button>
+        </div>
+      </footer>
+    </form>
+  </div>
+</section>
+{{ sugerencias|json_script:"redaccionSugerencias" }}
+{% if sugerencias_compra %}{{ sugerencias_compra|json_script:"redaccionSugerenciasCompras" }}{% endif %}
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+{% endblock %}
+{% block extra_scripts %}
+{{ block.super }}
+<script src="{% static 'portal/js/pages/unidades/guias/guia_editor.js' %}?v=20260916-i18n-v141"></script>
+<script src="{% static 'portal/js/pages/unidades/expediente_sugerencias_compras.js' %}?v=20261021-pestanas-contraste-1"></script>
+<script src="{% static 'portal/js/pages/unidades/expediente_editor.js' %}?v=20261021-pestanas-contraste-1"></script>
+{% if tipo == 'compras' %}<script src="{% static 'portal/js/pages/unidades/expediente_pac.js' %}?v=20261021-pestanas-contraste-1"></script>{% endif %}
+{% if tipo == 'protocolo' %}<script src="{% static 'portal/js/pages/unidades/protocolo_seguridad.js' %}?v=20261020-contexto-1"></script>{% endif %}
+{% endblock %}

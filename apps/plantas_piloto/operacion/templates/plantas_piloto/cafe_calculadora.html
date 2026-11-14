@@ -1,0 +1,27 @@
+{% load static %}<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balances y planificación del café · {{ unidad.nombre }}</title>
+<link rel="stylesheet" href="{% static 'plantas_piloto/cafe.css' %}">
+<script defer src="{% static 'plantas_piloto/cafe.js' %}"></script></head>
+<body><header><span class="eyebrow">Café de origen · Laboratorio de decisiones</span><h1>De la cosecha a las bolsas</h1>
+<p>Explora rendimientos, secado, empaque y costo. Cambia las hipótesis y compara las consecuencias.</p><span class="badge">Escenario educativo · no modifica inventarios</span></header>
+<main><form id="cafe-calculadora"><section><h2>1. Define el microlote y su ruta</h2><div class="fields">
+<label>Ruta de beneficio<select name="ruta"><option value="lavado">Lavado</option><option value="honey">Honey</option><option value="natural">Natural</option></select></label>
+<label>Cereza recibida (kg)<input name="cereza" type="number" min="0.001" max="10000000" step="any" value="100" required></label>
+<label>Salida seca / cereza (%)<input name="beneficio" type="number" min="0.001" max="100" step="any" value="20" required></label>
+<label>Verde aceptado / seco (%)<input name="trilla" type="number" min="0.001" max="100" step="any" value="80" required></label>
+<label>Pérdida de tueste (%)<input name="perdida" type="number" min="0" max="99.999" step="any" value="15" required></label>
+<label>Rendimiento molienda/empaque (%)<input name="empaque" type="number" min="0.001" max="100" step="any" value="99" required></label>
+<label>Presentación<input name="gramos" type="number" min="1" max="1000000" step="any" value="250" required><small>gramos por bolsa</small></label>
+<label>Costo total del lote (USD)<input name="costo" type="number" min="0" max="10000000" step="any" value="120" required><small>Valor sintético; no es una tarifa</small></label>
+</div><p class="note">Las hipótesis iniciales son docentes. En natural, la salida seca es fruto entero y se usa su factor de trilla. Cada lote real necesita mediciones propias.</p></section>
+<section><h2>2. Estima el agua que retira el secado</h2><div class="fields">
+<label>Masa húmeda que entra al secado (kg)<input name="masaHumeda" type="number" min="0.001" max="10000000" step="any" value="50" required></label>
+<label>Humedad inicial, base húmeda (%)<input name="humedadInicial" type="number" min="0.001" max="99.999" step="any" value="55" required></label>
+<label>Humedad final, base húmeda (%)<input name="humedadFinal" type="number" min="0" max="99.999" step="any" value="11" required></label>
+</div><p>Este cálculo conserva los sólidos secos: masa final = masa húmeda × (1 − humedad inicial) / (1 − humedad final). Es independiente del balance global anterior; no modela cinética, pérdidas de sólidos ni actividad de agua.</p></section>
+<button type="submit">Calcular escenario</button><button type="reset" class="secondary">Restablecer</button><p id="cafe-error" role="alert" hidden></p></form>
+<section aria-live="polite"><h2>3. Compara las salidas y toma una decisión</h2><div id="cafe-flujo" class="mass-flow"></div><div id="cafe-resultados" class="results"></div>
+<figure><figcaption>Masa conservada en cada transformación (kg)</figcaption><div id="cafe-barras" class="bars"></div></figure></section>
+<details><summary>Cómo interpretar los resultados</summary><p>Las diferencias de masa incluyen agua, pulpa, cáscara, defectos, purgas y muestras según la etapa. No son residuos equivalentes ni un cálculo de emisiones. El costo por kg usa producto aceptado; el costo por bolsa usa la masa de su presentación, sin asignar todo el remanente a las bolsas vendidas.</p><p>La condición de café especial requiere atributos y evidencia, no un rendimiento numérico. El secado termina por medición y uniformidad; el tueste por un perfil validado en el equipo. Esta herramienta no libera lotes ni controla máquinas.</p></details>
+<p><a href="{{ unidad.get_absolute_url }}">Volver a la planta de café</a></p></main></body></html>

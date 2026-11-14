@@ -1,0 +1,173 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ curso.nombre }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/cursos_unidad.css' %}?v=20261009-responsive-v3">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/gestion_cursos.css' %}?v=20261009-visores-v2">
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+  {% include 'portal/pages/unidades/includes/editar_estilos.html' %}
+</head>
+<body class="conoce ficha area curso-ficha">
+  {% if messages %}<div class="portal-messages" role="status" aria-live="polite">{% for message in messages %}<p class="gestion__mensaje is-{{ message.tags|default:'info' }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+  {% if not curso.publicado %}<p class="conoce__borrador area__borrador"><i class="fas fa-eye-slash" aria-hidden="true"></i> {% translate "Curso sin publicar: solo lo ve quien gestiona la unidad. Complete cada parte y márquelo «Publicado» en «Editar la presentación»." %}</p>{% endif %}
+  <header class="conoce__portada area__portada{% if curso.imagen %} con-foto{% elif foto_portada %} con-foto{% else %} area__portada--plano{% endif %}"{% if curso.imagen %} style="--conoce-foto: url('{{ curso.imagen.url }}')"{% elif foto_portada %} style="--conoce-foto: url('{{ foto_portada }}')"{% endif %}>
+    <div class="conoce__portada-texto">
+      <span class="conoce__antetitulo">{% if seccion %}{% translate "Sección" %} {{ seccion }} · {% endif %}{{ curso.get_clasificacion_display }} · {{ unidad.nombre }}</span>
+      {% translate "Presentación del curso" as titulo_presentacion %}{% translate "Editar la presentación" as rotulo_presentacion %}{% include 'portal/pages/unidades/includes/editar.html' with clave='curso' pk=curso.pk grupo='presentacion' titulo=titulo_presentacion rotulo=rotulo_presentacion padre='' %}
+      <h1>{{ curso.nombre }}</h1>
+      {% if curso.lema %}<p class="conoce__lema">{{ curso.lema }}</p>{% endif %}
+      <ul class="conoce__datos">
+        <li><i class="{{ icono }}" aria-hidden="true"></i>{{ curso.get_clasificacion_display }}</li>
+        <li><i class="fas fa-laptop-house" aria-hidden="true"></i>{{ modalidad }}</li>
+        {% if curso.duracion_horas %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ curso.duracion_horas }} h</li>{% endif %}
+        {% if curso.emite_certificado %}<li><i class="fas fa-certificate" aria-hidden="true"></i>{% translate "Con certificado" %}</li>{% endif %}
+      </ul>
+      <div class="conoce__portada-acciones">
+        {% if editor_curso_url %}<a class="conoce__boton" href="{{ editor_curso_url }}" data-curso-modal="Editar curso completo"><i class="fas fa-edit" aria-hidden="true"></i> {% translate "Editar curso completo" %}</a>{% endif %}
+        {% include 'portal/pages/unidades/aula/includes/participar_curso.html' with compacto=True %}
+        {% if grupos_url %}<a class="conoce__boton" href="{{ grupos_url }}" data-curso-modal="Administrar grupos"><i class="fas fa-layer-group" aria-hidden="true"></i> {% translate "Grupos" %}</a>{% endif %}
+        {% if diseno_certificado_url %}<a class="conoce__boton" href="{{ diseno_certificado_url }}" data-curso-modal="Personalizar certificado"><i class="fas fa-certificate" aria-hidden="true"></i> {% translate "Diseñar certificado" %}</a>{% endif %}
+        {% if participar.vista_previa %}<a class="conoce__boton" href="{{ participar.vista_previa }}"><i class="fas fa-eye" aria-hidden="true"></i> {% translate "Ver el aula" %}</a>{% endif %}
+        {% if inscritos_url %}<a class="conoce__boton" href="{{ inscritos_url }}" data-curso-modal="Administrar participantes"><i class="fas fa-users" aria-hidden="true"></i> {% translate "Inscritos" %}</a>{% endif %}
+        {% if calificaciones_url %}<a class="conoce__boton" href="{{ calificaciones_url }}" data-curso-modal="Calificaciones y reportes"><i class="fas fa-clipboard-check" aria-hidden="true"></i> {% translate "Calificaciones" %}{% if por_revisar %} · {{ por_revisar }} {% translate "por revisar" %}{% endif %}</a>{% endif %}
+        <a class="conoce__boton" href="{{ todos_url }}"><i class="fas fa-th-large" aria-hidden="true"></i> {% translate "Todos los cursos" %}</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="conoce__cifras" aria-label="{% translate "El curso en cifras" %}">
+    {% if curso.duracion_horas %}<div data-aparecer><i class="fas fa-clock" aria-hidden="true"></i><strong data-contar="{{ curso.duracion_horas }}">{{ curso.duracion_horas }}</strong><span>{% translate "Horas de formación" %}</span></div>{% endif %}
+    {% if lecciones_total %}<div data-aparecer><i class="fas fa-list-ol" aria-hidden="true"></i><strong data-contar="{{ lecciones_total }}">{{ lecciones_total }}</strong><span>{% translate "Lecciones en" %} {{ programa|length }} {% translate "módulos" %}</span></div>{% endif %}
+    <div data-aparecer><i class="fas fa-layer-group" aria-hidden="true"></i><strong data-contar="{{ ediciones_curso|length }}">{{ ediciones_curso|length }}</strong><span>{% translate "Grupos y convocatorias" %}</span></div>
+    {% if vigente.cupo %}<div data-aparecer><i class="fas fa-users" aria-hidden="true"></i><strong data-contar="{{ vigente.cupo }}">{{ vigente.cupo }}</strong><span>{% translate "Cupos en" %} {{ vigente.nombre }}</span></div>{% endif %}
+    <div data-aparecer><i class="fas fa-tag" aria-hidden="true"></i><strong>{% if not vigente and curso.costo == None %}{% translate "Por definir" %}{% elif curso.gratuito %}{% translate "Gratis" %}{% else %}${{ curso.costo }}{% endif %}</strong><span>{% if not vigente and curso.costo == None %}{% translate "Costo del curso" %}{% elif curso.gratuito %}{% translate "Sin costo" %}{% else %}{% translate "Costo del curso" %}{% endif %}</span></div>
+  </section>
+
+  <nav class="conoce__indice" aria-label="{% translate "En esta página" %}">
+    {% if curso.descripcion or curso.dirigido_a or curso.aprendizajes or curso.requisitos or 'curso' in ediciones %}<a href="#trata" data-indice="trata">{% translate "De qué trata" %}</a>{% endif %}
+    {% if curso.video_id %}<a href="#video" data-indice="video">{% translate "Video" %}</a>{% endif %}
+    {% if programa or 'modulo_curso' in ediciones %}<a href="#programa" data-indice="programa">{% translate "Programa" %}</a>{% endif %}
+    <a href="#ediciones" data-indice="ediciones">{% translate "Grupos y convocatorias" %}</a>
+    <a href="#inscripcion" data-indice="inscripcion">{% translate "Inscripción" %}</a>
+    {% if curso.lista_instructores or 'curso' in ediciones %}<a href="#instructores" data-indice="instructores">{% translate "Instructores" %}</a>{% endif %}
+    {% if otros %}<a href="#otros" data-indice="otros">{% translate "Otros cursos" %}</a>{% endif %}
+  </nav>
+
+  {% if curso.descripcion or curso.dirigido_a or curso.aprendizajes or curso.requisitos or 'curso' in ediciones %}
+  <section class="conoce__seccion" id="trata">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El curso" %}</span><h2>{% translate "De qué trata" %}</h2>{% translate "De qué trata" as titulo_contenido %}{% include 'portal/pages/unidades/includes/editar.html' with clave='curso' pk=curso.pk grupo='contenido' titulo=titulo_contenido rotulo='' padre='' %}</header>
+    <div class="area__explicacion">
+      {% if curso.descripcion %}<article class="ficha__bloque ficha__bloque--creacion" data-aparecer><header><i class="fas fa-book-open" aria-hidden="true"></i><h2>{% translate "Presentación" %}</h2></header><div class="area__texto">{{ curso.descripcion|linebreaks }}</div></article>{% endif %}
+      {% if curso.dirigido_a %}<article class="ficha__bloque" data-aparecer><header><i class="fas fa-user-graduate" aria-hidden="true"></i><h2>{% translate "A quién va dirigido" %}</h2></header><div class="area__texto">{{ curso.dirigido_a|linebreaks }}</div></article>{% endif %}
+    </div>
+    {% if curso.lista_aprendizajes or curso.lista_requisitos %}
+    <div class="curso__listas">
+      {% if curso.lista_aprendizajes %}<article class="curso__lista" data-aparecer><h3><i class="fas fa-lightbulb" aria-hidden="true"></i> {% translate "Qué aprenderás" %}</h3><ul>{% for aprendizaje in curso.lista_aprendizajes %}<li><i class="fas fa-check" aria-hidden="true"></i>{{ aprendizaje }}</li>{% endfor %}</ul></article>{% endif %}
+      {% if curso.lista_requisitos %}<article class="curso__lista curso__lista--requisitos" data-aparecer><h3><i class="fas fa-clipboard-list" aria-hidden="true"></i> {% translate "Requisitos" %}</h3><ul>{% for requisito in curso.lista_requisitos %}<li><i class="fas fa-angle-right" aria-hidden="true"></i>{{ requisito }}</li>{% endfor %}</ul></article>{% endif %}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if curso.video_id %}
+  <section class="conoce__seccion" id="video">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Conócelo" %}</span><h2>{% translate "Video del curso" %}</h2></header>
+    <div class="curso__video" data-aparecer><iframe src="https://www.youtube-nocookie.com/embed/{{ curso.video_id }}" title="{% translate "Video del curso" %} {{ curso.nombre }}" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+  </section>
+  {% endif %}
+
+  {% if programa or 'modulo_curso' in ediciones %}
+  <section class="conoce__seccion" id="programa">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Paso a paso" %}</span><h2>{% translate "Programa del curso" %}</h2>{% translate "Nuevo módulo" as titulo_modulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='modulo_curso' pk='nuevo' padre=curso.pk titulo=titulo_modulo rotulo=titulo_modulo grupo='' %}</header>
+    {% if programa %}
+    <div class="curso__programa">
+      {% for modulo in programa %}<details class="curso__modulo" data-aparecer{% if forloop.first %} open{% endif %}>
+        <summary><b>{{ forloop.counter }}</b><h3>{{ modulo.titulo }}<small>{{ modulo.visibles|length }} {% translate "lecciones" %}</small></h3>{% translate "Módulo del curso" as titulo_editar_modulo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='modulo_curso' pk=modulo.pk titulo=titulo_editar_modulo rotulo='' grupo='' padre='' %}{% translate "Nueva lección" as titulo_leccion %}{% include 'portal/pages/unidades/includes/editar.html' with clave='leccion_curso' pk='nuevo' padre=modulo.pk titulo=titulo_leccion rotulo=titulo_leccion grupo='' %}<i class="fas fa-chevron-down curso__flecha" aria-hidden="true"></i></summary>
+        {% if modulo.descripcion %}<p>{{ modulo.descripcion }}</p>{% endif %}
+        {% if modulo.visibles %}<ol>{% for leccion in modulo.visibles %}<li{% if not leccion.publicada %} class="is-borrador"{% endif %}><i class="{% if leccion.cerrada %}fas fa-lock{% else %}{{ leccion.icono }}{% endif %}" aria-hidden="true"></i>{{ leccion.titulo }}{% if leccion.duracion_min %} <small>{{ leccion.duracion_min }} min</small>{% endif %}{% if not leccion.obligatoria %} <small>· {% translate "opcional" %}</small>{% endif %}{% if not leccion.publicada %} <small>· {% translate "sin publicar" %}</small>{% endif %}{% translate "Lección del curso" as titulo_editar_leccion %}{% include 'portal/pages/unidades/includes/editar.html' with clave='leccion_curso' pk=leccion.pk titulo=titulo_editar_leccion rotulo='' grupo='' padre='' %}</li>{% endfor %}</ol>{% endif %}
+      </details>{% endfor %}
+    </div>
+    {% else %}
+    <p class="ficha__nota">{% translate "Agregue el primer módulo y, dentro de él, sus lecciones: lecturas, videos, materiales o clases en vivo." %}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section class="conoce__seccion" id="ediciones">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cuándo se dicta" %}</span><h2>{% translate "Grupos y convocatorias" %}</h2>{% translate "Nuevo grupo" as titulo_edicion %}{% include 'portal/pages/unidades/includes/editar.html' with clave='edicion_curso' pk='nuevo' padre=curso.pk titulo=titulo_edicion rotulo=titulo_edicion grupo='' %}</header>
+    {% if ediciones_curso %}
+    <div class="curso__ediciones">
+      {% for edicion in ediciones_curso %}<article class="curso__edicion is-{{ edicion.momento.0 }}{% if edicion == vigente %} is-vigente{% endif %}" data-aparecer>
+        <header><strong>{{ edicion.nombre }}</strong><span class="curso__estado">{{ edicion.momento.1 }}</span></header>
+        <p class="curso-gestion__grupo-datos"><span>{{ edicion.get_tipo_grupo_display }}</span>{% if edicion.destinatario %}<span>{{ edicion.destinatario }}</span>{% endif %}</p>
+        <ul>
+          <li><i class="fas fa-calendar-day" aria-hidden="true"></i>{% if edicion.inicio %}{{ edicion.inicio|date:"d/m/Y" }}{% if edicion.fin %} – {{ edicion.fin|date:"d/m/Y" }}{% endif %}{% else %}{% translate "Fechas por anunciar" %} · {{ edicion.anio }}{% endif %}</li>
+          {% if edicion.inscripciones_desde or edicion.inscripciones_hasta %}<li><i class="fas fa-user-plus" aria-hidden="true"></i>{% translate "Inscripciones" %}{% if edicion.inscripciones_desde %} {% translate "desde el" %} {{ edicion.inscripciones_desde|date:"d/m/Y" }}{% endif %}{% if edicion.inscripciones_hasta %} {% translate "hasta el" %} {{ edicion.inscripciones_hasta|date:"d/m/Y" }}{% endif %}</li>{% endif %}
+          {% if edicion.horario %}<li><i class="fas fa-clock" aria-hidden="true"></i>{{ edicion.horario }}</li>{% endif %}
+          {% if edicion.lugar %}<li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{{ edicion.lugar }}</li>{% endif %}
+          <li><i class="fas fa-users" aria-hidden="true"></i>{% if edicion.cupo %}{{ edicion.cupo }} {% translate "cupos" %}{% else %}{% translate "Sin límite de cupos" %}{% endif %}</li>
+        </ul>
+        {% if edicion.activa and edicion.momento.0 == 'inscripciones' %}<a class="conoce__boton{% if edicion == edicion_seleccionada %} is-principal{% endif %}" href="?edicion={{ edicion.pk }}#inscripcion">{% if edicion == edicion_seleccionada %}{% translate "Grupo seleccionado" %}{% else %}{% translate "Elegir este grupo" %}{% endif %}</a>{% endif %}
+        {% translate "Grupo del curso" as titulo_editar_edicion %}{% include 'portal/pages/unidades/includes/editar.html' with clave='edicion_curso' pk=edicion.pk titulo=titulo_editar_edicion rotulo='' grupo='' padre='' %}
+      </article>{% endfor %}
+    </div>
+    {% else %}
+    <p class="ficha__nota">{% translate "Las fechas de la próxima edición se anunciarán pronto." %}</p>
+    {% endif %}
+    {% if proxima_sesion %}<p class="ficha__nota"><i class="fas fa-calendar-day" aria-hidden="true"></i> {% translate "Próxima clase en vivo:" %} <strong>{{ proxima_sesion.fecha|date:"d/m/Y" }} · {{ proxima_sesion.hora_inicio|time:"H:i" }}</strong></p>{% endif %}
+  </section>
+
+  <section class="conoce__seccion" id="inscripcion">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Participa" %}</span><h2>{% translate "Inscripción y certificado" %}</h2>{% translate "Duración, costo e inscripción" as titulo_datos %}{% include 'portal/pages/unidades/includes/editar.html' with clave='curso' pk=curso.pk grupo='datos' titulo=titulo_datos rotulo='' padre='' %}{% translate "Costo y medios de pago" as titulo_pagos %}{% include 'portal/pages/unidades/includes/editar.html' with clave='curso' pk=curso.pk grupo='pagos' titulo=titulo_pagos rotulo=titulo_pagos padre='' %}</header>
+    <div class="curso__condiciones">
+      <article data-aparecer><i class="fas fa-tag" aria-hidden="true"></i><strong>{% if not vigente and curso.costo == None %}{% translate "Costo por anunciar" %}{% elif curso.gratuito %}{% translate "Curso gratuito" %}{% else %}${{ curso.costo }}{% endif %}</strong><p>{% if not vigente and curso.costo == None %}{% translate "La unidad publicará las condiciones al abrir la inscripción." %}{% elif curso.gratuito %}{% translate "Sin costo de inscripción." %}{% else %}{% translate "Pago por transferencia, ventanilla o en línea, según lo que habilite la unidad; con un código de descuento puede bajar o quedar gratis." %}{% endif %}</p></article>
+      <article data-aparecer><i class="fas fa-user-check" aria-hidden="true"></i><strong>{{ inscripcion }}</strong><p>{% if curso.inscripcion == 'abierta' %}{% translate "Quien se inscribe entra al curso de inmediato, mientras haya cupos." %}{% else %}{% translate "La unidad revisa cada inscripción y confirma el ingreso." %}{% endif %}</p></article>
+      <article data-aparecer><i class="fas fa-laptop-house" aria-hidden="true"></i><strong>{{ modalidad }}</strong><p>{{ curso.get_modalidad_display }}</p></article>
+      <article data-aparecer><i class="fas fa-certificate" aria-hidden="true"></i><strong>{% if curso.emite_certificado %}{% translate "Certificado de aprobación" %}{% else %}{% translate "Sin certificado" %}{% endif %}</strong><p>{% if curso.emite_certificado %}{% translate "Se entrega a quien aprueba el curso." %}{% else %}{% translate "Este curso no entrega certificado." %}{% endif %}</p></article>
+    </div>
+    <div class="curso__participar" data-aparecer>
+      {% if participar.accion == 'aula' %}<div class="curso__barra-avance" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ participar.progreso.porcentaje }}" aria-label="{% translate "Tu avance en el curso" %}"><span><i style="width: {{ participar.progreso.porcentaje }}%"></i></span><strong>{{ participar.progreso.porcentaje }} %</strong></div>{% endif %}
+      <p>{% if participar.accion == 'aula' %}{% translate "Estás inscrito en" %} {{ participar.inscripcion.edicion.nombre }}: {{ participar.progreso.completadas }} {% translate "de" %} {{ participar.progreso.total }} {% translate "lecciones obligatorias completadas." %}{% if participar.certificado %} {% translate "Aprobaste el curso: tu certificado está listo." %}{% endif %}
+      {% elif participar.accion == 'inscribirse' %}{% translate "Las inscripciones de" %} {{ participar.edicion.nombre }} {% translate "están abiertas." %}{% if participar.cupos is not None %} {% translate "Quedan" %} {{ participar.cupos }} {% translate "cupos." %}{% endif %}{% if curso.inscripcion == 'aprobacion' %} {% translate "La unidad confirmará tu ingreso." %}{% endif %}
+      {% elif participar.accion == 'identificarse' %}{% translate "Inicia sesión con tu cuenta de la plataforma para inscribirte." %}
+      {% elif participar.accion == 'revision' %}{% translate "Recibimos tu inscripción en" %} {{ participar.inscripcion.edicion.nombre }}. {% if participar.pago.estado == 'pendiente' %}{% translate "La unidad verifica tu pago y te confirmará el ingreso." %}{% else %}{% translate "La unidad la revisa y te confirmará el ingreso." %}{% endif %}
+      {% elif participar.accion == 'reenviar' %}{% translate "La unidad no pudo verificar tu pago." %}{% if participar.pago.observacion %} {{ participar.pago.observacion }}{% endif %}
+      {% elif participar.accion == 'rechazada' %}{% translate "La unidad no aceptó tu inscripción." %}{% if participar.inscripcion.observacion %} {{ participar.inscripcion.observacion }}{% endif %}
+      {% else %}{% firstof participar.motivo _("Las inscripciones de este curso no están abiertas.") %}{% endif %}</p>
+      {% include 'portal/pages/unidades/aula/includes/participar_curso.html' %}
+    </div>
+  </section>
+
+  {% if curso.lista_instructores or 'curso' in ediciones %}
+  <section class="conoce__seccion" id="instructores">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Quién enseña" %}</span><h2>{% translate "Instructores" %}</h2>{% translate "Instructores" as titulo_instructores %}{% include 'portal/pages/unidades/includes/editar.html' with clave='curso' pk=curso.pk grupo='instructores' titulo=titulo_instructores rotulo='' padre='' %}</header>
+    {% if curso.lista_instructores %}<ul class="curso__instructores">{% for instructor in curso.lista_instructores %}<li data-aparecer><i class="fas fa-user-tie" aria-hidden="true"></i><div><strong>{{ instructor.nombre }}</strong>{% if instructor.rol %}<span>{{ instructor.rol }}</span>{% endif %}</div></li>{% endfor %}</ul>
+    {% else %}<p class="ficha__nota">{% translate "Agregue quién dicta el curso." %}</p>{% endif %}
+  </section>
+  {% endif %}
+
+  {% if otros %}
+  <section class="conoce__seccion" id="otros">
+    <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{{ unidad.nombre }}</span><h2>{% translate "Otros cursos" %}</h2></header>
+    <div class="area__actividades">
+      {% for otro in otros %}<a class="area__actividad curso__tarjeta" href="{% url 'curso_unidad' unidad.slug otro.codigo %}" data-aparecer>
+        <header><i class="fas fa-chalkboard-teacher" aria-hidden="true"></i><div><span class="ficha__rol">{{ otro.get_clasificacion_display }}</span></div></header>
+        <h3>{{ otro.nombre }}</h3>
+        {% if otro.lema %}<p>{{ otro.lema }}</p>{% endif %}
+      </a>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+{% include 'portal/pages/unidades/includes/editar_guion.html' %}
+{% if diseno_certificado_url %}<script src="{% static 'portal/js/pages/unidades/gestion_cursos_ui.js' %}?v=20261009-visores-v2" defer></script>{% endif %}
+{% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

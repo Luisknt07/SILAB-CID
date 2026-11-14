@@ -1,0 +1,78 @@
+{% load redaccion %}
+<div class="pac-necesidad" data-pac-necesidad>
+  <div class="pac-ficha" data-pac-ficha>
+    <input type="hidden" name="compras__id_necesidad" value="{{ fila_pac.valor.id_necesidad|default:'' }}">
+    {% if dato.matriz_detalle_version == 1 %}<input type="hidden" name="compras__incidencia_referencia" value="{{ fila_pac.valor.incidencia_referencia|default:'' }}"><input type="hidden" name="compras__diagnostico_referencia" value="{{ fila_pac.valor.diagnostico_referencia|default:'' }}">{% endif %}
+    <header class="pac-ficha__cabecera">
+      <div><span class="pac-necesidad__numero" data-pac-numero>Necesidad {{ forloop.counter }}</span><h4 data-pac-fila-nombre>{{ fila_pac.valor.item|default:'Nueva compra' }}</h4><p>Datos de la compra y respaldo de la necesidad.</p></div>
+      <button type="button" class="redaccion__quitar" data-quitar-fila aria-label="Quitar esta necesidad del plan">Quitar</button>
+    </header>
+    <section class="pac-ficha__seccion" aria-label="Bien solicitado y programación">
+      <h5>Bien solicitado y programación</h5>
+      <div class="pac-necesidad__campos pac-necesidad__campos--identidad">
+        {% if dato.clases_bien_version == 1 %}{% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.clase_bien valor_pac=fila_pac.valor.clase_bien sin_ayuda=True %}{% endif %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.area_id valor_pac=fila_pac.valor.area_id sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.tipo_necesidad valor_pac=fila_pac.valor.tipo_necesidad sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.item valor_pac=fila_pac.valor.item sin_ayuda=True %}
+      </div>
+      <div class="pac-necesidad__campos pac-necesidad__campos--importes">
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.cantidad valor_pac=fila_pac.valor.cantidad sin_ayuda=True %}
+        {% if dato.matriz_detalle_version == 1 %}{% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.unidad_medida valor_pac=fila_pac.valor.unidad_medida sin_ayuda=True %}{% endif %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.costo_unitario valor_pac=fila_pac.valor.costo_unitario sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.mes_compra valor_pac=fila_pac.valor.mes_compra sin_ayuda=True %}
+        <div class="pac-campo"><span>Total (USD)</span><output class="pac-campo__derivado" data-pac-total>{% if fila_pac.total is not None %}{{ fila_pac.total|floatformat:2 }}{% else %}—{% endif %}</output></div>
+        <div class="pac-campo"><span>Semestre</span><output class="pac-campo__derivado" data-pac-semestre>{% if fila_pac.semestre == 1 or fila_pac.valor.semestre == 1 %}1.º{% elif fila_pac.semestre == 2 or fila_pac.valor.semestre == 2 %}2.º{% else %}—{% endif %}</output></div>
+      </div>
+    </section>
+    <section class="pac-ficha__seccion" aria-label="Contraste con lo existente">
+      <h5>Contraste con lo existente</h5>
+      <p class="pac-ficha__ayuda">Revisa la dotación y el uso antes de ampliar; para reemplazar, compara mantenimiento, reparación y otras alternativas.</p>
+      <div class="pac-contraste" data-pac-contraste aria-live="polite"><p>Selecciona el área y los equipos relacionados para consultar el respaldo de esta necesidad.</p></div>
+      <label class="pac-campo pac-campo--ancho"><span>Equipos actuales relacionados</span>
+        <select class="guide-form__control" multiple size="3" data-pac-equipos>{% for valor_equipo, etiqueta_equipo in dato.opciones_equipos %}<option value="{{ valor_equipo }}"{% if valor_equipo in fila_pac.equipos_ids %} selected{% endif %}>{{ etiqueta_equipo }}</option>{% endfor %}</select>
+        <input type="hidden" name="compras__equipos_referencia" value="{{ fila_pac.equipos_json|default:'[]' }}">
+        <small>Relaciona los activos que se reemplazan o que justifican la solicitud. Para las demás clases esta relación es opcional.</small>
+      </label>
+    </section>
+    <section class="pac-ficha__seccion" aria-label="Especificaciones y sustento">
+      <h5>Especificaciones y sustento <small data-pac-sustento>{% if fila_pac.valor.justificacion %}Sustento registrado{% else %}Por completar{% endif %}</small></h5>
+      <div class="pac-necesidad__campos">
+        {% if dato.matriz_detalle_version == 1 %}{% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.especificaciones valor_pac=fila_pac.valor.especificaciones sin_ayuda=True %}{% endif %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.justificacion valor_pac=fila_pac.valor.justificacion sin_ayuda=True %}
+      </div>
+    </section>
+    <section class="pac-ficha__seccion pac-necesidad__administracion" aria-label="CPC y datos administrativos">
+      <h5>CPC y datos administrativos <small data-pac-clasificacion>{% if fila_pac.valor.cpc %}CPC {{ fila_pac.valor.cpc }}{% else %}CPC por confirmar{% endif %}</small></h5>
+      <p class="pac-ficha__ayuda">Completa la clasificación confirmada por Compras; los datos desconocidos pueden quedar pendientes.</p>
+      <div class="pac-necesidad__campos">
+        {% if dato.compras_resumen_version == 1 %}
+        <div class="pac-cpc pac-campo--ancho" data-pac-cpc{% if documento.pk and unidad.slug %} data-pac-cpc-url="{% url 'buscar_cpc_necesidad' unidad.slug documento.pk %}"{% endif %}>
+          <label class="pac-campo"><span>Buscar CPC por el nombre del bien</span><input type="search" class="guide-form__control" data-pac-cpc-consulta maxlength="120" placeholder="Ej.: computadora portátil, licencia, microscopio"></label>
+          <button type="button" class="guide-btn guide-btn--soft" data-pac-cpc-buscar>Buscar CPC</button>
+          <p data-pac-cpc-estado role="status">Códigos de referencia; confirmar su vigencia y clasificación con Compras.</p>
+          <ul data-pac-cpc-resultados hidden aria-label="Coincidencias de CPC"></ul>
+        </div>
+        {% endif %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.cpc valor_pac=fila_pac.valor.cpc sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.partida valor_pac=fila_pac.valor.partida sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.grupo valor_pac=fila_pac.valor.grupo sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.clasificacion_pac valor_pac=fila_pac.valor.clasificacion_pac sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.fuente_pac valor_pac=fila_pac.valor.fuente_pac sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.observaciones valor_pac=fila_pac.valor.observaciones sin_ayuda=True %}
+      </div>
+      {% if dato.compras_resumen_version == 1 and fila_pac.valor.cpc %}<p class="pac-cpc__referencia">{% if fila_pac.valor.cpc_descripcion %}{{ fila_pac.valor.cpc_descripcion }} · {% endif %}CPC por validar con Compras.{% if fila_pac.valor.cpc_fuente.nombre %} Referencia: {{ fila_pac.valor.cpc_fuente.nombre }}.{% endif %}</p>{% endif %}
+    </section>
+    {% if dato.inversion_gestion_version == 1 %}
+    <section class="pac-ficha__seccion pac-necesidad__fases" aria-label="Adquisición por fases opcional">
+      <h5>Adquisición por fases <small data-pac-fase>{% if fila_pac.valor.grupo_fases %}Fase {{ fila_pac.valor.fase_numero }} · {{ fila_pac.valor.grupo_fases }}{% else %}Opcional · Sin fases{% endif %}</small></h5>
+      <p class="pac-ficha__ayuda">Si se adquiere por etapas, indica qué permite cada fase y cómo se comprobará su aprovechamiento. Déjalo vacío para una adquisición única.</p>
+      <div class="pac-necesidad__campos">
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.grupo_fases valor_pac=fila_pac.valor.grupo_fases sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.fase_numero valor_pac=fila_pac.valor.fase_numero sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.resultado_fase valor_pac=fila_pac.valor.resultado_fase sin_ayuda=True %}
+        {% include 'portal/pages/unidades/gestion/includes/pac_campo.html' with campo_pac=dato.campos_pac.condicion_siguiente_fase valor_pac=fila_pac.valor.condicion_siguiente_fase sin_ayuda=True %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</div>

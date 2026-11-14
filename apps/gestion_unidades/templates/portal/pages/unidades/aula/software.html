@@ -1,0 +1,48 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Software y plataformas" %}{% endblock %}
+{% block encabezado %}{% translate "Software y plataformas" %}{% endblock %}
+{% block subtitulo %}{% translate "Los programas y plataformas de la unidad: para qué sirven, su licencia, en qué áreas se usan y en qué equipos están instalados" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Programas" %}</dt><dd>{{ total }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Software y plataformas" %}{% endblock %}
+{% block contenido %}
+{% if referencias_inactivas %}<p class="aula-aviso">Vista previa de gestión: {{ referencias_inactivas }} referencias inactivas. No se incluyen en las existencias ni en las reservas.</p>{% endif %}
+{% if grupos|length > 1 %}
+<ul class="aula-mapa" aria-label="{% translate "Grupos de software" %}">
+  {% for grupo in grupos %}<li><a class="aula-mapa__item" href="#grupo-{{ forloop.counter }}">
+    <span class="aula-mapa__icono"><i class="fas fa-laptop-code" aria-hidden="true"></i></span>
+    <span class="aula-mapa__texto"><strong>{{ grupo.nombre }}</strong><small>{% for programa in grupo.programas|slice:":3" %}{{ programa.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if grupo.programas|length > 3 %}…{% endif %}</small></span>
+    <span class="aula-mapa__cuenta">{{ grupo.programas|length }}<small>programa{{ grupo.programas|length|pluralize }}</small></span>
+  </a></li>{% endfor %}
+</ul>
+{% endif %}
+{% for grupo in grupos %}
+<section class="unit-report__section" id="grupo-{{ forloop.counter }}">
+  <header><span>{{ grupo.nombre|upper }}</span><small>{{ grupo.programas|length }} {% translate "programa" %}{{ grupo.programas|length|pluralize }}</small></header>
+  <ul class="aula-programas">
+    {% for programa in grupo.programas %}<li class="aula-programa">
+      <div class="aula-programa__cabecera">
+        <span class="aula-programa__logo"><img src="{{ programa.logo_publico_url }}" alt="" loading="lazy"></span>
+        <div><strong>{{ programa.nombre }}{% if programa.version %} {{ programa.version }}{% endif %}</strong>{% if programa.codigo %}<small>{{ programa.codigo }}</small>{% endif %}</div>
+      </div>
+      {% if not programa.activo %}<p class="aula-aviso">Referencia inactiva: sin existencia acreditada en la unidad.</p>{% endif %}{% if programa.descripcion %}<p>{{ programa.descripcion }}</p>{% endif %}
+      <ul class="aula-programa__datos">
+        <li><i class="fas fa-desktop" aria-hidden="true"></i>{{ programa.get_tipo_acceso_display|ui }}</li>
+        {% if programa.licencia %}<li><i class="fas fa-balance-scale" aria-hidden="true"></i>{{ programa.licencia }}</li>{% endif %}
+        {% if programa.activo and programa.licencias_totales %}<li><i class="fas fa-key" aria-hidden="true"></i>{{ programa.licencias_disponibles }} / {{ programa.licencias_totales }} {% translate "licencias" %}</li>{% endif %}
+        {% if programa.activo and programa.requiere_reserva %}<li><i class="fas fa-calendar-check" aria-hidden="true"></i>{% translate "Requiere reserva" %}</li>{% endif %}
+      </ul>
+      {% if programa.areas %}<div class="aula-programa__grupo"><span>{% translate "Se usa en" %}</span>{% for area in programa.areas %}<a href="{{ area.url }}"><i class="fas fa-vector-square" aria-hidden="true"></i>{{ area.nombre }}</a>{% endfor %}</div>{% endif %}
+      {% if programa.equipos %}<div class="aula-programa__grupo"><span>{% translate "Instalado en" %}</span>{% for equipo in programa.equipos %}<a href="{{ equipo.url }}"><i class="fas fa-microchip" aria-hidden="true"></i>{{ equipo.nombre }}{% if equipo.cantidad > 1 %} ({{ equipo.cantidad }}){% endif %}</a>{% endfor %}</div>{% endif %}
+      {% if programa.sitio_web %}<a class="aula-programa__sitio" href="{{ programa.sitio_web }}" target="_blank" rel="noopener">{% translate "Sitio oficial" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% endif %}
+      {% include 'portal/pages/unidades/includes/medios_recurso.html' with recurso=programa compacto=True %}
+      {% include 'portal/pages/unidades/includes/editar.html' with clave='software' pk=programa.pk titulo=programa.nombre %}
+    </li>{% endfor %}
+  </ul>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "La unidad todavía no publica software." %}</p>
+{% endfor %}
+{% translate "Nuevo programa" as titulo_nuevo %}{% translate "Agregar un programa" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='software' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

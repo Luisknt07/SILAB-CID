@@ -1,0 +1,20 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{{ visor.titulo }}{% endblock %}
+{% block encabezado %}{{ visor.titulo }}{% endblock %}
+{% block subtitulo %}{{ visor.descripcion|default:visor.get_plataforma_display }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Plataforma" %}</dt><dd>{{ visor.get_plataforma_display }}</dd></div><div><dt>{% translate "Datos al" %}</dt><dd>{{ visor.fecha_corte|date:"d/m/Y"|default:"—" }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Visor externo" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<div class="obs-descargas">{% if visor.url_datos %}<a href="{{ visor.url_datos }}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Descargar los datos de este visor" %}</a>{% endif %}<a href="{{ visor.url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-expand" aria-hidden="true"></i> {% translate "Abrir en pantalla completa" %}</a>{% include 'portal/pages/unidades/includes/editar.html' with clave='visor_externo' pk=visor.pk titulo=visor.titulo %}</div>
+{% comment %}La proporción va con relleno inferior en una caja interior: el porcentaje se calcula sobre el ancho real
+de la columna y el marco nunca la desborda. Power BI dibuja su lienzo de 16:9 y añade abajo su barra de páginas.{% endcomment %}
+<div class="obs-visor" style="border:1px solid #d5e2da;border-radius:8px;overflow:hidden;background:#fff">
+  <div style="position:relative;height:0;padding-bottom:{% if visor.plataforma == 'powerbi' %}calc(56.25% + 36px){% else %}62.5%{% endif %}">
+    <iframe src="{{ visor.url }}" title="{{ visor.titulo }}" style="position:absolute;inset:0;width:100%;height:100%;border:0" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+</div>
+<p class="unit-report__notice">{% if visor.responsable %}{% translate "Lo mantiene:" %} {{ visor.responsable }}. {% endif %}{% if not visor.url_datos %}{% translate "Este visor todavía no ofrece sus datos para descargar: la fuente oficial son los indicadores del observatorio." %}{% else %}{% translate "La fuente oficial son los datos del observatorio; el visor los presenta de otra forma." %}{% endif %}</p>
+{% endblock %}

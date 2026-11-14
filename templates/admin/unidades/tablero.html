@@ -1,0 +1,65 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block breadcrumbs %}
+<ul class="grp-horizontal-list">
+  <li><a href="{% url 'admin:index' %}#{{ opts.app_label }}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+  <li>{{ unidad.nombre }}</li>
+</ul>
+{% endblock %}
+{% block content %}
+<div class="tablero-planta">
+  <header class="tablero-planta__cabecera">
+    <div>
+      <p class="tablero-planta__antetitulo">{% translate "Tablero de la unidad" %}</p>
+      <h1>{{ unidad.nombre }}</h1>
+      <p class="estado-unidad {% if unidad.activo %}is-activa{% else %}is-desactivada{% endif %}"><span>{% if unidad.activo %}{% translate "Activa: se ve en el portal." %}{% else %}{% translate "Desactivada: no aparece en el portal." %}{% endif %}</span> <a href="{{ estado_unidad_url }}">{% if unidad.activo %}{% translate "Desactivar o eliminar" %}{% else %}{% translate "Reactivar" %}{% endif %}</a></p>
+      <p>{% if ficha %}{% translate "Todo lo de esta unidad, en el orden de su ficha pública. Cada lista abre ya filtrada a ella." %}{% else %}{% translate "Todo lo de esta unidad, por lo que hace. Cada lista abre ya filtrada a ella." %}{% endif %}</p>
+    </div>
+    <nav class="tablero-planta__accesos">
+      <a href="?revisar_ficha=1">{% translate "Revisar contenido pendiente" %}</a>
+      <a href="{{ ficha_url }}">{% translate "Editor de la unidad" %}</a>
+      <a href="{{ contenidos_url }}">{% translate "Contenidos de la ficha" %}</a>
+      <a href="{{ unidad.get_absolute_url }}" target="_blank" rel="noopener">{% translate "Ver ficha pública" %}</a>
+    </nav>
+  </header>
+
+  {% if estado.desactivados or estado.pendientes %}
+  <section class="tablero-planta__avisos" aria-label="{% translate 'Estado de la ficha pública' %}">
+    {% if estado.desactivados %}
+    <p><strong>{% translate "Pestañas desactivadas:" %}</strong> {{ estado.desactivados|join:", " }}.
+      {% translate "No se muestran en la ficha; se vuelven a mostrar en" %} <a href="{{ contenidos_url }}">{% translate "Contenidos de la ficha" %}</a>.</p>
+    {% endif %}
+    {% if estado.pendientes %}
+    <p><strong>{% translate "Secciones sin contenido:" %}</strong></p>
+    <ul>{% for seccion in estado.pendientes %}<li>{{ seccion }}</li>{% endfor %}</ul>
+    <small>{% translate "Todavía no tienen datos que las alimenten. Se completan con carpetas propias o se ocultan en" %} <a href="{{ contenidos_url }}">{% translate "Contenidos de la ficha" %}</a>.</small>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if estado.revisado and not estado.pendientes %}<p class="tablero-planta__nota">{% translate "Revisión completada: no hay secciones pendientes de publicación." %}</p>{% endif %}
+
+  {% if ficha %}
+  <h2 class="tablero-planta__bloque">{% translate "Lo que muestra la ficha pública" %}</h2>
+  {% for grupo in ficha %}{% if grupo.filas %}
+  <section class="tablero-planta__grupo">
+    <h3>{{ grupo.titulo }} <small>{{ grupo.secciones }}</small></h3>
+    {% include "admin/unidades/tablero_filas.html" with filas=grupo.filas con_seccion=True %}
+  </section>
+  {% endif %}{% endfor %}
+  <p class="tablero-planta__nota">{% translate "Presentación, video, plano, espacios, responsables y reglamento se editan en el editor de la unidad; pestañas, secciones y carpetas propias, en" %} <a href="{{ contenidos_url }}">{% translate "Contenidos de la ficha" %}</a>.</p>
+  {% endif %}
+
+  <h2 class="tablero-planta__bloque">{% translate "Operación de la unidad" %}</h2>
+  {% for grupo in operacion %}
+  <section class="tablero-planta__grupo">
+    <h3>{{ grupo.titulo }}</h3>
+    <p class="tablero-planta__descripcion">{{ grupo.secciones }}</p>
+    {% include "admin/unidades/tablero_filas.html" with filas=grupo.filas con_seccion=False %}
+  </section>
+  {% empty %}
+  <p class="tablero-planta__nota">{% translate "Su cuenta no tiene acceso a las herramientas de esta unidad." %}</p>
+  {% endfor %}
+</div>
+{% endblock %}

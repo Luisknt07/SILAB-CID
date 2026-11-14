@@ -1,0 +1,27 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% block entradilla %}<p class="cv-entradilla">{{ solicitud.referencia }} · {{ solicitud.get_estado_display }} · {{ solicitud.get_tipo_display }}</p>{% endblock %}
+{% block contenido %}
+{% if messages %}{% for mensaje in messages %}<p class="cv-aviso">{{ mensaje }}</p>{% endfor %}{% endif %}
+<section class="conoce__seccion area__primera">
+  <header class="conoce__titulo"><h2>{{ solicitud.titulo }}</h2></header>
+  <div class="area__texto">{{ solicitud.problema|linebreaks }}</div>
+  <p><strong>{% translate "Resultado solicitado:" %}</strong> {{ solicitud.resultado_esperado }}</p>
+  <p><strong>{% translate "Responsable de atención:" %}</strong> {{ solicitud.responsable_atencion.nombre|default:centro.contacto_email|default:centro.sigla }}</p>
+  {% if solicitud.respuesta %}<h3>{% translate "Respuesta del centro" %}</h3>{{ solicitud.respuesta|linebreaks }}{% endif %}
+  {% if solicitud.inicio_reservado %}<p><strong>{% translate "Horario registrado:" %}</strong> {{ solicitud.inicio_reservado|date:'d/m/Y H:i' }} – {{ solicitud.fin_reservado|date:'d/m/Y H:i' }} · {{ solicitud.zona|default:'' }} {{ solicitud.equipo|default:'' }}{% if solicitud.estado == 'cancelada' %} · {% translate "Cancelado" %}{% endif %}</p>{% endif %}
+  {% if solicitud.diagnostico %}<h3>{% translate "Diagnóstico" %}</h3>{{ solicitud.diagnostico|linebreaks }}{% endif %}
+  {% if solicitud.plan %}<h3>{% translate "Plan de atención" %}</h3>{{ solicitud.plan|linebreaks }}{% endif %}
+  {% if solicitud.entregable %}<h3>{% translate "Entregable" %}</h3><p>{{ solicitud.entregable }}</p>{% endif %}
+  {% if solicitud.evaluacion_cierre %}<h3>{% translate "Evaluación y cierre" %}</h3>{{ solicitud.evaluacion_cierre|linebreaks }}{% endif %}
+</section>
+{% if sesiones %}<section class="conoce__seccion" id="sesiones"><header class="conoce__titulo"><h2>{% translate "Sesiones" %}</h2></header><ul class="area__lista">{% for sesion in sesiones %}<li><strong>{{ sesion.inicio|date:'d/m/Y H:i' }} – {{ sesion.fin|date:'H:i' }}</strong> · {{ sesion.responsable.nombre }} · {{ sesion.get_estado_display }} · {{ sesion.modalidad }}{% if sesion.acuerdos %}{{ sesion.acuerdos|linebreaks }}{% endif %}</li>{% endfor %}</ul>{% include 'centros_id/visor/_paginacion.html' with paginacion=paginacion_sesiones %}</section>{% endif %}
+{% if tareas %}<section class="conoce__seccion" id="compromisos"><header class="conoce__titulo"><h2>{% translate "Compromisos" %}</h2></header><ul class="area__lista">{% for tarea in tareas %}<li><strong>{{ tarea.titulo }}</strong> · {{ tarea.get_a_cargo_display }} · {{ tarea.plazo|date:'d/m/Y' }} · {% if tarea.completada %}{% translate "Cumplido" %}{% else %}{% translate "Pendiente" %}{% endif %}{% if tarea.evidencia %}<p>{{ tarea.evidencia }}</p>{% endif %}</li>{% endfor %}</ul>{% include 'centros_id/visor/_paginacion.html' with paginacion=paginacion_tareas %}</section>{% endif %}
+<section class="conoce__seccion" id="historial"><header class="conoce__titulo"><h2>{% translate "Historial de atención" %}</h2></header><ol class="area__lista">{% for evento in historial %}<li><strong>{{ evento.fecha|date:'d/m/Y H:i' }}</strong> · {{ evento.estado_legible }} · {{ evento.origen_legible }}{{ evento.detalle|linebreaks }}</li>{% endfor %}</ol>{% include 'centros_id/visor/_paginacion.html' with paginacion=paginacion_historial %}</section>
+<section class="conoce__seccion"><header class="conoce__titulo"><h2>{% translate "Aportar información" %}</h2></header>
+  <form class="cv-form" method="post">{% csrf_token %}{{ seguimiento_form.as_p }}
+    <div class="cv-form__acciones"><button class="ficha__boton" name="accion" value="informacion" type="submit">{% translate "Añadir al expediente" %}</button>
+    {% if solicitud.puede_retirar %}<button class="ficha__boton" name="accion" value="cancelar" type="submit">{% translate "Cancelar solicitud con este motivo" %}</button>{% endif %}</div>
+  </form>
+</section>
+{% endblock %}

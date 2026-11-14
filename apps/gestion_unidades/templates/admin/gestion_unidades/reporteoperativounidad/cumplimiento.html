@@ -1,0 +1,296 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static reportes_estilo %}
+{% comment %}
+El tablero de la Dirección, tipo por tipo: laboratorios, plantas piloto,
+centros experimentales y observatorios, cada grupo con su propio indicador y
+sus unidades. Un laboratorio y una planta piloto no se comparan entre sí, y en
+una sola lista larga todo se mezclaba.
+
+Dentro de cada unidad, la matriz con la que se decide: qué se exige, la
+evidencia en el visualizador, en qué paso va y la acción que toca.
+El reporte se abre en el mismo modal y se acota por tipo, unidad o tramo de fechas.
+{% endcomment %}
+
+{% block bodyclass %}grp-change-list citt-evidencias-page{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{% static 'portal/css/components/plazos_documentales.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'portal/css/components/progreso_general.css' %}?v=20261018-indicadores-1">
+<link rel="stylesheet" href="{% static 'portal/css/components/control_automatico.css' %}?v=20261017-diseno-4">
+{% include 'portal/components/reportes_interfaz_assets.html' %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="grp-horizontal-list">
+    <li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li>
+    <li><a href="{% url 'admin:index' %}#reportes">{% translate "Reportes e indicadores" %}</a></li>
+    <li>{% translate "Cumplimiento del expediente por unidad" %}</li>
+  </ul>
+{% endblock %}
+
+{% block content_title %}<h1>{% translate "Cumplimiento del expediente por unidad" %}</h1>{% endblock %}
+
+{% block content %}
+  <section class="citt-evidencias citt-cumplimiento">
+    {% include 'portal/pages/unidades/gestion/includes/aviso_ensayo_fablab.html' %}
+    {% comment %}El alcance se elige aquí: el período, y si se quiere un tipo, una unidad
+    o un tramo de fechas concreto. Lo que se ve en pantalla es lo que sale en el PDF.{% endcomment %}
+    <form method="get" class="citt-cumplimiento__filtros">
+      <label>{% translate "Año de gestión" %}<input type="number" name="anio" value="{{ anio }}" min="2020" max="2100"></label>
+      <label>{% translate "Período" %}
+        <select name="corte">
+          <option value=""{% if not corte %} selected{% endif %}>{% translate "Todo el año" %}</option>
+          <option value="A"{% if corte == 'A' %} selected{% endif %}>{% translate "Período A" %}</option>
+          <option value="B"{% if corte == 'B' %} selected{% endif %}>{% translate "Período B" %}</option>
+        </select>
+      </label>
+      <label>{% translate "Tipo de unidad" %}
+        <select name="tipo">
+          <option value="">{% translate "Todos los tipos" %}</option>
+          {% for codigo, nombre in tipos %}<option value="{{ codigo }}"{% if tipo == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>{% translate "Unidad" %}
+        <select name="unidad">
+          <option value="">{% translate "Todas las unidades" %}</option>
+          {% for u in unidades %}<option value="{{ u.slug }}"{% if unidad == u.slug %} selected{% endif %}>{{ u.nombre }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Control automático<select name="automatizacion"><option value="">Todos los documentos</option><option value="excepciones"{% if automatizacion == 'excepciones' %} selected{% endif %}>Pendientes de Dirección</option><option value="unidad"{% if automatizacion == 'unidad' %} selected{% endif %}>Pendientes de la unidad</option><option value="automatico"{% if automatizacion == 'automatico' %} selected{% endif %}>Control automático correcto</option><option value="sin_analizar"{% if automatizacion == 'sin_analizar' %} selected{% endif %}>Sin analizar o desactualizados</option></select></label>
+      <label>{% translate "Desde" %}<input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}"></label>
+      <label>{% translate "Hasta" %}<input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}"></label>
+      <div class="citt-cumplimiento__botones">
+        <button type="submit" class="grp-button grp-default">{% translate "Aplicar" %}</button>
+        <a class="grp-button" href="{{ request.path }}">{% translate "Limpiar" %}</a>
+        {% if user.is_superuser %}<a class="grp-button" href="{% url 'admin:documentos_documentoexigido_changelist' %}">Configurar plazos institucionales</a>{% endif %}
+        {% if url_necesidades_decanato %}<a class="grp-button" href="{{ url_necesidades_decanato }}">Necesidades para Decanatos</a>{% endif %}
+        <a class="documento-accion is-pdf citt-cumplimiento__reporte" href="?{{ query }}&amp;formato=pdf"
+           data-ver-pdf
+           data-pdf-titulo="{% blocktranslate %}Cumplimiento del expediente · {{ alcance }}{% endblocktranslate %}"
+           data-pdf-descarga="?{{ query }}&amp;formato=pdf&amp;download=1"
+           data-pdf-rango="?{{ query_sin_tramo }}&amp;formato=pdf"
+           data-pdf-desde="{% if desde %}{{ desde|date:'Y-m-d' }}{% else %}{{ inicio|date:'Y-m-d' }}{% endif %}"
+           data-pdf-hasta="{% if hasta %}{{ hasta|date:'Y-m-d' }}{% else %}{{ fin|date:'Y-m-d' }}{% endif %}"
+           aria-label="Ver reporte de cumplimiento del expediente">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} {% if automatizacion %}Ver esta bandeja{% else %}{% translate "Ver reporte" %}{% endif %}</a>
+      </div>
+    </form>
+
+    {% if automatizacion_resumen.total %}{% include 'portal/pages/unidades/gestion/includes/resumen_automatizacion.html' with control_resumen=automatizacion_resumen permitir_automatizar=False %}{% endif %}
+    {% if automatizacion %}<p class="citt-evidencias__ayuda">La unidad corrige faltantes; Dirección atiende decisiones y excepciones de documentos enviados. La bandeja usa los controles guardados y conserva el avance de todas las entregas previstas. Los documentos sin analizar se consultan en su propia bandeja.</p>{% endif %}
+
+    {% comment %}El indicador institucional va primero: cuántas unidades alcanzan el mínimo
+    de la política de calidad. Es la pregunta que la Dirección responde al decanato.{% endcomment %}
+    <div class="citt-cumplimiento__cifras">
+      <article class="is-indicador"><strong>{{ totales.cumplen_minimo }}/{{ totales.evaluadas }}</strong><span>{% blocktranslate with m=totales.minimo %}alcanzan el {{ m }} %{% endblocktranslate %}</span><small>{% if totales.indicador is not None %}{{ totales.indicador }} % {% translate "de las unidades con resultado" %}{% else %}{% translate "todavía sin unidades con resultado" %}{% endif %}</small></article>
+      <article class="is-incumple"><strong>{{ totales.bajo_minimo }}</strong><span>{% translate "bajo el mínimo" %}</span><small>{% translate "pasan a mejora continua" %}</small></article>
+      <article><strong>{% if totales.nivel_medio is None %}—{% else %}{{ totales.nivel_medio }} %{% endif %}</strong><span>{% translate "resultado medio del cierre" %}</span><small>{% translate "cierres acreditados al corte" %}</small></article>
+      <article class="is-en_riesgo"><strong>{{ totales.sin_evaluar }}</strong><span>{% translate "sin resultado" %}</span><small>{% translate "cierre sin acreditar todavía" %}</small></article>
+      <article><strong>{{ totales.completo }} %</strong><span>{% translate "entregas recibidas" %}</span><small>{{ totales.validados }} {% translate "de" %} {{ totales.total }}</small></article>
+      <article><strong>{{ totales.tardias }}</strong><span>{% translate "fuera de plazo" %}</span><small>{% translate "recibidas con penalización" %}</small></article>
+      <article><strong>{{ totales.vencidos }}</strong><span>{% translate "vencidas" %}</span><small>{% translate "sin entregar" %}</small></article>
+      <article class="is-incumple"><strong>{{ totales.incumplen }}</strong><span>{% translate "expedientes con faltantes" %}</span><small>{% translate "con entregas vencidas u observadas" %}</small></article>
+    </div>
+    {% comment %}Cada quien lee lo suyo: la Dirección decide sobre las entregas, el decanato decide sobre sus unidades con lo que la Dirección ya calificó.{% endcomment %}
+    {% if user.is_superuser %}
+    <p class="citt-evidencias__ayuda">{% blocktranslate with inicio=inicio|date:'d/m/Y' fin=fin|date:'d/m/Y' minimo=minimo %}Período {{ inicio }} – {{ fin }}. El responsable de cada unidad responde por los documentos que entrega. El sistema comprueba los datos objetivos; Dirección atiende las excepciones y los criterios que requieren evaluación. Cada resultado conserva su fuente y su evidencia. El mínimo institucional es {{ minimo }} %.{% endblocktranslate %}</p>
+    {% else %}
+    <p class="citt-evidencias__ayuda">{% blocktranslate with inicio=inicio|date:'d/m/Y' fin=fin|date:'d/m/Y' minimo=minimo %}Período {{ inicio }} – {{ fin }}. Este informe permite dar seguimiento a las unidades de tu dependencia y sustentar decisiones de personal, equipamiento y mejora. El sistema comprueba los datos verificables y contrasta sus resultados con el mínimo institucional de {{ minimo }} %. Dirección atiende las excepciones; cada resultado conserva su fuente y evidencia.{% endblocktranslate %}</p>
+    {% endif %}
+    {% if desde or hasta %}
+    <p class="citt-cumplimiento__tramo"><i class="fas fa-filter" aria-hidden="true"></i> {% blocktranslate with d=desde|date:'d/m/Y'|default:'—' h=hasta|date:'d/m/Y'|default:'—' %}Tramo propio: solo lo que vence entre el {{ d }} y el {{ h }}, más lo que se exige sin plazo.{% endblocktranslate %}</p>
+    {% endif %}
+
+    {% include 'admin/gestion_unidades/reporteoperativounidad/revision.html' %}
+    {% include 'admin/gestion_unidades/reporteoperativounidad/archivos.html' %}
+    {% include 'admin/gestion_unidades/reporteoperativounidad/plazos.html' %}
+
+    {% for grupo in grupos %}
+    {% comment %}Un tipo de unidad por bloque: su indicador y sus unidades debajo.{% endcomment %}
+    <section class="citt-tipo">
+      <header class="citt-tipo__cabecera">
+        <h2><i class="fas fa-layer-group" aria-hidden="true"></i> {{ grupo.nombre }}<small>{% blocktranslate count n=grupo.totales.unidades %}{{ n }} unidad{% plural %}{{ n }} unidades{% endblocktranslate %}</small></h2>
+        <div class="citt-tipo__cifras">
+          <span class="citt-tipo__cifra is-indicador"><b>{{ grupo.totales.cumplen_minimo }}/{{ grupo.totales.evaluadas }}</b>{% blocktranslate with m=grupo.totales.minimo %}alcanzan el {{ m }} %{% endblocktranslate %}</span>
+          <span class="citt-tipo__cifra"><b>{% if grupo.totales.nivel_medio is None %}—{% else %}{{ grupo.totales.nivel_medio }} %{% endif %}</b>{% translate "resultado medio del cierre" %}</span>
+          <span class="citt-tipo__cifra"><b>{{ grupo.totales.completo }} %</b>{% translate "entregas recibidas" %}</span>
+          <span class="citt-tipo__cifra{% if grupo.totales.incumplen %} is-mal{% endif %}"><b>{{ grupo.totales.incumplen }}</b>{% translate "con faltantes" %}</span>
+        </div>
+      </header>
+
+      {% for fila in grupo.filas %}
+      <details class="citt-unidad" id="unidad-{{ fila.unidad.pk }}"{% if not unidad %} data-avance-unidad-url="?{{ query }}&amp;unidad={{ fila.unidad.slug|urlencode }}&amp;fragmento=avance"{% endif %}{% if unidad == fila.unidad.slug or revision.documento.unidad_id == fila.unidad.pk %} open{% endif %}>
+        <summary><span><strong>{{ fila.unidad.nombre }}</strong><small>{{ fila.unidad.adscrita_a|default:"Sin dependencia asignada" }}</small></span><span class="citt-cumplimiento__semaforo is-{{ fila.semaforo }}">{% if fila.semaforo == 'incumple' %}Pendientes documentales{% elif fila.semaforo == 'en_riesgo' %}Documentos por completar{% else %}Al día{% endif %}</span><span>{% if fila.progreso_general.total %}<b class="citt-unidad__avance">Planificación y cierre: {{ fila.progreso_general.completados }} de {{ fila.progreso_general.total }} acreditados</b>{% if fila.progreso_general.resultado_porcentaje is not None %}<small>Resultado del cierre: {{ fila.progreso_general.resultado_porcentaje|floatformat:2 }} %</small>{% else %}<small>Resultado del cierre pendiente</small>{% endif %}{% endif %}{{ fila.validados }}/{{ fila.total }} documentos recibidos</span><span aria-hidden="true">&#9662;</span></summary>
+        <div class="citt-unidad__contenido">
+        <section class="citt-unidad__entregas" aria-label="Cumplimiento y entregas principales">
+        <div data-avance-resumen>{% include 'portal/pages/unidades/gestion/includes/progreso_general.html' with progreso_general=fila.progreso_general progreso_unidad_id=fila.unidad.pk progreso_control_documental=fila.unidad|es_unidad_auditable unidad=fila.unidad %}</div>
+        <div class="citt-matriz-scroll" role="region" aria-label="Entregas de la unidad" tabindex="0">
+                <table class="citt-matriz citt-matriz--simple">
+                  <thead><tr><th>Documento</th><th>Estado</th><th>Avance</th><th>Fechas</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                  <tbody>
+                    {% for categoria in fila.categorias_matriz %}
+                    <tr class="citt-matriz__categoria"><th scope="rowgroup" colspan="6"><div><span>{{ categoria.nombre }}</span><small>{{ categoria.recibidos }}/{{ categoria.total_obligaciones }} enviados{% if categoria.soportes %} · {{ categoria.soportes }} respaldo{{ categoria.soportes|pluralize }}{% endif %}</small><span data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="{{ categoria.nombre }}" aria-haspopup="dialog" title="Sobre esta categoría"><i class="fas fa-info-circle" aria-hidden="true"></i><span class="sr-only">Sobre esta categoría</span></button><template data-reporte-informacion-contenido><p>{{ categoria.ayuda }}</p><p>Los controles correctos se resuelven automáticamente. La unidad corrige los faltantes; Dirección atiende las excepciones señaladas y puede consultar cualquier resultado.</p></template></span></div></th></tr>
+                    {% for casilla in categoria.casillas %}{% include 'admin/gestion_unidades/reporteoperativounidad/entrega_compacta.html' %}{% endfor %}
+                    {% empty %}
+                    <tr><td colspan="6">{% if automatizacion %}No hay entregas principales en esta bandeja.{% else %}{% translate "Este período no exige entregas a esta unidad." %}{% endif %}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+        </div>
+        </section>
+        {% if fila.anexos_seguimiento %}{% include 'admin/gestion_unidades/reporteoperativounidad/anexos_seguimiento.html' with anexos=fila.anexos_seguimiento %}{% endif %}
+        {% if fila.resultado_periodo or fila.mejora_contexto.tramite_mejora %}{% include 'portal/pages/unidades/gestion/includes/mejora_seguimiento.html' with seguimiento_en_admin=True cumplimiento=fila.resultado_periodo progreso_general=fila.progreso_general unidad=fila.unidad tramite_mejora=fila.mejora_contexto.tramite_mejora acciones_mejora=fila.mejora_contexto.acciones_mejora receptor_mejora=fila.mejora_contexto.receptor_mejora direccion_mejora=fila.mejora_contexto.direccion_mejora responsables_mejora=fila.mejora_contexto.responsables_mejora decisiones_mejora=fila.mejora_contexto.decisiones_mejora mejora_antecedente=fila.mejora_contexto.mejora_antecedente solo_lectura=fila.solo_lectura_mejora volver=fila.volver_mejora %}{% endif %}
+        <a class="citt-cumplimiento__expediente" href="{{ fila.url }}">Ver el expediente completo de la unidad &rarr;</a>
+        </div>
+      </details>
+      {% endfor %}
+    </section>
+    {% empty %}
+    <p class="citt-evidencias__ayuda">{% if automatizacion %}No hay documentos con ese control dentro del alcance seleccionado. Consulta también los documentos sin analizar.{% else %}{% translate "No hay unidades que auditar con este alcance. Prueba a limpiar los filtros." %}{% endif %}</p>
+    {% endfor %}
+    {% if pagina_controles %}<nav class="control-documental-paginacion" aria-label="Páginas de la bandeja"><span>{{ pagina_controles.paginator.count }} unidades · página {{ pagina_controles.number }} de {{ pagina_controles.paginator.num_pages }}</span><span>{% if pagina_controles.has_previous %}<a href="?{{ query }}&amp;pagina={{ pagina_controles.previous_page_number }}">Anterior</a>{% endif %} {% if pagina_controles.has_next %}<a href="?{{ query }}&amp;pagina={{ pagina_controles.next_page_number }}">Siguiente</a>{% endif %}</span></nav>{% endif %}
+  </section>
+
+  {% comment %}El mismo visor de PDF de la plataforma: el documento se lee aquí, no en otra pestaña.{% endcomment %}
+
+  <link rel="stylesheet" href="{% static 'admin/css/evaluacion_unidades.css' %}?v=16">
+  <link rel="stylesheet" href="{% static 'portal/css/components/reportes_indicadores.css' %}?v=20261017-diseno-4">
+  <script src="{% static 'portal/js/components/rubrica_expediente.js' %}?v=20261014-v1" defer></script>
+  <script src="{% static 'admin/js/evaluacion_unidades.js' %}?v=20261018-acciones-unificadas-3" defer></script>
+  <script src="{% static 'admin/js/avance_unidades.js' %}?v=20261018-avance-2" defer></script>
+  <style>
+    .citt-cumplimiento__filtros { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); align-items: end; gap: 10px 14px; margin-bottom: 14px; padding: 12px 14px; border: 1px solid #d8e3dc; border-radius: 8px; background: #fbfcfb; }
+    .citt-cumplimiento__filtros label { display: grid; gap: 3px; color: #4b5c53; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .citt-cumplimiento__filtros input, .citt-cumplimiento__filtros select { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #d0dbd5; border-radius: 5px; background: #fff; font-size: 12px; }
+    .citt-cumplimiento__botones { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 4px; border-top: 1px dashed #dde6e1; }
+    .citt-cumplimiento__reporte { display: inline-flex; align-items: center; gap: 6px; }
+    .citt-cumplimiento__tramo { margin: -4px 0 12px; color: #8a5a00; font-size: 12px; font-weight: 700; }
+    .citt-cumplimiento__cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
+    .citt-cumplimiento__cifras article { padding: 10px 12px; border: 1px solid #d8e3dc; border-left: 4px solid #cfd9d4; border-radius: 6px; background: #fff; }
+    .citt-cumplimiento__cifras article.is-incumple { border-left-color: #b23b2e; }
+    .citt-cumplimiento__cifras article.is-en_riesgo { border-left-color: #e1b738; }
+    .citt-evidencias-page .citt-cumplimiento .citt-cumplimiento__cifras article.is-indicador { border-color: #1f6b46; background: #f2f8f4; }
+    .citt-cumplimiento__cifras article.is-indicador strong { color: #1f6b46; }
+    .citt-cumplimiento__cifras strong { display: block; font-size: 22px; line-height: 1.1; }
+    .citt-cumplimiento__cifras span { display: block; font-size: 12px; font-weight: 700; }
+    .citt-cumplimiento__cifras small { display: block; color: #64736f; font-size: 11px; }
+    {% comment %}Cada tipo de unidad es un bloque con su propia cabecera y su indicador.{% endcomment %}
+    .citt-tipo { margin: 0 0 22px; border: 1px solid #d8e3dc; border-radius: 8px; background: #fff; overflow: hidden; }
+    .citt-evidencias-page .citt-cumplimiento .citt-tipo__cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 14px; border-bottom: 2px solid #e1b738; background: #205a42; color: #fff; }
+    .citt-tipo__cabecera h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; margin: 0; color: #fff; font-size: 15px; }
+    .citt-tipo__cabecera h2 small { color: #cfe3d7; font-size: 11px; font-weight: 600; }
+    .citt-tipo__cifras { display: flex; flex-wrap: wrap; gap: 8px; }
+    .citt-tipo__cifra { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #e8f2ec; font-size: 10.5px; font-weight: 700; }
+    .citt-tipo__cifra b { font-size: 13px; font-variant-numeric: tabular-nums; }
+    .citt-tipo__cifra.is-indicador { background: #f2c94c; color: #3d2f06; }
+    .citt-tipo__cifra.is-mal { background: #fbe4e4; color: #8c2f22; }
+    .citt-evidencias-page .citt-cumplimiento .citt-unidad > summary { background: #fff; color: #203c30; }
+    .citt-evidencias-page .citt-cumplimiento .citt-unidad > summary:hover,
+    .citt-evidencias-page .citt-cumplimiento .citt-unidad[open] > summary { background: #edf5ef; }
+    .citt-evidencias-page .citt-cumplimiento .citt-unidad > summary:focus-visible { outline: 3px solid #b18a20; outline-offset: -3px; }
+    .citt-tipo .citt-evidencias__tabla-envoltura { margin: 0; }
+    .citt-cumplimiento__tabla th[scope="row"] { min-width: 200px; }
+    .citt-cumplimiento__tabla th[scope="row"] small { display: block; color: #64736f; font-size: 10.5px; font-weight: 400; }
+    .citt-cumplimiento__semaforo { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .citt-cumplimiento__semaforo.is-incumple { background: #fdeeeb; color: #8c2f22; }
+    .citt-cumplimiento__semaforo.is-en_riesgo { background: #fdf6e6; color: #8a6a1b; }
+    .citt-cumplimiento__semaforo.is-al_dia { background: #edf7ef; color: #1f6b46; }
+    .citt-cumplimiento__firmas { min-width: 200px; }
+    .citt-cumplimiento__firma { display: block; margin: 1px 0; padding: 2px 7px; border-radius: 4px; background: #eef2f0; color: #4b5c53; font-size: 11px; }
+    .citt-cumplimiento__firma b { display: inline-block; min-width: 84px; }
+    .citt-cumplimiento__firma.is-validado { background: #e2f3e8; color: #0b6b3a; }
+    .citt-cumplimiento__firma.is-por_validar, .citt-cumplimiento__firma.is-por_vencer { background: #fff1cf; color: #8a5a00; }
+    .citt-cumplimiento__firma.is-vencido, .citt-cumplimiento__firma.is-observado, .citt-cumplimiento__firma.is-no-cumple { background: #fbe4e4; color: #9b2b2b; }
+    .citt-cumplimiento__numero { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .citt-cumplimiento__numero small { display: block; color: #64736f; font-size: 10.5px; }
+    {% comment %}El nivel no es un número suelto: dice contra qué mínimo se mide.{% endcomment %}
+    .citt-nivel { display: grid; gap: 2px; min-width: 104px; }
+    .citt-nivel b { font-size: 19px; font-weight: 800; line-height: 1.05; }
+    .citt-nivel em { font-size: 11px; font-style: normal; font-weight: 700; }
+    .citt-nivel small { color: #64736f; font-size: 10px; }
+    .citt-nivel__barra { display: block; height: 5px; border-radius: 999px; background: #e7ece9; overflow: hidden; }
+    .citt-nivel__barra i { display: block; height: 100%; }
+    .citt-nivel.is-ok b, .citt-nivel.is-ok em { color: #0b6b3a; }
+    .citt-nivel.is-ok .citt-nivel__barra i { background: #2f8f5b; }
+    .citt-nivel.is-bad b, .citt-nivel.is-bad em { color: #9b2b2b; }
+    .citt-nivel.is-bad .citt-nivel__barra i { background: #c0392b; }
+    .citt-nivel.is-sin b { color: #64736f; font-size: 12px; font-weight: 700; }
+    .citt-cumplimiento__detalle td { background: #fbfcfb; font-size: 12px; }
+    .citt-cumplimiento__expediente { display: inline-block; margin-top: 6px; font-size: 11.5px; }
+    .citt-cumplimiento .citt-matriz { table-layout: fixed; min-width: 1250px; width: 100%; margin: 4px 0 8px; border-collapse: collapse; background: #fff; }
+    .citt-cumplimiento .citt-matriz th, .citt-cumplimiento .citt-matriz td { padding: 5px 8px; border: 1px solid #e2e7e4; vertical-align: top; overflow-wrap: anywhere; font-size: 11.5px; line-height: 1.35; }
+    .citt-matriz thead th { background: #f4f8f5; color: #23342c; font-size: 10.5px; font-weight: 800; text-align: center; }
+    .citt-matriz thead th:first-child, .citt-matriz thead th:nth-child(2), .citt-matriz thead th:nth-child(3) { text-align: left; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(1) { width: 18%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(2) { width: 10%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(3) { width: 9%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(4) { width: 7%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(5) { width: 8%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(6) { width: 9%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(7) { width: 9%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(8), .citt-cumplimiento .citt-matriz thead th:nth-child(9) { width: 7%; }
+    .citt-cumplimiento .citt-matriz thead th:nth-child(10) { width: 16%; }
+    .citt-cumplimiento .citt-matriz .citt-matriz__categoria th { padding: 6px 9px; background: #fff; border-left: 3px solid var(--institucion-acento, #e1b738); color: var(--institucion-primario-tinta, #20522e); text-align: left; width: auto; }
+    .citt-matriz__categoria th > div { display: flex; align-items: center; gap: 10px; }
+    .citt-matriz__categoria small { color: #53655a; font-weight: 400; }
+    .citt-matriz__categoria button { border: 0; background: transparent; color: var(--institucion-primario, #2b6339); cursor: pointer; }
+    .citt-matriz__avance { vertical-align: middle; }
+    .citt-matriz .citt-matriz__seguimiento[data-reporte-informacion-abrir] { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; white-space: nowrap; }
+    .citt-matriz__seguimiento span { min-width: 0; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+    .citt-matriz__control { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; }
+    .citt-matriz__control .control-documental { margin: 0; }
+    .citt-matriz__control .control-documental button { margin: 0; }
+    .citt-matriz__control .control-documental__estado { white-space: normal; overflow-wrap: normal; word-break: normal; }
+    .citt-matriz__anexos { margin: 12px 0 4px; border: 1px solid #e2e7e4; border-radius: 8px; background: #fff; padding: 10px; }
+    .citt-matriz__anexos > header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 8px; }
+    .citt-matriz__anexos h3 { color: var(--institucion-primario-tinta, #20522e); margin: 0; font-size: 13px; }
+    .citt-matriz__anexos p { color: #53655a; margin: 0; font-size: 11px; }
+    .citt-cumplimiento .citt-matriz--anexos { min-width: 650px; }
+    .citt-cumplimiento .citt-matriz--anexos thead th:nth-child(1) { width: 42%; }
+    .citt-cumplimiento .citt-matriz--anexos thead th:nth-child(2) { width: 24%; }
+    .citt-cumplimiento .citt-matriz--anexos thead th:nth-child(3) { width: 20%; }
+    .citt-cumplimiento .citt-matriz--anexos thead th:nth-child(4) { width: 14%; }
+    .citt-matriz__estado { display: inline-block; padding: 3px 8px; border-radius: 999px; background: #fff2cf; color: #795500; font-size: 10px; font-weight: 700; }
+    .citt-matriz__estado.is-enviados { background: #e2f3e8; color: #0b6b3a; }
+    .citt-matriz__estado.is-observados { background: #fbe4e4; color: #9b2b2b; }
+    .citt-matriz__decision a { margin: 2px; }
+    .citt-matriz .citt-matriz__evidencia a { white-space: normal; max-width: 100%; box-sizing: border-box; }
+    .citt-matriz__obs summary { cursor: pointer; margin-top: 4px; }
+    .citt-matriz__nombre { min-width: 0; font-weight: 700; color: #23342c; text-align: left; }
+    .citt-matriz__fecha small { display: block; color: #64736f; font-size: 10px; }
+    .citt-matriz__fecha time { display: block; font-variant-numeric: tabular-nums; }
+    .citt-matriz__nombre small, .citt-matriz__meta small { display: block; color: #64736f; font-size: 10px; font-weight: 400; }
+    .citt-matriz__meta { min-width: 0; color: #4b5c53; }
+    .citt-matriz__evidencia a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid #1f6b46; border-radius: 4px; background: #1f6b46; color: #fff; font-size: 10.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .citt-matriz__sin { color: #9b2b2b; font-size: 10.5px; font-weight: 700; }
+    .citt-matriz__obs { min-width: 0; color: #4b5c53; }
+    .citt-matriz__obs small { display: block; margin-top: 2px; color: #78867f; font-size: 9.5px; }
+    .citt-marca { width: 74px; text-align: center; white-space: nowrap; }
+    .citt-marca .is-si, .citt-marca .is-no { font-size: 17px; font-weight: 700; }
+    .citt-marca .is-si { color: #1f7a4c; }
+    .citt-marca .is-no { color: #c0392b; }
+    .citt-marca b { display: block; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .citt-marca b.is-si { color: #1f7a4c; }
+    .citt-marca b.is-no { color: #c0392b; }
+    .citt-marca .is-na, .citt-matriz__decision .is-na { color: #9aa7a1; }
+    .citt-marca__tarde { display: block; color: #8a5a00; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    {% comment %}La decisión necesita su ancho: antes el botón salía cortado.{% endcomment %}
+    .citt-matriz__decision { width: auto; text-align: center; }
+    .citt-matriz__accion { display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; max-width: 100%; padding: 5px 9px; border: 1px solid #8a6a1b; border-radius: 4px; background: #fdf6e6; color: #8a6a1b; font-size: 10.5px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+    .citt-matriz__accion:hover { background: #f7e9c8; }
+    .citt-matriz__decidir > summary { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 9px; border: 1px solid #1f6b46; border-radius: 4px; color: #1f6b46; font-size: 10.5px; font-weight: 700; white-space: nowrap; list-style: none; cursor: pointer; }
+    .citt-matriz__decidir > summary::-webkit-details-marker { display: none; }
+    .citt-matriz__decidir[open] > summary { background: #1f6b46; color: #fff; }
+    .citt-matriz__panel { position: absolute; z-index: 30; display: grid; gap: 8px; width: min(560px, 80vw); margin-top: 4px; padding: 11px 13px; border: 1px solid #d8e3dc; border-radius: 6px; background: #fff; box-shadow: 0 14px 34px rgba(12, 16, 15, .18); text-align: left; }
+    .citt-matriz__panel form { display: grid; gap: 6px; }
+    .citt-matriz__panel label { display: grid; gap: 2px; color: #4b5c53; font-size: 10px; font-weight: 700; }
+    .citt-matriz__panel input { width: 100%; box-sizing: border-box; padding: 5px 7px; border: 1px solid #d8e3dc; border-radius: 4px; font-size: 12px; }
+    .citt-matriz__panel button { justify-self: start; }
+    .citt-matriz__devolver { padding-top: 7px; border-top: 1px dashed #d8e3dc; }
+    @media (max-width: 1100px) {
+      .citt-tipo__cabecera { align-items: flex-start; }
+    }
+  </style>
+{% endblock %}

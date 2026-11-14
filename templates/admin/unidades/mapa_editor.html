@@ -1,0 +1,24 @@
+{% load i18n %}<nav class="mapa-editor" data-grupos-editor aria-label="{% translate 'Grupos del editor' %}">
+  <p class="estado-unidad {% if activa %}is-activa{% else %}is-desactivada{% endif %}">
+    <span>{% if activa %}{% translate "Activa: se ve en el portal." %}{% else %}{% translate "Desactivada: no aparece en el portal. Todo lo suyo se conserva." %}{% endif %}</span>
+    <a href="{{ estado_url }}">{% if activa %}{% translate "Desactivar o eliminar" %}{% else %}{% translate "Reactivar" %}{% endif %}</a>
+  </p>
+  <ul class="mapa-editor__lista">
+    {% for grupo in grupos %}<li>
+      <a class="mapa-editor__grupo grupo-editor-{{ grupo.clave }}" href="#grupo-{{ grupo.clave }}" data-grupo="{{ grupo.clave }}">
+        <span class="mapa-editor__icono">{% include "admin/includes/category_icon.html" with icon=grupo.icono %}</span>
+        <span class="mapa-editor__texto">
+          <strong>{{ grupo.titulo }}{% if grupo.secciones %} <em>{{ grupo.secciones }}</em>{% endif %}</strong>
+          <small>{{ grupo.descripcion }}</small>
+        </span>
+        <b class="mapa-editor__cuenta" data-cuenta></b>
+      </a>
+    </li>{% endfor %}
+  </ul>
+  <p class="mapa-editor__pie">
+    <a href="#grupo-todo" data-grupo="todo">{% translate "Ver todos los bloques" %}</a>
+    <a class="contenidos-ficha__enlace" href="{{ contenidos_url }}">{% translate "Abrir «Contenidos de la ficha»" %}</a>
+    {% if tablero_url %}<a class="contenidos-ficha__enlace" href="{{ tablero_url }}">{% translate "Abrir el tablero de la unidad" %}</a>{% endif %}
+    <small>{% if es_planta %}{% translate "Allí, cada sección de la ficha dice qué muestra y dónde se edita; aquí, cada bloque dice a qué sección llega." %}{% else %}{% translate "Allí se ordenan las pestañas y las carpetas de la ficha pública." %}{% endif %}</small>
+  </p>
+</nav>

@@ -1,0 +1,28 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Temas de investigación y estudios" %}{% endblock %}
+{% block encabezado %}{% translate "Temas de investigación y estudios" %}{% endblock %}
+{% block subtitulo %}{% translate "Las preguntas que cada eje deja abiertas para tesis, prácticas y proyectos, y lo que el observatorio ya publicó" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Líneas con temas" %}</dt><dd>{{ lineas|length }}</dd></div><div><dt>{% translate "Estudios publicados" %}</dt><dd>{{ total_estudios }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Investigación" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+{% for linea in lineas %}
+<section class="unit-report__section">
+  <header><span>{{ linea.titulo|upper }}</span><small><a href="{% url 'linea_observatorio' unidad.slug linea.codigo %}">{% translate "Ver el eje" %} →</a></small></header>
+  <ul class="aula-lista">{% for tema in linea.lista_temas %}<li>{{ tema }}</li>{% endfor %}</ul>
+  {% if linea.lista_carreras %}<p><small>{% translate "Carreras que pueden trabajarlos" %}: {{ linea.lista_carreras|join:", " }}</small></p>{% endif %}
+</section>
+{% endfor %}
+{% if publicaciones or artefactos %}
+<section class="unit-report__section">
+  <header><span>{% translate "ESTUDIOS PUBLICADOS" %}</span></header>
+  <ul class="aula-lista">
+    {% for publicacion in publicaciones %}<li><a href="{% url 'publicaciones_observatorio' unidad.slug 'informes' %}#publicacion-{{ publicacion.pk }}">{{ publicacion.titulo }}</a> · {{ publicacion.get_tipo_display }} · {{ publicacion.fecha_publicada|date:"d/m/Y" }}</li>{% endfor %}
+    {% for artefacto in artefactos %}<li><a href="{% url 'artefacto_externo' unidad.slug artefacto.codigo %}">{{ artefacto.nombre }}</a> · {{ artefacto.get_tipo_display }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+<p class="unit-report__notice">{% translate "Para trabajar uno de estos temas con los datos del observatorio, usa «Participa» o pide los datos que necesites en «Solicitar datos o un análisis»." %} <a href="{% url 'participa_observatorio' unidad.slug %}">{% translate "Participa" %} →</a></p>
+{% endblock %}

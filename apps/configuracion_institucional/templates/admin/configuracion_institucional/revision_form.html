@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'configuracion_institucional/logos_editor.css' %}?v=20260917-logos-v153">{% endblock %}
+{% block extrahead %}{{ block.super }}<script src="{% static 'configuracion_institucional/logos_editor.js' %}?v=20260917-logos-v152" defer></script>{% endblock %}
+{# Grappelli convierte los controles HTML5 a texto; este editor necesita color nativo. #}
+{% block js_clean_input_types %}{% endblock %}
+{% block object-tools-items %}
+  {{ block.super }}
+  {% if original and puede_crear_presentacion %}<li><a href="{% url 'admin:configuracion_institucional_revisionpresentacion_add' %}?fuente={{ original.pk }}">{% translate "Crear revisión desde estos datos" %}</a></li>{% endif %}
+  {% if original and puede_publicar_presentacion %}<li><a href="{% url 'admin:configuracion_institucional_revisionpresentacion_publicar' original.pk %}">{% translate "Revisar y publicar" %}</a></li>{% endif %}
+{% endblock %}
+{% block form_top %}{{ adminform.form.fuente_imagenes }}{{ adminform.form.fuente_imagenes.errors }}
+<div class="institution-presentation-note">
+  <b>{% translate "Guardar crea un borrador: el portal no cambia todavía." %}</b>
+  {% translate "Después, en el listado, pulsa “Revisar y publicar” en la fila de este borrador y confirma. Las revisiones anteriores se conservan como historial." %}
+  {% translate "Los cuatro bloques de abajo se pueden completar en cualquier orden; todo lo que dejes igual se mantiene como está." %}
+</div>{% endblock %}

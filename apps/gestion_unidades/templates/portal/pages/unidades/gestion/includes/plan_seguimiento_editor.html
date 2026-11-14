@@ -1,0 +1,23 @@
+{% load l10n %}
+{% if fila.aplica %}
+  <div class="redaccion__seguimiento" data-plan-seguimiento>
+    <small>Registrado: {{ fila.avance.registrado|default_if_none:'Sin medición' }}</small>
+    <div class="redaccion__seguimiento-estado" data-plan-avance>
+      <span>{% if fila.avance.registrado is None %}Sin medición{% elif fila.avance.porcentaje >= 100 %}Registrado{% elif fila.avance.porcentaje > 0 %}Avance parcial{% elif fila.avance.registrado > 0 %}Registrado{% else %}Por ejecutar{% endif %}</span>
+      {% if fila.avance.porcentaje is not None %}<strong>{{ fila.avance.porcentaje }} %</strong>{% endif %}
+    </div>
+    {% if fila.avance.porcentaje is not None %}<div class="redaccion__seguimiento-progreso" data-plan-avance role="progressbar" aria-label="Ejecución registrada de {{ fila.nombre }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ fila.avance.porcentaje|unlocalize }}"><span style="width:{{ fila.avance.porcentaje|unlocalize }}%"></span></div>{% endif %}
+    <div data-reporte-informacion>
+      <button type="button" data-reporte-informacion-abrir data-modal-titulo="Seguimiento · {{ fila.nombre }}" aria-haspopup="dialog">Ver seguimiento <i class="fas fa-info-circle" aria-hidden="true"></i></button>
+      <template data-reporte-informacion-contenido>
+        <p><strong>{{ fila.nombre }}</strong></p>
+        <p>Este seguimiento muestra los registros disponibles al corte. La ejecución pendiente no equivale a una planificación incorrecta ni es su calificación.</p>
+        <dl class="redaccion__indicador-datos"><div><dt>Indicador</dt><dd>{{ fila.indicador }}</dd></div><div><dt>Meta comprometida</dt><dd>{{ fila.meta|default:fila.minimo|default:'—' }}</dd></div><div><dt>Registrado</dt><dd>{{ fila.avance.registrado|default_if_none:'Sin medición' }}</dd></div>{% if fila.avance.porcentaje is not None %}<div><dt>Avance al corte</dt><dd>{{ fila.avance.porcentaje }} %</dd></div>{% endif %}</dl>
+        {% if fila.avance.motivo %}<p>{{ fila.avance.motivo }}</p>{% endif %}
+        {% if fila.avance.pendientes_documentales %}<p>Registros con respaldo pendiente: {{ fila.avance.pendientes_documentales }}.</p>{% endif %}
+        <p>La conformidad de la planificación revisa su contenido y programación. El informe de cierre verifica los resultados con sus evidencias.</p>
+      </template>
+    </div>
+  </div>
+{% else %}<small>No aplica</small>{% endif %}
+<small data-meta-cambio hidden>Guarda y recarga para actualizar el seguimiento con la nueva meta.</small>

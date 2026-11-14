@@ -1,0 +1,41 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}El portafolio de servicios por línea, con las tablas de Laboratorios y un índice por línea que acompaña la lectura;
+cada servicio abre su ficha y se pide desde aquí mismo. Debajo, cómo se atiende un servicio.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Para la universidad y para empresas, GAD, asociaciones, emprendedores e instituciones. Cada servicio dice qué incluye, qué se entrega y qué área lo presta; se pide desde aquí mismo." %}</p>{% endblock %}
+{% block acciones %}{% if recibe_solicitudes %}<a class="conoce__boton is-principal" href="{{ solicitar_url }}?tipo=servicio"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% translate "Solicitar un servicio" %}</a>{% endif %}{% endblock %}
+
+{% block contenido %}
+{% if todos %}
+{% if servicios_por_linea|length > 1 %}<nav class="conoce__indice" aria-label="{% translate "Líneas de servicio" %}">{% for linea in servicios_por_linea %}<a href="#linea-{{ forloop.counter }}" data-indice="linea-{{ forloop.counter }}">{{ linea }}</a>{% endfor %}<a href="#atencion" data-indice="atencion">{% translate "Cómo se atiende" %}</a></nav>{% endif %}
+<section class="conoce__seccion" id="buscar">
+  <form class="cv-filtros" method="get" data-auto>
+    <label>{% translate "Línea de servicio" %}<select name="linea"><option value="">{% translate "Todas" %}</option>{% for linea in lineas %}<option{% if filtro.linea == linea %} selected{% endif %}>{{ linea }}</option>{% endfor %}</select></label>
+    <label>{% translate "Área que lo presta" %}<select name="area"><option value="">{% translate "Todas" %}</option>{% for area in c.areas %}<option value="{{ area.codigo }}"{% if filtro.area == area.codigo %} selected{% endif %}>{{ area.nombre_corto|default:area.nombre }}</option>{% endfor %}</select></label>
+    <label class="cv-filtros__buscar">{% translate "Buscar" %}<span><input type="search" name="q" value="{{ filtro.q }}" placeholder="{% translate "Qué necesitas…" %}"><button type="submit" aria-label="{% translate "Buscar" %}"><i class="fas fa-search" aria-hidden="true"></i></button></span></label>
+    {% if filtro.linea or filtro.area or filtro.q %}<a class="cv-filtros__limpiar" href="{% url 'seccion_centro_id' centro.slug 'portafolio' %}">{% translate "Limpiar" %}</a>{% endif %}
+    <p class="cv-filtros__cuenta"><strong>{{ total }}</strong> {% translate "de" %} {{ todos }} {% translate "servicios" %}</p>
+  </form>
+</section>
+
+{% for linea, servicios in servicios_por_linea.items %}
+<section class="conoce__seccion cv-seccion--seguida" id="linea-{{ forloop.counter }}">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% blocktranslate count total=servicios|length %}{{ total }} servicio{% plural %}{{ total }} servicios{% endblocktranslate %}</span><h2>{{ linea }}</h2></header>
+  <div class="area__tabla-envoltura" data-aparecer><table class="area__tabla"><thead><tr><th scope="col">{% translate "Servicio" %}</th><th scope="col">{% translate "Qué incluye" %}</th><th scope="col">{% translate "Entregable" %}</th><th scope="col">{% translate "Área" %}</th><th scope="col">{% translate "Para quién" %}</th><th scope="col"><span class="sr-only">{% translate "Pedirlo" %}</span></th></tr></thead><tbody>
+    {% for servicio in servicios %}<tr id="servicio-{{ servicio.pk }}"><td><button type="button" class="cv-enlace" data-modal="{% url 'fragmento_centro_id' centro.slug 'servicio' servicio.pk %}"{% if abrir == servicio.pk %} data-abrir-auto{% endif %}><strong>{{ servicio.nombre }}</strong></button><small class="cv-mudo">{{ servicio.get_estado_oferta_display }}</small>{% if servicio.tarifa_documentada %}<small class="cv-mudo"><i class="fas fa-tag" aria-hidden="true"></i> {{ servicio.tarifa }}</small>{% endif %}</td><td>{{ servicio.descripcion }}</td><td>{{ servicio.entregable }}</td><td>{% if servicio.componente %}<a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug servicio.componente.codigo %}"><i class="{{ servicio.componente.icono }}" aria-hidden="true"></i> {{ servicio.componente }}</a>{% else %}<span class="cv-mudo">{% translate "El centro" %}</span>{% endif %}</td><td>{{ servicio.get_usuarios_display }}</td><td>{% if servicio.solicitable %}<a class="area__boton-ficha" href="{{ solicitar_url }}?tipo={% if servicio.modalidad == 'acompanamiento' %}asesoria{% else %}servicio{% endif %}&amp;servicio={{ servicio.pk }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% if servicio.estado_oferta == 'consultar' %}{% translate 'Consultar servicio' %}{% else %}{% translate 'Solicitar servicio' %}{% endif %}</a>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<section class="conoce__seccion"><p class="ficha__nota"><i class="fas fa-search" aria-hidden="true"></i> {% translate "Ningún servicio coincide con el filtro." %}</p></section>
+{% endfor %}
+
+<section class="conoce__seccion" id="atencion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Paso a paso" %}</span><h2>{% translate "Cómo se atiende un servicio" %}</h2></header>
+  <ol class="area__pasos">{% for nombre, detalle in ruta %}<li class="area__paso" data-aparecer><span class="area__paso-numero">{{ forloop.counter }}</span><div class="area__paso-datos"><h3>{{ nombre }}</h3><p>{{ detalle }}</p></div></li>{% endfor %}</ol>
+  <p class="ficha__nota"><i class="fas fa-info-circle" aria-hidden="true"></i> {% translate "Las condiciones económicas se confirman durante la evaluación técnica." %}</p>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("El centro todavía no publica su portafolio de servicios.") enlace=completar %}</section>
+{% endif %}
+{% endblock %}

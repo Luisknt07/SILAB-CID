@@ -1,0 +1,158 @@
+/* Portada de cada pestaña de la ficha: ocupa todo el visor. Un lado es un escenario de fotos reales de la unidad que se
+   funden unas en otras bajo un degradado institucional, con la escena animada de la pestaña encima; el otro lado
+   presenta la información. Colores institucionales (verdes y amarillo); sin bibliotecas; quien prefiere menos
+   movimiento la ve quieta. */
+.tech-portada {
+    --tech-oscuro: var(--institucion-oscuro, #173b2c); --tech-oscuro-rgb: 12, 34, 25;
+    --tech-primario: var(--institucion-primario, #1f6b46);
+    --tech-acento: var(--institucion-panel-carpeta, #ffce00); --tech-acento-rgb: 255, 206, 0;
+    --tech-segundo: #6fd39a; --tech-segundo-rgb: 111, 211, 154;
+    position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(280px, 44%) minmax(0, 1fr);
+    height: 100%; min-height: 100%; box-sizing: border-box; overflow: hidden;
+    color: #e9eef3; font-family: "Poppins", Arial, sans-serif;
+    background: radial-gradient(760px 460px at 100% 0%, rgba(31, 107, 70, .16), transparent 62%),
+                radial-gradient(520px 360px at 60% 100%, rgba(255, 206, 0, .05), transparent 60%), #0c1620;
+}
+.tech-portada *, .tech-portada *::before, .tech-portada *::after { box-sizing: border-box; }
+/* Cada estilo cambia el acento dentro de la paleta institucional. */
+.tech-portada.tema-engranajes, .tech-portada.tema-molecula, .tech-portada.tema-ondas { --tech-acento: #6fd39a; --tech-acento-rgb: 111, 211, 154; --tech-segundo: var(--institucion-panel-carpeta, #ffce00); --tech-segundo-rgb: 255, 206, 0; }
+
+/* ---------------------------------------------------------------- escenario de fotos */
+.tech-portada__escenario { position: relative; min-height: 100%; overflow: hidden; background: radial-gradient(circle at 45% 45%, rgba(var(--tech-acento-rgb), .14), transparent 62%), #0c1620; }
+.tech-portada__diapositivas { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+.tech-portada__diapositivas li { position: absolute; inset: 0; background-position: center; background-size: cover; opacity: 0; transform: scale(1.04); transition: opacity 1.6s ease, transform 8s ease-out; }
+.tech-portada__diapositivas li.is-activa { opacity: 1; transform: scale(1.16); }
+.tech-portada__velo { position: absolute; inset: 0; background:
+    linear-gradient(90deg, rgba(12, 22, 32, .10) 0%, rgba(12, 22, 32, .45) 55%, #0c1620 99%),
+    linear-gradient(0deg, rgba(12, 22, 32, .85) 0%, transparent 45%),
+    linear-gradient(135deg, rgba(12, 22, 32, .30), rgba(31, 107, 70, .10)); }
+.tech-portada__rejilla { position: absolute; left: -40%; right: -10%; bottom: -10%; height: 50%; transform: perspective(520px) rotateX(64deg); transform-origin: 50% 100%;
+    background-image: linear-gradient(rgba(var(--tech-acento-rgb), .28) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--tech-acento-rgb), .28) 1px, transparent 1px);
+    background-size: 48px 48px; -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 85%); mask-image: linear-gradient(to top, #000 10%, transparent 85%);
+    animation: tech-avanza 3.2s linear infinite; }
+.tech-portada__barrido { position: absolute; left: 0; right: 0; top: -20%; height: 18%; background: linear-gradient(180deg, transparent, rgba(var(--tech-acento-rgb), .10), transparent); animation: tech-barre 7s ease-in-out infinite; }
+.tech-portada__holograma { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.45); }
+.tech-portada.con-fotos .tech-portada__holograma { top: 54%; transform: translate(-50%, -50%) scale(1.2); opacity: .95; }
+.tech-portada__escena3d { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* ---------------------------------------------------------------- escena 3D */
+.tech-escena { position: relative; width: 320px; height: 320px; perspective: 900px; transform-style: preserve-3d; filter: drop-shadow(0 0 18px rgba(var(--tech-acento-rgb), .45)); }
+.tech-escena__nucleo { position: absolute; inset: 42%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--tech-acento) 45%, rgba(var(--tech-acento-rgb), .1) 75%); box-shadow: 0 0 40px 8px rgba(var(--tech-acento-rgb), .55); animation: tech-late 2.8s ease-in-out infinite; }
+.tech-escena__orbita { position: absolute; inset: 8%; border: 1.5px solid rgba(var(--tech-acento-rgb), .55); border-radius: 50%; transform-style: preserve-3d; }
+.tech-escena__orbita i { position: absolute; top: -6px; left: calc(50% - 6px); width: 12px; height: 12px; border-radius: 50%; background: var(--tech-segundo); box-shadow: 0 0 16px 4px rgba(255, 206, 0, .6); }
+.tech-escena__orbita.is-1 { animation: tech-orbita-1 9s linear infinite; }
+.tech-escena__orbita.is-2 { inset: 18%; animation: tech-orbita-2 7s linear infinite; }
+.tech-escena__orbita.is-3 { inset: 0; border-style: dashed; animation: tech-orbita-3 14s linear infinite; }
+.tech-escena__orbita.is-atomo { inset: 10% 2%; }
+.tech-escena__orbita.is-atomo.is-1 { animation: tech-atomo-1 6s linear infinite; }
+.tech-escena__orbita.is-atomo.is-2 { animation: tech-atomo-2 6s linear infinite; }
+.tech-escena__orbita.is-atomo.is-3 { animation: tech-atomo-3 6s linear infinite; }
+.tech-escena__cubo { position: absolute; top: 28%; left: 28%; width: 140px; height: 140px; transform-style: preserve-3d; animation: tech-gira-cubo 14s linear infinite; }
+.tech-escena__cubo span { position: absolute; inset: 0; border: 1.5px solid rgba(var(--tech-acento-rgb), .85); background: linear-gradient(135deg, rgba(var(--tech-acento-rgb), .16), rgba(var(--tech-acento-rgb), .03)); box-shadow: inset 0 0 24px rgba(var(--tech-acento-rgb), .25); }
+.tech-escena__cubo span:nth-child(1) { transform: translateZ(70px); }
+.tech-escena__cubo span:nth-child(2) { transform: rotateY(180deg) translateZ(70px); }
+.tech-escena__cubo span:nth-child(3) { transform: rotateY(90deg) translateZ(70px); }
+.tech-escena__cubo span:nth-child(4) { transform: rotateY(-90deg) translateZ(70px); }
+.tech-escena__cubo span:nth-child(5) { transform: rotateX(90deg) translateZ(70px); }
+.tech-escena__cubo span:nth-child(6) { transform: rotateX(-90deg) translateZ(70px); }
+.tech-escena__cubo.is-chico { top: 4%; left: 70%; width: 56px; height: 56px; animation-duration: 9s; animation-direction: reverse; }
+.tech-escena__cubo.is-chico span:nth-child(1) { transform: translateZ(28px); } .tech-escena__cubo.is-chico span:nth-child(2) { transform: rotateY(180deg) translateZ(28px); }
+.tech-escena__cubo.is-chico span:nth-child(3) { transform: rotateY(90deg) translateZ(28px); } .tech-escena__cubo.is-chico span:nth-child(4) { transform: rotateY(-90deg) translateZ(28px); }
+.tech-escena__cubo.is-chico span:nth-child(5) { transform: rotateX(90deg) translateZ(28px); } .tech-escena__cubo.is-chico span:nth-child(6) { transform: rotateX(-90deg) translateZ(28px); }
+.tech-escena__cubo.is-mini { top: 76%; left: 10%; width: 36px; height: 36px; animation-duration: 7s; }
+.tech-escena__cubo.is-mini span { border-color: var(--tech-segundo); }
+.tech-escena__cubo.is-mini span:nth-child(1) { transform: translateZ(18px); } .tech-escena__cubo.is-mini span:nth-child(2) { transform: rotateY(180deg) translateZ(18px); }
+.tech-escena__cubo.is-mini span:nth-child(3) { transform: rotateY(90deg) translateZ(18px); } .tech-escena__cubo.is-mini span:nth-child(4) { transform: rotateY(-90deg) translateZ(18px); }
+.tech-escena__cubo.is-mini span:nth-child(5) { transform: rotateX(90deg) translateZ(18px); } .tech-escena__cubo.is-mini span:nth-child(6) { transform: rotateX(-90deg) translateZ(18px); }
+.tech-escena__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tech-escena__svg.is-ancha { inset: 10% -40% 10% -20%; width: 160%; }
+.tech-escena__engranaje { transform-box: fill-box; transform-origin: center; }
+.tech-escena__engranaje .dientes { fill: none; stroke: var(--tech-acento); stroke-width: 16; stroke-dasharray: 11 9; opacity: .9; }
+.tech-escena__engranaje .aro { fill: rgba(var(--tech-acento-rgb), .08); stroke: rgba(var(--tech-acento-rgb), .7); stroke-width: 2; }
+.tech-escena__engranaje .eje { fill: var(--tech-segundo); }
+.tech-escena__engranaje.is-grande { animation: tech-rueda 12s linear infinite; }
+.tech-escena__engranaje.is-chico { animation: tech-rueda 7s linear infinite reverse; }
+.tech-escena__flujo, .tech-escena__onda, .tech-escena__enlaces line { fill: none; stroke: var(--tech-acento); stroke-width: 2.5; stroke-dasharray: 10 12; animation: tech-fluye 1.6s linear infinite; }
+.tech-escena__enlaces line { stroke-opacity: .6; stroke-width: 1.6; animation-duration: 2.4s; }
+.tech-escena__nodos circle { fill: var(--tech-acento); transform-box: fill-box; transform-origin: center; animation: tech-late 2.4s ease-in-out infinite; }
+.tech-escena__nodos circle:nth-child(2n) { fill: var(--tech-segundo); animation-delay: .6s; }
+.tech-escena__nodos circle:nth-child(3n) { animation-delay: 1.2s; }
+.tech-escena__anillo { fill: none; stroke: var(--tech-acento); stroke-width: 3; transform-box: fill-box; transform-origin: center; }
+.tech-escena__anillo.is-1 { stroke-dasharray: 2 14; stroke-width: 10; animation: tech-rueda 30s linear infinite; }
+.tech-escena__anillo.is-2 { stroke-dasharray: 60 20; stroke-opacity: .7; animation: tech-rueda 16s linear infinite reverse; }
+.tech-escena__anillo.is-3 { stroke: var(--tech-segundo); stroke-dasharray: 120 300; animation: tech-rueda 8s linear infinite; }
+.tech-escena__aguja { stroke: #fff; stroke-width: 4; stroke-linecap: round; transform-origin: 150px 150px; animation: tech-rueda 10s steps(60) infinite; }
+.tech-escena__centro { fill: var(--tech-segundo); }
+.tech-escena__onda.is-2 { stroke: var(--tech-segundo); stroke-opacity: .7; animation-duration: 2.2s; }
+.tech-escena__onda.is-3 { stroke-opacity: .45; animation-duration: 3s; }
+
+@media (max-width: 1100px) { .tech-portada__holograma { transform: translate(-50%, -50%) scale(1.05); } .tech-portada.con-fotos .tech-portada__holograma { transform: translate(-50%, -50%) scale(.95); } }
+
+/* ---------------------------------------------------------------- información */
+.tech-portada__contenido { position: relative; display: grid; grid-template-rows: auto minmax(auto, 1fr) auto; gap: 22px; min-width: 0; overflow-y: auto; padding: clamp(22px, 3vw, 38px) clamp(18px, 3vw, 40px) 20px; }
+.tech-portada__puntos { position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(rgba(255, 255, 255, .45) 1px, transparent 1.4px); background-size: 34px 34px; opacity: .12; pointer-events: none; }
+.tech-portada__cabeza { animation: tech-entra .6s ease both; }
+.tech-portada__chip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border: 1px solid rgba(var(--tech-acento-rgb), .5); border-radius: 999px; background: rgba(var(--tech-acento-rgb), .10); color: var(--tech-acento); font-size: 10.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.tech-portada__chip i { font-size: 14px; }
+.tech-portada h2 { margin: 14px 0 8px; color: #fff; font-size: clamp(28px, 3.4vw, 48px); font-weight: 800; line-height: 1.04; letter-spacing: -.01em; }
+.tech-portada h2::after { content: ''; display: block; width: 72px; height: 4px; margin-top: 12px; border-radius: 4px; background: linear-gradient(90deg, var(--tech-acento), var(--tech-segundo)); }
+.tech-portada__lema { margin: 0 0 10px; color: var(--tech-acento); font-size: clamp(14px, 1.4vw, 18px); font-weight: 700; }
+.tech-portada__entrada { max-width: 640px; margin: 0; color: #c5cfd8; font-size: 14.5px; line-height: 1.65; }
+.tech-portada .equipo__editar { display: inline-flex; align-items: center; gap: 6px; width: fit-content; margin-top: 14px; padding: 6px 13px; border: 1px solid rgba(var(--tech-acento-rgb), .55); border-radius: 999px; background: rgba(12, 22, 32, .6); color: var(--tech-acento); font-size: 12px; font-weight: 800; text-decoration: none; }
+.tech-portada__cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+.tech-portada__cifras li { position: relative; padding: 14px 14px 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .10); border-radius: 14px; background: rgba(20, 32, 44, .82); animation: tech-entra .6s ease both; animation-delay: calc(var(--orden, 1) * 90ms); }
+.tech-portada__cifras li::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(var(--tech-acento), var(--tech-segundo)); }
+.tech-portada__cifras strong { display: block; color: var(--tech-acento); font-size: 30px; font-weight: 800; line-height: 1; }
+.tech-portada__cifras span { display: block; margin-top: 5px; color: #9fb0bf; font-size: 11.5px; font-weight: 600; line-height: 1.3; }
+.tech-portada__bloque { display: flex; flex-direction: column; }
+.tech-portada__bloque h3 { margin: 0 0 12px; color: var(--tech-acento); font-size: 11.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.tech-portada__modulos { display: grid; flex: 1; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); grid-auto-rows: minmax(80px, 1fr); align-content: stretch; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.tech-portada__modulos li { display: flex; animation: tech-entra .55s ease both; animation-delay: calc(var(--orden, 1) * 60ms + 150ms); }
+.tech-portada__modulo { position: relative; display: grid; grid-template-columns: 46px minmax(0, 1fr) 14px; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .10); border-radius: 16px; background: linear-gradient(135deg, rgba(24, 38, 52, .94), rgba(16, 27, 38, .9)); color: #e9eef3; font: inherit; text-align: left; cursor: pointer; transition: transform .2s, border-color .2s, box-shadow .2s; }
+.tech-portada__modulo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(var(--tech-acento-rgb), .14) 50%, transparent 70%); transform: translateX(-100%); transition: transform .6s; }
+.tech-portada__modulo:hover, .tech-portada__modulo:focus-visible { transform: translateY(-3px); border-color: var(--tech-acento); box-shadow: 0 10px 28px rgba(0, 0, 0, .35), 0 0 0 1px rgba(var(--tech-acento-rgb), .4); outline: none; }
+.tech-portada__modulo:hover::after { transform: translateX(100%); }
+.tech-portada__modulo > i { display: grid; width: 46px; height: 46px; place-items: center; border-radius: 13px; background: rgba(var(--tech-acento-rgb), .14); box-shadow: inset 0 0 0 1px rgba(var(--tech-acento-rgb), .35); color: var(--tech-acento); font-size: 19px; }
+.tech-portada__modulo strong { display: block; color: #fff; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.tech-portada__modulo small { display: block; margin-top: 3px; color: #9fb0bf; font-size: 11.5px; }
+.tech-portada__modulo > b { color: var(--tech-acento); font-size: 22px; }
+.tech-portada__modulo.is-pendiente { border-style: dashed; opacity: .75; }
+.tech-portada__modulo.is-pendiente > i { color: #9fb0bf; background: rgba(255, 255, 255, .06); box-shadow: none; }
+.tech-portada__pista { margin: 12px 0 0; color: #8c9cab; font-size: 12px; }
+.tech-portada__pie { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 26px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .1); color: #c5cfd8; font-size: 12.5px; }
+.tech-portada__pie h4 { margin: 0 0 5px; color: var(--tech-segundo); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.tech-portada__pie p, .tech-portada__pie ul { margin: 0; line-height: 1.55; }
+.tech-portada__pie ul { padding-left: 16px; }
+.tech-portada__cinta { grid-column: 1 / -1; overflow: hidden; padding: 8px 0; border-top: 1px dashed rgba(var(--tech-acento-rgb), .25); border-bottom: 1px dashed rgba(var(--tech-acento-rgb), .25); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.tech-portada__cinta > div { display: inline-flex; gap: 34px; white-space: nowrap; animation: tech-cinta 38s linear infinite; }
+.tech-portada__cinta span { color: rgba(233, 238, 243, .7); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tech-portada__cinta i { color: var(--tech-acento); margin-right: 6px; }
+
+/* La sección que se abre desde la portada se ilumina un momento en el menú. */
+.unit-section-heading.is-resaltada, .project-detail-folder-toggle.is-resaltada { box-shadow: 0 0 0 3px rgba(255, 206, 0, .75); transition: box-shadow .3s; }
+
+@media (max-width: 900px) {
+    .tech-portada { grid-template-columns: minmax(0, 1fr); grid-template-rows: 240px minmax(0, 1fr); }
+    .tech-portada__escenario { min-height: 240px; }
+    .tech-portada__velo { background: linear-gradient(0deg, #0c1620 0%, rgba(12, 22, 32, .25) 60%); }
+}
+
+/* ---------------------------------------------------------------- animaciones */
+@keyframes tech-avanza { to { background-position: 0 48px, 0 0; } }
+@keyframes tech-barre { 0%, 100% { top: -20%; } 50% { top: 100%; } }
+@keyframes tech-late { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes tech-rueda { to { transform: rotate(360deg); } }
+@keyframes tech-fluye { to { stroke-dashoffset: -44; } }
+@keyframes tech-orbita-1 { from { transform: rotateX(70deg) rotateZ(0deg); } to { transform: rotateX(70deg) rotateZ(360deg); } }
+@keyframes tech-orbita-2 { from { transform: rotateX(60deg) rotateY(25deg) rotateZ(360deg); } to { transform: rotateX(60deg) rotateY(25deg) rotateZ(0deg); } }
+@keyframes tech-orbita-3 { from { transform: rotateX(78deg) rotateY(-20deg) rotateZ(0deg); } to { transform: rotateX(78deg) rotateY(-20deg) rotateZ(360deg); } }
+@keyframes tech-atomo-1 { from { transform: rotateZ(0deg) rotateX(72deg) rotateZ(0deg); } to { transform: rotateZ(0deg) rotateX(72deg) rotateZ(360deg); } }
+@keyframes tech-atomo-2 { from { transform: rotateZ(60deg) rotateX(72deg) rotateZ(0deg); } to { transform: rotateZ(60deg) rotateX(72deg) rotateZ(360deg); } }
+@keyframes tech-atomo-3 { from { transform: rotateZ(120deg) rotateX(72deg) rotateZ(0deg); } to { transform: rotateZ(120deg) rotateX(72deg) rotateZ(360deg); } }
+@keyframes tech-gira-cubo { from { transform: rotateX(-24deg) rotateY(0deg); } to { transform: rotateX(-24deg) rotateY(360deg); } }
+@keyframes tech-entra { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes tech-cinta { to { transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .tech-portada *, .tech-portada *::before, .tech-portada *::after { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,891 @@
+[
+  {
+    "ruta": "",
+    "nombre": "home",
+    "propietario_ruta": "portal",
+    "callback_anterior": "portal.home_view",
+    "regex": false
+  },
+  {
+    "ruta": "quienes-somos/",
+    "nombre": "quienes_somos",
+    "propietario_ruta": "portal",
+    "callback_anterior": "portal.QuienesSomosView.as_view()",
+    "regex": false
+  },
+  {
+    "ruta": "centros-id/",
+    "nombre": "centros_id",
+    "propietario_ruta": "centros_id",
+    "callback_anterior": "portal.CentrosIDView.as_view()",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorios-unidades/",
+    "nombre": "laboratorios_unidades",
+    "propietario_ruta": "laboratorios",
+    "callback_anterior": "unidades.laboratorios_unidades_view",
+    "regex": false
+  },
+  {
+    "ruta": "servicios/",
+    "nombre": "servicios_portal",
+    "propietario_ruta": "portal",
+    "callback_anterior": "portal.ServiciosView.as_view()",
+    "regex": false
+  },
+  {
+    "ruta": "normativa/",
+    "nombre": "normativa",
+    "propietario_ruta": "portal",
+    "callback_anterior": "portal.NormativaView.as_view()",
+    "regex": false
+  },
+  {
+    "ruta": "noticias/",
+    "nombre": "noticias",
+    "propietario_ruta": "portal",
+    "callback_anterior": "portal.NoticiasView.as_view()",
+    "regex": false
+  },
+  {
+    "ruta": "hublab/",
+    "nombre": "hublab",
+    "propietario_ruta": "laboratorios",
+    "callback_anterior": "unidades.catalogo_laboratorios_view",
+    "regex": false
+  },
+  {
+    "ruta": "observatorios/",
+    "nombre": "observatorios",
+    "propietario_ruta": "observatorios",
+    "callback_anterior": "unidades.observatorios_view",
+    "regex": false
+  },
+  {
+    "ruta": "centros-experimentales/",
+    "nombre": "centros-experimentales",
+    "propietario_ruta": "centros_experimentales",
+    "callback_anterior": "unidades.centros_experimentales_view",
+    "regex": false
+  },
+  {
+    "ruta": "plantas-piloto/",
+    "nombre": "plantas-piloto",
+    "propietario_ruta": "plantas_piloto",
+    "callback_anterior": "unidades.plantas_piloto_view",
+    "regex": false
+  },
+  {
+    "ruta": "recursos-unidad/<int:recurso_id>/",
+    "nombre": "recurso_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "recursos_publicos.recurso_unidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "recursos-unidad/<int:recurso_id>/<path:ruta>",
+    "nombre": "recurso_unidad_archivo",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "recursos_publicos.recurso_unidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/repositorio/",
+    "nombre": "repositorio_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "repositorio.repositorio_unidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/artefactos/<str:codigo>/",
+    "nombre": "artefacto_externo",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "repositorio.artefacto_externo_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/artefactos/<str:codigo>/entrada/",
+    "nombre": "exportar_paquete_artefacto",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "repositorio.exportar_paquete_artefacto_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/artefactos/<str:codigo>/resultados/",
+    "nombre": "importar_resultado_artefacto",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "repositorio.importar_resultado_artefacto_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/repositorio/candidatos/",
+    "nombre": "candidatos_promocion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "repositorio.candidatos_promocion_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/guias-practica/",
+    "nombre": "lista_guias_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.lista_guias_practica",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/guias-practica/nueva/",
+    "nombre": "nueva_guia_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.editar_guia_practica",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/guias-practica/<int:guia_id>/editar/",
+    "nombre": "editar_guia_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.editar_guia_practica",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/",
+    "nombre": "laboratorio_detalle",
+    "propietario_ruta": "laboratorios",
+    "callback_anterior": "unidades.proyecto_detalle_view",
+    "regex": false
+  },
+  {
+    "ruta": "observatorio/<slug:slug>/",
+    "nombre": "observatorio_detalle",
+    "propietario_ruta": "observatorios",
+    "callback_anterior": "unidades.proyecto_detalle_view",
+    "regex": false
+  },
+  {
+    "ruta": "centro-experimental/<slug:slug>/",
+    "nombre": "centro_experimental_detalle",
+    "propietario_ruta": "centros_experimentales",
+    "callback_anterior": "unidades.proyecto_detalle_view",
+    "regex": false
+  },
+  {
+    "ruta": "planta-piloto/<slug:slug>/",
+    "nombre": "planta_piloto_detalle",
+    "propietario_ruta": "plantas_piloto",
+    "callback_anterior": "unidades.proyecto_detalle_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/",
+    "nombre": "gestion_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_unidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/completitud/",
+    "nombre": "completitud_plantas",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.completitud_plantas_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/",
+    "nombre": "lista_practicas",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.lista_practicas_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/nueva/",
+    "nombre": "nueva_planificacion_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.editar_planificacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/exportar.xlsx",
+    "nombre": "exportar_practicas_xlsx",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.exportar_practicas_xlsx_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/",
+    "nombre": "detalle_planificacion_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.detalle_planificacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/editar/",
+    "nombre": "editar_planificacion_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.editar_planificacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/accion/",
+    "nombre": "accion_planificacion_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.accion_planificacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/ejecucion/",
+    "nombre": "editar_ejecucion_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.editar_ejecucion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/ejecucion/accion/",
+    "nombre": "accion_ejecucion_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.accion_ejecucion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/evidencias/<int:evidencia_id>/",
+    "nombre": "evidencia_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.ver_evidencia_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/expediente/",
+    "nombre": "gestion_expediente_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.expediente_unidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/expediente/<int:documento_id>/redactar/",
+    "nombre": "redactar_documento_expediente",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.redactar_documento_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/expediente/<int:documento_id>/vista-previa/",
+    "nombre": "vista_previa_documento_expediente",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.vista_previa_documento_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/expediente/<int:documento_id>/borrador.pdf",
+    "nombre": "pdf_borrador_documento_expediente",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.pdf_borrador_documento_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/equipos/<int:equipo_id>/",
+    "nombre": "ficha_equipo_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.ficha_equipo_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/equipos/<int:equipo_id>/ficha.pdf",
+    "nombre": "ficha_equipo_unidad_pdf",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.ficha_equipo_pdf_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/pdf/",
+    "nombre": "planificacion_practica_pdf",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.planificacion_pdf_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/reportes/vista/",
+    "nombre": "gestion_reporte_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_reporte_unidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/reportes/pdf/",
+    "nombre": "gestion_reporte_unidad_pdf",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_reporte_unidad_pdf_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/reportes/xlsx/",
+    "nombre": "gestion_reporte_unidad_xlsx",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_reporte_unidad_xlsx_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/procesos/<int:receta_id>/",
+    "nombre": "ficha_proceso",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.ficha_proceso_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/procesos/<int:receta_id>/guia.json",
+    "nombre": "guia_desde_proceso",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.guia_desde_proceso_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/reservas/<int:reserva_id>/accion/",
+    "nombre": "gestion_reserva_accion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_reserva_accion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/reservas/<int:reserva_id>/detalle/",
+    "nombre": "gestion_reserva_detalle",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_reserva_detalle_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/cambios-reserva/<int:solicitud_id>/accion/",
+    "nombre": "gestion_solicitud_cambio_reserva_accion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.gestion_solicitud_cambio_reserva_accion",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/agenda/accion/",
+    "nombre": "gestion_agenda_accion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_agenda_accion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/operaciones/accion/",
+    "nombre": "gestion_operacion_accion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_operacion_accion_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/inventario/lotes/<int:lote_id>/identificador.svg",
+    "nombre": "gestion_lote_identificador",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_lote_identificador_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/inventario/etiquetas.pdf",
+    "nombre": "gestion_etiquetas_inventario_pdf",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.gestion_etiquetas_inventario_pdf_view",
+    "regex": false
+  },
+  {
+    "ruta": "^media/(?P<path>.*)$",
+    "nombre": null,
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "portal.media_no_xframe",
+    "regex": true
+  },
+  {
+    "ruta": "login/",
+    "nombre": "login",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "usuarios.login_view",
+    "regex": false
+  },
+  {
+    "ruta": "register/",
+    "nombre": "register",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "usuarios.register_view",
+    "regex": false
+  },
+  {
+    "ruta": "logout/",
+    "nombre": "logout",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "usuarios.salir",
+    "regex": false
+  },
+  {
+    "ruta": "profile/",
+    "nombre": "profile",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "usuarios.profile_view",
+    "regex": false
+  },
+  {
+    "ruta": "profile/edit/",
+    "nombre": "profile_edit",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "usuarios.profile_edit_view",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/crear/",
+    "nombre": "crear_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.crear_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/<int:receta_id>/seleccion.json",
+    "nombre": "seleccion_por_proceso",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.seleccion_por_proceso_view",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/programacion/fechas.json",
+    "nombre": "fechas_programacion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.fechas_programacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/<int:reserva_id>/sesion/",
+    "nombre": "completar_sesion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.completar_sesion_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/mis-sesiones/",
+    "nombre": "mis_sesiones",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.mis_sesiones_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/<int:receta_id>/ficha/",
+    "nombre": "ficha_proceso_publica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.ficha_proceso_publica_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/materiales-e-insumos/",
+    "nombre": "materiales_insumos",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.materiales_insumos_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/metodos-y-tiempos/",
+    "nombre": "metodos_tiempos",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.metodos_tiempos_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/ruta-del-saber/",
+    "nombre": "ruta_saber_documentacion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.ruta_saber_documentacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/productos/<int:producto_id>/ficha/",
+    "nombre": "ficha_producto_publica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.ficha_producto_publica_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/<int:receta_id>/datos.csv",
+    "nombre": "datos_proceso_csv",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.datos_proceso_csv_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/productos/<int:producto_id>/datos.csv",
+    "nombre": "datos_producto_csv",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.datos_producto_csv_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/",
+    "nombre": "simuladores_proceso_legacy",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.simuladores_proceso_legacy_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/balance/",
+    "nombre": "simulador_balance",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.simulador_balance_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/linea/",
+    "nombre": "simulador_linea",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.simulador_linea_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/materiales/",
+    "nombre": "simulador_materiales",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.simulador_materiales_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/mis-simulaciones/",
+    "nombre": "mis_simulaciones",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "simulaciones.mis_simulaciones_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/guardar/",
+    "nombre": "guardar_simulacion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "simulaciones.guardar_simulacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/<int:simulacion_id>/eliminar/",
+    "nombre": "eliminar_simulacion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "simulaciones.eliminar_simulacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/simuladores/<int:simulacion_id>/reporte/",
+    "nombre": "reporte_simulacion",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "simulaciones.reporte_simulacion_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/protocolos-de-control/",
+    "nombre": "protocolos_control",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.protocolos_control_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/produccion/",
+    "nombre": "produccion_publica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.produccion_publica_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/produccion/actividad/",
+    "nombre": "corridas_lotes_publicos",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.corridas_lotes_publicos_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/calidad/",
+    "nombre": "calidad_publica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.calidad_publica_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/areas-y-equipos/",
+    "nombre": "areas_equipos",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.areas_equipos_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/equipos/<str:codigo>/",
+    "nombre": "ficha_equipo_publica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.ficha_equipo_publica_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/equipos/<str:codigo>/datos.csv",
+    "nombre": "datos_equipo_csv",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "aula.datos_equipo_csv_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/visitas/",
+    "nombre": "oferta_visitas",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "visitas.oferta_visitas_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/servicios/",
+    "nombre": "catalogo_servicios_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas_publicas.catalogo_servicios_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/agenda/",
+    "nombre": "agenda_disponibilidad_unidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas_publicas.agenda_disponibilidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/visitas/solicitar/",
+    "nombre": "solicitar_visita",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "visitas.solicitar_visita_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/visitas/<int:visita_id>/asistencia/",
+    "nombre": "asistencia_visita",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "visitas.asistencia_visita_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/procesos/<int:receta_id>/documentacion/",
+    "nombre": "documentacion_proceso",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "documentacion.documentacion_proceso_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/mis-ejercicios/",
+    "nombre": "mis_ejercicios",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "ejercicios.mis_ejercicios_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/ejercicio/<int:intento_id>/",
+    "nombre": "resolver_ejercicio",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "ejercicios.resolver_ejercicio_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/ejercicios/<int:ejercicio_id>/",
+    "nombre": "resultados_ejercicio",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "ejercicios.resultados_ejercicio_view",
+    "regex": false
+  },
+  {
+    "ruta": "laboratorio/<slug:slug>/plan-haccp/",
+    "nombre": "plan_haccp",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "calidad.plan_haccp_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/trazabilidad/<int:lote_id>/",
+    "nombre": "trazabilidad_lote",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "trazabilidad.trazabilidad_lote_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/reporte-institucional/",
+    "nombre": "reporte_institucional",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "trazabilidad.reporte_institucional_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/planificacion/<int:plan_id>/",
+    "nombre": "plan_maestro",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "planificacion.plan_maestro_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/calidad/control/",
+    "nombre": "control_calidad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "calidad.control_calidad_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/maquila/<int:reserva_id>/",
+    "nombre": "maquila_expediente",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "maquila.maquila_view",
+    "regex": false
+  },
+  {
+    "ruta": "gestion/unidades/<slug:slug>/maquila/<int:reserva_id>/acta/",
+    "nombre": "acta_entrega_maquila",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "maquila.acta_entrega_view",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/<int:reserva_id>/comprobante/",
+    "nombre": "comprobante_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.comprobante_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/<int:reserva_id>/comprobante/pdf/",
+    "nombre": "comprobante_reserva_pdf",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.comprobante_reserva_pdf",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/<int:reserva_id>/comprobante/pago/",
+    "nombre": "subir_comprobante_pago",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.subir_comprobante_pago",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/usuario/",
+    "nombre": "obtener_reservas_usuario",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.obtener_reservas_usuario",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/usuario/<int:reserva_id>/cancelar/",
+    "nombre": "cancelar_reserva_usuario",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.cancelar_reserva_usuario",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/usuario/<int:reserva_id>/solicitar-cambio/",
+    "nombre": "solicitar_cambio_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.solicitar_cambio_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/cambios/<int:solicitud_id>/editar/",
+    "nombre": "editar_solicitud_cambio_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.editar_solicitud_cambio_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/cambios/<int:solicitud_id>/retirar/",
+    "nombre": "retirar_solicitud_cambio_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.retirar_solicitud_cambio_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/notificaciones/leidas/",
+    "nombre": "marcar_notificaciones_reserva_leidas",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.marcar_notificaciones_leidas",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/participantes/buscar/",
+    "nombre": "buscar_usuarios_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.buscar_usuarios_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/servicios/cotizar/",
+    "nombre": "cotizar_servicios_reserva",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.cotizar_servicios_reserva",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/servicios/entrega/",
+    "nombre": "proponer_entrega_servicio",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.proponer_entrega_servicio",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/<int:guia_id>/",
+    "nombre": "ver_guia_actividad",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.ver_guia_actividad",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/<int:guia_id>/estado/",
+    "nombre": "cambiar_estado_guia_practica",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.cambiar_estado_guia_practica",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/bibliografia/",
+    "nombre": "formatear_bibliografia_guia",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.formatear_bibliografia_guia",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/vista-previa-pdf/",
+    "nombre": "vista_previa_pdf_guia",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.vista_previa_pdf_guia",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/figuras/",
+    "nombre": "subir_figura_guia",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.subir_figura_guia",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/<int:guia_id>/contenido/",
+    "nombre": "guardar_contenido_guia",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.guardar_contenido_guia",
+    "regex": false
+  },
+  {
+    "ruta": "reservas/actividades/guias/<int:guia_id>/firmada/",
+    "nombre": "subir_guia_firmada",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "reservas.subir_guia_firmada",
+    "regex": false
+  },
+  {
+    "ruta": "api/equipos/<int:equipo_id>/unidades/",
+    "nombre": "obtener_unidades_equipo",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.obtener_unidades_equipo",
+    "regex": false
+  },
+  {
+    "ruta": "api/laboratorio/<int:laboratorio_id>/unidades/",
+    "nombre": "obtener_unidades_laboratorio",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.obtener_unidades_laboratorio",
+    "regex": false
+  },
+  {
+    "ruta": "api/laboratorio/<int:laboratorio_id>/calendario/",
+    "nombre": "obtener_ocupacion_laboratorio",
+    "propietario_ruta": "heredadas",
+    "callback_anterior": "unidades.obtener_ocupacion_laboratorio",
+    "regex": false
+  },
+  {
+    "ruta": "unidades/<slug:tipologia>/",
+    "nombre": "catalogo_tipologia",
+    "propietario_ruta": "directorio_unidades",
+    "callback_anterior": "directorio_unidades.catalogo",
+    "regex": false
+  }
+]

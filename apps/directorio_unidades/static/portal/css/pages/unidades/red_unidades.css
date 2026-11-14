@@ -1,0 +1,44 @@
+/* Red de unidades: centros, plantas, laboratorios y observatorios en columnas, unidos por sus relaciones. */
+.red-unidades { max-width: 1240px; margin: 0 auto; padding: 32px 16px 56px; }
+.red-unidades__cabecera { margin-bottom: 18px; }
+.red-unidades__antetitulo { color: var(--institucion-primario, #1d5b3a); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.red-unidades__cabecera h1 { margin: 6px 0 8px; color: var(--institucion-texto, #173b2c); font-size: clamp(24px, 3vw, 34px); }
+.red-unidades__cabecera p { max-width: 820px; margin: 0 0 8px; color: #4b5d54; }
+.red-unidades__volver { display: inline-flex; gap: 6px; align-items: center; margin-right: 14px; color: var(--institucion-primario, #1d5b3a); font-weight: 700; text-decoration: none; }
+.red-unidades__leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 14px; padding: 0; list-style: none; font-size: 13px; color: #4b5d54; }
+.red-unidades__leyenda li::before { content: ''; display: inline-block; width: 22px; height: 3px; margin-right: 6px; vertical-align: middle; border-radius: 2px; background: var(--color); }
+.red-unidades__leyenda i { color: var(--color); }
+.red-unidades__lienzo { position: relative; overflow-x: auto; padding-bottom: 6px; border: 1px solid #e1e9e4; border-radius: 14px; background: #fff; }
+.red-unidades__lienzo svg { display: block; }
+.red-unidades__columna { fill: var(--institucion-texto, #173b2c); font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.red-unidades__trazo { fill: none; stroke-width: 2.4; opacity: .75; }
+.red-unidades__trazo.is-atenuado { opacity: .12; }
+.red-unidades__nodo { position: absolute; display: flex; gap: 8px; align-items: center; height: 42px; padding: 0 12px; border: 1px solid #d7e2dc; border-radius: 10px; background: #f8faf9; color: var(--institucion-texto, #173b2c); font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .05); transition: transform .15s ease, box-shadow .15s ease; }
+.red-unidades__nodo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.red-unidades__nodo small { color: #8a6d1d; font-weight: 700; }
+.red-unidades__nodo i { color: var(--institucion-primario, #1d5b3a); }
+.red-unidades__nodo:hover, .red-unidades__nodo:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, .12); text-decoration: none; }
+.red-unidades__nodo.is-foco { border-color: var(--institucion-primario, #1d5b3a); background: var(--institucion-primario, #1d5b3a); color: #fff; }
+.red-unidades__nodo.is-foco i, .red-unidades__nodo.is-foco small { color: #fff; }
+.red-unidades__nodo.is-atenuada { opacity: .35; }
+.red-unidades__detalle { margin-top: 26px; }
+.red-unidades__detalle h2 { margin: 0 0 12px; font-size: 20px; color: var(--institucion-texto, #173b2c); }
+.red-unidades__tabla-envoltura { overflow-x: auto; }
+.red-unidades__tabla { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; }
+.red-unidades__tabla th, .red-unidades__tabla td { padding: 9px 10px; border-bottom: 1px solid #e3ebe6; text-align: left; vertical-align: top; }
+.red-unidades__tabla th { background: #f3f7f4; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.red-unidades__tabla tr.is-atenuada { opacity: .45; }
+.red-unidades__vacio { color: #4b5d54; }
+/* Grupos de relaciones (la página de la red y el panel lateral de cada ficha). */
+.unit-panel--relaciones { padding: 17px; }
+.unit-panel--relaciones > h2 { margin: 0 0 12px; }
+.relaciones-unidad__grupo { margin: 0 0 12px; }
+.relaciones-unidad__titulo { display: flex; gap: 6px; align-items: center; margin: 0 0 6px; color: var(--color); font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.relaciones-unidad__grupo ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.relaciones-unidad__grupo a { display: block; padding: 8px 10px; border-left: 3px solid var(--color); border-radius: 6px; background: #f6f8f7; color: var(--institucion-texto, #173b2c); text-decoration: none; }
+.relaciones-unidad__grupo a:hover { background: #eef3f0; text-decoration: none; }
+div.relaciones-unidad__grupo strong { display: block; font-size: 13px; }
+.relaciones-unidad__grupo em { color: #8a6d1d; font-size: 11px; font-style: normal; font-weight: 700; }
+.relaciones-unidad__grupo small { display: block; margin-top: 2px; color: #5f7268; font-size: 12px; }
+.unit-panel--relaciones .unit-panel__enlace { display: inline-flex; gap: 6px; align-items: center; margin-top: 4px; color: var(--institucion-primario, #1d5b3a); font-size: 13px; font-weight: 700; text-decoration: none; }
+.unit-panel--relaciones .unit-panel__enlace:hover { text-decoration: underline; }

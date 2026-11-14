@@ -1,0 +1,74 @@
+{% extends 'portal/layouts/base.html' %}{% load static i18n idiomas %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/practicas.css' %}?v=20260920-contraste-v215">{% endblock %}
+{% block portal_content %}
+<section class="practice-shell">
+  <header class="practice-hero">
+    <div><span>{% translate "FORMATO FT03 · EJECUCIÓN Y EVALUACIÓN" %}</span><h1>{% translate "Registrar ejecución" %}</h1><p>{{ plan.codigo }} · {{ plan.tema }}</p></div>
+    <div><a href="{% url 'detalle_planificacion_practica' unidad.slug plan.pk %}">{% translate "← Volver al expediente" %}</a></div>
+  </header>
+  <form class="practice-form" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}<input type="hidden" name="detalle_operativo_registrado" value="1">
+    <header>
+      <div><span>{% translate "UPEC-P10-S01-FT03 · RESULTADO REAL" %}</span><h2>{% translate "Ejecución y evaluación de la práctica" %}</h2><p>{% translate "La información se precargó desde la reserva" %} {{ plan.reserva.codigo_reserva }}{% translate ". Confirma únicamente lo que ocurrió." %}</p></div>
+      {% if ejecucion.pk %}<span class="practice-status is-{{ ejecucion.estado }}">{{ ejecucion.get_estado_display|ui }}</span>{% endif %}
+    </header>
+    {% if form.cierre_operativo %}<p class="practice-callout" role="status">{% translate "La reserva ya está cerrada. Puedes completar la documentación; se conservan los datos de operación, asistencia y consumo registrados." %}</p>{% endif %}
+    {% if form.non_field_errors %}<div class="practice-form__errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="practice-form__section">
+      <div class="practice-form__section-heading"><span>01</span><div><h3>{% translate "Resultado y horario real" %}</h3><p>{% translate "Registra la diferencia entre lo planificado y lo que efectivamente sucedió." %}</p></div></div>
+      <div class="practice-form__grid">
+        {% for field in form.campos_generales %}
+          <label class="{% if field.name == 'motivo' or field.name == 'observaciones_docente' %}is-wide{% endif %}">
+            <span>{{ field.label|ui }}{% if field.field.required %} *{% endif %}</span>{{ field }}
+            {% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}
+          </label>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if form.campos_recursos %}
+      <section class="practice-form__section">
+        <div class="practice-form__section-heading"><span>02</span><div><h3>{% translate "Recursos realmente utilizados" %}</h3><p>{% if form.cierre_operativo %}{% translate "Recursos conservados del registro de cierre." %}{% else %}{% translate "Todos los recursos solicitados están seleccionados; desmarca únicamente los que no se usaron." %}{% endif %}</p></div></div>
+        <div class="practice-operation-grid">
+          {% for field in form.campos_recursos %}<div class="practice-check-group"><strong>{{ field.label|ui }}</strong>{{ field }}{{ field.errors }}</div>{% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if form.campo_participantes.field.choices %}
+      <section class="practice-form__section">
+        <div class="practice-form__section-heading"><span>03</span><div><h3>{% translate "Asistencia nominal" %}</h3><p>{% translate "Confirma las personas que ingresaron. El total puede incluir estudiantes del grupo que aún no tengan cuenta." %}</p></div></div>
+        <div class="practice-operation-grid practice-operation-grid--single"><div class="practice-check-group"><strong>{{ form.campo_participantes.label }}</strong>{{ form.campo_participantes }}{{ form.campo_participantes.errors }}</div></div>
+      </section>
+    {% endif %}
+
+    {% if form.campos_consumibles %}
+      <section class="practice-form__section">
+        <div class="practice-form__section-heading"><span>04</span><div><h3>{% translate "Consumo real de insumos" %}</h3><p>{% translate "Las cantidades aprobadas vienen de la reserva; registra solamente el consumo efectivo." %}</p></div></div>
+        <div class="practice-form__grid">
+          {% for field in form.campos_consumibles %}<label><span>{{ field.label|ui }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text|ui }}</small>{% endif %}{{ field.errors }}</label>{% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="practice-form__section" data-evidencias>
+      <div class="practice-form__section-heading"><span>05</span><div><h3>{% translate "Evidencias de la práctica" %}</h3><p>{% translate "Fotografías identificadas, registros de asistencia, bitácoras, capturas de simuladores, informes de estudiantes y productos. Quedan en el registro de ejecución y salen en el formato FT03." %}</p></div></div>
+      {% if evidencias %}
+      <ul class="practice-evidence-list">
+        {% for evidencia in evidencias %}
+        <li><a href="{% url 'evidencia_practica' unidad.slug evidencia.pk %}"{% if evidencia.nombre_original|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{{ evidencia.nombre_original }}"{% else %} download{% endif %}><b>{{ evidencia.get_tipo_display|ui }}</b> {{ evidencia.nombre_original }}</a><span>{{ evidencia.descripcion }}</span><label><input type="checkbox" name="evidencias_eliminar" value="{{ evidencia.pk }}"> {% translate "Retirar" %}</label></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <div class="practice-form__grid">
+        <label><span>{% translate "Tipo de evidencia" %}</span><select name="evidencia_tipo">{% for clave, nombre in tipos_evidencia %}<option value="{{ clave }}">{{ nombre|ui }}</option>{% endfor %}</select></label>
+        <label class="is-wide"><span>{% translate "Descripción (qué muestra, quiénes aparecen, cuándo)" %}</span><input type="text" name="evidencia_descripcion" maxlength="255"></label>
+        <label class="is-wide"><span>{% translate "Archivos" %}</span><input type="file" name="evidencias" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.mp4,.webm,.doc,.docx,.xls,.xlsx,.pptx,.csv,.txt,.zip"><small>{% translate "Hasta 25 MB por archivo. Los archivos que subas ahora llevarán el tipo y la descripción indicados." %}</small></label>
+      </div>
+    </section>
+
+    <footer><a href="{% url 'detalle_planificacion_practica' unidad.slug plan.pk %}">{% translate "Cancelar" %}</a><div><button name="accion" value="guardar">{% translate "Guardar borrador" %}</button><button class="is-primary" name="accion" value="enviar">{% translate "Enviar a revisión" %}</button></div></footer>
+  </form>
+</section>
+{% endblock %}

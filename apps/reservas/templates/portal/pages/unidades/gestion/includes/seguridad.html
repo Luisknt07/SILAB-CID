@@ -1,0 +1,55 @@
+
+{% load i18n idiomas %}
+        <section class="unit-console__view" data-management-view="seguridad" role="tabpanel" hidden>
+          {% if puede_operar_seguridad %}<div class="unit-console__report-actions"><div><span>{% translate "SEGURIDAD Y ACCESO" %}</span><strong>{% translate "Lo que la unidad exige para entrar, quién lo cumple y quién entró a cada sesión." %}</strong></div><div><button type="button" data-agenda-operation-open="requisito_acceso"><i class="fas fa-plus"></i> {% translate "Nuevo requisito" %}</button><button type="button" data-agenda-operation-open="habilitacion_acceso"><i class="fas fa-user-check"></i> {% translate "Registrar habilitación" %}</button></div></div>{% endif %}
+          <div class="unit-console__metrics unit-console__metrics--four">
+            <article><span>{% translate "Requisitos activos" %}</span><strong>{{ seguridad_metricas.requisitos_activos }}</strong><small>{{ seguridad_metricas.obligatorios }} obligatorios</small></article>
+            <article><span>{% translate "Habilitaciones vigentes" %}</span><strong>{{ seguridad_metricas.habilitaciones_vigentes }}</strong><small>{% translate "inducciones y documentos al día" %}</small></article>
+            <article><span>{% translate "Por vencer" %}</span><strong>{{ seguridad_metricas.por_vencer }}</strong><small>{% translate "en los próximos 30 días" %}</small></article>
+            <article><span>{% translate "Sesiones por registrar" %}</span><strong>{{ seguridad_metricas.sesiones_por_registrar }}</strong><small>{% translate "de hoy a siete días" %}</small></article>
+          </div>
+          <article class="unit-console__card">
+            <header><div><span>{% translate "REGLAMENTO DE INGRESO" %}</span><h3>{% translate "Requisitos por categoría de persona" %}</h3><p>{% translate "Inducción, habilitación sanitaria y documentos se habilitan por persona con vigencia; la protección y las restricciones se verifican en la puerta en cada sesión. Lo obligatorio se avisa al reservar y detiene el inicio si no se cumple." %}</p></div></header>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Código" %}</th><th>{% translate "Requisito" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "A quién" %}</th><th>{% translate "Cuándo" %}</th><th>{% translate "Vigencia" %}</th><th>{% translate "Protección del inventario" %}</th><th>{% translate "Estado" %}</th>{% if puede_operar_seguridad %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for requisito in requisitos_acceso %}<tr>
+              <td><strong>{{ requisito.codigo }}</strong></td>
+              <td>{{ requisito.nombre }}{% if requisito.descripcion %}<br><small>{{ requisito.descripcion|truncatechars:120 }}</small>{% endif %}</td>
+              <td>{{ requisito.get_tipo_display|ui }}{% if not requisito.obligatorio %}<br><small>opcional</small>{% endif %}</td>
+              <td>{{ requisito.categorias_display }}</td>
+              <td>{{ requisito.get_momento_display|ui }}</td>
+              <td>{% if requisito.vigencia_dias %}{{ requisito.vigencia_dias }} {% translate "días" %}{% elif requisito.habilitable %}{% translate "Sin vencimiento" %}{% else %}—{% endif %}</td>
+              <td>{% if requisito.consumible %}{{ requisito.consumible.nombre }} {% translate "×" %} {{ requisito.cantidad_por_persona|floatformat:"-3" }} {% translate "por persona" %}{% else %}—{% endif %}</td>
+              <td><span class="unit-console__status{% if requisito.activo %} is-confirmada{% endif %}">{% if requisito.activo %}{% translate "Activo" %}{% else %}{% translate "Inactivo" %}{% endif %}</span></td>
+              {% if puede_operar_seguridad %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="requisito_acceso" data-field-registro_id="{{ requisito.pk }}" data-field-codigo="{{ requisito.codigo }}" data-field-nombre="{{ requisito.nombre }}" data-field-tipo="{{ requisito.tipo }}" data-field-aplica_a_csv="{{ requisito.aplica_a_csv }}" data-field-obligatorio="{{ requisito.obligatorio|yesno:'1,0' }}" data-field-momento="{{ requisito.momento }}" data-field-vigencia_dias="{{ requisito.vigencia_dias|default_if_none:'' }}" data-field-consumible_id="{{ requisito.consumible_id|default_if_none:'' }}" data-field-cantidad_por_persona="{{ requisito.cantidad_por_persona|floatformat:'-3u' }}" data-field-orden="{{ requisito.orden }}" data-field-descripcion="{{ requisito.descripcion }}"><i class="fas fa-edit"></i> {% translate "Editar" %}</button></td>{% endif %}
+            </tr>{% empty %}<tr><td colspan="9"><div class="unit-console__empty"><strong>{% translate "Sin requisitos de ingreso" %}</strong><span>{% translate "Declara lo que la unidad exige para entrar: inducción, documento sanitario, protección y restricciones." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+          <div class="unit-console__split">
+            <article class="unit-console__card">
+              <header><div><span>{% translate "HABILITACIONES" %}</span><h3>{% translate "Personas habilitadas" %}</h3><p>{% translate "Una inducción dictada, un certificado presentado o una autorización. Vence según la vigencia del requisito." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Persona" %}</th><th>{% translate "Requisito" %}</th><th>{% translate "Otorgada" %}</th><th>{% translate "Vence" %}</th><th>{% translate "Origen" %}</th><th>{% translate "Estado" %}</th>{% if puede_operar_seguridad %}<th></th>{% endif %}</tr></thead><tbody>
+              {% for habilitacion in habilitaciones_acceso %}<tr>
+                <td><strong>{{ habilitacion.usuario.get_full_name|default:habilitacion.usuario.username }}</strong><br><small>{{ habilitacion.usuario.username }}</small></td>
+                <td>{{ habilitacion.requisito.nombre }}</td>
+                <td>{{ habilitacion.fecha|date:"d/m/Y" }}{% if habilitacion.otorgada_por %}<br><small>{{ habilitacion.otorgada_por.get_full_name|default:habilitacion.otorgada_por.username }}</small>{% endif %}</td>
+                <td>{% if habilitacion.vence %}{{ habilitacion.vence|date:"d/m/Y" }}{% else %}{% translate "Sin vencimiento" %}{% endif %}</td>
+                <td>{{ habilitacion.get_origen_display|ui }}{% if habilitacion.documento %}<br><small>{{ habilitacion.documento }}</small>{% endif %}</td>
+                <td><span class="unit-console__status is-{% if not habilitacion.vigente %}vencida{% elif habilitacion.por_vencer %}pendiente{% else %}confirmada{% endif %}">{% if not habilitacion.vigente %}{% translate "Vencida" %}{% elif habilitacion.por_vencer %}{% translate "Por vencer" %}{% else %}{% translate "Vigente" %}{% endif %}</span></td>
+                {% if puede_operar_seguridad %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="habilitacion_acceso" data-field-registro_id="{{ habilitacion.pk }}" data-field-persona="{{ habilitacion.usuario.username }}" data-field-requisito_id="{{ habilitacion.requisito_id }}" data-field-fecha="{{ habilitacion.fecha|date:'Y-m-d' }}" data-field-vence="{{ habilitacion.vence|date:'Y-m-d' }}" data-field-origen="{{ habilitacion.origen }}" data-field-documento="{{ habilitacion.documento }}"><i class="fas fa-user-times"></i> {% translate "Retirar" %}</button></td>{% endif %}
+              </tr>{% empty %}<tr><td colspan="7"><div class="unit-console__empty"><strong>{% translate "Nadie habilitado todavía" %}</strong><span>{% translate "Registra la inducción dictada o el documento presentado por cada persona." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+            <article class="unit-console__card">
+              <header><div><span>{% translate "CONTROL DE INGRESO" %}</span><h3>{% translate "Sesiones de la semana" %}</h3><p>{% translate "Persona por persona, antes de iniciar: habilitaciones al día, protección puesta y restricciones cumplidas. Quien no cumple queda registrado como «no ingresa» con el motivo." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Sesión" %}</th><th>{% translate "Fecha y hora" %}</th><th>{% translate "Personas" %}</th><th>{% translate "Ingreso" %}</th>{% if puede_operar_seguridad %}<th></th>{% endif %}</tr></thead><tbody>
+              {% for sesion in sesiones_acceso %}<tr>
+                <td><strong>{{ sesion.codigo_reserva }}</strong><br><small>{{ sesion.titulo_solicitud|truncatechars:70 }}</small></td>
+                <td>{{ sesion.fecha|date:"d/m/Y" }}<br><small>{{ sesion.hora_inicio|time:"H:i" }}–{{ sesion.hora_fin|time:"H:i" }} · {{ sesion.get_estado_display|ui }}</small></td>
+                <td>{{ sesion.acceso.personas|length }} identificadas{% if sesion.acceso.pendientes %}<br><small>{{ sesion.acceso.pendientes }} {% translate "con requisitos pendientes" %}</small>{% endif %}{% if sesion.acceso.aforo.excede %}<br><small>{% translate "Supera el aforo de" %} {{ sesion.acceso.aforo.espacio }} ({{ sesion.acceso.aforo.capacidad }})</small>{% endif %}</td>
+                <td>{% if sesion.acceso.sin_registro == 0 %}<span class="unit-console__status is-confirmada">{{ sesion.acceso.ingresados }} ingresaron</span>{% else %}<span class="unit-console__status is-pendiente">{{ sesion.acceso.sin_registro }} {% translate "sin registrar" %}</span>{% endif %}</td>
+                {% if puede_operar_seguridad %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="ingreso" data-field-reserva_id="{{ sesion.pk }}" data-field-codigo_reserva="{{ sesion.codigo_reserva }}" data-field-personas="{{ sesion.personas_json }}"><i class="fas fa-door-open"></i> {% translate "Registrar ingreso" %}</button></td>{% endif %}
+              </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Sin sesiones aprobadas esta semana" %}</strong><span>{% translate "Las sesiones confirmadas de hoy a siete días aparecen aquí para registrar el ingreso." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+          </div>
+        </section>

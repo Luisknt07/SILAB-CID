@@ -1,0 +1,75 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Identidad y contacto, con la pieza de la ficha de la unidad de Laboratorios: los contactos listos para usar sobre el
+borde de la cabecera y, debajo, la ficha de identidad, quién dirige y quién atiende, y los accesos.{% endcomment %}
+
+{% block titulo_documento %}{{ subpagina.titulo }}{% endblock %}
+{% block clave_cuerpo %}{{ subpagina.clave }}{% endblock %}
+{% block titulo_visor %}{{ subpagina.titulo }}{% endblock %}
+{% block ceja_extra %} · {{ seccion.titulo }}{% endblock %}
+{% block titulo %}{{ subpagina.titulo }}{% endblock %}
+{% block clase_cabecera %}{% endblock %}
+{% block entradilla %}<p class="cv-entradilla">{% translate "Los datos de identificación del centro, cómo contactarlo, quién lo dirige y quién atiende las solicitudes." %}</p>{% endblock %}
+
+{% block cabecera %}{{ block.super }}
+<section class="ficha__contactos" aria-label="{% translate "Contacto" %}">
+  {% if centro.contacto_email %}<a class="ficha__contacto" href="mailto:{{ centro.contacto_email }}"><i class="fas fa-envelope" aria-hidden="true"></i><span><small>{% translate "Correo" %}</small><strong>{{ centro.contacto_email }}</strong></span></a>{% endif %}
+  <a class="ficha__contacto" href="{{ ubicacion_url }}"><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span><small>{% translate "Dónde está" %}</small><strong>{{ centro.direccion|default:centro.ubicacion|default:_("Ver en el mapa") }}</strong></span></a>
+  {% if centro.horario_atencion %}<div class="ficha__contacto"><i class="fas fa-clock" aria-hidden="true"></i><span><small>{% translate "Horario de atención" %}</small><strong>{{ centro.horario_atencion }}</strong></span></div>{% endif %}
+  <a class="ficha__contacto" href="{{ solicitar_url }}"><i class="fas fa-paper-plane" aria-hidden="true"></i><span><small>{% translate "Para trabajar con el centro" %}</small><strong>{% translate "Proponer o solicitar" %}</strong></span></a>
+</section>
+{% endblock %}
+
+{% block contenido %}
+{% if centro.identidad_validada or gestor or c.escenario %}
+<section class="conoce__seccion" id="proposito-institucional">
+  <header class="conoce__titulo"><span class="conoce__antetitulo">{% translate "Propósito institucional" %}</span><h2>{% translate "Misión y visión" %}</h2></header>
+  {% if not centro.identidad_validada and not c.escenario %}<p class="ficha__nota">{% translate "Borrador visible solo para gestión. Falta validar la adscripción, la misión, la visión y su respaldo institucional." %}</p>{% endif %}
+  <div class="ficha__datos">
+    <article class="ficha__bloque"><header><h3>{% translate "Misión" %}</h3></header><p>{{ centro.mision|default:_("Pendiente de registro institucional.")|linebreaksbr }}</p></article>
+    <article class="ficha__bloque"><header><h3>{% translate "Visión" %}</h3></header><p>{{ centro.vision|default:_("Pendiente de registro institucional.")|linebreaksbr }}</p></article>
+  </div>
+  {% if centro.lista_sectores_retos %}<div class="area__tabla-envoltura"><table class="area__tabla"><thead><tr><th>{% translate "Sector" %}</th><th>{% translate "Reto o necesidad" %}</th><th>{% translate "Destinatarios" %}</th></tr></thead><tbody>{% for sector, reto, destinatarios in centro.lista_sectores_retos %}<tr><td>{{ sector }}</td><td>{{ reto }}</td><td>{{ destinatarios }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+  {% if centro.identidad_validada %}<p class="ficha__nota">{{ centro.fuente_identidad }} · {% translate "Validado el" %} {{ centro.identidad_validada_en|date:"d/m/Y" }}</p>{% endif %}
+  {% if editar_identidad %}<a class="cv-enlace-area" href="{{ editar_identidad }}" target="_top">{% translate "Completar y revisar identidad" %}</a>{% endif %}
+</section>
+{% else %}<p class="ficha__nota">{% translate "La adscripción, la misión y la visión oficiales están pendientes de validación institucional." %}</p>{% endif %}
+{% if documentos_creacion %}<section class="conoce__seccion"><header class="conoce__titulo"><h2>{% translate "Creación y reconocimiento institucional" %}</h2></header><div class="area__recursos">{% for documento in documentos_creacion %}{% include 'centros_id/visor/_documento.html' %}{% endfor %}</div></section>{% endif %}
+<section class="conoce__seccion" id="identidad">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "El centro" %}</span><h2>{% translate "Ficha de identidad" %}</h2></header>
+  <div class="ficha__datos">
+    <article class="ficha__bloque ficha__bloque--creacion" data-aparecer>
+      <header><i class="fas fa-id-card" aria-hidden="true"></i><h2>{% translate "Identidad" %}</h2></header>
+      <dl>
+        <div><dt>{% translate "Nombre" %}</dt><dd>{{ centro.nombre }}{% if centro.sigla %}<small>{{ centro.sigla }}</small>{% endif %}</dd></div>
+        <div><dt>{% translate "Área prioritaria" %}</dt><dd>{{ centro.nombre_area }}</dd></div>
+        <div><dt>{% translate "Estado" %}</dt><dd>{{ centro.estado_publico }}{% if centro.estado_validado %}<small>{{ centro.fuente_estado }} · {{ centro.estado_validado_en|date:"d/m/Y" }}</small>{% elif gestor and not c.escenario %}<small>{% translate "Estado registrado para revisión:" %} {{ centro.get_estado_display }}</small>{% endif %}</dd></div>
+        {% if centro.identidad_validada or c.escenario %}<div><dt>{% translate "Adscripción institucional" %}</dt><dd>{{ centro.adscripcion }}</dd></div>{% endif %}
+        {% if centro.ubicacion or centro.direccion %}<div><dt>{% translate "Ubicación" %}</dt><dd>{{ centro.ubicacion }}{% if centro.direccion %}<small>{{ centro.direccion }}</small>{% endif %}</dd></div>{% endif %}
+        <div><dt>{% translate "Capacidades" %}</dt><dd>{{ c.areas|length }} {% translate "áreas propias" %}{% if c.unidades_vinculadas or c.servicios %}<small>{% if c.unidades_vinculadas %}{{ c.unidades_vinculadas|length }} {% translate "capacidades vinculadas" %}{% endif %}{% if c.unidades_vinculadas and c.servicios %} · {% endif %}{% if c.servicios %}{{ c.servicios|length }} {% translate "servicios en el portafolio" %}{% endif %}</small>{% endif %}</dd></div>
+        {% if centro.fuente %}<div><dt>{% translate "Documento de respaldo" %}</dt><dd>{{ centro.fuente }}</dd></div>{% endif %}
+        <div><dt>{% translate "Enlace público" %}</dt><dd><a class="cv-enlace-area" href="{{ ficha_url }}" target="_top">{{ enlace_publico }}</a></dd></div>
+      </dl>
+    </article>
+    <article class="ficha__bloque" data-aparecer>
+      <header><i class="fas fa-user-tie" aria-hidden="true"></i><h2>{% translate "Quién dirige y quién atiende" %}</h2></header>
+      {% if director %}<div class="ficha__equipo cv-equipo--uno">{% include 'centros_id/visor/_persona.html' with persona=director %}</div>{% endif %}
+      <ul class="area__lista cv-lista-atencion">
+        {% if comite %}<li>{{ comite }} {% translate "integrantes del comité técnico-científico" %}</li>{% endif %}
+        {% if atienden %}<li>{{ atienden }} {% if atienden == 1 %}{% translate "persona atiende" %}{% else %}{% translate "personas atienden" %}{% endif %} {% translate "las solicitudes del centro" %}</li>{% endif %}
+        {% if not director %}<li>{% translate "La dirección se publica cuando el centro la registra." %}</li>{% endif %}
+      </ul>
+    </article>
+  </div>
+</section>
+
+<section class="conoce__seccion" id="accesos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Para seguir" %}</span><h2>{% translate "Accesos" %}</h2></header>
+  <div class="area__recursos">
+    <a href="{{ ubicacion_url }}" data-aparecer><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span><strong>{% translate "Ubicación y cómo llegar" %}</strong><small>{% translate "El centro en el mapa, con sus sedes" %}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    {% if hay_equipo %}<a href="{% url 'seccion_centro_id' centro.slug 'direccion' %}" data-aparecer><i class="fas fa-users" aria-hidden="true"></i><span><strong>{% translate "Equipo del centro" %}</strong><small>{% translate "Dirección, comité e investigadores" %}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+    <a href="{{ solicitar_url }}" data-aparecer><i class="fas fa-paper-plane" aria-hidden="true"></i><span><strong>{% translate "Proponer o solicitar" %}</strong><small>{% translate "Un reto, un servicio, el acceso a un área o una visita" %}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    <a href="{% url 'seccion_centro_id' centro.slug 'documentos' %}" data-aparecer><i class="fas fa-folder-open" aria-hidden="true"></i><span><strong>{% translate 'Documentos y descargas' %}</strong><small>{% translate 'Ficha del centro y documentos de consulta' %}</small></span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+  </div>
+</section>
+{% endblock %}

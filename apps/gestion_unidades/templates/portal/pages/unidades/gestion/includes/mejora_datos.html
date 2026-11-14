@@ -1,0 +1,5 @@
+{% csrf_token %}
+<input type="hidden" name="anio" value="{{ anio }}">
+<input type="hidden" name="corte" value="{{ corte }}">
+<input type="hidden" name="informe" value="{{ tramite_mejora.pk }}">
+{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}

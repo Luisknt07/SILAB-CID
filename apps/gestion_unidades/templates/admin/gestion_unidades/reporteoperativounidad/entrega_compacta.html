@@ -1,0 +1,12 @@
+{% load tz %}
+{% if casilla.es_soporte_planificacion %}{% include 'admin/gestion_unidades/reporteoperativounidad/soporte_planificacion.html' %}{% else %}
+{% with d=casilla.documento lectura=casilla.documento.resumen_interfaz %}
+<tr data-avance-documento="{{ d.pk }}">
+  <th scope="row" class="citt-matriz__nombre"><span class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ d.nombre_documental }}</span></span><small>{% if lectura.permanente %}Documento permanente{% else %}{{ d.etiqueta_gestion }}{% endif %}{% if d.recurso_id %} · v{{ d.version }}{% endif %}</small></th>
+  <td>{% include 'portal/pages/unidades/gestion/includes/estado_aprobacion_qr.html' with qr=lectura.revision_simple fecha_visible=True %}</td>
+  <td class="citt-matriz__avance">{% include 'portal/pages/unidades/gestion/includes/avance_documental.html' with avance=lectura.avance nombre_documento=d.nombre_documental %}{% if lectura.cierre_operativo and lectura.nota is not None %}<small>Resultado: {{ lectura.nota }} %</small>{% endif %}</td>
+  <td class="documento-fechas">{% if not lectura.permanente or d.correccion_hasta %}{% if lectura.plazo %}<small>{% if d.correccion_hasta %}Corrección hasta: {{ lectura.plazo|localtime|date:'d/m/Y H:i' }}{% else %}Plazo: {{ lectura.plazo|localtime|date:'d/m/Y' }}{% endif %}</small>{% else %}<small>Sin fecha asignada</small>{% endif %}{% endif %}{% if lectura.fecha_envio %}<small>Enviado: {{ lectura.fecha_envio|date:'d/m/Y H:i' }}</small>{% endif %}{% if d.pk and not lectura.aprobacion.vigente %}<a class="citt-plazo-enlace" data-plazos-documento href="?{{ query }}&amp;plazos={{ d.pk }}#plazos-documento">Plazo</a>{% endif %}</td>
+  <td class="citt-matriz__obs">{% if d.pk %}<a class="citt-matriz__seguimiento" data-evaluar-documento href="?{{ query }}&amp;revisar={{ d.pk }}&amp;vista=observaciones#evaluacion" aria-haspopup="dialog">Observaciones</a>{% else %}—{% endif %}</td>
+  <td class="citt-matriz__decision">{% include 'admin/gestion_unidades/reporteoperativounidad/qr_acciones_fila.html' %}</td>
+</tr>
+{% endwith %}{% endif %}

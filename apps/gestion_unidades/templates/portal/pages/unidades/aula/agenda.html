@@ -1,0 +1,39 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Agenda y disponibilidad" %}{% endblock %}
+{% block encabezado %}{% translate "Agenda y disponibilidad" %}{% endblock %}
+{% block subtitulo %}{% translate "Consulta anónima de las franjas libres y comprometidas" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Desde" %}</dt><dd>{{ desde|date:'d/m/Y' }}</dd></div><div><dt>{% translate "Hasta" %}</dt><dd>{{ hasta|date:'d/m/Y' }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Agenda pública de la unidad" %}{% endblock %}
+{% block barra %}<div><a class="es-navegacion" href="{{ volver_url }}" target="_top">{% translate "← Volver a la unidad" %}</a><a href="?desde={{ anterior|date:'Y-m-d' }}">{% translate "← 14 días" %}</a><a href="?desde={{ hoy|date:'Y-m-d' }}">{% translate "Hoy" %}</a><a href="?desde={{ siguiente|date:'Y-m-d' }}">{% translate "14 días →" %}</a><a class="is-primary" href="{{ reservar_url }}" target="_top">{% translate "Reservar" %}</a></div>{% endblock %}
+{% block contenido %}
+<style>
+  .public-agenda-note { display:flex; align-items:flex-start; gap:10px; margin:0 0 16px; padding:13px 15px; border-left:4px solid #087f8f; background:var(--institucion-fondo, #eef7f5); color:var(--institucion-texto, #34584b); font-size:12px; line-height:1.55; }
+  .public-agenda-legend { display:flex; flex-wrap:wrap; gap:12px; margin:0 0 14px; color:#4d645a; font-size:11px; }
+  .public-agenda-legend span { display:flex; align-items:center; gap:6px; }
+  .public-agenda-legend i { width:11px; height:11px; border-radius:3px; background:var(--institucion-primario-suave, #e3f3ec); box-shadow:inset 0 0 0 1px #aad4c1; }
+  .public-agenda-legend .is-busy { background:#f8e7bd; box-shadow:inset 0 0 0 1px var(--institucion-acento, #e3c46d); }
+  .public-agenda { display:grid; grid-template-columns:repeat(auto-fit,minmax(245px,1fr)); gap:12px; }
+  .public-agenda-day { overflow:hidden; border:1px solid var(--institucion-primario-suave, #d7e4dc); border-radius:8px; background:#fff; }
+  .public-agenda-day > header { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:var(--institucion-fondo, #f2f8f5); border-bottom:1px solid var(--institucion-primario-suave, #dce8e1); }
+  .public-agenda-day h3 { margin:0; color:var(--institucion-texto, #123024); font-size:13px; text-transform:capitalize; }
+  .public-agenda-day header small { color:#587166; font-size:9px; font-weight:800; }
+  .public-agenda-day__slots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:10px; }
+  .public-agenda-slot { display:grid; gap:2px; padding:7px 8px; border:1px solid var(--institucion-primario-suave, #bcdcca); border-radius:5px; color:var(--institucion-texto, #285443); background:var(--institucion-fondo, #edf8f2); font-size:10px; }
+  .public-agenda-slot.is-busy { border-color:var(--institucion-acento, #e0c36f); color:var(--institucion-acento-tinta, #725613); background:#fff4d6; }
+  .public-agenda-slot strong { font-size:10px; }
+  .public-agenda-slot small { font-size:8px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; }
+  .public-agenda-empty { margin:0; padding:20px 12px; color:#73857d; font-size:11px; text-align:center; }
+</style>
+<p class="public-agenda-note"><i class="fas fa-user-shield" aria-hidden="true"></i><span>{% translate "Esta consulta solo publica si una franja está disponible o comprometida. No muestra nombres, actividades, códigos de reserva ni detalles de la operación." %}</span></p>
+<div class="public-agenda-legend"><span><i></i> {% translate "Disponible" %}</span><span><i class="is-busy"></i> {% translate "Comprometido" %}</span></div>
+<section class="public-agenda" aria-label="Disponibilidad de {{ unidad.nombre }}">
+  {% for dia in agenda %}
+  <article class="public-agenda-day">
+    <header><h3>{{ dia.fecha|date:'l d \d\e F' }}</h3><small>{% if dia.habilitado %}{{ dia.disponibles }} libre{{ dia.disponibles|pluralize }} · {{ dia.comprometidos }} comprometida{{ dia.comprometidos|pluralize }}{% else %}{% translate "Sin atención publicada" %}{% endif %}</small></header>
+    {% if dia.slots %}<div class="public-agenda-day__slots">{% for slot in dia.slots %}<span class="public-agenda-slot{% if slot.estado == 'comprometido' %} is-busy{% endif %}"><strong>{{ slot.inicio|time:'H:i' }}–{{ slot.fin|time:'H:i' }}</strong><small>{{ slot.estado }}</small></span>{% endfor %}</div>{% else %}<p class="public-agenda-empty">{% translate "No hay jornada reservable." %}</p>{% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

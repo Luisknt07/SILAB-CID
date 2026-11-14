@@ -1,0 +1,56 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{{ ejercicio.nombre }}{% endblock %}
+{% block encabezado %}{{ ejercicio.nombre }}{% endblock %}
+{% block subtitulo %}{{ ejercicio.get_simulador_display|ui }} · {{ ejercicio.receta.nombre_publico }}{% endblock %}
+{% block pie %}{% translate "Ejercicio" %} {{ ejercicio.codigo }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Tu escala" %}</dt><dd>{{ escala }}</dd></div><div><dt>{% translate "Corridas base" %}</dt><dd>{% translate "×" %} {{ intento.factor|floatformat:"-3" }}</dd></div>{% if ejercicio.fecha_limite %}<div><dt>{% translate "Entrega" %}</dt><dd>{{ ejercicio.fecha_limite|date:"d/m/Y" }}</dd></div>{% endif %}{% endblock %}
+{% block barra %}<div><a class="es-navegacion" href="{{ volver_url }}">{% translate "Mis ejercicios" %}</a><a class="es-navegacion" href="{{ simulador_url }}">{% translate "Abrir el simulador con mis datos" %}</a></div>{% endblock %}
+{% block contenido %}
+<section class="unit-report__context"><span>CONSIGNA</span><h2>{{ ejercicio.receta.nombre_publico }} a {{ escala }}</h2><p>{{ ejercicio.consigna|linebreaksbr }}</p></section>
+
+{% if error %}<p class="unit-report__notice aula-falta">{{ error }}</p>{% endif %}
+
+{% if intento.estado == 'calificado' %}
+<section class="unit-report__section">
+  <header><span>RESULTADO</span><small>{{ intento.entregado_en|date:"d/m/Y H:i" }}{% if intento.fuera_de_plazo %} {% translate "· fuera de plazo" %}{% endif %}</small></header>
+  <p class="unit-report__notice"><strong class="{% if intento.aciertos == intento.preguntas_totales %}aula-ok{% else %}aula-aviso{% endif %}">{{ intento.puntaje|floatformat:"-2" }} de {{ ejercicio.puntaje|floatformat:"-2" }}</strong> · {{ intento.aciertos }} de {{ intento.preguntas_totales }} {% translate "respuestas dentro de la tolerancia de" %} {{ ejercicio.tolerancia_pct|floatformat:"-2" }} %.{% if intento.comentario %} {{ intento.comentario }}{% endif %}</p>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Pregunta" %}</th><th>{% translate "Tu respuesta" %}</th><th>{% translate "El motor calcula" %}</th><th>{% translate "Resultado" %}</th></tr></thead><tbody>
+    {% for fila in intento.resultados %}<tr>
+      <td>{{ fila.texto }}{% if fila.unidad %} <small>({{ fila.unidad }})</small>{% endif %}</td>
+      <td>{{ fila.respuesta|default:"—" }}</td>
+      <td>{{ fila.esperado }}</td>
+      <td>{% if fila.correcta %}<span class="aula-ok">{% translate "Correcta" %}</span>{% else %}<span class="aula-falta">{% translate "Fuera de tolerancia" %}</span>{% endif %}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% else %}
+<section class="unit-report__section">
+  <header><span>{% translate "TUS RESPUESTAS" %}</span><small>{{ preguntas|length }} {% translate "preguntas ·" %} {{ ejercicio.puntaje|floatformat:"-2" }} {% translate "puntos en total" %}</small></header>
+  <p class="unit-report__notice">{% translate "Abre el simulador con tus datos, lee los resultados a tu escala y escribe aquí cada valor. Se admite una diferencia de hasta" %} {{ ejercicio.tolerancia_pct|floatformat:"-2" }} {% translate "% respecto de lo que calcula el motor." %}</p>
+  {% if intento.estudiante_id == request.user.id and ejercicio.abierto and not ejercicio.vencido %}
+  <form method="post" class="aula-form">
+    {% csrf_token %}
+    {% for pregunta in preguntas %}
+    <label class="aula-form__wide">{{ pregunta.texto }}{% if pregunta.unidad %} ({{ pregunta.unidad }}){% endif %}
+      <input type="text" inputmode="decimal" name="{{ pregunta.clave }}" placeholder="{% translate "Escribe el número" %}" required>
+      <small>{{ pregunta.ayuda }}</small>
+    </label>
+    {% endfor %}
+    <button type="submit" class="aula-form__wide">{% translate "Entregar el ejercicio" %}</button>
+  </form>
+  {% else %}
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Pregunta" %}</th><th>{% translate "Qué se pide" %}</th></tr></thead><tbody>
+    {% for pregunta in preguntas %}<tr><td>{{ pregunta.texto }}{% if pregunta.unidad %} <small>({{ pregunta.unidad }})</small>{% endif %}</td><td>{{ pregunta.ayuda }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="unit-report__notice">{% if not ejercicio.abierto %}{% translate "El ejercicio no está abierto a entregas." %}{% elif ejercicio.vencido %}{% translate "El plazo de entrega venció." %}{% else %}{% translate "Este ejercicio es de" %} {{ intento.estudiante.get_full_name|default:intento.estudiante.username }}.{% endif %}</p>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "DÓNDE ESTÁN LOS DATOS" %}</span></header>
+  <p class="unit-report__notice">{% translate "El simulador de este ejercicio es" %} <strong>{{ ejercicio.get_simulador_display|ui }}</strong> {% translate "sobre el proceso" %} <strong>{{ ejercicio.receta.nombre_publico }}</strong>{% translate ". Ábrelo con tus datos ya cargados:" %} <a href="{{ simulador_url }}">{{ ejercicio.get_simulador_display|lower|ui }} a {{ escala }}</a>.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static i18n idiomas reportes_estilo %}
+{% block title %}{% translate "Completitud de" %} {{ unidad.nombre }} · {{ identidad_producto.nombre_corto }} · {{ identidad_institucion.siglas }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/panel_gestion.css' %}?v=20261016-fondo-blanco-v7">
+<style>
+.coverage{max-width:1500px;margin:28px auto;padding:0 22px;color:var(--institucion-texto,#173b2c)}
+.coverage__head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:18px}.coverage__head span{color:#0d8999;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.coverage__head h1{margin:3px 0 4px;font-size:30px}.coverage__head p{margin:0;color:#60776b}.coverage__back{padding:10px 14px;border:1px solid #bad4c7;border-radius:6px;color:var(--institucion-texto,#175d47);font-weight:800;text-decoration:none}
+.coverage__metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}.coverage__metrics article,.coverage__card{padding:16px;border:1px solid var(--institucion-primario-suave,#d5e4dc);border-radius:10px;background:#fff;box-shadow:0 10px 28px rgba(var(--institucion-primario-rgb,16,61,47),.06)}.coverage__metrics span{display:block;color:#667d71;font-size:11px;font-weight:800;text-transform:uppercase}.coverage__metrics strong{display:block;margin:5px 0;color:var(--institucion-texto,#0a3f35);font-size:28px}
+.coverage__bar{display:block;height:7px;border-radius:10px;background:var(--institucion-primario-suave,#e3ece7);overflow:hidden}.coverage__bar i{display:block;height:100%;background:var(--institucion-primario,#176a50)}.coverage__layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,.75fr);gap:16px}.coverage__card{margin-bottom:14px}.coverage__card h2{margin:0 0 12px;font-size:21px}.coverage__tabs .coverage__pestana{border:1px solid var(--institucion-primario-suave,#d7e5dd);border-radius:8px;margin:9px 0;overflow:hidden}.coverage__tabs .coverage__abrir{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px;background:var(--institucion-primario-suave,#edf6f1);cursor:pointer}.coverage__tabs .coverage__abrir b{display:grid;width:40px;height:34px;place-items:center;border-radius:5px;background:var(--institucion-primario,#12654e);color:#fff}.coverage__tabs .coverage__abrir strong{display:block}.coverage__tabs .coverage__abrir small{color:#65796f}
+.coverage table{width:100%;border-collapse:collapse;font-size:12px}.coverage th,.coverage td{padding:9px 10px;border-bottom:1px solid var(--institucion-primario-suave,#e1e9e4);text-align:left;vertical-align:top}.coverage th{color:#587066;font-size:10px;text-transform:uppercase}.coverage__status{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase;white-space:nowrap}.coverage__status--aprobado{background:#dff3e8;color:#17633f}.coverage__status--parcial{background:#fff2c9;color:#795600}.coverage__status--pendiente{background:#edf1ef;color:#52675d}.coverage__status--bloqueado{background:#f8dddd;color:#922f2f}
+.coverage__families{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.coverage__family{padding:12px;border:1px solid var(--institucion-primario-suave,#d7e5dd);border-radius:8px}.coverage__family header{display:flex;justify-content:space-between;gap:10px;align-items:start}.coverage__family strong,.coverage__family small{display:block}.coverage__family small{margin-top:3px;color:#667d71}.coverage__family .coverage__bar{margin-top:9px}.coverage__blockers ol{margin:0;padding:0;list-style:none}.coverage__blockers li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;padding:10px 0;border-bottom:1px solid var(--institucion-primario-suave,#e2eae5)}.coverage__blockers b{display:grid;width:30px;height:30px;place-items:center;border-radius:50%;background:#fff2d8;color:var(--institucion-acento-tinta,#8b5d00)}.coverage__blockers strong,.coverage__blockers small{display:block}.coverage__blockers small{margin-top:2px;color:#6a7e74}.coverage__note{padding:11px 13px;border-left:4px solid #0d8999;background:var(--institucion-fondo,#eef8f8);color:var(--institucion-texto,#45685f);font-size:12px;line-height:1.55}
+@media(max-width:900px){.coverage__layout{grid-template-columns:1fr}.coverage__metrics,.coverage__families{grid-template-columns:1fr}.coverage__head{align-items:start;flex-direction:column}.coverage__table{overflow:auto}}
+</style>
+{% include 'portal/components/gestion_interfaz_assets.html' %}
+{% endblock %}
+{% block content %}
+<main class="coverage">
+  <header class="coverage__head">
+    <div><span>{% translate "PASO 6 · CONTROL INTERNO" %}</span><h1>{% translate "Completitud de" %} {{ unidad.nombre }}</h1><p>{% translate "La publicación avanza con datos validados. Las ausencias siguen visibles para gestión y no se sustituyen con ejemplos." %}</p></div>
+    <a class="coverage__back" href="{% url 'gestion_unidad' unidad.slug %}"><i class="fas fa-arrow-left"></i> {% translate "Volver a gestionar" %}</a>
+  </header>
+  <section class="coverage__metrics">
+    <article><span>{% translate "Planta seleccionada" %}</span><strong>{{ tablero.porcentaje }} %</strong><small>{{ tablero.publicado }} de {{ tablero.esperado }} {% translate "fichas objetivo" %}</small><i class="coverage__bar is-{{ tablero.porcentaje|semaforo_avance }}"><i style="width:{{ tablero.porcentaje }}%"></i></i></article>
+    <article><span>{% translate "Plantas que puedes gestionar" %}</span><strong>{{ plantas|length }}</strong><small>{% translate "alcance según tus permisos" %}</small></article>
+    <article><span>{% translate "Plataforma en tu alcance" %}</span><strong>{{ plataforma.porcentaje }} %</strong><small>{{ plataforma.publicado }} de {{ plataforma.esperado }} {% translate "fichas objetivo" %}</small><i class="coverage__bar is-{{ plataforma.porcentaje|semaforo_avance }}"><i style="width:{{ plataforma.porcentaje }}%"></i></i></article>
+  </section>
+  <div class="coverage__layout">
+    <section>
+      <article class="coverage__card coverage__tabs">
+        <h2>{% translate "Avance por pestaña y sección" %}</h2>
+        {% for pestana in tablero.pestanas %}
+          <div class="coverage__pestana" data-reporte-informacion>
+            <button type="button" class="coverage__abrir" data-reporte-informacion-abrir data-modal-titulo="{% translate 'Secciones de' %} {{ pestana.titulo }}" aria-haspopup="dialog" title="{% translate 'Ver secciones y su avance' %}"><b>{{ forloop.counter }}</b><span><strong>{{ pestana.titulo }}</strong><small>{{ pestana.publicado }}/{{ pestana.esperado }} · {{ pestana.responsable }}</small></span><strong>{{ pestana.porcentaje }} %</strong></button>
+            <template data-reporte-informacion-contenido>
+            <div class="coverage__table"><table><thead><tr><th>{% translate "Sección" %}</th><th>{% translate "Contenido" %}</th><th>{% translate "Publicadas" %}</th><th>{% translate "Meta" %}</th><th>{% translate "Avance" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+            {% for fila in pestana.secciones %}<tr><td><b>{{ fila.numero }}</b></td><td>{{ fila.titulo }}</td><td>{{ fila.publicado }}</td><td>{{ fila.esperado }}</td><td>{{ fila.porcentaje }} %</td><td><span class="coverage__status coverage__status--{{ fila.estado }}">{{ fila.estado_etiqueta|ui }}</span></td></tr>{% endfor %}
+            </tbody></table></div>
+            </template>
+          </div>
+        {% endfor %}
+      </article>
+      <article class="coverage__card">
+        <h2>{% translate "Avance por familia" %}</h2>
+        <div class="coverage__families">{% for item in tablero.familias %}<div class="coverage__family"><header><div><strong>{{ item.familia.nombre }}</strong><small>{{ item.aprobado }} de {{ item.total }} {% translate "fichas aprobadas" %}</small></div><span class="coverage__status coverage__status--{{ item.estado }}">{{ item.estado_etiqueta|ui }}</span></header><i class="coverage__bar is-{{ item.porcentaje|semaforo_avance }}"><i style="width:{{ item.porcentaje }}%"></i></i></div>{% empty %}<p>{% translate "La planta todavía no tiene familias configuradas." %}</p>{% endfor %}</div>
+      </article>
+      <article class="coverage__card">
+        <h2>{% translate "Completitud por ficha" %}</h2>
+        <div class="coverage__table"><table><thead><tr><th>{% translate "Código" %}</th><th>{% translate "Ficha" %}</th><th>{% translate "Resultado" %}</th><th>{% translate "Validación institucional" %}</th><th>{% translate "Versión" %}</th><th>{% translate "Completitud" %}</th><th>{% translate "Bloqueos técnicos" %}</th></tr></thead><tbody>
+        {% for item in tablero.fichas %}<tr><td>{{ item.ficha.codigo }}</td><td><strong>{{ item.ficha.titulo }}</strong><br><small>{{ item.ficha.get_tipo_display|ui }} · {{ item.ficha.get_estado_display|ui }}</small></td><td><span class="coverage__status coverage__status--{{ item.estado }}">{{ item.estado_etiqueta|ui }}</span></td><td>{{ item.ficha.get_estado_validacion_display|ui }}{% if item.ficha.validado_por %}<br><small>{{ item.ficha.validado_por.get_full_name|default:item.ficha.validado_por.username }}</small>{% endif %}{% if item.ficha.observacion_validacion %}<br><small>{{ item.ficha.observacion_validacion }}</small>{% endif %}</td><td>V{{ item.ficha.version }}</td><td>{{ item.ficha.completitud }} %</td><td>{% for vacio in item.vacios %}{{ vacio.nombre }}{% if not forloop.last %}; {% endif %}{% empty %}—{% endfor %}</td></tr>{% empty %}<tr><td colspan="7">{% translate "La unidad todavía no tiene fichas en el índice editorial." %}</td></tr>{% endfor %}
+        </tbody></table></div>
+      </article>
+    </section>
+    <aside>
+      <article class="coverage__card coverage__blockers"><h2>{% translate "Campos críticos vacíos" %}</h2><ol>{% for bloqueo in tablero.bloqueos %}<li><b>{{ bloqueo.fichas }}</b><div><strong>{{ bloqueo.campo }}</strong><small>{% translate "Bloquea" %} {{ bloqueo.bloquea }} en {{ bloqueo.fichas }} ficha{{ bloqueo.fichas|pluralize }}.</small></div></li>{% empty %}<li><div><strong>{% translate "Sin bloqueos críticos" %}</strong></div></li>{% endfor %}</ol></article>
+      <p class="coverage__note"><strong>{% translate "Cómo se interpreta." %}</strong> {% translate "Una ficha puede estar publicada y seguir incompleta. Solo queda aprobada cuando alcanza la completitud requerida y la institución la valida. Las recargas técnicas conservan las decisiones editoriales del administrador." %}</p>
+    </aside>
+  </div>
+</main>
+{% endblock %}

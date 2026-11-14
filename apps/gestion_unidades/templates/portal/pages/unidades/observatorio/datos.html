@@ -1,0 +1,22 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Series y conjuntos de datos" %}{% endblock %}
+{% block encabezado %}{% translate "Series y conjuntos de datos" %}{% endblock %}
+{% block subtitulo %}{% translate "Los valores de cada indicador por periodo y territorio, listos para descargar" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Indicadores" %}</dt><dd>{{ filas|length }}</dd></div><div><dt>{% translate "Valores" %}</dt><dd>{{ total_valores }}</dd></div><div><dt>{% translate "Licencia" %}</dt><dd>{{ licencia.0 }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Datos del observatorio" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<div class="obs-descargas"><a href="{% url 'datos_csv_observatorio' unidad.slug %}"><i class="fas fa-file-csv" aria-hidden="true"></i> {% translate "Todas las series en CSV" %}</a><a href="{% url 'datos_json_observatorio' unidad.slug %}" target="_blank" rel="noopener"><i class="fas fa-code" aria-hidden="true"></i> {% translate "Todo en JSON" %}</a></div>
+{% if filas %}
+<div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Indicador" %}</th><th>{% translate "Último valor" %}</th><th>{% translate "Periodo" %}</th><th>{% translate "Valores" %}</th><th>{% translate "Descarga" %}</th></tr></thead><tbody>
+  {% for fila in filas %}<tr>
+    <td><a href="{% url 'indicador_observatorio' unidad.slug fila.indicador.codigo %}"><strong>{{ fila.indicador.nombre }}</strong></a></td>
+    <td>{{ fila.ultimo_texto }} {{ fila.indicador.unidad_medida }}</td><td>{{ fila.ultimo.periodo|default:"—" }}</td><td>{{ fila.total_valores }}</td>
+    <td>{% if fila.total_valores %}<a href="{% url 'datos_csv_indicador_observatorio' unidad.slug fila.indicador.codigo %}">CSV</a>{% else %}—{% endif %}</td>
+  </tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+<p class="unit-report__notice">{% blocktranslate with licencia=licencia.0 %}Los datos agregados son abiertos con licencia {{ licencia }}: puedes reutilizarlos citando al observatorio. El CSV usa punto y coma y coma decimal, como lo abre Excel en español.{% endblocktranslate %}</p>
+{% endblock %}

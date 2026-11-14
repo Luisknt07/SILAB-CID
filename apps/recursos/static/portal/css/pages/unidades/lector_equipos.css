@@ -1,0 +1,152 @@
+/* Lector de equipos de la gestión: la lectura a la izquierda y la ficha del equipo (o su registro) a la
+   derecha; en el celular, una columna. Usa la cabecera y las tarjetas de la ficha del activo. */
+.lector { --lector-borde: var(--institucion-primario-suave, #d7e1db); --lector-tinta: var(--institucion-texto, #1c3b2c);
+    --lector-primario: var(--institucion-primario, #1e5a3d); --lector-acento: var(--institucion-acento, #e1b738);
+    --lector-gris: #5f7569; --lector-fondo: #f4f8f6; }
+.lector .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lector .ficha__volver i { margin-right: 4px; }
+.lector__cuerpo { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); align-items: start; gap: 14px; padding-top: 14px; }
+.lector__camara { min-width: 0; }
+.lector__panel { display: grid; gap: 14px; min-width: 0; }
+
+.lector__visor { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 8px; background: #0d1f18; }
+.lector__visor video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lector__mira { position: absolute; inset: 24% 10%; border: 2px solid var(--lector-acento); border-radius: 10px; box-shadow: 0 0 0 999px rgba(0, 0, 0, .28); pointer-events: none; }
+.lector__visor.is-leyendo .lector__mira::after { content: ""; position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: #ff5b4d; box-shadow: 0 0 8px #ff5b4d; animation: lector-barrido 1.6s ease-in-out infinite alternate; }
+@keyframes lector-barrido { from { transform: translateY(-38px); } to { transform: translateY(38px); } }
+@media (prefers-reduced-motion: reduce) { .lector__visor.is-leyendo .lector__mira::after { animation: none; } }
+.lector .lector__estado { z-index: 2; position: absolute; left: 10px; right: 10px; bottom: 10px; margin: 0; padding: 7px 10px; border-radius: 6px; background: rgba(0, 0, 0, .62); color: #fff; font-size: 12px; text-align: center; }
+
+.lector__boton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; border: 1px solid var(--lector-borde); border-radius: 6px; background: #fff; color: var(--lector-tinta); font: inherit; font-size: 12.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.lector__boton:hover { border-color: var(--lector-primario); }
+.lector__boton.is-principal { border-color: var(--lector-primario); background: var(--lector-primario); color: #fff; }
+.lector__boton.is-principal:hover { filter: brightness(1.08); }
+.lector__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.lector__manual { margin-top: 14px; }
+.lector__manual label, .lector__unidad { display: block; margin-bottom: 6px; color: var(--institucion-acento-tinta, #9a7420); font-size: 9.5px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+.lector__manual div { display: flex; gap: 8px; }
+.lector__manual small { display: block; margin-top: 6px; color: var(--lector-gris); font-size: 11px; line-height: 1.4; }
+.lector__manual input, .lector__formulario input, .lector__formulario select, .lector__unidad select { flex: 1; min-width: 0; width: 100%; padding: 9px 11px; border: 1px solid var(--lector-borde); border-radius: 6px; background: #fff; color: var(--lector-tinta); font: inherit; font-size: 13px; }
+.lector__unidad select { display: block; margin-top: 5px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+
+.lector__pasos { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.lector__pasos li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 8px; background: var(--lector-fondo); }
+.lector__pasos i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #fff; color: var(--lector-primario); font-size: 15px; }
+.lector__pasos span { color: var(--lector-gris); font-size: 12px; line-height: 1.45; }
+.lector__pasos strong { display: block; color: var(--lector-tinta); font-size: 13px; }
+
+/* Ficha del equipo leído */
+.lector__resultado { display: grid; gap: 14px; }
+.lector__equipo { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 16px; }
+.lector__equipo-foto { display: grid; place-items: center; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 8px; background: var(--lector-fondo); color: var(--lector-primario); font-size: 60px; }
+.lector__equipo-foto img { width: 100%; height: 100%; object-fit: cover; }
+.lector__equipo h2 { margin: 6px 0 2px; color: var(--lector-tinta); font-size: 20px; line-height: 1.2; }
+.lector__equipo-datos > p { margin: 0; color: var(--lector-gris); font-size: 12.5px; }
+.lector__etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lector__etiquetas span { padding: 3px 9px; border-radius: 999px; background: var(--lector-fondo); color: var(--lector-primario); font-size: 11px; font-weight: 700; }
+.lector__semaforo { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #e3f5ea; color: #1d7a47; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.lector__equipo.is-atencion .lector__semaforo, .lector__equipo.is-por_vencer .lector__semaforo { background: #fff4d6; color: #8a6207; }
+.lector__equipo.is-critico .lector__semaforo, .lector__equipo.is-vencido .lector__semaforo { background: #fbeceb; color: #a12c2c; }
+.lector__datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px 16px; margin: 0; }
+.lector__datos--registro { margin-top: 14px; }
+.lector__datos dt { color: var(--lector-primario); font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.lector__datos dd { margin: 2px 0 0; color: var(--lector-tinta); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.lector__datos dd small { display: block; color: var(--lector-gris); font-size: 11px; font-weight: 600; }
+.lector__codigo { font-family: Consolas, 'Courier New', monospace; }
+.lector .lector__alerta { margin: 10px 0 0; padding: 9px 12px; border-left: 3px solid var(--lector-acento); border-radius: 6px; background: #fff8df; color: #745711; font-size: 12px; font-weight: 700; }
+.lector .lector__alerta.is-critico { border-left-color: #c0392b; background: #fbeceb; color: #a12c2c; }
+.lector__motivos { margin: 8px 0 0; padding-left: 18px; color: var(--lector-gris); font-size: 12px; }
+.lector__enlaces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+.lector__secciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.lector__secciones > .is-ancha { grid-column: 1 / -1; }
+.lector__lista { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lector__lista li { display: grid; gap: 1px; padding: 8px 10px; border-left: 3px solid var(--lector-primario); border-radius: 6px; background: var(--lector-fondo); font-size: 12px; }
+.lector__lista time, .lector__lista small { color: var(--lector-gris); font-size: 11px; font-weight: 600; }
+.lector__lista strong { color: var(--lector-tinta); font-size: 12.5px; }
+.lector__lista span { color: var(--lector-gris); }
+.lector .lector__vacio { margin: 0; color: var(--lector-gris); font-size: 12px; }
+.lector__recorrido { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin: 0; padding: 0; list-style: none; }
+.lector__recorrido li { position: relative; display: grid; padding: 7px 11px; border-radius: 8px; background: var(--lector-fondo); font-size: 12px; }
+.lector__recorrido li + li::before { content: "→"; position: absolute; left: -16px; top: 50%; transform: translateY(-50%); color: var(--lector-gris); }
+.lector__recorrido li.is-actual { background: var(--lector-primario); color: #fff; }
+.lector__recorrido li.is-actual small { color: rgba(255, 255, 255, .8); }
+.lector__recorrido small { color: var(--lector-gris); font-size: 10.5px; }
+.lector__chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lector__chips li { padding: 4px 9px; border: 1px solid var(--lector-borde); border-radius: 999px; color: var(--lector-tinta); font-size: 11.5px; }
+
+/* Parentela: hermanos, mismo modelo y familia */
+.lector__familia-unidades { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.lector__familia-unidades li { display: grid; gap: 2px; padding: 9px 11px; border: 1px solid var(--lector-borde); border-radius: 8px; }
+.lector__familia-unidades li.is-actual { border-color: var(--lector-primario); background: var(--lector-fondo); }
+.lector__familia-unidades strong { color: var(--lector-primario); font-size: 18px; line-height: 1; }
+.lector__familia-unidades span { color: var(--lector-tinta); font-size: 12px; font-weight: 700; }
+.lector__familia-unidades small { color: var(--lector-gris); font-size: 11px; }
+.lector__parientes { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.lector .ficha__tarjeta h3 { margin: 16px 0 7px; color: var(--lector-primario); font-size: 11px !important; font-weight: 800; letter-spacing: .05em; line-height: 1.35; text-transform: uppercase; }
+.lector .ficha__tarjeta > header h2 { margin-bottom: 8px; }
+.lector__grupo { margin-bottom: 6px; border: 1px solid var(--lector-borde); border-radius: 8px; }
+.lector__grupo summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; color: var(--lector-tinta); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.lector__grupo summary b { min-width: 26px; padding: 2px 8px; border-radius: 999px; background: var(--lector-fondo); color: var(--lector-primario); font-size: 11px; text-align: center; }
+.lector__grupo[open] summary { border-bottom: 1px solid var(--lector-borde); }
+.lector__grupo .lector__parientes { padding: 8px; }
+.lector__parientes a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 10px; border: 1px solid #e5ece8; border-radius: 6px; color: inherit; text-decoration: none; }
+.lector__parientes a:hover { border-color: var(--lector-primario); background: var(--lector-fondo); }
+.lector__parientes a strong { color: var(--lector-tinta); font-size: 12.5px; }
+.lector__parientes a small { grid-column: 1; color: var(--lector-gris); font-size: 11px; }
+.lector__parientes a b { grid-row: 1 / span 2; grid-column: 2; align-self: center; padding: 2px 8px; border-radius: 999px; background: #eef2f0; color: var(--lector-gris); font-size: 10.5px; }
+.lector__parientes a b.is-disponible { background: #e3f5ea; color: #1d7a47; }
+.lector .lector__resumen-cifra { margin: 0 0 10px; color: var(--lector-gris); font-size: 12px; }
+.lector .lector__resumen-cifra strong { color: var(--lector-tinta); }
+
+/* Registro de un código nuevo */
+.lector__registro header strong { font-family: Consolas, 'Courier New', monospace; font-size: 15px; }
+.lector__registro header p { margin: 0; }
+.lector__registro > [data-otra] { margin-top: 14px; }
+.lector__unidad { margin: 12px 0 0; }
+.lector__formulario { display: grid; gap: 12px; }
+.lector__formulario label { display: grid; gap: 5px; color: var(--lector-tinta); font-size: 12px; font-weight: 800; }
+.lector .lector__ayuda { margin: 0; color: var(--lector-gris); font-size: 12.5px; line-height: 1.5; }
+.lector__fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.lector__candidatos { display: grid; gap: 6px; max-height: 300px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.lector__candidatos label { display: flex !important; align-items: center; justify-content: flex-start; gap: 10px; padding: 9px 11px; border: 1px solid #e3ebe7; border-radius: 6px; cursor: pointer; }
+.lector__candidatos label:has(input:checked) { border-color: var(--lector-primario); background: var(--lector-fondo); }
+.lector__candidatos input { flex: 0 0 auto; width: auto; margin: 0; }
+.lector__candidatos span { display: grid; }
+.lector__candidatos small { color: var(--lector-gris); font-weight: 600; }
+.lector .lector__error { margin: 0; padding: 9px 12px; border-radius: 6px; background: #fbeceb; color: #a12c2c; font-size: 12.5px; font-weight: 700; }
+.lector__formulario > .lector__boton { justify-self: start; }
+
+/* Registro inteligente: lo que dice bodega, el nombre y solo lo relacionado. */
+.lector__bodega { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--lector-fondo); }
+.lector__bodega i { color: var(--lector-primario); font-size: 18px; }
+.lector__bodega strong { display: block; color: var(--lector-tinta); font-size: 12px; }
+.lector__bodega span { color: var(--lector-gris); font-size: 12px; }
+.lector__nombre { margin-top: 12px; }
+.lector__sugerencias { display: grid; gap: 14px; margin-top: 14px; }
+.lector .lector__familia { margin: 0; padding: 8px 12px; border-left: 3px solid var(--lector-primario); border-radius: 6px; background: var(--lector-fondo); color: var(--lector-tinta); font-size: 12.5px; }
+.lector__opcion { padding: 12px; border: 1px solid var(--lector-borde); border-radius: 8px; }
+.lector .lector__opcion h3 { display: flex; align-items: center; gap: 8px; margin-top: 0; }
+.lector__opcion h3 b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--lector-primario); color: #fff; font-size: 10.5px; }
+.lector__modelos { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lector__modelos li { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid #e3ebe7; border-radius: 6px; }
+.lector__modelos li.lector__vacio { display: block; border: 0; padding: 0; }
+.lector__modelos span { display: grid; gap: 1px; min-width: 0; }
+.lector__modelos strong { color: var(--lector-tinta); font-size: 12.5px; }
+.lector__modelos small { color: var(--lector-gris); font-size: 11px; }
+.lector__modelo-foto { display: grid !important; place-items: center; width: 52px; height: 40px; overflow: hidden; border-radius: 6px; background: var(--lector-fondo); color: var(--lector-primario); font-size: 20px; }
+.lector__modelo-foto img { width: 100%; height: 100%; object-fit: cover; }
+.lector__etiqueta summary { color: var(--lector-primario); font-size: 12px; font-weight: 700; cursor: pointer; }
+.lector__etiqueta[open] { display: grid; gap: 10px; }
+.lector__opcion .lector__boton { justify-self: start; }
+
+@media (max-width: 980px) {
+    .lector__cuerpo { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+    .lector__equipo, .lector__secciones { grid-template-columns: 1fr; }
+    .lector__equipo-foto { max-height: 200px; }
+    .lector .ficha__hero-acciones { flex-wrap: wrap; }
+    .lector__modelos li { grid-template-columns: 44px minmax(0, 1fr); }
+    .lector__modelos li .lector__boton { grid-column: 1 / -1; }
+}

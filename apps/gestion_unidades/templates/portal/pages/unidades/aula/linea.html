@@ -1,0 +1,46 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Balance de línea" %}{% endblock %}
+{% block encabezado %}{% translate "Balance de línea" %}{% endblock %}
+{% block subtitulo %}{{ receta.nombre_publico }}{% endblock %}
+{% block datos %}<div><dt>{% translate "Corridas por jornada" %}</dt><dd>{{ corridas }}</dd></div><div><dt>{% translate "Jornada" %}</dt><dd>{{ jornada }} h</dd></div>{% endblock %}
+{% block pie %}{% translate "Balance de línea" %}{% endblock %}
+{% block contenido %}
+<section class="unit-report__section"><header><span>{% translate "DEL OBJETIVO A LA CAPACIDAD" %}</span><small>{% translate "el orden de lectura del simulador" %}</small></header><div class="saber-bases">
+  <article class="saber-base"><h4><i class="fas fa-stopwatch"></i>{% translate "Ritmo exigido" %}</h4><code class="saber-formula">Takt = minutos disponibles / corridas solicitadas</code><dl><div><dt>{% translate "Qué responde" %}</dt><dd>{% translate "Cada cuánto debe salir una corrida para cumplir la jornada." %}</dd></div><div><dt>{% translate "Qué dato usa" %}</dt><dd>{% translate "Jornada y demanda que escribes; no altera los tiempos publicados del proceso." %}</dd></div></dl></article>
+  <article class="saber-base"><h4><i class="fas fa-filter"></i>{% translate "Restricción" %}</h4><code class="saber-formula">Capacidad de línea = mínimo de las capacidades efectivas</code><dl><div><dt>{% translate "En esta vista" %}</dt><dd>{% translate "Los tiempos de trabajo identifican la etapa más lenta y agrupan estaciones frente al takt." %}</dd></div><div><dt>{% translate "Para capacidad efectiva" %}</dt><dd>{% translate "La ficha del equipo debe tener carga útil, preparación y limpieza. El tablero de completitud bloquea el cálculo cuando faltan." %}</dd></div></dl></article>
+</div></section>
+<form class="aula-form" method="get" aria-label="{% translate "Datos de la simulación" %}">
+  {% if referencia %}<input type="hidden" name="{{ referencia.parametro.0 }}" value="{{ referencia.parametro.1 }}">{% endif %}
+  <label>{% translate "Proceso" %}<select name="receta">{% for item in procesos %}<option value="{{ item.pk }}"{% if item.pk == receta.pk %} selected{% endif %}>{{ item.nombre_publico }}</option>{% endfor %}</select></label>
+  <label>{% translate "Corridas por jornada" %}<input type="number" name="corridas" min="0.1" step="0.1" value="{{ corridas }}"><small>{% translate "Cuántas corridas base debe entregar la línea en la jornada." %}</small></label>
+  <label>{% translate "Jornada (horas)" %}<input type="number" name="jornada" min="1" max="24" step="0.5" value="{{ jornada }}"></label>
+  <button type="submit">{% translate "Simular" %}</button>
+</form>
+
+<section class="unit-report__summary" aria-label="{% translate "Resumen del balance de línea" %}">
+  <article><span>{% translate "Takt" %}</span><strong>{{ linea.takt }} min</strong><small>{{ linea.jornada_min }} {% translate "min /" %} {{ linea.corridas }} corridas</small></article>
+  <article><span>{% translate "Cuello de botella" %}</span><strong>{{ linea.ciclo }} min</strong><small>{% if linea.cuello %}{{ linea.cuello.nombre }}{% else %}{% translate "sin etapas" %}{% endif %}</small></article>
+  <article><span>{% translate "Capacidad" %}</span><strong>{{ linea.capacidad }}</strong><small>{% translate "corridas por jornada al ritmo del cuello" %}</small></article>
+  <article><span>{% translate "Estaciones" %}</span><strong>{{ linea.numero_estaciones }}</strong><small>{% translate "mínimo teórico" %} {{ linea.estaciones_minimas }}</small></article>
+  <article><span>{% translate "Eficiencia" %}</span><strong>{{ linea.eficiencia }} %</strong><small>{% translate "retraso de balance" %} {{ linea.retraso }} %</small></article>
+</section>
+
+{% if not linea.alcanza %}<p class="unit-report__notice aula-falta">{% translate "El cuello de botella (" %}{{ linea.ciclo }} {% translate "min) supera el takt (" %}{{ linea.takt }} {% translate "min): con una sola línea no se alcanzan" %} {{ linea.corridas }} {% translate "corridas en la jornada. Reduce las corridas, alarga la jornada o duplica la etapa." %}</p>{% endif %}
+
+<section class="unit-report__section">
+  <header><span>{% translate "ESTACIONES DE TRABAJO" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Estación" %}</th><th>{% translate "Etapas" %}</th><th>{% translate "Tiempo" %}</th><th>{% translate "Ocupación del takt" %}</th><th>{% translate "Personas" %}</th></tr></thead><tbody>
+    {% for estacion in linea.estaciones %}<tr><td><strong>{{ estacion.numero }}</strong></td><td><ul class="aula-lista">{% for etapa in estacion.etapas %}<li>{{ etapa.orden }}. {{ etapa.nombre }}{% if etapa.equipo %} <small>({{ etapa.equipo }})</small>{% endif %}</li>{% endfor %}</ul></td><td>{{ estacion.tiempo }} min</td><td>{{ estacion.ocupacion }} %<span class="aula-barra"><span{% if estacion.excede %} class="is-over"{% endif %} style="width: {% if estacion.excede %}100{% else %}{{ estacion.ocupacion }}{% endif %}%"></span></span>{% if estacion.excede %}<small class="aula-falta">{% translate "supera el takt" %}</small>{% endif %}</td><td>{{ estacion.personas }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="unit-report__notice">{% translate "Las etapas se agrupan en orden mientras caben en el takt; una etapa más larga que el takt ocupa su propia estación. Trabajo total" %} {{ linea.trabajo_total }} {% translate "min; esperas del proceso (maduración, incubación, prensado)" %} {{ linea.espera_total }} {% translate "min, fuera del balance porque no ocupan personas." %}</p>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "ETAPAS DEL PROCESO FRENTE AL TAKT" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "N.º" %}</th><th>{% translate "Etapa" %}</th><th>{% translate "Equipo" %}</th><th>{% translate "Trabajo" %}</th><th>{% translate "Espera" %}</th><th>{% translate "Personas" %}</th><th>{% translate "Utilización" %}</th></tr></thead><tbody>
+    {% for etapa in linea.etapas %}<tr{% if etapa == linea.cuello %} class="is-highlight"{% endif %}><td>{{ etapa.orden }}</td><td>{{ etapa.nombre }}{% if etapa == linea.cuello %} <small class="aula-aviso">{% translate "cuello de botella" %}</small>{% endif %}</td><td>{{ etapa.equipo|default:"—" }}</td><td>{{ etapa.trabajo }} min</td><td>{% if etapa.espera %}{{ etapa.espera }} min{% else %}—{% endif %}</td><td>{{ etapa.personas }}</td><td>{{ etapa.utilizacion }} %</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

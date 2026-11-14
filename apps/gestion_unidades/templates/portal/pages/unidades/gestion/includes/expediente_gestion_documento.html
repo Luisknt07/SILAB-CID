@@ -1,0 +1,26 @@
+<div class="entregas__gestion" data-entrega-gestion data-documento-titulo="{{ nombre }}" data-documento-vista="{{ vista_documento }}">
+  {% if documento.requisitos_documentales and vista_documento != 'observaciones' %}<details class="entregas__requisitos"><summary>Qué debe contener este documento</summary><ul>{% for requisito in documento.requisitos_documentales %}<li>{{ requisito }}</li>{% endfor %}</ul><p>{% if documento.aprobacion_en_linea_disponible %}Prepara y envía el documento. Dirección lo aprueba o devuelve la observación en la plataforma.{% else %}La revisión del contenido, la firma y el envío se comprueban por separado.{% endif %} Los datos de demostración no acreditan una entrega real.</p></details>{% endif %}
+  {% if vista_documento == 'anexos' %}
+  <nav class="entregas__navegacion" aria-label="Gestión de la entrega">
+    <a href="{{ ruta_archivos }}&amp;vista=gestion" data-entrega-abrir>Volver a cargar y enviar</a>
+    {% if entrega.anexos %}<a href="{{ ruta_archivos }}&amp;vista=anexos" data-entrega-abrir{% if vista_documento == 'anexos' %} aria-current="page"{% endif %}>Revisar anexos ({{ entrega.anexos|length }})</a>{% endif %}
+  </nav>
+  {% endif %}
+  {% if vista_documento == 'versiones' %}
+    {% include 'portal/pages/unidades/gestion/includes/expediente_versiones.html' %}
+  {% elif vista_documento == 'anexos' %}
+    {% if entrega.cierre %}<p>Corrige los registros de origen. Después prepara de nuevo el informe con sus anexos, firma ese documento y envíalo.</p>{% else %}<p>Corrige la información en sus registros de origen y actualiza el anexo. Cada actualización conserva el archivo anterior y requiere una nueva revisión.</p>{% endif %}
+    {% if documento.estado == 'validado' %}<p>La entrega está enviada. Si detectas un error, solicita a Dirección que la devuelva; después podrás corregir y volver a enviar.</p>{% endif %}
+    {% if entrega.cierre %}{% include 'portal/pages/unidades/gestion/includes/anexos_cierre.html' with en_modal=True %}{% else %}{% include 'portal/pages/unidades/gestion/includes/expediente_anexos.html' with en_modal=True %}{% endif %}
+  {% elif vista_documento == 'observaciones' %}
+    {% include 'portal/pages/unidades/gestion/includes/observaciones_documentales.html' with observaciones_post_url=ruta_expediente %}
+  {% else %}
+    {% if documento.estado == 'validado' %}
+      <p>Documento enviado. Su archivo, fecha, estado y resultado se consultan en la tabla.</p>
+    {% else %}
+      {% include 'portal/pages/unidades/gestion/includes/expediente_archivo.html' %}
+      {% if entrega.anexos and not entrega.cierre %}<p><a class="entregas__ver-nota" href="{{ ruta_archivos }}&amp;vista=anexos" data-entrega-abrir>Revisar anexos antes de enviar ({{ entrega.anexos|length }})</a></p>{% endif %}
+      {% if not solo_lectura and documento.recurso_id %}<details class="entregas__correccion"><summary>Retirar una carga equivocada</summary>{% include 'portal/pages/unidades/gestion/includes/expediente_retirar.html' with retirar_post_url=ruta_expediente %}</details>{% endif %}
+    {% endif %}
+  {% endif %}
+</div>

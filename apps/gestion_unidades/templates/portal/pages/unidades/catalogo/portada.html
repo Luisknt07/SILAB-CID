@@ -1,0 +1,19 @@
+{% load static i18n idiomas %}
+<section class="institutional-hero institutional-hero--gold lab-integrated-hero">
+  <img src="{% static 'img/generated/hero-laboratorios-v2.png' %}" alt="{% translate "Laboratorio UPEC con simuladores, instrumentación y aprendizaje experimental" %}">
+  <div class="institutional-hero__overlay"></div>
+  <div class="institutional-hero__circuit" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="institutional-hero__content">
+    <span class="institutional-hero__eyebrow"><i class="iconsminds-microscope"></i> {% translate "Ciencia que transforma el futuro" %}</span>
+    <h1>{% translate "Laboratorios y" %}<br><strong>{% translate "Unidades Experimentales" %}</strong></h1>
+    <p>{% translate "Explora nuestra infraestructura especializada para docencia, investigación, innovación y servicios, y encuentra directamente el espacio que necesitas." %}</p>
+    <div class="institutional-hero__actions">
+      <a class="upec-button upec-button--primary" href="#catalogo-unidades"><i class="simple-icon-grid"></i> {% translate "Ver catálogo" %}</a>
+      {% if user.is_authenticated %}
+      <a class="upec-button upec-button--outline" href="{% url 'profile' %}"><i class="simple-icon-calendar"></i> {% translate "Consultar reservas" %}</a>
+      {% else %}
+      <a class="upec-button upec-button--outline" href="{% url 'login' %}?next={% url 'profile' %}"><i class="simple-icon-calendar"></i> {% translate "Consultar reservas" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</section>

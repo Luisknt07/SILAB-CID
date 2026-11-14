@@ -1,0 +1,36 @@
+{% load tz %}
+<div class="plazo-documento">
+  {% if not parte or parte == "institucional" %}
+  <div class="plazo-documento__fecha {% if not documento.plazo_original %}plazo-documento__fecha--sin{% elif documento.vencido %}plazo-documento__fecha--vencido{% endif %}">
+    <span class="plazo-documento__etiqueta">Plazo institucional{% if documento.plazo_original and documento.vencido %} &middot; Vencido{% endif %}</span>
+    <strong class="plazo-documento__valor">{% if documento.plazo_original %}{{ documento.plazo_original|localtime|date:"d/m/Y" }} &middot; {{ documento.plazo_original|localtime|date:"H:i" }}{% else %}Sin fecha asignada{% endif %}</strong>
+    {% if documento.exigido.plazo_regla == 'cierre' %}<small>Entrega posterior al cierre: {{ documento.exigido.plazo_dias }} días para presentar el informe. El período de actividad reportado se conserva.</small>{% endif %}
+  </div>
+  {% endif %}
+  {% if not parte or parte == "ultimatum" %}
+  {% if documento.ultimatum_hasta %}
+  <div class="plazo-documento__fecha {% if documento.ultimatum_activo %}plazo-documento__fecha--abierto{% else %}plazo-documento__fecha--vencido{% endif %}">
+    <span class="plazo-documento__etiqueta">Ultimátum de Dirección · {% if documento.ultimatum_activo %}Entregar hasta{% else %}Vencido{% endif %}</span>
+    <strong class="plazo-documento__valor">{{ documento.ultimatum_hasta|localtime|date:"d/m/Y" }} · {{ documento.ultimatum_hasta|localtime|date:"H:i" }}</strong>
+  </div>
+  {% elif parte %}<small>Sin ultimátum</small>{% endif %}
+  {% endif %}
+  {% if not parte or parte == "reapertura" %}
+  {% if documento.prorroga_hasta %}
+  <div class="plazo-documento__fecha {% if documento.reapertura_activa %}plazo-documento__fecha--abierto{% else %}plazo-documento__fecha--vencido{% endif %}">
+    <span class="plazo-documento__etiqueta">Reapertura &middot; {% if documento.reapertura_activa %}Entregar hasta{% else %}Cerrada{% endif %}</span>
+    <strong class="plazo-documento__valor">{{ documento.prorroga_hasta|localtime|date:"d/m/Y" }} &middot; {{ documento.prorroga_hasta|localtime|date:"H:i" }}</strong>
+  </div>
+  {% endif %}
+  {% if parte and not documento.prorroga_hasta %}<small>Sin reapertura</small>{% endif %}
+  {% endif %}
+  {% if not parte or parte == "correccion" %}{% if documento.correccion_hasta %}
+  <div class="plazo-documento__fecha {% if documento.correccion_activa %}plazo-documento__fecha--abierto{% elif documento.estado != 'validado' %}plazo-documento__fecha--vencido{% endif %}">
+    <span class="plazo-documento__etiqueta">Corrección · {% if documento.estado == 'validado' %}Entrega reenviada{% elif documento.correccion_activa %}Corregir y reenviar hasta{% else %}Plazo vencido{% endif %}</span>
+    <strong class="plazo-documento__valor">{{ documento.correccion_hasta|localtime|date:"d/m/Y" }} · {{ documento.correccion_hasta|localtime|date:"H:i" }}</strong>
+  </div>
+  {% endif %}{% endif %}
+  {% if not parte or parte == "institucional" %}
+  <small class="plazo-documento__zona">Hora local: {{ TIME_ZONE|default:"America/Guayaquil" }}</small>
+  {% endif %}
+</div>

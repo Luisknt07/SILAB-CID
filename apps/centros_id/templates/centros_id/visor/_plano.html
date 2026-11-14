@@ -1,0 +1,11 @@
+{% load i18n %}{% comment %}Un plano del edificio con las áreas ubicadas encima: cada punto abre el área del centro que aloja ese espacio.{% endcomment %}
+<figure class="cv-plano">
+  <div class="cv-plano__lienzo">
+    <img src="{{ plano.imagen.url }}" alt="{{ plano.titulo }}">
+    {% for zona in zonas %}{% if zona.en_plano %}
+    {% if zona.componente %}<a class="cv-plano__punto{% if resaltar and zona.componente_id == resaltar %} is-resaltado{% endif %}" style="left: {{ zona.plano_x|floatformat:'-2u' }}%; top: {{ zona.plano_y|floatformat:'-2u' }}%; --color: {{ zona.componente.color }}" href="{% url 'componente_centro_id' centro.slug zona.componente.codigo %}" data-nombre="{{ zona.nombre }}" data-detalle="{{ zona.codigo }} · {{ zona.area_m2|floatformat:'0' }} m²{% if zona.reservable %} · {% translate "acceso solicitable" %}{% endif %}"><i class="{{ zona.componente.icono }}" aria-hidden="true"></i></a>
+    {% else %}<span class="cv-plano__punto is-espacio" style="left: {{ zona.plano_x|floatformat:'-2u' }}%; top: {{ zona.plano_y|floatformat:'-2u' }}%" data-nombre="{{ zona.nombre }}" data-detalle="{{ zona.codigo }} · {{ zona.area_m2|floatformat:'0' }} m²{% if zona.reservable %} · {% translate "acceso solicitable" %}{% endif %}"><i class="fas fa-circle" aria-hidden="true"></i></span>{% endif %}
+    {% endif %}{% endfor %}
+  </div>
+  <figcaption><strong>{{ plano.nivel }}</strong> · {{ plano.titulo }}{% if plano.credito %} <small>{{ plano.credito }}</small>{% endif %} <em><i class="fas fa-hand-pointer" aria-hidden="true"></i> {% translate "Pasa por cada punto y entra al área." %}</em></figcaption>
+</figure>

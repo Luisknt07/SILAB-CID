@@ -1,0 +1,170 @@
+{% load static i18n idiomas %}
+<section class="laboratory-catalog" id="catalogo-unidades" aria-labelledby="catalogo-title">
+  <nav class="institutional-local-nav lab-catalog-tabs" aria-label="{% translate "Tipos de unidades experimentales" %}">
+    {% for pestana in pestanas_catalogo %}
+    <a class="{% if pestana.activa %}active{% endif %}" href="{{ pestana.url }}" data-tipologia="{{ pestana.codigo }}">
+      <i class="{{ pestana.icono }}"></i><span class="lab-catalog-tab__copy"><b>{{ pestana.nombre }}</b><strong>{{ pestana.conteo }}</strong><small>{% translate "Unidad" %}{{ pestana.conteo|pluralize:"es" }}</small></span>
+    </a>
+    {% endfor %}
+  </nav>
+
+  <div class="lab-catalog-shell">
+    <header class="lab-catalog-heading">
+      <div><span>{% translate "Catálogo institucional" %}</span><h2 id="catalogo-title">{{ catalogo_titulo }}</h2></div>
+      <p>{% translate "Consulta capacidades, equipos, servicios y disponibilidad de las unidades registradas desde el administrador." %}</p>
+    </header>
+
+    {% if es_catalogo_plantas %}
+    <form class="lab-catalog-filters lab-catalog-filters--plantas" method="get" action="">
+      <div class="lab-catalog-filter-grid">
+        <label><span>{% translate "Línea de producto" %}</span>
+          <select name="familia_producto" data-auto-submit>
+            <option value="">{% translate "Todas" %}</option>
+            {% for familia in familias_producto %}<option value="{{ familia.codigo }}" {% if familia_producto_seleccionada == familia.codigo %}selected{% endif %}>{{ familia.nombre }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>{% translate "Tecnología" %}</span>
+          <select name="tecnologia" data-auto-submit>
+            <option value="">{% translate "Todas" %}</option>
+            {% for key, value in tecnologias %}<option value="{{ key }}" {% if tecnologia_seleccionada == key %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>{% translate "Servicio ofrecido" %}</span>
+          <select name="servicio" data-auto-submit>
+            <option value="">{% translate "Todos" %}</option>
+            {% for key, value in servicios_planta %}<option value="{{ key }}" {% if servicio_seleccionado == key %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label><span>{% translate "Disponibilidad" %}</span>
+          <select name="disponibilidad" data-auto-submit>
+            <option value="">{% translate "Todas" %}</option>
+            {% for key, value in disponibilidades %}<option value="{{ key }}" {% if disponibilidad_seleccionada == key %}selected{% endif %}>{{ value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="lab-search"><span>{% translate "Buscar planta" %}</span><i class="simple-icon-magnifier"></i><input type="search" name="busqueda" value="{{ busqueda }}" placeholder="{% translate "Producto, proceso o equipo" %}"><button class="btn-clear-search" type="button" aria-label="{% translate "Limpiar búsqueda" %}">{% translate "×" %}</button></label>
+        <button class="lab-filter-submit" type="submit">{% translate "Aplicar filtros" %}</button>
+      </div>
+      <details class="lab-catalog-advanced"{% if area_conocimiento_seleccionada or categoria_seleccionada or modo_operacion_seleccionado %} open{% endif %}>
+        <summary><i class="simple-icon-settings"></i> {% translate "Filtros institucionales avanzados" %}</summary>
+        <div>
+          <label><span>{% translate "Área de conocimiento" %}</span>
+            <select name="area_conocimiento" data-auto-submit>
+              <option value="">{% translate "Todas" %}</option>
+              {% for key, value in areas_conocimiento %}<option value="{{ key }}" {% if area_conocimiento_seleccionada == key %}selected{% endif %}>{{ value }}</option>{% endfor %}
+            </select>
+          </label>
+          <label><span>{% translate "Subárea" %}</span>
+            <select name="categoria" data-auto-submit>
+              <option value="">{% translate "Todas" %}</option>
+              {% for categoria in categorias %}<option value="{{ categoria.codigo }}" {% if categoria_seleccionada == categoria.codigo %}selected{% endif %}>{{ categoria.nombre }}</option>{% endfor %}
+            </select>
+          </label>
+          <label><span>{% translate "Modo de operación" %}</span>
+            <select name="modo_operacion" data-auto-submit>
+              <option value="">{% translate "Todos" %}</option>
+              {% for key, value in modos_operacion %}<option value="{{ key }}" {% if modo_operacion_seleccionado == key %}selected{% endif %}>{{ value }}</option>{% endfor %}
+            </select>
+          </label>
+        </div>
+      </details>
+      <input type="hidden" name="orden" value="{{ orden }}">
+      <input type="hidden" name="page_size" value="{{ page_size }}">
+      <a class="lab-filter-reset" href="{{ request.path }}"><i class="simple-icon-refresh"></i> {% translate "Limpiar filtros" %}</a>
+    </form>
+    {% else %}
+    <form class="lab-catalog-filters" method="get" action="">
+      <label><span>{% translate "Área de conocimiento" %}</span>
+        <select name="area_conocimiento" data-auto-submit>
+          <option value="">{% translate "Todas" %}</option>
+          {% for key, value in areas_conocimiento %}<option value="{{ key }}" {% if area_conocimiento_seleccionada == key %}selected{% endif %}>{{ value }}</option>{% endfor %}
+        </select>
+      </label>
+      <label><span>{% translate "Subárea" %}</span>
+        <select name="categoria" data-auto-submit>
+          <option value="">{% translate "Todas" %}</option>
+          {% for categoria in categorias %}<option value="{{ categoria.codigo }}" {% if categoria_seleccionada == categoria.codigo %}selected{% endif %}>{{ categoria.nombre }}</option>{% endfor %}
+        </select>
+      </label>
+      <label><span>{% translate "Modo de uso" %}</span>
+        <select name="tipo_laboratorio" data-auto-submit>
+          <option value="">{% translate "Todos" %}</option>
+          {% for tipo_lab in tipos_laboratorio %}<option value="{{ tipo_lab.codigo }}" {% if tipo_laboratorio_seleccionado == tipo_lab.codigo %}selected{% endif %}>{{ tipo_lab.nombre }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="lab-search"><span>{% translate "Buscar unidad" %}</span><i class="simple-icon-magnifier"></i><input type="search" name="busqueda" value="{{ busqueda }}" placeholder="{% translate "Nombre, capacidad o descripción" %}"><button class="btn-clear-search" type="button" aria-label="{% translate "Limpiar búsqueda" %}">{% translate "×" %}</button></label>
+      <input type="hidden" name="orden" value="{{ orden }}">
+      <input type="hidden" name="page_size" value="{{ page_size }}">
+      <button class="lab-filter-submit" type="submit">{% translate "Aplicar filtros" %}</button>
+      <a class="lab-filter-reset" href="{{ request.path }}"><i class="simple-icon-refresh"></i> {% translate "Limpiar filtros" %}</a>
+    </form>
+    {% endif %}
+
+    <div class="lab-catalog-toolbar">
+      <p>{% translate "Mostrando" %} <b>{{ page_obj.start_index }}–{{ page_obj.end_index }}</b> de <b>{{ paginator.count }}</b> unidades, {{ orden_descripcion }}</p>
+      <div class="lab-view-switch" aria-label="{% translate "Vista del catálogo" %}">
+        <span>{% translate "Vista:" %}</span><button class="active" type="button" data-catalog-view="grid" aria-label="{% translate "Vista en cuadrícula" %}"><i class="simple-icon-grid"></i></button><button type="button" data-catalog-view="list" aria-label="{% translate "Vista en lista" %}"><i class="simple-icon-list"></i></button>
+      </div>
+      <form class="lab-sort-form" method="get">
+        {% if familia_producto_seleccionada %}<input type="hidden" name="familia_producto" value="{{ familia_producto_seleccionada }}">{% endif %}
+        {% if tecnologia_seleccionada %}<input type="hidden" name="tecnologia" value="{{ tecnologia_seleccionada }}">{% endif %}
+        {% if servicio_seleccionado %}<input type="hidden" name="servicio" value="{{ servicio_seleccionado }}">{% endif %}
+        {% if disponibilidad_seleccionada %}<input type="hidden" name="disponibilidad" value="{{ disponibilidad_seleccionada }}">{% endif %}
+        {% if modo_operacion_seleccionado %}<input type="hidden" name="modo_operacion" value="{{ modo_operacion_seleccionado }}">{% endif %}
+        {% if area_conocimiento_seleccionada %}<input type="hidden" name="area_conocimiento" value="{{ area_conocimiento_seleccionada }}">{% endif %}
+        {% if categoria_seleccionada %}<input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">{% endif %}
+        {% if tipo_laboratorio_seleccionado %}<input type="hidden" name="tipo_laboratorio" value="{{ tipo_laboratorio_seleccionado }}">{% endif %}
+        {% if busqueda %}<input type="hidden" name="busqueda" value="{{ busqueda }}">{% endif %}
+        <input type="hidden" name="page_size" value="{{ page_size }}">
+        <select name="orden" aria-label="{% translate "Ordenar unidades" %}" data-auto-submit><option value="visitadas" {% if orden == 'visitadas' %}selected{% endif %}>{% translate "Más visitadas" %}</option><option value="recientes" {% if orden == 'recientes' %}selected{% endif %}>{% translate "Más recientes" %}</option><option value="nombre" {% if orden == 'nombre' %}selected{% endif %}>{% translate "Nombre A–Z" %}</option></select>
+      </form>
+      <form class="lab-page-size-form" method="get">
+        {% if familia_producto_seleccionada %}<input type="hidden" name="familia_producto" value="{{ familia_producto_seleccionada }}">{% endif %}
+        {% if tecnologia_seleccionada %}<input type="hidden" name="tecnologia" value="{{ tecnologia_seleccionada }}">{% endif %}
+        {% if servicio_seleccionado %}<input type="hidden" name="servicio" value="{{ servicio_seleccionado }}">{% endif %}
+        {% if disponibilidad_seleccionada %}<input type="hidden" name="disponibilidad" value="{{ disponibilidad_seleccionada }}">{% endif %}
+        {% if modo_operacion_seleccionado %}<input type="hidden" name="modo_operacion" value="{{ modo_operacion_seleccionado }}">{% endif %}
+        {% if area_conocimiento_seleccionada %}<input type="hidden" name="area_conocimiento" value="{{ area_conocimiento_seleccionada }}">{% endif %}
+        {% if categoria_seleccionada %}<input type="hidden" name="categoria" value="{{ categoria_seleccionada }}">{% endif %}
+        {% if tipo_laboratorio_seleccionado %}<input type="hidden" name="tipo_laboratorio" value="{{ tipo_laboratorio_seleccionado }}">{% endif %}
+        {% if busqueda %}<input type="hidden" name="busqueda" value="{{ busqueda }}">{% endif %}
+        <input type="hidden" name="orden" value="{{ orden }}">
+        <label><span>{% translate "Mostrar" %}</span><select name="page_size" aria-label="{% translate "Cantidad de unidades por página" %}" data-auto-submit>{% for option in page_size_options %}<option value="{{ option }}" {% if page_size == option %}selected{% endif %}>{{ option }}</option>{% endfor %}</select></label>
+      </form>
+    </div>
+
+    {% if no_results and busqueda %}<div class="lab-catalog-alert">{% translate "No encontramos coincidencias para “" %}{{ busqueda }}{% translate "”; se muestran nuevamente las unidades disponibles." %}</div>{% endif %}
+
+    <div class="lab-catalog-grid" data-catalog-grid>
+      {% for unidad in unidades %}
+      {% include 'portal/pages/unidades/catalogo/tarjeta_unidad.html' with unidad=unidad %}
+      {% empty %}
+      <div class="lab-catalog-empty"><i class="iconsminds-microscope"></i><h3>{% translate "Aún no existen unidades publicadas" %}</h3><p>{% translate "Cuando se registren desde el administrador aparecerán automáticamente en esta sección." %}</p></div>
+      {% endfor %}
+    </div>
+
+    {% if paginator.num_pages > 1 %}
+    <nav class="lab-pagination" aria-label="{% translate "Páginas del catálogo" %}">
+      <p>{% translate "Página" %} <b>{{ page_obj.number }}</b> de <b>{{ paginator.num_pages }}</b></p>
+      <div>
+        {% if page_obj.has_previous %}<a class="lab-pagination__edge" href="?page=1{% if pagination_query %}&{{ pagination_query }}{% endif %}" aria-label="{% translate "Primera página" %}"><i class="simple-icon-control-start"></i></a><a href="?page={{ page_obj.previous_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}" aria-label="{% translate "Página anterior" %}"><i class="simple-icon-arrow-left"></i></a>{% else %}<span class="is-disabled" aria-hidden="true"><i class="simple-icon-control-start"></i></span><span class="is-disabled" aria-hidden="true"><i class="simple-icon-arrow-left"></i></span>{% endif %}
+        <span class="lab-pagination__mobile-count">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+        <span class="lab-pagination__numbers">{% for numero in pagination_items %}{% if numero %}{% if numero == page_obj.number %}<span class="is-current" aria-current="page">{{ numero }}</span>{% else %}<a href="?page={{ numero }}{% if pagination_query %}&{{ pagination_query }}{% endif %}">{{ numero }}</a>{% endif %}{% else %}<span class="is-ellipsis" aria-hidden="true">…</span>{% endif %}{% endfor %}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}" aria-label="{% translate "Página siguiente" %}"><i class="simple-icon-arrow-right"></i></a><a class="lab-pagination__edge" href="?page={{ paginator.num_pages }}{% if pagination_query %}&{{ pagination_query }}{% endif %}" aria-label="{% translate "Última página" %}"><i class="simple-icon-control-end"></i></a>{% else %}<span class="is-disabled" aria-hidden="true"><i class="simple-icon-arrow-right"></i></span><span class="is-disabled" aria-hidden="true"><i class="simple-icon-control-end"></i></span>{% endif %}
+      </div>
+    </nav>
+    {% endif %}
+
+    {% if dependencia_activa == 'observatorios' %}
+      {% include 'observatorios/experiencia.html' %}
+    {% endif %}
+    {% if dependencia_activa == 'laboratorios' %}
+      {% include 'laboratorios/experiencia.html' %}
+    {% endif %}
+    {% if dependencia_activa == 'plantas_piloto' %}
+      {% include 'plantas_piloto/experiencia.html' %}
+    {% endif %}
+    {% if dependencia_activa == 'centro_experimental' %}
+      {% include 'centros_experimentales/experiencia.html' %}
+    {% endif %}
+  </div>
+</section>

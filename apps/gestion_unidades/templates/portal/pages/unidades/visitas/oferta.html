@@ -1,0 +1,14 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n idiomas %}
+{% block titulo %}{% translate "Visitas" %}{% endblock %}
+{% block encabezado %}{% translate "Visitas a la unidad" %}{% endblock %}
+{% block subtitulo %}{% translate "Oferta, recorridos, restricciones y requisitos para grupos" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Áreas del recorrido" %}</dt><dd>{{ oferta.areas|length }}</dd></div><div><dt>{% translate "Personas por guía" %}</dt><dd>{{ oferta.personas_por_guia }}</dd></div>{% endblock %}
+{% block barra %}<div><a href="{{ solicitar_url }}" target="_top" class="is-active">{% translate "Reservar una visita en el calendario" %}</a>{% include 'portal/components/acciones_documento.html' %}</div>{% endblock %}
+{% block pie %}{% translate "Visitas" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/visitas.css' %}?v=20261108-calendario-v1">
+<section class="unit-report__context"><span>{% translate "CÓMO FUNCIONA" %}</span><h2>{% translate "Quien organiza la visita inicia sesión; el grupo no necesita cuenta" %}</h2><p>{% translate "Consulta la oferta, elige el recorrido y selecciona fecha y horario en el calendario. La unidad revisa la solicitud, confirma las condiciones y asigna los guías." %}</p></section>
+{% include 'portal/pages/unidades/visitas/condiciones.html' %}
+<p class="aula-cta-fila"><a class="aula-cta" href="{{ solicitar_url }}" target="_top">{% translate "Solicitar una visita →" %}</a></p>
+{% endblock %}

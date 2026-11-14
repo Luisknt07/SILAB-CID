@@ -1,0 +1,97 @@
+{% load static i18n idiomas %}<!doctype html>
+{% get_current_language as idioma_documento %}<html lang="{{ idioma_documento }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ seccion.titulo }} · {{ unidad.nombre }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/conoce_unidad.css' %}?v=20261005-tiempo-v9">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/ficha_unidad.css' %}?v=20260929-ficha-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/area_unidad.css' %}?v=20261005-area-v15">
+  {% if editar_url %}<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/equipo_editar.css' %}?v=20261009-editor-v2">
+  <link rel="stylesheet" href="{% static 'portal/css/components/edicion_en_ficha.css' %}?v=20261010-edicion-compacta-v5">{% endif %}
+  {% include 'portal/components/navegacion/idiomas_assets.html' %}
+  {% include 'portal/components/paleta_institucional.html' %}
+</head>
+<body class="conoce ficha area seccion-propia seccion-propia--{{ seccion.plantilla }}">
+  <header class="ficha__cabecera">
+    <div class="ficha__cabecera-texto">
+      <span class="conoce__antetitulo">{% if numero %}{% translate "Sección" %} {{ numero }} · {% endif %}{{ unidad.nombre }}</span>
+      <h1>{{ seccion.titulo }}</h1>
+      <ul class="conoce__datos">
+        <li><i class="{{ seccion.icono }}" aria-hidden="true"></i>{% if seccion.resumen %}{{ seccion.resumen }}{% else %}{{ seccion.modulo.nombre }}{% endif %}</li>
+        {% if editar_url and not seccion.activa %}<li><i class="fas fa-eye-slash" aria-hidden="true"></i>{% translate "Oculta: solo la ve quien gestiona" %}</li>{% endif %}
+      </ul>
+      {% if editar_url %}<a class="equipo__editar" href="{{ editar_url }}" data-editar-ficha data-editar-titulo="{% translate 'Datos de la sección' %}"><i class="fas fa-pen" aria-hidden="true"></i> {% translate "Editar la sección" %}</a>{% endif %}
+    </div>
+    {% if seccion.imagen %}<figure class="seccion-propia__portada"><img src="{{ seccion.imagen.url }}" alt=""></figure>{% endif %}
+  </header>
+
+  {% if hay_muestras %}<p class="area__completar"><i class="fas fa-magic" aria-hidden="true"></i><span><strong>{% translate "Plantilla lista para completar." %}</strong> {% translate "Los elementos de muestra solo los ve quien gestiona: edítelos con su botón «Editar» y pasan a mostrarse, o quítelos." %}</span></p>{% endif %}
+
+  <section class="conoce__seccion area__primera">
+    {% if seccion.descripcion %}<div class="ficha__areas seccion-propia__intro" data-aparecer>{{ seccion.descripcion|linebreaks }}</div>{% endif %}
+
+    {% if elementos %}
+    {% if seccion.plantilla == 'tabla' %}
+    <div class="area__tabla-envoltura" data-aparecer>
+      <table class="area__tabla">
+        <thead><tr><th scope="col">{% translate "Nombre" %}</th><th scope="col">{% translate "Descripción" %}</th><th scope="col">{% translate "Tipo" %}</th><th scope="col">{% translate "Dato" %}</th>{% if editar_url %}<th scope="col"><span class="sr-only">{% translate "Editar" %}</span></th>{% endif %}</tr></thead>
+        <tbody>{% for elemento in elementos %}<tr{% if elemento.es_ejemplo or not elemento.activo %} class="seccion-propia__muestra"{% endif %}>
+          <td><div class="area__equipo-celda"><span class="area__ilustracion area__ilustracion--mini{% if elemento.imagen %} con-foto{% endif %}" aria-hidden="true">{% if elemento.imagen %}<img src="{{ elemento.imagen.url }}" alt="" loading="lazy">{% else %}<i class="{{ seccion.icono }}"></i>{% endif %}</span><span><strong>{% if elemento.enlace %}<a href="{{ elemento.enlace }}" target="_blank" rel="noopener">{{ elemento.titulo }}</a>{% else %}{{ elemento.titulo }}{% endif %}</strong>{% include 'portal/pages/unidades/detalle/includes/seccion_propia_marca.html' %}</span></div></td>
+          <td>{{ elemento.descripcion|linebreaksbr }}</td><td>{{ elemento.etiqueta|default:"—" }}</td><td>{{ elemento.detalle|default:"—" }}</td>
+          {% if editar_url %}<td>{% include 'portal/pages/unidades/detalle/includes/seccion_propia_editar.html' %}</td>{% endif %}
+        </tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {% elif seccion.plantilla == 'pasos' %}
+    <ol class="area__pasos">
+      {% for elemento in elementos %}<li class="area__paso{% if elemento.es_ejemplo or not elemento.activo %} seccion-propia__muestra{% endif %}" data-aparecer>
+        <span class="area__paso-numero">{{ forloop.counter }}</span>
+        <div class="area__paso-datos">
+          <div class="area__novedad-etiquetas">{% if elemento.etiqueta %}<span class="ficha__rol">{{ elemento.etiqueta }}</span>{% endif %}{% include 'portal/pages/unidades/detalle/includes/seccion_propia_marca.html' %}</div>
+          <h3>{{ elemento.titulo }}</h3>
+          {% if elemento.detalle %}<ul class="ficha__medios area__paso-meta"><li><i class="fas fa-info-circle" aria-hidden="true"></i>{{ elemento.detalle }}</li></ul>{% endif %}
+          {% if elemento.descripcion %}<p>{{ elemento.descripcion|linebreaksbr }}</p>{% endif %}
+          {% if elemento.imagen %}<img class="seccion-propia__imagen" src="{{ elemento.imagen.url }}" alt="" loading="lazy">{% endif %}
+          {% if elemento.enlace %}<p><a href="{{ elemento.enlace }}" target="_blank" rel="noopener">{% translate "Ver más" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a></p>{% endif %}
+          {% if editar_url %}{% include 'portal/pages/unidades/detalle/includes/seccion_propia_editar.html' %}{% endif %}
+        </div>
+      </li>{% endfor %}
+    </ol>
+    {% elif seccion.plantilla == 'texto' %}
+    <div class="seccion-propia__bloques">
+      {% for elemento in elementos %}<article class="ficha__bloque seccion-propia__bloque{% if elemento.imagen %} con-imagen{% endif %}{% if elemento.es_ejemplo or not elemento.activo %} seccion-propia__muestra{% endif %}" data-aparecer>
+        <div>
+          {% if elemento.etiqueta %}<span class="ficha__rol">{{ elemento.etiqueta }}</span>{% endif %}{% include 'portal/pages/unidades/detalle/includes/seccion_propia_marca.html' %}
+          <h2>{{ elemento.titulo }}</h2>
+          {{ elemento.descripcion|linebreaks }}
+          {% if elemento.detalle %}<p class="ficha__nota">{{ elemento.detalle }}</p>{% endif %}
+          {% if elemento.enlace %}<p><a href="{{ elemento.enlace }}" target="_blank" rel="noopener">{% translate "Ver más" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a></p>{% endif %}
+          {% if editar_url %}{% include 'portal/pages/unidades/detalle/includes/seccion_propia_editar.html' %}{% endif %}
+        </div>
+        {% if elemento.imagen %}<img src="{{ elemento.imagen.url }}" alt="" loading="lazy">{% endif %}
+      </article>{% endfor %}
+    </div>
+    {% else %}
+    <div class="area__actividades">
+      {% for elemento in elementos %}<article class="area__actividad{% if elemento.es_ejemplo or not elemento.activo %} seccion-propia__muestra{% endif %}" data-aparecer>
+        {% if elemento.imagen %}<img class="seccion-propia__imagen" src="{{ elemento.imagen.url }}" alt="" loading="lazy">{% endif %}
+        <header><i class="{{ seccion.icono }}" aria-hidden="true"></i><div>{% if elemento.etiqueta %}<span class="ficha__rol">{{ elemento.etiqueta }}</span>{% endif %}{% include 'portal/pages/unidades/detalle/includes/seccion_propia_marca.html' %}</div></header>
+        <h3>{{ elemento.titulo }}</h3>
+        {% if elemento.descripcion %}<p>{{ elemento.descripcion|linebreaksbr }}</p>{% endif %}
+        {% if elemento.detalle %}<ul class="ficha__medios"><li><i class="fas fa-info-circle" aria-hidden="true"></i>{{ elemento.detalle }}</li></ul>{% endif %}
+        {% if elemento.enlace or editar_url %}<footer>{% if elemento.enlace %}<a href="{{ elemento.enlace }}" target="_blank" rel="noopener">{% translate "Ver más" %} <i class="fas fa-external-link-alt" aria-hidden="true"></i></a>{% endif %}{% if editar_url %}{% include 'portal/pages/unidades/detalle/includes/seccion_propia_editar.html' %}{% endif %}</footer>{% endif %}
+      </article>{% endfor %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="ficha__nota">{% translate "La unidad todavía no publica el contenido de esta sección." %}</p>
+    {% endif %}
+    {% if editar_url %}<p class="seccion-propia__agregar"><a class="equipo__editar" href="{{ editar_url }}?elemento=nuevo" data-editar-ficha data-editar-titulo="{% translate 'Nuevo elemento' %}"><i class="fas fa-plus" aria-hidden="true"></i> {% translate "Agregar un elemento" %}</a></p>{% endif %}
+  </section>
+  <script src="{% static 'portal/js/pages/unidades/conoce_unidad.js' %}?v=20260929-conoce-v5"></script>
+  {% if editar_url %}<script src="{% static 'portal/js/components/edicion_en_ficha.js' %}?v=20261003-altas-v1"></script>{% endif %}
+  {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}
+</body>
+</html>

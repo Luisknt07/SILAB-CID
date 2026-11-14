@@ -1,0 +1,12 @@
+{% load reportes_estilo %}{% anexos_del_periodo periodo as tabla_anexos %}
+{% if tabla_anexos.anexos or tabla_anexos.cierre %}
+<section id="anexos-periodo-{{ periodo.corte }}{% if en_modal %}-modal{% endif %}" data-anexos-periodo="{{ periodo.corte }}">
+  <div class="reportes-anexos__barra">
+    {% if not solo_lectura %}
+      {% if unidad|es_unidad_auditable %}<form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="reportes-anexos__comprobar">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="accion" value="automatizar"><button type="submit">Comprobar anexos del período</button></form>{% endif %}
+      {% for origen in periodo.entregas %}{% if origen.anexos and origen.documento.pk and origen.documento.estado != 'validado' %}<form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="explorador__actualizar">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ origen.documento.pk }}"><input type="hidden" name="accion" value="anexos"><button type="submit">Actualizar anexos de {% if origen.documento.exigido.codigo == 'PLANIFICACION' %}planificación{% else %}cierre{% endif %}</button></form>{% endif %}{% endfor %}
+    {% endif %}
+  </div>
+  {% include 'portal/pages/unidades/gestion/includes/cumplimiento_cierre.html' with entrega=tabla_anexos.entrega cierre=tabla_anexos.cierre anexos=tabla_anexos.anexos documento_principal=tabla_anexos.documento tabla_unificada=True %}
+</section>
+{% endif %}

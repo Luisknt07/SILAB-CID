@@ -1,0 +1,27 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Actualizaciones recientes" %}{% endblock %}
+{% block encabezado %}{% translate "Actualizaciones recientes" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué valores entraron o cambiaron, cuándo y por qué vía: lo publicado antes queda en el historial" %}{% endblock %}
+{% block datos %}{% for origen, total in por_origen %}<div><dt>{{ origen|truncatechars:26 }}</dt><dd>{{ total }}</dd></div>{% endfor %}{% endblock %}
+{% block pie %}{% translate "Actualizaciones" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<div class="obs-descargas"><a href="{% url 'historial_observatorio' unidad.slug %}"><i class="fas fa-history" aria-hidden="true"></i> {% translate "Historial de correcciones (CSV)" %}</a><a href="{% url 'fuentes_observatorio' unidad.slug %}#conexiones"><i class="fas fa-plug" aria-hidden="true"></i> {% translate "Conexiones automáticas" %}</a></div>
+<section class="unit-report__section">
+  <header><span>{% translate "ÚLTIMOS VALORES" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Cuándo" %}</th><th>{% translate "Indicador" %}</th><th>{% translate "Periodo y territorio" %}</th><th>{% translate "Valor" %}</th><th>{% translate "Vía" %}</th></tr></thead><tbody>
+    {% for valor in valores %}<tr><td>{{ valor.modificado|date:"d/m/Y H:i" }}</td><td><a href="{% url 'indicador_observatorio' unidad.slug valor.indicador.codigo %}">{{ valor.indicador.nombre }}</a></td><td>{{ valor.periodo }} · {{ valor.territorio }}</td><td><strong>{{ valor.valor_legible }}</strong> {{ valor.indicador.unidad_medida }}{% if valor.provisional %} <small>({% translate "provisional" %})</small>{% endif %}</td><td>{{ valor.get_origen_display }}</td></tr>
+    {% empty %}<tr><td colspan="5">{% translate "Todavía no hay valores." %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% if revisiones %}
+<section class="unit-report__section">
+  <header><span>{% translate "ÚLTIMAS CORRECCIONES" %}</span><small>{% translate "Valores publicados que la fuente corrigió" %}</small></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Cuándo" %}</th><th>{% translate "Indicador" %}</th><th>{% translate "Periodo" %}</th><th>{% translate "Antes" %}</th><th>{% translate "Ahora" %}</th><th>{% translate "Vía" %}</th></tr></thead><tbody>
+    {% for revision in revisiones %}<tr><td>{{ revision.fecha|date:"d/m/Y H:i" }}</td><td>{{ revision.valor.indicador.nombre }}</td><td>{{ revision.valor.periodo }} · {{ revision.valor.territorio }}</td><td>{{ revision.anterior|floatformat:"-4" }}</td><td>{{ revision.nuevo|floatformat:"-4" }}</td><td>{{ revision.get_origen_display }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

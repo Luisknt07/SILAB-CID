@@ -1,0 +1,16 @@
+{% load l10n reportes_estilo %}
+<div class="avance-documental is-{{ avance.porcentaje|semaforo_avance }}" data-avance-documental="{{ avance.alcance|default:'sin_medicion' }}" data-reporte-informacion>
+  <button type="button" class="avance-documental__consulta" data-reporte-informacion-abrir data-modal-titulo="Avance · {{ nombre_documento }}" aria-haspopup="dialog" aria-label="Consultar avance de {{ nombre_documento }}">
+    <span class="avance-documental__encabezado"><strong class="avance-documental__valor">{% if avance.medido and avance.porcentaje is not None %}{{ avance.porcentaje|floatformat:1 }} %{% else %}—{% endif %}</strong><i class="fas fa-info-circle" aria-hidden="true"></i></span>
+    {% if avance.medido and avance.porcentaje is not None %}<progress max="100" value="{{ avance.porcentaje|unlocalize }}" aria-label="{{ avance.etiqueta|default:'Avance' }} de {{ nombre_documento }}" aria-valuetext="{{ avance.porcentaje|floatformat:1 }} % · {{ avance.etiqueta }}">{{ avance.porcentaje|floatformat:1 }} %</progress>{% endif %}
+    <span class="avance-documental__etiqueta">{{ avance.etiqueta|default:'Sin medición' }}</span>
+  </button>
+  <template data-reporte-informacion-contenido>
+    {% if lectura.fuente_nota_etiqueta %}<p>Fuente del resultado: {{ lectura.fuente_nota_etiqueta }}.</p>{% endif %}
+    {% if lectura.fecha_revision %}<p>Revisión: {{ lectura.fecha_revision|date:'d/m/Y H:i' }}.</p>{% endif %}
+    {% if documento.aporte_cumplimiento.puntua %}<p>Resultado del cierre: {{ documento.aporte_cumplimiento.resultado_porcentaje|floatformat:2 }} %.</p><p>Los documentos administrativos no agregan puntos.</p>{% endif %}
+    <p><strong>{{ avance.etiqueta|default:'Sin medición' }}{% if avance.medido and avance.porcentaje is not None %}: {{ avance.porcentaje|floatformat:1 }} %{% endif %}.</strong></p>
+    <p>{{ avance.descripcion|default:'Todavía no hay una medición verificable para este documento.' }}</p>
+    <p>El avance de preparación, la conformidad documental y el cumplimiento de las metas son mediciones distintas. Guardar o revisar un archivo no acredita por sí solo su cumplimiento.</p>
+  </template>
+</div>

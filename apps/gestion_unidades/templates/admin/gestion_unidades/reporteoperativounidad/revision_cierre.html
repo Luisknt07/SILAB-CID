@@ -1,0 +1,26 @@
+{% load reportes_estilo %}{% with d=revision.documento cierre=revision.cierre %}
+<section id="evaluacion" class="citt-revision">
+  <header><div><h2 class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ d.nombre_documental }}</span></h2><p>{{ d.unidad.nombre }} · {{ d.etiqueta_corte }}</p></div></header>
+  <div class="cierre-documentos">
+    {% if d.estado == 'validado' and d.recurso_id %}<a class="documento-accion is-pdf" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-titulo="Entrega · {{ d.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' d.recurso_id %}?download=1">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver enviado</a>
+    {% else %}
+      {% if d.recurso_id %}<a class="documento-accion is-borrador" href="{% url 'recurso_unidad' d.recurso_id %}" data-ver-pdf data-pdf-titulo="Archivo sin envío vigente · {{ d.nombre_documental }}" data-pdf-descarga="{% url 'recurso_unidad' d.recurso_id %}?download=1" title="Archivo preparado; no acredita una entrega recibida">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver preparado · sin envío vigente</a>{% endif %}
+      {% if borrador_revision_url %}<a class="documento-accion is-borrador" href="{{ borrador_revision_url }}" data-ver-pdf data-pdf-titulo="Borrador al día · {{ d.nombre_documental }}" title="Borrador al día; no acredita una entrega recibida">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver borrador</a>{% endif %}
+    {% endif %}
+  </div>
+  {% if d.nota is not None %}<p><strong>Resultado registrado: {{ d.nota }} %.</strong> {{ d.evaluacion_observacion }}</p>{% endif %}
+  {% include 'portal/pages/unidades/gestion/includes/cumplimiento_cierre.html' with anexos=anexos_revision documento_principal=d modo_admin=True %}
+  {% if user.is_superuser %}
+    {% if not d.recibido_en and d.firma_verificada and d.recurso_id %}<form method="post">{% csrf_token %}<input type="hidden" name="documento" value="{{ d.pk }}"><input type="hidden" name="accion" value="recibir"><input type="hidden" name="query" value="{{ query }}&amp;revisar={{ d.pk }}#evaluacion">{% include 'portal/pages/unidades/gestion/includes/correspondencia_documental.html' with direccion=True %}<button type="submit" class="grp-button">Recibir informe y evidencias</button></form>{% endif %}
+    {% if cierre.congelado and d.recibido_en %}
+    <form method="post" data-confirmar-cierre>{% csrf_token %}<input type="hidden" name="documento" value="{{ d.pk }}"><input type="hidden" name="accion" value="confirmar_cierre"><input type="hidden" name="version" value="{{ d.version }}"><input type="hidden" name="huella" value="{{ d.recurso.hash_sha256 }}"><input type="hidden" name="query" value="{{ query }}&amp;revisar={{ d.pk }}#evaluacion">
+      <label>Observación de Dirección<textarea name="comentario" maxlength="1200" rows="2"></textarea></label>
+      {% include 'portal/pages/unidades/gestion/includes/correspondencia_documental.html' with direccion=True %}
+      <label class="citt-revision__confirmacion"><input type="checkbox" name="confirmado" value="1" required> He revisado el informe firmado, los indicadores y los anexos de esta entrega.</label>
+      <button type="submit" class="grp-button grp-default">Confirmar revisión · {{ cierre.nota }} % calculado</button>
+    </form>
+    {% else %}<p>La confirmación del resultado se habilita con una entrega firmada, recibida y con indicadores conservados al enviar.</p>{% endif %}
+    {% if d.recurso_id %}<section class="citt-revision__correccion" aria-label="Solicitar correcciones"><h3>Solicitar correcciones</h3>{% include 'admin/gestion_unidades/reporteoperativounidad/devolver_correccion.html' %}</section>{% endif %}
+  {% endif %}
+</section>
+{% endwith %}

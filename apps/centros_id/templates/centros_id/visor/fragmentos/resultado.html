@@ -1,0 +1,35 @@
+{% load i18n %}{% comment %}La ficha de un resultado: qué es, su madurez si es un desarrollo, sus autores, su proyecto y el área que lo
+generó.{% endcomment %}<header>
+  <span class="area__ilustracion area__ilustracion--grande" aria-hidden="true"><i class="{{ resultado.icono }}"></i></span>
+  <div><span class="ficha__rol">{{ resultado.get_tipo_display }} · {{ resultado.anio }}</span><h3>{{ resultado.titulo }}</h3>{% if resultado.revista %}<p>{{ resultado.revista }}</p>{% endif %}</div>
+</header>
+<div class="area__dialogo-cuerpo">
+  {% if resultado.descripcion %}<div class="area__texto">{{ resultado.descripcion|linebreaks }}</div>{% endif %}
+  {% if resultado.trl_documentado %}<div><h4 class="cv-dialogo-titulo"><i class="fas fa-signal" aria-hidden="true"></i> {% translate "Nivel de madurez tecnológica" %}</h4><span class="cv-trl">{% for nivel in niveles_trl %}<i{% if nivel <= resultado.trl %} class="is-hecho"{% endif %} title="TRL {{ nivel }}"></i>{% endfor %}<b>TRL {{ resultado.trl }}</b></span></div>{% endif %}
+  {% if resultado.usuarios_previstos %}<h4>{% translate "Usuarios y necesidad que atiende" %}</h4><div class="area__texto">{{ resultado.usuarios_previstos|linebreaks }}</div>{% endif %}
+  {% if resultado.trl_documentado %}<p class="ficha__nota">{{ resultado.trl_fecha|date:'d/m/Y' }} · {{ resultado.trl_evaluador }} · {{ resultado.trl_alcance }} · {{ resultado.trl_evidencia }}</p>{% elif resultado.trl %}<p class="ficha__nota">{% translate "Madurez tecnológica pendiente de respaldo documental." %}</p>{% endif %}
+  <table class="area__tabla area__tabla--ficha"><caption>{% translate "Datos" %}</caption><tbody>
+    {% if resultado.autores_texto %}<tr><th scope="row">{% translate "Autores" %}</th><td>{{ resultado.autores_texto }}</td></tr>{% elif autores %}<tr><th scope="row">{% translate "Autores del centro" %}</th><td>{% for persona in autores %}{{ persona.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</td></tr>{% endif %}
+    <tr><th scope="row">{% translate "Acceso" %}</th><td>{{ resultado.estado_acceso_publico }}{% if resultado.acceso == 'embargo' %} · {{ resultado.embargo_hasta|date:'d/m/Y' }}{% endif %}</td></tr>
+    {% if resultado.version %}<tr><th scope="row">{% translate "Versión" %}</th><td>{{ resultado.version }}</td></tr>{% endif %}
+    {% if resultado.doi %}<tr><th scope="row">DOI</th><td><a href="{{ resultado.url_doi }}" target="_blank" rel="noopener">{{ resultado.doi }}</a></td></tr>{% endif %}
+    {% if resultado.tecnologia %}<tr><th scope="row">{% translate "Tecnología" %}</th><td>{{ resultado.tecnologia }}</td></tr>{% endif %}
+    {% if resultado.sector %}<tr><th scope="row">{% translate "Sector" %}</th><td>{{ resultado.sector }}</td></tr>{% endif %}
+    {% if resultado.pi_documentada %}<tr><th scope="row">{% translate "Derechos y respaldo" %}</th><td>{{ resultado.pi_modalidad }} · {{ resultado.pi_titular }}{% if resultado.pi_identificador %} · {{ resultado.pi_identificador }}{% endif %} · {{ resultado.pi_fecha|date:'d/m/Y' }} · {{ resultado.pi_evidencia }}</td></tr>{% endif %}
+    {% if resultado.cuartil %}<tr><th scope="row">{% translate "Cuartil" %}</th><td>{{ resultado.cuartil }}</td></tr>{% endif %}
+    {% if resultado.pi_documentada %}<tr><th scope="row">{% translate "Protección" %}</th><td>{{ resultado.get_estado_pi_display }}</td></tr>{% endif %}
+    {% if resultado.licencia %}<tr><th scope="row">{% translate "Licencia" %}</th><td>{{ resultado.licencia }}</td></tr>{% endif %}
+    {% if resultado.proyecto %}<tr><th scope="row">{% translate "Proyecto" %}</th><td>{{ resultado.proyecto.titulo }}</td></tr>{% endif %}
+    {% if resultado.componente %}<tr><th scope="row">{% translate "Área que lo generó" %}</th><td><a class="cv-enlace-area" href="{% url 'componente_centro_id' centro.slug resultado.componente.codigo %}"><i class="{{ resultado.componente.icono }}" aria-hidden="true"></i> {{ resultado.componente }}</a></td></tr>{% endif %}
+  </tbody></table>
+  {% if resultado.restricciones %}<h4>{% translate "Condiciones de divulgación" %}</h4><div class="area__texto">{{ resultado.restricciones|linebreaks }}</div>{% endif %}
+  {% if resultado.colaboracion %}<h4>{% translate "Cómo colaborar" %}</h4><div class="area__texto">{{ resultado.colaboracion|linebreaks }}</div>{% endif %}
+  {% if resultado.tipo == 'prototipo' or resultado.tipo == 'propiedad_intelectual' %}
+  <div class="ficha__documento-acciones">
+    <a class="ficha__boton" href="{{ solicitar_url }}?tipo=reto&amp;finalidad=codesarrollo&amp;desarrollo={{ resultado.pk }}">{% translate "Consultar codesarrollo" %}</a>
+    <a class="ficha__boton" href="{{ solicitar_url }}?tipo=visita&amp;finalidad=demostracion&amp;desarrollo={{ resultado.pk }}">{% translate "Solicitar demostración" %}</a>
+    <a class="ficha__boton" href="{{ solicitar_url }}?tipo=reto&amp;finalidad=transferencia&amp;desarrollo={{ resultado.pk }}">{% translate "Consultar transferencia" %}</a>
+  </div><p class="ficha__nota">{% translate "El centro evalúa la solicitud. Este contacto no concede una licencia ni autoriza acceso a información reservada." %}</p>
+  {% endif %}
+  {% if resultado.url %}<div class="ficha__documento-acciones"><a class="ficha__boton" href="{{ resultado.url }}"{% if resultado.archivo.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{{ resultado.titulo }}" data-pdf-descarga="{{ resultado.url }}"{% elif resultado.archivo %} download{% else %} target="_blank" rel="noopener"{% endif %}><i class="fas {% if resultado.archivo.name|lower|slice:'-4:' == '.pdf' %}fa-file-alt{% elif resultado.archivo %}fa-download{% else %}fa-external-link-alt{% endif %}" aria-hidden="true"></i> {% if resultado.archivo.name|lower|slice:'-4:' == '.pdf' %}{% translate "Ver documento" %}{% elif resultado.archivo %}{% translate "Descargar archivo" %}{% else %}{% translate "Abrir el enlace" %}{% endif %}</a></div>{% endif %}
+</div>

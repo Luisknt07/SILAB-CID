@@ -1,0 +1,24 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Calendario de publicaciones" %}{% endblock %}
+{% block encabezado %}{% translate "Calendario de publicaciones" %}{% endblock %}
+{% block subtitulo %}{% translate "Lo que el observatorio se comprometió a publicar, lo que cumplió y lo que está atrasado" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Planificadas" %}</dt><dd>{{ publicaciones|length }}</dd></div><div><dt>{% translate "Cumplimiento" %}</dt><dd>{% if cumplimiento.porcentaje is not None %}{{ cumplimiento.porcentaje }} %{% else %}—{% endif %}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Calendario de publicaciones" %}{% endblock %}
+{% block contenido %}
+{% if cumplimiento.vencidas %}<p class="unit-report__notice">{% blocktranslate with cumplidas=cumplimiento.cumplidas vencidas=cumplimiento.vencidas a_tiempo=cumplimiento.a_tiempo %}De {{ vencidas }} publicaciones cuya fecha ya llegó, se publicaron {{ cumplidas }} ({{ a_tiempo }} a tiempo).{% endblocktranslate %}</p>{% endif %}
+{% if publicaciones %}
+<div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Fecha planificada" %}</th><th>{% translate "Publicación" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+  {% for publicacion in publicaciones %}<tr>
+    <td>{{ publicacion.fecha_planificada|date:"d/m/Y" }}</td>
+    <td><strong>{{ publicacion.titulo }}</strong>{% if publicacion.periodo %} <small>· {{ publicacion.periodo }}</small>{% endif %}{% include 'portal/pages/unidades/includes/editar.html' with clave='publicacion_observatorio' pk=publicacion.pk titulo=publicacion.titulo %}</td>
+    <td>{{ publicacion.get_tipo_display }}</td>
+    <td>{% if publicacion.estado == 'publicada' %}<span class="aula-ok">{% translate "Publicada" %} {{ publicacion.fecha_publicada|date:"d/m/Y" }}{% if publicacion.a_tiempo is False %} ({% translate "con retraso" %}){% endif %}</span>{% elif publicacion.atrasada %}<span class="aula-falta">{% translate "Atrasada" %}</span>{% else %}<span class="aula-aviso">{% translate "Planificada" %}</span>{% endif %}</td>
+  </tr>{% endfor %}
+</tbody></table></div>
+{% else %}
+<p class="unit-report__notice">{% translate "El observatorio todavía no publica su calendario." %}</p>
+{% endif %}
+{% translate "Nueva publicación" as titulo_nuevo %}{% translate "Planificar una publicación" as rotulo_nuevo %}<p class="registro-agregar">{% include 'portal/pages/unidades/includes/editar.html' with clave='publicacion_observatorio' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %}</p>
+{% endblock %}

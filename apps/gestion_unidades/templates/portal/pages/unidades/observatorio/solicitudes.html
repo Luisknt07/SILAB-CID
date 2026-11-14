@@ -1,0 +1,35 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Solicitar datos o un análisis" %}{% endblock %}
+{% block encabezado %}{% translate "Solicitar datos o un análisis" %}{% endblock %}
+{% block subtitulo %}{% translate "Pide series que no estén publicadas, un análisis a medida o una asesoría metodológica" %}{% endblock %}
+{% block datos %}{% if user.is_authenticated %}<div><dt>{% if gestor %}{% translate "Solicitudes recibidas" %}{% else %}{% translate "Tus solicitudes" %}{% endif %}</dt><dd>{{ solicitudes|length }}</dd></div>{% endif %}{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Solicitudes de datos" %}{% endblock %}
+{% block contenido %}
+{% if enviada %}<p class="unit-report__notice"><span class="aula-ok">{% translate "Solicitud enviada." %}</span> {% translate "El observatorio la revisará y te responderá aquí." %}</p>{% endif %}
+{% if user.is_authenticated %}
+<form method="post" class="aula-form">{% csrf_token %}
+  <label for="solicitud-tipo">{% translate "Qué necesitas" %}<select id="solicitud-tipo" name="tipo">{% for valor, nombre in tipos %}<option value="{{ valor }}"{% if datos.tipo == valor %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+  <label for="solicitud-institucion">{% translate "Institución" %} <small>({% translate "opcional" %})</small><input id="solicitud-institucion" name="institucion" maxlength="160" value="{{ datos.institucion|default:'' }}"></label>
+  <label for="solicitud-descripcion" class="aula-form__wide">{% translate "Qué necesitas: datos (periodo y territorio), un análisis o una capacitación (tema, grupo y cuántas personas)" %}<textarea id="solicitud-descripcion" name="descripcion" rows="3" required>{{ datos.descripcion|default:'' }}</textarea>{% if errores.descripcion %}<small class="aula-falta">{{ errores.descripcion }}</small>{% endif %}</label>
+  <label for="solicitud-finalidad" class="aula-form__wide">{% translate "Para qué los usarás" %}<input id="solicitud-finalidad" name="finalidad" maxlength="255" required value="{{ datos.finalidad|default:'' }}">{% if errores.finalidad %}<small class="aula-falta">{{ errores.finalidad }}</small>{% endif %}</label>
+  <button type="submit">{% translate "Enviar la solicitud" %}</button>
+</form>
+<p class="unit-report__notice">{% translate "Los datos agregados son abiertos. Los microdatos de encuestas se entregan anonimizados y por convenio, conforme a la Ley Orgánica de Protección de Datos Personales." %}</p>
+{% else %}
+<p class="unit-report__notice">{% translate "Para enviar una solicitud inicia sesión con tu cuenta; así puedes seguir su estado y recibir la respuesta." %} <a href="{% url 'login' %}?next={{ request.path|urlencode }}" target="_top">{% translate "Iniciar sesión" %}</a></p>
+{% endif %}
+{% if solicitudes %}
+<section class="unit-report__section">
+  <header><span>{% if gestor %}{% translate "SOLICITUDES RECIBIDAS" %}{% else %}{% translate "TUS SOLICITUDES" %}{% endif %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Recibida" %}</th>{% if gestor %}<th>{% translate "Solicitante" %}</th>{% endif %}<th>{% translate "Tipo" %}</th><th>{% translate "Qué pide" %}</th><th>{% translate "Estado" %}</th><th>{% translate "Respuesta" %}</th></tr></thead><tbody>
+    {% for solicitud in solicitudes %}<tr>
+      <td>{{ solicitud.creada|date:"d/m/Y" }}</td>{% if gestor %}<td>{{ solicitud.usuario.get_full_name|default:solicitud.usuario.get_username }}{% if solicitud.institucion %}<br><small>{{ solicitud.institucion }}</small>{% endif %}</td>{% endif %}
+      <td>{{ solicitud.get_tipo_display }}</td><td>{{ solicitud.descripcion|truncatechars:140 }}<br><small>{{ solicitud.finalidad }}</small></td>
+      <td>{{ solicitud.get_estado_display }}{% include 'portal/pages/unidades/includes/editar.html' with clave='solicitud_datos' pk=solicitud.pk titulo=solicitud.get_tipo_display %}</td><td>{{ solicitud.respuesta|default:"—" }}</td>
+    </tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

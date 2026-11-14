@@ -1,0 +1,26 @@
+{% load l10n %}
+<article class="unit-console__card">
+  <header><div><span>CONTINUIDAD Y REPARACIÓN</span><h3>Fallas, garantía y repuestos</h3><p>Atiende primero lo que detiene la operación y los riesgos críticos. Una falla temprana requiere diagnóstico; no demuestra por sí sola que deba comprarse un equipo nuevo.</p></div></header>
+  <div class="unit-console__metrics">
+    <article><span>Fallas antes de la vida útil prevista</span><strong>{{ seguimiento_reparacion.fallas_tempranas }}</strong><small>Revisar garantía, causa y reparación</small></article>
+    <article><span>Sin diagnóstico registrado</span><strong>{{ seguimiento_reparacion.sin_diagnostico }}</strong></article>
+    <article><span>Sin cobertura interna declarada</span><strong>{{ seguimiento_reparacion.sin_cobertura_interna }}</strong><small>Evaluar derivación especializada y capacidad del servicio</small></article>
+    <article><span>Respuestas pendientes vencidas</span><strong>{{ seguimiento_reparacion.respuestas_vencidas }}</strong></article>
+  </div>
+  <div class="mant-areas">
+  {% for area in seguimiento_reparacion.areas %}
+  <details class="mant-area"><summary><strong>{{ area.nombre }}</strong>{% if not area.activa %}<small>Área inactiva</small>{% endif %}<span>{{ area.total }} incidencia(s)</span></summary>
+    {% for categoria in area.categorias %}<details class="mant-categoria"><summary><strong>{{ categoria.nombre }}</strong><span>{{ categoria.total }} incidencia(s)</span></summary>
+      <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>Equipo e incidencia</th><th>Prioridad y garantía</th><th>Atención y respuesta</th><th>Decisión técnica</th>{% if puede_operar_mantenimiento %}<th>Gestionar</th>{% endif %}</tr></thead><tbody>{% include 'portal/pages/unidades/gestion/includes/reparacion_filas.html' %}</tbody></table></div>
+    </details>{% endfor %}
+  </details>
+  {% empty %}<p>No hay incidencias abiertas registradas.</p>{% endfor %}
+  </div>
+  <details><summary>Capacidad declarada de los servicios internos</summary><p>La carga pendiente y los casos fuera de cobertura sirven para sustentar una ampliación; no se presupone que ya exista capacidad técnica.</p>{% for servicio in seguimiento_reparacion.servicios %}<p><strong>{{ servicio.nombre }}</strong>: {{ servicio.alcance }}{% if servicio.capacidad_mensual != None %} · {{ servicio.capacidad_mensual }} casos/mes declarados{% endif %}</p>{% empty %}<p>Dirección debe registrar el alcance real del centro de reparación y las familias que puede atender.</p>{% endfor %}</details>
+</article>
+{% if mantenimientos %}
+<article class="unit-console__card"><header><div><span>TRAZABILIDAD DE COMPONENTES</span><h3>Piezas y accesorios por orden</h3><p>Órdenes recientes, organizadas con las mismas áreas del inventario. Cada orden conserva pieza, cantidad, costo y respaldo; su ficha contiene el historial completo.</p></div></header>
+<div class="mant-areas">{% for area in mantenimientos_areas %}<details class="mant-area"><summary><strong>{{ area.nombre }}</strong><span>{{ area.total }} orden(es) reciente(s)</span></summary>
+{% for categoria in area.categorias %}<details class="mant-categoria"><summary><strong>{{ categoria.nombre }}</strong><span>{{ categoria.total }} orden(es)</span></summary>
+<div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>Orden y equipo</th><th>Estado</th><th>Piezas registradas</th>{% if puede_operar_mantenimiento %}<th>Registrar</th>{% endif %}</tr></thead><tbody>{% include 'portal/pages/unidades/gestion/includes/repuestos_ordenes_filas.html' %}</tbody></table></div>
+</details>{% endfor %}</details>{% endfor %}</div></article>{% endif %}

@@ -1,0 +1,50 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Fuentes, bases y actualización" %}{% endblock %}
+{% block encabezado %}{% translate "Fuentes, bases y actualización" %}{% endblock %}
+{% block subtitulo %}{% translate "Quién produce cada dato, cómo llega al observatorio, con qué licencia y nivel de acceso, y qué se actualiza solo" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Fuentes" %}</dt><dd>{{ fuentes|length }}</dd></div><div><dt>{% translate "Conexiones automáticas" %}</dt><dd>{{ conectores|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Fuentes de datos" %}{% endblock %}
+{% block contenido %}
+{% include 'portal/pages/unidades/observatorio/_estilos.html' %}
+<section class="unit-report__section">
+  <header><span>{% translate "CÓMO ENTRA UN DATO AL OBSERVATORIO" %}</span></header>
+  <ol class="obs-pasos">{% for titulo, texto in flujo %}<li><strong>{{ titulo }}</strong>{{ texto }}</li>{% endfor %}</ol>
+</section>
+
+<section class="unit-report__section">
+  <header><span>{% translate "NIVEL DE ACCESO DE LAS FUENTES" %}</span><small><a href="{% url 'politica_observatorio' unidad.slug %}">{% translate "Política de datos" %} →</a></small></header>
+  <div class="obs-lineas__cifras" style="padding:4px 0 10px">{% for titulo, total in accesos %}<span>{{ titulo }}: {{ total }}</span>{% endfor %}</div>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Fuente" %}</th><th>{% translate "Cómo se obtiene" %}</th><th>{% translate "Acceso" %}</th><th>{% translate "Licencia" %}</th><th>{% translate "Publica" %}</th><th>{% translate "Indicadores que alimenta" %}</th></tr></thead><tbody>
+    {% for item in fuentes %}{% with fuente=item.fuente %}<tr>
+      <td><strong>{% if fuente.url %}<a href="{{ fuente.url }}" target="_blank" rel="noopener noreferrer">{{ fuente.nombre }}</a>{% else %}{{ fuente.nombre }}{% endif %}</strong><br><small>{{ fuente.institucion }}</small>{% if fuente.descripcion %}<br><small>{{ fuente.descripcion }}</small>{% endif %}</td>
+      <td>{{ fuente.get_metodo_display }}{% if fuente.documentacion %}<br><a href="{{ fuente.documentacion }}" target="_blank" rel="noopener noreferrer"><small>{% translate "Documentación" %}</small></a>{% endif %}{% if fuente.requiere_clave %}<br><small>{% translate "La API exige clave" %}</small>{% endif %}</td>
+      <td><span class="obs-acceso is-{{ fuente.acceso }}">{{ fuente.get_acceso_display }}</span></td>
+      <td>{{ fuente.licencia|default:"—" }}</td>
+      <td>{{ fuente.periodicidad|default:"—" }}</td>
+      <td>{% for indicador in item.indicadores %}<a href="{% url 'indicador_observatorio' unidad.slug indicador.codigo %}">{{ indicador.nombre }}</a>{% if not forloop.last %}; {% endif %}{% endfor %}</td>
+    </tr>{% endwith %}{% endfor %}
+    {% for indicador in sin_catalogo %}<tr><td><strong>{% if indicador.url_fuente %}<a href="{{ indicador.url_fuente }}" target="_blank" rel="noopener noreferrer">{{ indicador.fuente }}</a>{% else %}{{ indicador.fuente }}{% endif %}</strong></td><td>{{ indicador.get_tipo_fuente_display }}</td><td>—</td><td>—</td><td>{{ indicador.get_periodicidad_display }}</td><td><a href="{% url 'indicador_observatorio' unidad.slug indicador.codigo %}">{{ indicador.nombre }}</a></td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="unit-report__section" id="conexiones">
+  <header><span>{% translate "CONEXIONES AUTOMÁTICAS" %}</span><small>{% translate "Indicadores que se actualizan solos desde una API pública" %}</small></header>
+  {% if conectores %}
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Indicador" %}</th><th>{% translate "Conexión" %}</th><th>{% translate "Cada" %}</th><th>{% translate "Última ejecución" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+    {% for conector in conectores %}<tr><td><a href="{% url 'indicador_observatorio' unidad.slug conector.indicador.codigo %}">{{ conector.indicador.nombre }}</a></td><td>{{ conector.get_tipo_display }}</td><td>{{ conector.frecuencia_horas }} h</td><td>{{ conector.ultima_ejecucion|date:"d/m/Y H:i"|default:"—" }}</td><td><span class="obs-semaforo is-{% if conector.estado == 'ok' %}verde{% elif conector.estado == 'error' %}rojo{% else %}gris{% endif %}">{{ conector.get_estado_display }}</span>{% if conector.mensaje %}<br><small>{{ conector.mensaje }}</small>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if puede_sincronizar %}<form method="post" action="{% url 'sincronizar_observatorio' unidad.slug %}" style="margin-top:10px">{% csrf_token %}<input type="hidden" name="volver" value="{{ request.get_full_path }}"><button type="submit" class="obs-boton"><i class="fas fa-sync-alt" aria-hidden="true"></i> {% translate "Actualizar ahora" %}</button></form>{% endif %}
+  {% else %}
+  <p class="unit-report__notice">{% translate "Ningún indicador de este observatorio tiene todavía una API pública que permita actualizarlo solo: sus valores se cargan con la plantilla CSV o uno a uno desde la publicación oficial." %}</p>
+  {% endif %}
+</section>
+
+{% if encuestas %}
+<section class="unit-report__section">
+  <header><span>{% translate "LEVANTAMIENTOS PROPIOS" %}</span></header>
+  <ul class="aula-lista">{% for encuesta in encuestas %}<li><a href="{% url 'encuestas_observatorio' unidad.slug %}#encuesta-{{ encuesta.pk }}">{{ encuesta.nombre }}</a> · {{ encuesta.get_etapa_display|lower }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

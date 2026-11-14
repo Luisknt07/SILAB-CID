@@ -1,0 +1,29 @@
+{% load l10n reportes_estilo %}
+{% if priorizacion %}
+<section class="priorizacion-compras{% if compacto %} priorizacion-compras--compacta{% endif %} is-{{ priorizacion.tono|default:'neutro' }}" data-reporte-informacion aria-label="Prioridad de inversión">
+  {% if not compacto %}<header><span class="priorizacion-compras__icono" aria-hidden="true"><i class="fas fa-balance-scale"></i></span><div><h2>Prioridad de inversión</h2><p>El plan documenta la necesidad; su conformidad no autoriza la compra ni asigna presupuesto.</p></div></header>{% endif %}
+  <div class="priorizacion-compras__resumen">
+    <strong class="priorizacion-compras__estado">{{ priorizacion.label }}</strong>
+    {% if not compacto %}<p>{{ priorizacion.explicacion }}</p>{% endif %}
+    <button type="button" data-reporte-informacion-abrir data-modal-titulo="Sustento de la prioridad de inversión" aria-haspopup="dialog">{% if compacto %}Ver sustento{% else %}Consultar antecedente y criterios{% endif %}<i class="fas fa-external-link-alt" aria-hidden="true"></i></button>
+  </div>
+  <template data-reporte-informacion-contenido>
+    <div class="priorizacion-compras__detalle">
+      <p class="priorizacion-compras__estado">{{ priorizacion.label }}</p>
+      <p>{{ priorizacion.explicacion }}</p>
+      <p><strong>Conformidad documental y prioridad de inversión son decisiones distintas.</strong> Presentar un plan completo no equivale a tener una inversión aprobada. La asignación de fondos sigue el procedimiento institucional correspondiente.</p>
+      {% if priorizacion.estado == 'sin_solicitud' %}<p>No requerir compras, con una justificación coherente con el inventario y las necesidades de la unidad, no reduce la conformidad del plan. No es necesario solicitar equipos para obtener un resultado favorable.</p>{% elif priorizacion.metodo == 'diagnostico_areas' %}<p>Consulta en el informe los estados registrados, el uso de los dos semestres cerrados y las razones de reposición, dotación o ampliación de cada área. Cuando no existe medición, debe comprobarse la necesidad antes de decidir.</p>{% else %}<dl class="priorizacion-compras__datos">
+        {% if priorizacion.fecha_referencia %}<div><dt>Fecha de referencia</dt><dd>{{ priorizacion.fecha_referencia }} · {% if priorizacion.origen_referencia == 'envio' %}evidencia disponible al enviar el plan{% else %}consulta actual del borrador{% endif %}</dd></div>{% endif %}
+        <div><dt>Semestre de referencia</dt><dd>{% if priorizacion.periodo %}{{ priorizacion.periodo.etiqueta }}{% else %}Sin antecedente disponible{% endif %}</dd></div>
+        <div><dt>Umbral de referencia</dt><dd>{{ priorizacion.umbral }} % de cumplimiento acreditado</dd></div>
+        <div><dt>Planificación</dt><dd>{% if priorizacion.plan.conforme %}Conformidad acreditada{% elif priorizacion.plan %}Pendiente de acreditar conformidad{% else %}Sin documento de referencia{% endif %}</dd></div>
+        <div><dt>Cierre del semestre</dt><dd>{% if priorizacion.porcentaje is not None %}{{ priorizacion.porcentaje }} % acreditado{% elif priorizacion.cierre %}Sin resultado acreditable{% else %}Sin documento de referencia{% endif %}</dd></div>
+      </dl>{% endif %}
+      {% if priorizacion.motivos %}<h3>Aspectos por atender</h3><ul>{% for motivo in priorizacion.motivos %}<li>{{ motivo }}</li>{% endfor %}</ul>{% endif %}
+      {% if priorizacion.justificacion %}<h3>Argumento de la unidad</h3><p>{{ priorizacion.justificacion }}</p>{% endif %}
+      {% if priorizacion.requiere_revision %}<p>Dirección revisa el sustento y las condiciones de la unidad. Registrar una justificación no equivale a aprobar una excepción.</p>{% endif %}
+      {% if priorizacion.acciones %}<div class="priorizacion-compras__acciones">{% for accion in priorizacion.acciones %}{% if accion.url|slice:':1' == '/' and accion.url|slice:':2' != '//' %}<a href="{{ accion.url }}">{% firstof accion.etiqueta accion.label 'Consultar documento' %}</a>{% endif %}{% endfor %}</div>{% endif %}
+    </div>
+  </template>
+</section>
+{% endif %}

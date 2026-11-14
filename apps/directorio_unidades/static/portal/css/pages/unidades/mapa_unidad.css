@@ -1,0 +1,100 @@
+/* Mapa de ubicación de la unidad: pestaña «Ubicación» de la ficha y editor. */
+.mapa-unidad-pagina { margin: 0; height: 100vh; overflow: hidden; background: var(--institucion-fondo, #f4f7f5); color: var(--institucion-texto, #1f3630); font-family: "Poppins", Arial, sans-serif; }
+.mapa-unidad-pagina__lienzo { position: relative; height: 100%; }
+.mapa-unidad { width: 100%; height: 100%; background: #e8ece9; font-family: "Poppins", Arial, sans-serif; }
+
+/* Campus y edificios: el color sale de la paleta, no de Leaflet. */
+.mapa-unidad .mapa-unidad__area--campus { fill: var(--institucion-primario, #1f6b46); fill-opacity: .06; stroke: var(--institucion-primario, #1f6b46); stroke-width: 2; stroke-dasharray: 6 5; stroke-opacity: .7; }
+/* Casi opacos: el mapa base ya rotula algunos edificios y los dos nombres se encimarían. */
+.mapa-unidad .mapa-unidad__area--edificio { fill: var(--institucion-primario, #1f6b46); fill-opacity: .74; stroke: var(--institucion-oscuro, #173b2c); stroke-width: 1.4; }
+.mapa-unidad .mapa-unidad__area--edificio:hover { fill-opacity: .88; }
+.mapa-unidad .leaflet-tooltip.mapa-unidad__edificio { padding: 0; border: 0; background: transparent; box-shadow: none; color: var(--institucion-oscuro, #173b2c); font-size: 10px; font-weight: 800; line-height: 1.15; text-align: center; white-space: normal; width: 92px; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+.mapa-unidad .leaflet-tooltip.mapa-unidad__edificio::before { display: none; }
+
+/* El punto exacto: gota con el color institucional y el centro amarillo de las carpetas. */
+.mapa-unidad__pin { border: 0; background: transparent; }
+.mapa-unidad__pin span { position: absolute; left: 0; top: 0; box-sizing: border-box; width: 28px; height: 28px; border: 3px solid #fff; border-radius: 50% 50% 50% 0; background: var(--institucion-primario, #1f6b46); box-shadow: 0 3px 8px rgba(0, 0, 0, .35); transform: rotate(-45deg); transform-origin: center; }
+.mapa-unidad__pin span::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--institucion-panel-carpeta, #ffce00); }
+/* Marcador con la foto de la unidad: círculo con borde blanco, anillo institucional y punta. */
+.mapa-unidad__pin-foto { border: 0; background: none; }
+.mapa-unidad__foto { position: absolute; left: 0; top: 0; box-sizing: border-box; width: 44px; height: 44px; overflow: hidden; border: 3px solid #fff; border-radius: 50%; background: var(--institucion-primario, #1f6b46); box-shadow: 0 0 0 2px var(--institucion-primario, #1f6b46), 0 4px 10px rgba(0, 0, 0, .35); }
+.mapa-unidad__foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.mapa-unidad__foto:empty::after { content: ''; position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--institucion-panel-carpeta, #ffce00); }
+.mapa-unidad__pin-foto > div::after { content: ''; position: absolute; left: 50%; top: 44px; margin-left: -7px; border: 7px solid transparent; border-bottom: 0; border-top: 10px solid var(--institucion-primario, #1f6b46); }
+.mapa-unidad__cuenta { position: absolute; right: -6px; top: -6px; min-width: 20px; height: 20px; box-sizing: border-box; padding: 0 5px; border: 2px solid #fff; border-radius: 10px; background: var(--institucion-panel-carpeta, #ffce00); color: var(--institucion-oscuro, #173b2c); font: 800 11px/16px "Poppins", Arial, sans-serif; text-align: center; }
+.mapa-unidad__vecinas { font: 700 11px/1.35 "Poppins", Arial, sans-serif; }
+.mapa-unidad__vecinas em { display: block; margin-top: 3px; color: var(--institucion-primario, #1f6b46); font-weight: 600; }
+
+.mapa-unidad .leaflet-popup-content-wrapper { border-radius: 8px; border-top: 4px solid var(--institucion-primario, #1f6b46); }
+/* Leaflet mide el globo con nowrap y Grappelli lo anula en los campos de solo lectura: sin mínimo, sale angosto. */
+.mapa-unidad .leaflet-popup-content { min-width: 220px; margin: 11px 14px; }
+.mapa-unidad__etiqueta { display: grid; gap: 3px; color: var(--institucion-texto, #1f3630); font-family: "Poppins", Arial, sans-serif; font-size: 12px; line-height: 1.4; }
+.mapa-unidad__etiqueta strong { color: var(--institucion-oscuro, #173b2c); font-size: 13px; font-weight: 800; }
+.mapa-unidad__etiqueta a { margin-top: 5px; color: var(--institucion-primario, #1f6b46); font-weight: 800; text-decoration: none; }
+.mapa-unidad__cabecera { display: flex; align-items: center; gap: 9px; }
+.mapa-unidad__avatar { flex: 0 0 auto; display: inline-block; box-sizing: border-box; width: 36px; height: 36px; overflow: hidden; border: 2px solid var(--institucion-primario-suave, #d6e6dc); border-radius: 50%; background: var(--institucion-primario-suave, #d6e6dc); }
+.mapa-unidad__avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* Varias unidades en un punto: lista por piso, la de esta ficha resaltada. */
+.mapa-unidad__punto ul { display: grid; gap: 4px; max-height: 240px; margin: 6px 0 0; padding: 0; overflow-y: auto; list-style: none; }
+.mapa-unidad__nivel { margin-top: 4px; color: var(--institucion-acento-tinta, #8a6a00); font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.mapa-unidad .mapa-unidad__unidad { display: flex; align-items: center; gap: 8px; margin: 0; padding: 5px 7px; border: 1px solid var(--institucion-primario-suave, #d6e6dc); border-radius: 6px; color: var(--institucion-texto, #1f3630); text-decoration: none; }
+.mapa-unidad .mapa-unidad__unidad:hover { border-color: var(--institucion-primario, #1f6b46); }
+.mapa-unidad__unidad.is-actual { border-left: 4px solid var(--institucion-panel-carpeta, #ffce00); background: var(--institucion-fondo, #f4f7f5); }
+.mapa-unidad__unidad > span:last-child { display: grid; gap: 1px; }
+.mapa-unidad__unidad b { font-size: 12px; }
+.mapa-unidad__unidad small { color: var(--institucion-primario, #1f6b46); font-size: 10.5px; font-weight: 700; }
+
+/* Sedes: distintivo oscuro con la franja amarilla, sobre un punto amarillo en el lugar exacto. */
+.mapa-unidad__sede { border: 0; background: none; }
+.mapa-unidad__sede i { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; box-sizing: border-box; border: 2px solid #fff; border-radius: 50%; background: var(--institucion-panel-carpeta, #ffce00); box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
+.mapa-unidad__sede b { position: absolute; left: 0; bottom: 14px; display: grid; gap: 1px; padding: 5px 10px 5px 11px; border-left: 4px solid var(--institucion-panel-carpeta, #ffce00); border-radius: 5px; background: var(--institucion-primario, #1f6b46); box-shadow: 0 3px 10px rgba(0, 0, 0, .3); color: #fff; font: 800 11px/1.25 "Poppins", Arial, sans-serif; white-space: nowrap; transform: translateX(-50%); }
+.mapa-unidad__sede b::after { content: ''; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--institucion-primario, #1f6b46); }
+.mapa-unidad__sede b small { color: var(--institucion-panel-carpeta, #ffce00); font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.mapa-unidad__sede.leaflet-interactive b:hover { background: var(--institucion-oscuro, #173b2c); }
+.mapa-unidad__sede.leaflet-interactive b:hover::after { border-top-color: var(--institucion-oscuro, #173b2c); }
+.mapa-unidad .mapa-unidad__ir select { width: auto !important; max-width: 280px !important; height: auto !important; line-height: 1.3 !important; padding: 6px 8px; border: 2px solid rgba(0, 0, 0, .2); border-radius: 4px; background: #fff; color: var(--institucion-texto, #1f3630); font: 700 12px "Poppins", Arial, sans-serif; cursor: pointer; }
+/* De lejos, la sede que se encima con otra queda en su punto; cerca de sus edificios, se oculta. */
+.mapa-unidad__sede.is-oculta { display: none; }
+.mapa-unidad__sede.is-compacta b { display: none; }
+.mapa-unidad__sede.is-compacta i { left: -8px; top: -8px; width: 16px; height: 16px; }
+.mapa-unidad__sede.leaflet-interactive.is-compacta i { cursor: zoom-in; }
+/* Grappelli fuerza el ajuste de línea dentro de los campos de solo lectura. */
+div.grp-readonly .mapa-unidad__sede b, div.grp-readonly .mapa-unidad__vecinas div { white-space: nowrap !important; }
+
+/* Dibujo a mano de contorno y edificios en el editor de sedes. */
+.mapa-unidad.is-dibujando { cursor: crosshair; }
+.mapa-dibujo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 380px; padding: 7px; border: 2px solid rgba(0, 0, 0, .2); border-radius: 4px; background: #fff; color: var(--institucion-texto, #1f3630); font: 700 11.5px/1.3 "Poppins", Arial, sans-serif; }
+.mapa-dibujo__aviso { flex-basis: 100%; }
+.mapa-dibujo__menu { display: grid; gap: 6px; min-width: 190px; }
+/* Grappelli fija alto y ajuste de línea de botones y campos: aquí mandan su contenido. */
+.mapa-unidad .mapa-dibujo__boton { position: static; display: inline-block; width: auto; height: auto !important; margin: 0; overflow: visible; text-indent: 0; white-space: nowrap !important; padding: 5px 9px; border: 1px solid var(--institucion-primario, #1f6b46); border-radius: 4px; background: #fff; color: var(--institucion-primario, #1f6b46); font: 700 11.5px/1.2 "Poppins", Arial, sans-serif; cursor: pointer; }
+.mapa-unidad .mapa-dibujo__boton.is-principal { background: var(--institucion-primario, #1f6b46); color: #fff; }
+.mapa-unidad .mapa-dibujo__boton:disabled { opacity: .45; cursor: not-allowed; }
+.mapa-unidad .mapa-dibujo__nombre { box-sizing: border-box; width: 190px !important; max-width: 100% !important; height: auto !important; padding: 5px 7px !important; border: 1px solid #b9c7bf !important; border-radius: 4px; font: 600 12px "Poppins", Arial, sans-serif; }
+.mapa-unidad .mapa-unidad__area.is-trazo { fill-opacity: .25; stroke-dasharray: 5 4; }
+.mapa-unidad .mapa-dibujo__esquina { fill: #fff; fill-opacity: 1; stroke: var(--institucion-primario, #1f6b46); stroke-width: 2; }
+.mapa-dibujo__asa { box-sizing: border-box; border: 2px solid var(--institucion-primario, #1f6b46); border-radius: 2px; background: #fff; cursor: move; }
+
+/* Aviso y leyenda sobre el mapa. */
+.mapa-unidad__aviso { position: absolute; z-index: 500; top: 12px; left: 56px; right: 12px; display: grid; gap: 3px; max-width: 420px; padding: 11px 14px; border-left: 4px solid var(--institucion-panel-carpeta, #ffce00); border-radius: 6px; background: rgba(255, 255, 255, .96); box-shadow: 0 4px 14px rgba(0, 0, 0, .16); font-size: 12px; line-height: 1.45; }
+.mapa-unidad__aviso[hidden] { display: none; }
+.mapa-unidad__aviso strong { color: var(--institucion-oscuro, #173b2c); font-size: 13px; }
+.mapa-unidad__aviso a { color: var(--institucion-primario, #1f6b46); font-weight: 800; text-decoration: none; }
+.mapa-unidad__leyenda { position: absolute; z-index: 500; left: 12px; bottom: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; max-width: calc(100% - 24px); padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, .95); box-shadow: 0 3px 12px rgba(0, 0, 0, .14); font-size: 11px; font-weight: 700; }
+.mapa-unidad__leyenda > span { display: inline-flex; align-items: center; gap: 7px; }
+.mapa-unidad__muestra.mapa-unidad__muestra--sede { border: 0; border-left: 4px solid var(--institucion-panel-carpeta, #ffce00); background: var(--institucion-primario, #1f6b46); }
+.mapa-unidad__muestra { display: inline-block; width: 14px; height: 10px; border: 1.5px solid var(--institucion-oscuro, #173b2c); border-radius: 2px; background: rgba(var(--institucion-primario-rgb, 31, 107, 70), .74); }
+.mapa-unidad__leyenda div { display: flex; gap: 6px; }
+.mapa-unidad__leyenda button, .mapa-unidad__leyenda a { padding: 5px 9px; border: 1px solid var(--institucion-primario-suave, #cfe0d5); border-radius: 4px; background: #fff; color: var(--institucion-texto, #1f3630); font: inherit; text-decoration: none; cursor: pointer; }
+.mapa-unidad__leyenda button:hover, .mapa-unidad__leyenda a:hover { border-color: var(--institucion-primario, #1f6b46); }
+
+/* Editor de la unidad. */
+.mapa-unidad-editor[hidden] { display: none; }
+.mapa-unidad--editor { height: 440px; max-width: 760px; border: 1px solid #cdd6d1; border-radius: 6px; }
+.mapa-unidad--editor .leaflet-container, .mapa-unidad--editor.leaflet-container { cursor: crosshair; }
+.mapa-unidad__ayuda { max-width: 760px; margin: 6px 0 0; color: #5b6b63; font-size: 12px; }
+
+@media (max-width: 560px) {
+    .mapa-unidad__aviso { left: 12px; top: 84px; }
+    .mapa-unidad__leyenda { bottom: 18px; }
+}

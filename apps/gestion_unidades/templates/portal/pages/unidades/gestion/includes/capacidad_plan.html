@@ -1,0 +1,41 @@
+{% if dato.metas_estandar %}
+<div class="redaccion__capacidad-plan">
+  <strong>Metas del semestre calculadas automáticamente</strong>
+  <p>{{ dato.metas_estandar.descripcion }}</p>
+  {% with carga=dato.metas_estandar.carga_docente %}
+  {% if dato.metas_estandar.version == 2 and carga.aplica %}
+  <p>{{ carga.sesiones_programadas }} sesiones académicas vinculadas · {{ carga.horas_sesiones }} horas de sesiones · {{ carga.asignaturas_total }} asignaturas con horario. Meta del período: {{ carga.practicas }} sesiones.</p>
+  {% if plan_recalculado %}<p>La programación mostrada se aplicará al guardar. El documento preparado anteriormente conserva sus datos; genera una nueva versión para firma después de guardar los cambios.</p>{% endif %}
+  {% if carga.sesiones_sin_vinculo %}<p>{{ carga.sesiones_sin_vinculo|length }} sesiones registradas necesitan vinculación académica antes de incorporarse a la meta. Se conservan en la agenda y en los reportes.</p>{% endif %}
+  <p>Programa la ocupación desde Reservas y agenda: una sesión, algunas semanas o un rango del semestre, con los horarios de clase reales. Completa sus prácticas en FT02. Al volver a abrir y guardar este plan se conserva la programación actual; un plan aprobado mantiene su compromiso.</p>
+  {% elif carga.semanas %}<p>{{ carga.semanas|length }} semanas docentes · {{ carga.asignaturas_total }} asignaturas registradas · {{ carga.temas }} temas del syllabus · {{ carga.practicas }} prácticas previstas para el semestre.</p>{% endif %}
+  <div data-reporte-informacion><button type="button" data-reporte-informacion-abrir data-modal-titulo="Carga académica y capacidad del semestre" aria-haspopup="dialog">Origen de las metas y capacidad <i class="fas fa-info-circle" aria-hidden="true"></i></button><template data-reporte-informacion-contenido>
+    <p>{{ carga.formula }}</p>
+    {% if dato.metas_estandar.version == 2 and carga.aplica %}
+    <p>{{ carga.asignaturas_catalogo_total }} asignaturas activas en el catálogo de esta unidad; ese catálogo puede servir a varios períodos y no fija cuántas sesiones debe hacer cada asignatura.</p>
+    <p>Horas de sesiones: {{ carga.horas_sesiones }}. Ocupación de la unidad: {{ carga.horas_requeridas }} horas, sin duplicar horarios simultáneos. Disponibilidad: {{ carga.horas_disponibles }} horas. Una guía puede respaldar varias sesiones de la misma práctica.</p>
+    {% if carga.sesiones_sin_vinculo %}<p>Pendientes de vinculación: {{ carga.sesiones_sin_vinculo|length }} sesiones, con {{ carga.horas_sin_vinculo }} horas de demanda registrada. Revisa su asignatura y tema en FT02 o la asignatura de su programación; el uso general y los ejemplos no fijan una cuota docente.</p>{% endif %}
+    {% if carga.asignaturas %}<div class="guide-table-wrap"><table class="guide-table__grid"><thead><tr><th>Asignatura o actividad programada</th><th>Sesiones</th><th>Horas de sesiones</th><th>Fechas programadas</th></tr></thead><tbody>{% for curso in carga.asignaturas %}<tr><td>{% if curso.codigo %}{{ curso.codigo }} · {% endif %}{{ curso.nombre }}</td><td>{{ curso.sesiones }}</td><td>{{ curso.horas }}</td><td>{{ curso.desde }} – {{ curso.hasta }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+    {% else %}<p>{% if carga.minutos_por_practica %}{{ carga.minutos_por_practica }} minutos por práctica. {% endif %}Horas docentes previstas: {{ carga.horas_requeridas }}. Horas disponibles de la unidad: {{ carga.horas_disponibles }}.</p>{% endif %}
+    <p>{{ capacidad.equipos_utilizables }} equipos utilizables · {{ capacidad.software }} recursos de software · {{ capacidad.espacios }} espacios · {{ capacidad.personal }} responsables.</p>
+    {% for aviso in carga.avisos %}<p>{{ aviso }}</p>{% endfor %}
+    <p>Dirección administra las reglas comunes. No son cuotas atribuidas a una resolución institucional. Las limitaciones requieren revisión, sin reducir automáticamente el compromiso del plan firmado.</p>
+  </template></div>{% endwith %}
+</div>
+{% else %}
+{% if capacidad %}
+<div class="redaccion__capacidad-plan">
+  <strong>{% if capacidad.dias_periodo %}Capacidad registrada{% else %}Capacidad conservada del plan{% endif %}: {{ capacidad.nivel }}.</strong>
+  {% if capacidad.dias_periodo %}
+    <p>{{ capacidad.equipos_utilizables }} de {{ capacidad.equipos_registrados }} equipos utilizables · {{ capacidad.software }} recursos de software · {{ capacidad.espacios }} espacios · {{ capacidad.personal }} responsables.</p>
+    <p>Período efectivo desde {{ capacidad.inicio_efectivo }} · {{ capacidad.dias_efectivos }} de {{ capacidad.dias_periodo }} días del período.{% if unidad.codigo_base == 'laboratorios' %} Referencia mínima: {{ capacidad.practicas_minimas }} prácticas; propuesta según capacidad: {{ capacidad.practicas_recomendadas }}.{% endif %}</p>
+    {% if capacidad.aviso %}<p>{{ capacidad.aviso }}</p>{% endif %}
+    <p>{% if unidad.codigo_base == 'laboratorios' %}Para un semestre completo de cuatro meses, 2 prácticas son la referencia mínima; 2, 4 o 6 son propuestas según capacidad y tiempo de funcionamiento. {% endif %}Las metas de una planificación firmada no se reducen automáticamente. Investigación y transferencia se programan según las funciones y los compromisos de la unidad.</p>
+  {% else %}
+    <p>{{ capacidad.equipos }} equipos · {{ capacidad.software }} recursos de software · {{ capacidad.espacios }} espacios · {{ capacidad.personal }} responsables.</p>
+    <p>Esta captura histórica conserva los conteos usados al planificar; no detalla la condición utilizable de los equipos ni el tiempo efectivo de funcionamiento. Se mantienen las metas conservadas del plan, sin recalcularlas con los recursos actuales.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endif %}

@@ -1,0 +1,15 @@
+
+{% load i18n idiomas %}
+{% if ficha_adjuntos %}<section class="unit-report__section repositorio-ficha">
+  <header><span>{% translate "DOCUMENTOS Y ARCHIVOS" %}</span>{% if puede_subir_adjuntos and subir_adjunto_url %}<a class="repositorio-subir" href="{{ subir_adjunto_url }}" target="_top"><i class="fas fa-plus"></i> {% translate "Subir" %}</a>{% endif %}</header>
+  <div class="repositorio-lista">
+    {% for adjunto in adjuntos_ficha %}<article>
+      <i class="fas fa-{% if adjunto.tipo_adjunto == 'dataset' %}database{% elif adjunto.tipo_adjunto == 'multimedia' %}photo-video{% elif adjunto.tipo_adjunto == 'plano' %}drafting-compass{% else %}file-alt{% endif %}"></i>
+      <div><strong>{{ adjunto.nombre }}</strong><p>{{ adjunto.descripcion }}</p><small>{{ adjunto.get_tipo_adjunto_display|ui }} · {{ adjunto.formato|upper|default:'ENLACE' }} {% translate "· v" %}{{ adjunto.version }}{% if adjunto.fecha_documento %} · {{ adjunto.fecha_documento|date:'d/m/Y' }}{% endif %} · {{ adjunto.get_visibilidad_display|ui }}</small></div>
+      <div class="repositorio-acciones"><a href="{{ adjunto.url_contenido }}"{% if adjunto.formato|lower == "pdf" %} data-ver-pdf data-pdf-titulo="{{ adjunto.nombre }}"{% if adjunto.descargar %} data-pdf-descarga="{{ adjunto.url_contenido }}?download=1"{% else %} data-pdf-sin-descarga{% endif %}{% elif adjunto.archivo %} download{% else %} target="_blank" rel="noopener"{% endif %}>{% if adjunto.archivo and adjunto.formato|lower != "pdf" %}{% translate "Descargar archivo" %}{% else %}{% translate "Abrir" %}{% endif %}</a>{% if adjunto.descargar and adjunto.archivo %}<a href="{{ adjunto.url_contenido }}?download=1" download>{% translate "Descargar" %}</a>{% endif %}</div>
+    </article>{% endfor %}
+  </div>
+</section>{% elif ficha_adjuntos is not None %}<section class="unit-report__section repositorio-ficha">
+  <header><span>{% translate "DOCUMENTOS Y ARCHIVOS" %}</span>{% if puede_subir_adjuntos and subir_adjunto_url %}<a class="repositorio-subir" href="{{ subir_adjunto_url }}" target="_top"><i class="fas fa-plus"></i> {% translate "Subir" %}</a>{% endif %}</header>
+  <p class="unit-report__notice">{% translate "Esta ficha todavía no tiene documentos de respaldo publicados. Sus datos estructurados continúan disponibles arriba." %}</p>
+</section>{% endif %}

@@ -1,0 +1,25 @@
+"""Modelos propios; tablas existentes conservadas por migración de estado."""
+from apps.plantas_piloto.operacion.models.produccion import FamiliaProducto  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import Producto  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import Receta  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import EtapaReceta  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import InsumoReceta  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import SalidaReceta  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import OrdenProduccion  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import LoteProducto  # noqa: F401
+from apps.plantas_piloto.operacion.models.produccion import MovimientoProducto  # noqa: F401
+from apps.plantas_piloto.operacion.models.calidad import PlanCalidad  # noqa: F401
+from apps.plantas_piloto.operacion.models.calidad import ParametroCalidad  # noqa: F401
+from apps.plantas_piloto.operacion.models.calidad import ControlCalidad  # noqa: F401
+from apps.plantas_piloto.operacion.models.calidad import MedicionCalidad  # noqa: F401
+from apps.plantas_piloto.operacion.models.calidad import NoConformidad  # noqa: F401
+from apps.plantas_piloto.operacion.models.calidad import AccionCorrectiva  # noqa: F401
+from apps.plantas_piloto.operacion.models.planificacion import PlanMaestro  # noqa: F401
+from apps.plantas_piloto.operacion.models.planificacion import PlanVentas  # noqa: F401
+from apps.plantas_piloto.operacion.models.planificacion import LineaPlanVentas  # noqa: F401
+from apps.plantas_piloto.operacion.models.planificacion import LineaPlanMaestro  # noqa: F401
+from apps.plantas_piloto.operacion.models.planificacion import PedidoAbastecimiento  # noqa: F401
+from apps.plantas_piloto.operacion.models.planificacion import EntregaPedido  # noqa: F401
+from apps.plantas_piloto.operacion.models.erp import SesionERP  # noqa: F401
+from apps.plantas_piloto.operacion.models.erp import ExistenciaSesion  # noqa: F401
+from apps.plantas_piloto.operacion.models.perfil import PerfilPlantaPiloto  # noqa: F401

@@ -1,0 +1,12 @@
+{% extends 'admin/change_form.html' %}
+{% load i18n %}
+{% block object-tools-items %}
+{% if original %}
+<li><a href="{{ inicio_preview_url }}">{% translate 'Vista previa' %}</a></li>
+<li><a href="{{ inicio_exportar_url }}">{% translate 'Exportar revisión' %}</a></li>
+{% if inicio_puede_crear %}<li><a href="{{ inicio_crear_url }}?fuente={{ original.pk }}">{% translate 'Crear revisión desde estos datos' %}</a></li>{% endif %}
+{% if inicio_puede_publicar %}<li><a href="{{ inicio_publicar_url }}">{% translate 'Revisar y publicar' %}</a></li>{% endif %}
+{% endif %}
+{{ block.super }}
+{% endblock %}
+{% block form_top %}<p>{% translate 'Las revisiones guardadas son inmutables. Para corregir o recuperar contenido, crea o publica una nueva revisión; el historial se conserva.' %}</p>{% endblock %}

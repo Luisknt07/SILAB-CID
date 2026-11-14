@@ -1,0 +1,108 @@
+/* Contenido de visitas; la agenda conserva íntegramente los estilos del asistente. */
+.visita-info { display: grid; gap: 14px; min-width: 0; }
+.visita-info article { min-width: 0; padding: 20px; border: 1px solid #d3e1d8; border-top: 4px solid #33877e; border-radius: 14px; background: #fff; color: var(--institucion-texto, #234333); }
+.visita-info .visita-info__offer { background: #f1f8f4; }
+.visita-info .visita-info__restricted { border-top-color: #cb9a33; }
+.visita-info h2 { margin: 0 0 10px; font-size: 17px; font-weight: 800; }
+.visita-info h3 { margin: 16px 0 8px; font-size: 14px; font-weight: 800; }
+.visita-info p, .visita-info li { font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.visita-info p:last-child { margin-bottom: 0; }
+.visita-info ul { margin: 0; padding-left: 19px; }
+.visita-info li + li { margin-top: 7px; }
+.visita-info small { display: block; font-size: 12px; color: #52675b; }
+.visita-facts { display: grid; gap: 8px; padding-top: 8px; font-size: 12px; }
+#equiposReservaModal .rw-visit-section[hidden], #equiposReservaModal .rw-visit-active [hidden] { display: none !important; }
+#equiposReservaModal .rw-resource-grid.is-visit-flow { grid-template-columns: minmax(0, 1fr); }
+#equiposReservaModal .rw-visit-section { width: 100%; min-width: 0; }
+#equiposReservaModal #visitaDatosReserva { grid-column: 1 / -1; }
+#equiposReservaModal .rw-visit-areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; margin-top: 12px; }
+#equiposReservaModal .rw-visit-areas label { display: flex; align-items: flex-start; gap: 12px; margin: 0; padding: 14px; border: 1px solid var(--rw-border, #d3e1d8); border-radius: 10px; background: #f7fbf8; cursor: pointer; }
+#equiposReservaModal .rw-visit-areas input { margin-top: 4px; accent-color: var(--rw-green, #28663d); }
+#equiposReservaModal .rw-visit-areas strong, #equiposReservaModal .rw-visit-areas small { display: block; overflow-wrap: anywhere; }
+#equiposReservaModal .rw-visit-areas small { margin-top: 6px; color: var(--rw-muted, #52675b); font-size: 12px; line-height: 1.5; }
+#equiposReservaModal #visitaCondicionesReserva .visita-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#equiposReservaModal .rw-visit-estimate { padding: 14px; margin-top: 16px; border-radius: 9px; background: #f1f7f3; font-weight: 700; }
+#equiposReservaModal .rw-visit-accept { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; font-size: 14px; line-height: 1.6; }
+#equiposReservaModal .rw-visit-accept input { margin-top: 5px; }
+@media (max-width: 700px) { #equiposReservaModal #visitaCondicionesReserva .visita-info { grid-template-columns: minmax(0, 1fr); } }
+#equiposReservaModal .rw-visit-writing { width: 100%; margin-top: 2px; }
+#equiposReservaModal .rw-visit-writing .reservation-intent__grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+#equiposReservaModal .rw-visit-writing textarea { min-height: 210px; }
+#equiposReservaModal .rw-visit-writing blockquote { margin: 10px 0; padding: 12px; border-left: 3px solid var(--rw-gold, #d2ad44); background: #fff; font-size: 13px; line-height: 1.6; }
+#equiposReservaModal .rw-visit-writing [data-use-visit-template] { justify-self: start; }
+#equiposReservaModal .rw-visit-attendees { width: 100%; max-width: 100%; min-width: 0; margin-inline: 0; justify-self: stretch; padding: 10px; border: 1px solid var(--rw-border, #d3e1d8); border-radius: 10px; }
+#equiposReservaModal .rw-visit-attendees header { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+#equiposReservaModal .rw-visit-attendees header p { margin: 3px 0 0; color: var(--rw-muted, #52675b); font-size: 12px; line-height: 1.4; }
+#equiposReservaModal .rw-visit-attendees__scroll { position: relative; max-width: 100%; max-height: min(320px, 42dvh); overflow: auto; border: 1px solid var(--rw-border, #d3e1d8); border-radius: 6px; }
+#equiposReservaModal .rw-visit-attendees table { width: 100%; min-width: 860px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+#equiposReservaModal .rw-visit-col--number { width: 4%; }
+#equiposReservaModal .rw-visit-col--document { width: 14%; }
+#equiposReservaModal .rw-visit-col--name { width: 24%; }
+#equiposReservaModal .rw-visit-col--role { width: 14%; }
+#equiposReservaModal .rw-visit-col--phone { width: 14%; }
+#equiposReservaModal .rw-visit-col--email { width: 25%; }
+#equiposReservaModal .rw-visit-col--action { width: 5%; }
+#equiposReservaModal .rw-visit-attendees th, #equiposReservaModal .rw-visit-attendees td { width: auto; padding: 4px; border-bottom: 1px solid var(--rw-border, #d3e1d8); border-right: 1px solid #e5ece7; text-align: left; vertical-align: middle; box-sizing: border-box; }
+#equiposReservaModal .rw-visit-attendees th { position: sticky; top: 0; z-index: 1; height: 30px; background: #f0f6f2; white-space: nowrap; font-size: 12px; }
+#equiposReservaModal .rw-visit-attendees input, #equiposReservaModal .rw-visit-attendees select { width: 100%; min-width: 0; height: 32px; min-height: 32px; padding: 4px 6px; border: 1px solid transparent; border-radius: 3px; background: #fff; color: var(--rw-ink, #234333); font: inherit; font-size: 13px; line-height: 1.2; box-sizing: border-box; }
+#equiposReservaModal .rw-visit-attendees input:hover, #equiposReservaModal .rw-visit-attendees select:hover { border-color: #bdcfc2; }
+#equiposReservaModal .rw-visit-attendees input:focus, #equiposReservaModal .rw-visit-attendees select:focus { border-color: var(--rw-green, #28663d); outline: 2px solid #d4e7da; outline-offset: -1px; }
+#equiposReservaModal .rw-visit-attendees input[readonly], #equiposReservaModal .rw-visit-attendees select:disabled { background: #f3f7f4; color: var(--rw-ink, #234333); opacity: 1; }
+#equiposReservaModal .rw-visit-attendees .rw-button { min-width: 0; min-height: 32px; height: 32px; padding: 4px 9px; border-radius: 6px; font-size: 12px; line-height: 1.2; box-shadow: none; white-space: nowrap; }
+#equiposReservaModal .rw-visit-attendees .rw-visit-remove { display: grid; width: 28px; min-width: 28px; height: 28px; min-height: 28px; place-items: center; padding: 0; border-color: transparent; font-size: 20px; }
+#equiposReservaModal .rw-visit-attendees .rw-visit-remove:hover { border-color: #d6b1ac; background: #fff0ed; color: #973b30; }
+#equiposReservaModal .rw-visit-attendees footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 7px; }
+#equiposReservaModal .rw-visit-attendees footer small { color: var(--rw-muted, #52675b); font-size: 11px; }
+#equiposReservaModal .rw-visit-guest { min-width: 0; padding: 12px; border: 1px solid var(--rw-border); border-radius: 8px; }
+#equiposReservaModal .rw-visit-guest legend { width: auto; margin: 0; padding: 0 4px; font-size: 14px; font-weight: 800; }
+#equiposReservaModal [data-visit-internal-search] { margin-bottom: 10px; }
+#equiposReservaModal [data-visit-internal-search] > label { width: min(100%, 480px); }
+#equiposReservaModal [data-visit-user-status]:empty { display: none; }
+#equiposReservaModal [name="visita_personas"][readonly] { background: #eff6f1; font-weight: 800; }
+#equiposReservaModal [data-visit-attendees-count] { margin: 0; color: var(--rw-muted, #52675b); font-size: 12px; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category { min-width: 0; margin: 0; padding: 14px; border: 1px solid #b7cbbd; border-radius: 10px; background: #f7faf8; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category legend { width: auto; margin: 0; padding: 0 6px; font-weight: 800; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category > p { margin: 0 0 12px; color: #455f50; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: start; width: 100%; min-width: 0; padding: 16px; border: 2px solid #91aa9a; border-radius: 9px; background: #fff; color: #213e2c; text-align: left; cursor: pointer; transition: border-color .15s, background .15s; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button > i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: #e7efe9; color: #28663d; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button strong,
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button small,
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button em { display: block; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button strong { margin-bottom: 5px; font-size: 16px; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button small { color: #455f50; line-height: 1.45; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button em { margin-top: 8px; font-size: 12px; font-style: normal; font-weight: 750; color: #285c3b; }
+#equiposReservaModal #visitaDatosReserva [data-visit-category-state] { padding: 3px 7px; border: 1px solid #8aa493; border-radius: 5px; font-size: 12px; white-space: nowrap; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button[aria-pressed="true"] { border-color: #23683f; background: #eaf4ed; box-shadow: inset 0 0 0 1px #23683f; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button[aria-pressed="true"] [data-visit-category-state] { background: #23683f; border-color: #23683f; color: #fff; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button[aria-pressed="true"] [data-visit-category-state]::before { content: '✓ '; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button:hover:not(:disabled) { border-color: #23683f; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-category__button:disabled { cursor: not-allowed; border-style: dashed; background: #f0f2f0; opacity: .75; }
+#equiposReservaModal #visitaDatosReserva .rw-field { font-weight: 700; }
+#equiposReservaModal #visitaDatosReserva .rw-field > small { font-weight: 400; color: #455f50; }
+#equiposReservaModal #visitaDatosReserva .rw-field :is(input, select, textarea) { border: 1.5px solid #819d8b; background: #fff; color: #213e2c; font-weight: 400; border-radius: 7px; }
+#equiposReservaModal #visitaDatosReserva .rw-field :is(input, textarea)::placeholder { color: #667b6e; opacity: 1; }
+#equiposReservaModal #visitaDatosReserva .rw-field :is(input, textarea)[readonly],
+#equiposReservaModal #visitaDatosReserva .rw-field select:disabled { border-style: dashed; background: #edf2ee; color: #395442; opacity: 1; }
+#equiposReservaModal #visitaDatosReserva .rw-field textarea { min-height: 170px; padding: 12px; line-height: 1.6; }
+#equiposReservaModal #visitaDatosReserva :is(input, select, textarea, button, a):focus-visible { outline: 3px solid #467b56; outline-offset: 3px; }
+#equiposReservaModal #visitaDatosReserva .rw-button { border: 1.5px solid #28663d; font-weight: 800; box-shadow: none; }
+#equiposReservaModal #visitaDatosReserva [data-add-visit-attendee] { background: #28663d; color: #fff; }
+#equiposReservaModal #visitaDatosReserva [data-use-visit-template] { margin-top: 6px; background: #eaf4ed; color: #174d31; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-remove { border-color: #c79a94; background: #fff3f1; color: #8e3027; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-attendees input:not([readonly]),
+#equiposReservaModal #visitaDatosReserva .rw-visit-attendees select:not(:disabled) { border-color: #a5baad; }
+#equiposReservaModal #visitaDatosReserva .rw-visit-field-status { display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 4px; background: #e7efe9; color: #315a3f; font-weight: 700; }
+@media (max-width: 700px) {
+  #equiposReservaModal #visitaDatosReserva .rw-visit-category__options { grid-template-columns: minmax(0, 1fr); }
+  #equiposReservaModal #visitaDatosReserva .rw-visit-category__button { padding: 12px; gap: 10px; }
+}
+@media (max-width: 420px) {
+  #equiposReservaModal #visitaDatosReserva .rw-visit-category__button { grid-template-columns: 30px minmax(0, 1fr); }
+  #equiposReservaModal #visitaDatosReserva .rw-visit-category__button > i { width: 30px; height: 30px; }
+  #equiposReservaModal #visitaDatosReserva [data-visit-category-state] { grid-column: 2; justify-self: start; }
+}
+@media (max-width: 820px) {
+  #equiposReservaModal .rw-visit-writing .reservation-intent__grid { grid-template-columns: minmax(0, 1fr); }
+  #equiposReservaModal .rw-visit-attendees header { align-items: flex-start; }
+}

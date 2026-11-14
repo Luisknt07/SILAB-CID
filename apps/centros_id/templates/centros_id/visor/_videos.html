@@ -1,0 +1,11 @@
+{% load i18n %}{% comment %}Videos con la pieza de Laboratorios: la pantalla principal con su miniatura (YouTube se carga solo al
+reproducir) y la lista para elegir cuál ocupa la pantalla.{% endcomment %}{% with primero=videos.0 %}<div class="area__videos" data-videos data-aparecer>
+  <div class="area__video-principal">
+    <button type="button" class="area__video-pantalla" data-reproducir data-video="{{ primero.id }}" aria-label="{% translate "Reproducir" %}: {{ primero.titulo }}" style="--miniatura: url('https://i.ytimg.com/vi/{{ primero.id }}/hqdefault.jpg')"><span class="area__video-play"><i class="fas fa-play" aria-hidden="true"></i></span></button>
+    <div class="area__video-datos"><strong data-video-titulo>{{ primero.titulo }}</strong><small data-video-canal>{{ primero.canal }}</small><p data-video-descripcion>{{ primero.descripcion }}</p></div>
+  </div>
+  {% if videos|length > 1 %}<ol class="area__video-lista">
+    {% for video in videos %}<li><button type="button" data-elegir-video="{{ video.id }}" data-titulo="{{ video.titulo }}" data-canal="{{ video.canal }}" data-descripcion="{{ video.descripcion }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"><img src="https://i.ytimg.com/vi/{{ video.id }}/mqdefault.jpg" alt="" loading="lazy"><span><strong>{{ video.titulo }}</strong><small>{{ video.canal }}</small></span></button></li>{% endfor %}
+  </ol>{% endif %}
+</div>
+<p class="ficha__nota">{% translate "Los videos son de sus autores y se cargan desde YouTube solo al reproducirlos." %}</p>{% endwith %}

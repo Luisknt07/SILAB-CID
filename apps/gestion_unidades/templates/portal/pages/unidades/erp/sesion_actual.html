@@ -1,0 +1,15 @@
+{% load i18n idiomas %}<div class="unit-console__session-banner{% if sesion_erp %} is-practice{% else %} is-real{% endif %}" role="status">
+  <i class="fas fa-{% if sesion_erp %}user-graduate{% else %}industry{% endif %}" aria-hidden="true"></i>
+  <div>
+    {% if sesion_erp %}<strong>{{ sesion_erp.get_tipo_display|ui }} {{ sesion_erp.codigo }} · {{ sesion_erp.nombre }}</strong>
+    <span>{% if sesion_erp.abierta %}{% translate "Nada de lo que registres aquí toca la producción real ni se ve desde otra sesión." %}{% else %}{% translate "Sesión cerrada: se consulta para revisar lo que hizo el grupo." %}{% endif %}</span>
+    {% elif personal_planta %}<strong>{% translate "Producción real" %}</strong>
+    <span>{% translate "Lo que registres aquí mueve el inventario, las finanzas y los reportes de la planta. Para practicar, entra a una sesión." %}</span>
+    {% else %}<strong>{% translate "Elige una sesión" %}</strong>
+    <span>{% translate "La producción real la opera el personal de la planta; tú practicas en una sesión de tu docente o en la tuya." %}</span>{% endif %}
+  </div>
+  {% if sesiones_erp %}<label>{% translate "Trabajar en" %}<select data-ui-change="navigate">
+    {% if personal_planta %}<option value="{% url 'erp_planta' unidad.slug %}"{% if not sesion_erp %} selected{% endif %}>{% translate "Producción real" %}</option>{% else %}<option value="">{% translate "Elige una sesión" %}</option>{% endif %}
+    {% for sesion in sesiones_erp %}<option value="{% url 'erp_planta' unidad.slug %}?sesion={{ sesion.codigo }}"{% if sesion_erp and sesion.pk == sesion_erp.pk %} selected{% endif %}>{{ sesion.codigo }} · {{ sesion.nombre }}{% if not sesion.abierta %} ({% translate "cerrada" %}){% endif %}</option>{% endfor %}
+  </select></label>{% endif %}
+</div>

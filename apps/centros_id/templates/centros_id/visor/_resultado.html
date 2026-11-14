@@ -1,0 +1,5 @@
+{% load i18n %}{% comment %}Un resultado como recurso de Laboratorios (va dentro de .area__recursos); abre su ficha en ventana.{% endcomment %}<a href="{% url 'fragmento_centro_id' centro.slug 'resultado' resultado.pk %}" data-modal="{% url 'fragmento_centro_id' centro.slug 'resultado' resultado.pk %}"{% if abrir == resultado.pk %} data-abrir-auto{% endif %} data-aparecer>
+  <i class="{{ resultado.icono }}" aria-hidden="true"></i>
+  <span><strong>{{ resultado.titulo }}</strong><small>{{ resultado.get_tipo_display }}{% if resultado.revista %} · {{ resultado.revista }}{% endif %} · {{ resultado.anio }}{% if resultado.autores_texto %} · {{ resultado.autores_texto }}{% endif %}</small>{% if resultado.cuartil or resultado.trl_documentado %}<em class="cv-sellos">{% if resultado.cuartil %}<b>{{ resultado.cuartil }}</b>{% endif %}{% if resultado.trl_documentado %}<b title="{% translate "Nivel de madurez tecnológica" %}">TRL {{ resultado.trl }}</b>{% endif %}</em>{% endif %}</span>
+  <i class="fas fa-chevron-right" aria-hidden="true"></i>
+</a>

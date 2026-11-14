@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static i18n idiomas %}
+
+{% comment %}
+Marco institucional de las pantallas de cuenta (contraseña, correo, cierre de
+sesión). Sustituye la plantilla cruda de allauth, que mostraba un «Menú:» sin
+estilo y textos en inglés, y reutiliza la misma tarjeta del inicio de sesión
+para que todo el acceso se vea como una sola cosa.
+{% endcomment %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/components/autenticacion.css' %}?v=20261009-ojo-v2">{% endblock %}
+
+{% block content %}
+<div class="container auth-layout">
+  <div class="row h-100">
+    <div class="col-12 col-md-10 mx-auto my-auto">
+      <div class="card auth-card auth-card--institutional">
+        <div class="position-relative image-side">
+          <span class="auth-side__eyebrow">{{ identidad_producto.nombre_corto }}</span>
+          <p class="text-white h2">{% block auth_lema %}{% translate "Laboratorios y Centros de Investigación y Desarrollo" %}{% endblock %}</p>
+          <p class="white mb-0">{% block auth_apoyo %}{% translate "Tu cuenta te identifica cuando reservas equipos, espacios y servicios de la Universidad." %}{% endblock %}</p>
+        </div>
+        <div class="form-side">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+          <h6 class="auth-title mb-1">{% block auth_titulo %}{% translate "Tu cuenta" %}{% endblock %}</h6>
+          <p class="auth-subtitle">{% block auth_subtitulo %}{% endblock %}</p>
+          {% block auth_cuerpo %}{% endblock %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}{{ block.super }}{% include 'portal/components/contrasena_assets.html' %}{% endblock %}

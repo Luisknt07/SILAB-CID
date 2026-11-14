@@ -1,0 +1,23 @@
+{% load i18n %}
+<section class="cid-panel cid-panel--informacion" id="cidInformacion" aria-labelledby="cidInformacionTitulo">
+  <h2 id="cidInformacionTitulo">{% translate "Información del centro" %}</h2>
+  <dl class="cid-datos">
+    {% if informacion.adscripcion or informacion.carreras %}<div><dt><i class="fas fa-sitemap" aria-hidden="true"></i>{% if informacion.adscripcion %}{% translate "Adscripción" %}{% else %}{% translate "Carreras" %}{% endif %}</dt><dd>{% if informacion.adscripcion %}{{ informacion.adscripcion }}{% if informacion.carreras %}<small class="cid-datos__carreras">{% translate "Carreras:" %} {{ informacion.carreras|join:", " }}</small>{% endif %}{% else %}<span class="cid-datos__carreras">{{ informacion.carreras|join:", " }}</span>{% endif %}</dd></div>{% endif %}
+    <div><dt><i class="fas fa-compass" aria-hidden="true"></i>{% translate "Área prioritaria" %}</dt><dd>{{ centro.nombre_area }}</dd></div>
+    {% if centro.sigla %}<div><dt><i class="fas fa-tag" aria-hidden="true"></i>{% translate "Sigla" %}</dt><dd>{{ centro.sigla }}</dd></div>{% endif %}
+    {% if informacion.direccion or centro.contacto_email %}<div><dt><i class="fas fa-user-tie" aria-hidden="true"></i>{% if informacion.direccion %}{% translate "Dirección" %}{% else %}{% translate "Contacto" %}{% endif %}</dt><dd>{% if informacion.direccion %}{{ informacion.direccion.nombre }}{% endif %}{% if centro.contacto_email %}<small><a href="mailto:{{ centro.contacto_email }}">{{ centro.contacto_email }}</a></small>{% endif %}</dd></div>{% endif %}
+    {% if centro.ubicacion or centro.direccion %}<div><dt><i class="fas fa-map-marker-alt" aria-hidden="true"></i>{% translate "Ubicación" %}</dt><dd>{{ centro.ubicacion|default:centro.direccion }}<small><a class="cid-datos__acceso" href="{% url 'centro_id' centro.slug %}?seccion=ubicacion">{% translate "Cómo llegar" %}<i class="fas fa-arrow-right" aria-hidden="true"></i></a></small></dd></div>{% endif %}
+    {% if centro.horario_atencion %}<div><dt><i class="fas fa-clock" aria-hidden="true"></i>{% translate "Horario" %}</dt><dd>{{ centro.horario_atencion }}</dd></div>{% endif %}
+    <div><dt><i class="fas fa-check-circle" aria-hidden="true"></i>{% translate "Estado" %}</dt><dd><span class="cid-datos__estado">{{ centro.estado_publico }}</span></dd></div>
+  </dl>
+  <div class="cid-datos__acciones">
+    <a class="cid-datos__acceso" href="{% url 'centro_id' centro.slug %}?seccion=identidad">{% translate "Ver ficha completa" %}<i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    {% if informacion.editar_url %}<a class="cid-datos__editar" href="{{ informacion.editar_url }}" data-cid-gestion-abrir aria-label="{% translate 'Actualizar información del centro' %}"><i class="fas fa-pen" aria-hidden="true"></i>{% translate "Editar" %}</a>{% endif %}
+  </div>
+</section>
+<section class="cid-panel cid-panel--capacidades" aria-labelledby="cidCapacidadesTitulo">
+  <h2 id="cidCapacidadesTitulo" class="cid-panel__titulo-oculto">{% translate "Capacidades del centro" %}</h2>
+  <dl class="cid-capacidades">
+    {% for cifra in informacion.cifras %}<div data-cifra="{{ cifra.clave }}"><dt><i class="{{ cifra.icono }}" aria-hidden="true"></i><span>{{ cifra.titulo }}</span></dt><dd>{{ cifra.valor }}</dd></div>{% endfor %}
+  </dl>
+</section>

@@ -1,0 +1,82 @@
+/* Exclusivo del menú de Reportes e indicadores; usa la identidad institucional. */
+.citt-reportes {
+  --reportes-verde: var(--institucion-primario, #006633);
+  --reportes-verde-tinta: var(--institucion-primario-tinta, #006633);
+  --reportes-verde-suave: var(--institucion-primario-suave, #eaf4ed);
+  --reportes-amarillo: var(--institucion-acento, #ffce00);
+  --reportes-amarillo-suave: var(--institucion-acento-suave, #fff7dc);
+  --reportes-acento-tinta: var(--institucion-acento-tinta, #756020);
+  --reportes-texto: var(--institucion-texto, #18312a);
+  --reportes-secundario: var(--institucion-texto, var(--citt-admin-muted, #6b7980));
+  --reportes-superficie: var(--institucion-superficie, #fff);
+  --reportes-borde: var(--institucion-borde, #d8e2dc);
+  --reportes-titulo: var(--institucion-titulo, var(--reportes-texto));
+  --reportes-icono: var(--institucion-icono, var(--reportes-verde-tinta));
+  --reportes-modulo: var(--institucion-panel-modulo, var(--reportes-verde));
+  --reportes-modulo-texto: var(--institucion-panel-modulo-texto, #fff);
+  --reportes-modulo-fondo: var(--institucion-panel-modulo-fondo, var(--reportes-superficie));
+  --reportes-carpeta: var(--institucion-panel-carpeta, var(--reportes-amarillo));
+  --reportes-boton: var(--institucion-boton-principal, var(--reportes-verde));
+  --reportes-boton-texto: var(--institucion-boton-principal-texto, #fff);
+  padding: 14px; color: var(--reportes-texto);
+}
+.citt-reportes a, .citt-reportes a:visited { color: var(--reportes-titulo); font-family: var(--institucion-fuente-cuerpo, var(--content-font-family, Arial, sans-serif)); }
+.citt-reportes a:focus-visible { outline: 3px solid var(--reportes-carpeta); outline-offset: -3px; }
+.citt-reportes__columnas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 22px; }
+.citt-reportes__columnas > .citt-reportes__ambito:only-child, .citt-reportes__ambito[data-reportes-seccion="otras"] { grid-column: 1 / -1; }
+.citt-reportes__ambito { min-width: 0; border: 1px solid var(--reportes-borde); border-radius: 7px; overflow: hidden; background: var(--reportes-superficie); }
+.citt-reportes__ambito > header { padding: 12px 16px; border-bottom: 3px solid var(--reportes-carpeta); background: var(--reportes-modulo-fondo); }
+.citt-reportes .citt-reportes__ambito > header h3 { margin: 0; padding: 0; border: 0; background: transparent; color: var(--reportes-titulo); font-size: 17px; line-height: 1.4; }
+.citt-reportes__ambito > header p { margin: 4px 0 0; color: var(--reportes-texto); font-size: 11px; line-height: 1.45; }
+.citt-reportes__principal { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 10px 12px; padding: 16px; border-bottom: 1px solid var(--reportes-borde); background: var(--reportes-superficie); color: var(--reportes-titulo) !important; text-decoration: none !important; }
+.citt-reportes__principal:hover { box-shadow: inset 4px 0 0 var(--reportes-amarillo); }
+.citt-reportes__icono .citt-admin-category__icon { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 9px; border-radius: 50%; color: var(--reportes-modulo-texto); background-color: var(--reportes-modulo); background-image: var(--institucion-panel-imagen, none); }
+.citt-reportes__presentacion { display: block; min-width: 0; }
+.citt-reportes__presentacion small { display: block; margin-bottom: 5px; color: var(--reportes-acento-tinta); font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.citt-reportes__presentacion strong { display: block; color: var(--reportes-titulo); font-family: var(--institucion-fuente-titulos, var(--content-font-family, Arial, sans-serif)); font-size: 16px; line-height: 1.35; }
+.citt-reportes__presentacion > span { display: block; margin-top: 4px; max-width: 850px; color: var(--reportes-texto); font-size: 12px; line-height: 1.45; }
+.citt-reportes__entrada { display: block; grid-column: 2; width: fit-content; padding: 7px 11px; border-radius: 5px; background-color: var(--reportes-boton); background-image: var(--institucion-degradado-botones, none); color: var(--reportes-boton-texto); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.citt-reportes__leyenda { margin: 0 14px; padding: 10px 0; color: var(--reportes-secundario); }
+.citt-reportes__leyenda summary { width: fit-content; cursor: pointer; font-size: 11px; line-height: 1.5; }
+.citt-reportes__leyenda summary:focus-visible { outline: 2px solid var(--reportes-carpeta); outline-offset: 3px; }
+.citt-reportes__ayuda { display: grid; gap: 10px; padding: 10px 0 4px; }
+.citt-reportes__leyenda p { margin: 5px 0 0; color: var(--reportes-secundario); font-size: 11px; line-height: 1.45; }
+.citt-reportes .citt-reportes__tipo { display: inline-flex; width: fit-content; align-items: center; padding: 3px 7px; border: 1px solid var(--reportes-borde); border-radius: 4px; background: var(--reportes-superficie); color: var(--reportes-texto); font-size: 10px; font-weight: 700; line-height: 1.3; }
+.citt-reportes .citt-reportes__tipo.is-documentos { background: var(--reportes-amarillo-suave); color: var(--reportes-acento-tinta); border-color: var(--reportes-amarillo); }
+.citt-reportes .citt-reportes__tipo.is-sistema { background: var(--reportes-verde-suave); color: var(--reportes-verde-tinta); border-color: transparent; }
+.citt-reportes .citt-reportes__tipo.is-gestion { color: var(--reportes-verde-tinta); border-color: var(--reportes-boton); }
+.citt-reportes .citt-admin-model-grid .citt-admin-model-card__copy span.citt-reportes__tipo { display: inline-flex; margin: 0; padding: 2px 5px; font-size: 10px; }
+.citt-reportes .citt-admin-model-grid > article .citt-admin-model-card__icon { width: 36px; height: 36px; color: #fff; border: 0; border-radius: 50%; background: var(--tono, var(--reportes-modulo)); }
+.citt-reportes .citt-admin-model-grid > article:nth-child(7n+4) .citt-admin-model-card__icon { color: var(--reportes-texto); }
+.citt-reportes .citt-admin-model-grid .citt-admin-model-card__icon .citt-admin-category__icon { width: 36px; height: 36px; min-width: 36px; min-height: 36px; flex-basis: 36px; padding: 8px; }
+.citt-reportes__detalle { padding: 0 12px 12px; }
+.citt-reportes__categoria { margin-bottom: 10px; border: 1px solid var(--reportes-borde); border-radius: 5px; background: var(--reportes-superficie); overflow: hidden; }
+.citt-reportes__categoria:last-child { margin-bottom: 0; }
+.citt-reportes__categoria > summary { display: block; padding: 10px 12px; list-style: none; background: var(--reportes-modulo); cursor: pointer; }
+.citt-reportes__categoria > summary::-webkit-details-marker { display: none; }
+.citt-reportes__categoria > summary:focus-visible { outline: 3px solid var(--reportes-carpeta); outline-offset: -3px; }
+.citt-reportes__categoria[open] > summary { border-bottom: 2px solid var(--reportes-carpeta); }
+.citt-reportes .citt-reportes__categoria > summary h3 { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0; border: 0; background: transparent; color: var(--reportes-modulo-texto); font-size: 13px; line-height: 1.45; }
+.citt-reportes__cantidad { margin-left: auto; padding: 1px 6px; border: 1px solid currentColor; border-radius: 12px; font-size: 10px; font-weight: 400; }
+.citt-reportes__plegar { flex: 0 0 6px; width: 6px; height: 6px; margin: 0 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.citt-reportes__categoria[open] .citt-reportes__plegar { transform: rotate(225deg); }
+.citt-reportes__solo-lectura { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.citt-reportes__subcategoria + .citt-reportes__subcategoria { border-top: 1px solid var(--reportes-borde); }
+.citt-reportes__subcategoria > header { padding: 9px 12px 3px; }
+.citt-reportes .citt-reportes__subcategoria > header h4 { margin: 0; padding: 0; border: 0; background: transparent; color: var(--reportes-titulo); font-size: 12px; font-weight: 700; line-height: 1.4; }
+.citt-reportes .citt-admin-model-grid { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 10px; }
+.citt-reportes .citt-admin-model-grid > article { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; padding: 11px 2px; border: 0; border-bottom: 1px solid var(--reportes-borde); border-radius: 0; background: transparent; }
+.citt-reportes .citt-admin-model-grid > article:last-child { border-bottom: 0; }
+.citt-reportes .citt-admin-model-grid > article:hover { background: var(--reportes-verde-suave); box-shadow: none; }
+.citt-reportes__titulo-fila { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px; }
+.citt-reportes .citt-admin-model-grid .citt-admin-model-card__copy strong { color: var(--reportes-titulo); font-size: 13px; }
+.citt-reportes .citt-admin-model-grid .citt-admin-model-card__copy strong a { color: var(--reportes-verde-tinta); font-family: var(--institucion-fuente-titulos, var(--content-font-family, Arial, sans-serif)); }
+.citt-reportes .citt-admin-model-grid .citt-admin-model-card__copy > span:not(.citt-reportes__tipo) { color: var(--reportes-secundario); font-size: 11px; }
+.citt-reportes .citt-admin-model-card__actions a { color: var(--reportes-verde-tinta); border-color: var(--reportes-boton); background: var(--reportes-superficie); }
+.citt-reportes .citt-admin-model-card__actions a:hover { background: var(--reportes-amarillo-suave); }
+@media (max-width: 900px) {
+  .citt-reportes__columnas { grid-template-columns: minmax(0, 1fr); }
+  .citt-reportes__principal { grid-template-columns: 40px minmax(0, 1fr); padding: 16px; gap: 12px; }
+  .citt-reportes__entrada { grid-column: 2; }
+  .citt-reportes__presentacion strong { font-size: 16px; }
+}

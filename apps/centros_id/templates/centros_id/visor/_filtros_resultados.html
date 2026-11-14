@@ -1,0 +1,18 @@
+{% load i18n %}
+<form class="cv-filtros" method="get">
+  <label>{% translate "Buscar" %}<input type="search" name="q" value="{{ filtro.q }}"></label>
+  <label>{% translate "Tipo" %}<select name="tipo"><option value="">{% translate "Todos" %}</option>{% for clave, nombre in tipos %}<option value="{{ clave }}"{% if filtro.tipo == clave %} selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+  <label>{% translate "Año" %}<select name="anio"><option value="">{% translate "Todos" %}</option>{% for anio in anios %}<option value="{{ anio }}"{% if filtro.anio == anio|stringformat:'s' %} selected{% endif %}>{{ anio }}</option>{% endfor %}</select></label>
+  <label>{% translate "Línea" %}<select name="linea"><option value="">{% translate "Todas" %}</option>{% for linea in lineas_filtro %}<option value="{{ linea.pk }}"{% if filtro.linea == linea.pk|stringformat:'s' %} selected{% endif %}>{{ linea.nombre }}</option>{% endfor %}</select></label>
+  <label>{% translate "Proyecto" %}<select name="proyecto"><option value="">{% translate "Todos" %}</option>{% for proyecto in proyectos_filtro %}<option value="{{ proyecto.pk }}"{% if filtro.proyecto == proyecto.pk|stringformat:'s' %} selected{% endif %}>{{ proyecto.titulo }}</option>{% endfor %}</select></label>
+  {% if mas_proyectos_filtro or proyecto_q %}<label>{% translate "Buscar proyecto por título" %}<input type="search" name="proyecto_q" value="{{ proyecto_q }}"><small>{% translate "Filtra para encontrar un proyecto entre las opciones. Se muestran hasta 200 coincidencias y el proyecto seleccionado." %}</small></label>{% endif %}
+  {% if catalogo == 'desarrollos' %}
+  <label>{% translate "Sector" %}<select name="sector"><option value="">{% translate "Todos" %}</option>{% for sector in sectores %}<option{% if filtro.sector == sector %} selected{% endif %}>{{ sector }}</option>{% endfor %}</select></label>
+  <label>{% translate "Tecnología" %}<select name="tecnologia"><option value="">{% translate "Todas" %}</option>{% for tecnologia in tecnologias %}<option{% if filtro.tecnologia == tecnologia %} selected{% endif %}>{{ tecnologia }}</option>{% endfor %}</select></label>
+  <label>{% translate "TRL con respaldo" %}<select name="trl"><option value="">{% translate "Todos" %}</option>{% for nivel in niveles_trl %}<option value="{{ nivel }}"{% if filtro.trl == nivel|stringformat:'s' %} selected{% endif %}>{{ nivel }}</option>{% endfor %}</select></label>
+  {% endif %}
+  <button class="ficha__boton" type="submit">{% translate "Filtrar" %}</button>
+  <a href="{% url 'seccion_centro_id' centro.slug catalogo %}">{% translate "Limpiar" %}</a>
+  <p class="cv-filtros__cuenta">{{ total }} {% translate "resultados" %}</p>
+</form>
+<p class="ficha__nota"><a class="cv-enlace-area" href="{{ exportar_url }}">{% translate "Exportar metadatos (JSON)" %}</a> · <a class="cv-enlace-area" href="{{ exportar_url }}&amp;formato=ris">{% translate "Exportar referencias (RIS)" %}</a></p>

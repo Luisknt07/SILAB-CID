@@ -1,0 +1,40 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Dirección y comité, investigadores, o técnicos, visitantes y quienes se forman: la misma página con distintos roles,
+con las tarjetas de equipo de Laboratorios. Tesistas y estudiantes se publican solo como número.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% if seccion.clave == 'direccion' %}{% translate "Quién dirige el centro y quién evalúa sus proyectos. Toca una persona para ver su perfil, sus líneas y su producción." %}{% elif seccion.clave == 'investigadores' %}{% translate "Los investigadores del centro y los asociados, con su área, sus líneas, sus proyectos y su producción." %}{% else %}{% translate "El personal técnico que sostiene las áreas, los investigadores visitantes y quienes se forman en el centro." %}{% endif %}</p>{% endblock %}
+
+{% block contenido %}
+{% if gobierno and seccion.clave == 'direccion' %}
+<section class="conoce__seccion" id="instancias">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Cómo se gobierna" %}</span><h2>{% translate "Las instancias" %}</h2></header>
+  <ul class="ficha__lineas" data-aparecer>{% for organo in gobierno %}<li><i class="{{ organo.icono }}" aria-hidden="true"></i>{{ organo.nombre }}</li>{% endfor %}</ul>
+  <p class="ficha__nota"><a class="cv-enlace-area" href="{% url 'seccion_centro_id' centro.slug 'gobierno' %}">{% translate "Ver el modelo de gobierno" %} <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p>
+</section>
+{% endif %}
+
+{% for rol, personas in grupos.items %}
+<section class="conoce__seccion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Equipo del centro" %}</span><h2>{{ rol }}</h2></header>
+  <div class="ficha__equipo">{% for persona in personas %}{% include 'centros_id/visor/_persona.html' %}{% endfor %}</div>
+</section>
+{% empty %}
+{% if not reservadas %}<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=vacio enlace=completar %}</section>{% endif %}
+{% endfor %}
+
+{% if reservadas %}
+<section class="conoce__seccion" id="formacion">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Talento en formación" %}</span><h2>{% translate "Quienes se forman en el centro" %}</h2></header>
+  <ul class="area__puntos cv-datos" data-aparecer>{% for rol, total in reservadas %}<li><i class="fas fa-user-graduate" aria-hidden="true"></i><span><b>{{ total }}</b><small>{{ rol }}{% if total != 1 %}s{% endif %}</small></span></li>{% endfor %}</ul>
+  <p class="ficha__nota"><i class="fas fa-user-shield" aria-hidden="true"></i> {% translate "Por protección de datos, tesistas y estudiantes se publican solo como número." %}</p>
+</section>
+{% endif %}
+
+{% if areas_con_personas %}
+<section class="conoce__seccion" id="por-area">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Dónde trabajan" %}</span><h2>{% translate "Por área" %}</h2></header>
+  <ul class="area__otras" data-aparecer>{% for area, personas in areas_con_personas.items %}<li><a href="{% url 'componente_centro_id' centro.slug area.codigo %}"><i class="{{ area.icono }}" aria-hidden="true"></i><span><strong>{{ area.nombre_corto|default:area.nombre }}</strong><small>{% for persona in personas %}{{ persona.nombre }}{% if not forloop.last %} · {% endif %}{% endfor %}</small></span></a></li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

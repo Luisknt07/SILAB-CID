@@ -1,0 +1,8 @@
+{% comment %}Una persona con la tarjeta de equipo de Laboratorios; abre su perfil en ventana.{% endcomment %}<a class="ficha__persona cv-tarjeta-enlace{% if persona.rol == 'director' %} is-coordina{% endif %}" href="{% url 'fragmento_centro_id' centro.slug 'persona' persona.pk %}" data-modal="{% url 'fragmento_centro_id' centro.slug 'persona' persona.pk %}"{% if abrir == persona.pk %} data-abrir-auto{% endif %}>
+  <span class="ficha__avatar">{% if persona.foto %}<img src="{{ persona.foto.url }}" alt="" loading="lazy">{% else %}{{ persona.iniciales }}{% endif %}</span>
+  <div class="ficha__persona-datos">
+    <span class="ficha__rol">{{ persona.get_rol_display }}</span>
+    <h3>{{ persona.nombre }}</h3>
+    <p>{{ persona.cargo|default:persona.get_rol_display }}{% if persona.componente %} · {{ persona.componente }}{% elif persona.facultad %} · {{ persona.facultad }}{% endif %}</p>
+  </div>
+</a>

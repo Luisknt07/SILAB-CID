@@ -1,0 +1,23 @@
+
+{% load i18n idiomas %}
+<form class="unit-console-operation" data-agenda-operation-form="visita" data-reload-view="visitas" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="visita"><input type="hidden" name="registro_id">
+  <header><span>VISITAS</span><h3>{% translate "Guía y observaciones" %}</h3><p>{% translate "El guía acompaña al grupo durante todo el recorrido; si el grupo exige más de un guía, la unidad suma los demás el día de la visita." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Guía" %}<input name="guia" maxlength="150" placeholder="{% translate "usuario institucional, correo o cédula" %}"><small>{% translate "Vacío: por asignar." %}</small></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="3"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar" %}</button></footer>
+</form>
+{% if puede_configurar_visitas %}
+<form class="unit-console-operation" data-agenda-operation-form="oferta_visitas" data-reload-view="visitas" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="oferta_visitas">
+  <header><span>VISITAS</span><h3>{% translate "Oferta de visitas" %}</h3><p>{% translate "Define qué ofrece la visita, las áreas permitidas, los límites y las condiciones del grupo. Las áreas no marcadas quedan fuera del recorrido. Sin áreas publicadas se puede solicitar una visita de presentación, cuyo alcance confirma la unidad." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label>{% translate "Personas por guía" %}<input type="number" name="personas_por_guia" min="1" max="60" step="1" value="{{ oferta_visitas_panel.personas_por_guia }}"></label>
+    <label class="is-wide">{% translate "Qué ofrece la visita" %}<textarea name="visitas_texto" rows="5" placeholder="{% translate "Temas y actividades que pueden conocer, duración orientativa, público, restricciones y condiciones especiales." %}">{{ oferta_visitas_panel.texto }}</textarea><small>{% translate "Los requisitos de acceso para visitantes se administran en Seguridad y se muestran automáticamente junto a esta oferta." %}</small></label>
+  </div>
+  <fieldset class="unit-console-operation__checks"><legend>{% translate "Áreas visitables (el aforo de cada una limita el grupo)" %}</legend>{% for area in areas_para_visitas %}<label><input type="checkbox" name="areas_visitables" value="{{ area.pk }}"{% if area.visitable %} checked{% endif %}> {{ area.nombre }}{% if area.capacidad %} ({{ area.capacidad }}){% endif %}</label>{% endfor %}<label><input type="checkbox" name="acepta_visitas" value="1"{% if oferta_visitas_panel.acepta_configurada %} checked{% endif %}> {% translate "Publicar la oferta en la ficha" %}</label></fieldset>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar la oferta" %}</button></footer>
+</form>
+{% endif %}

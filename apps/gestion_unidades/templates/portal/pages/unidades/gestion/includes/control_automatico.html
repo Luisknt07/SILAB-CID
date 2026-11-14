@@ -1,0 +1,28 @@
+{% if control %}<div class="control-documental" data-reporte-informacion data-control-documental="{{ control.estado|default:'sin_analizar' }}">
+  <button type="button" data-reporte-informacion-abrir data-modal-titulo="Comprobaciones del sistema" aria-haspopup="dialog" title="Ver comprobaciones del sistema">
+    {% if not control.vigente %}<span class="control-documental__estado is-pendiente"><i class="fas fa-clock" aria-hidden="true"></i> {% if control.comprobado_en %}Actualizar{% else %}Sin analizar{% endif %}</span>
+    {% elif control.estado == 'automatico' %}{% if control.resumen.decision_automatica.requiere_director and not lectura.excepcion_resuelta %}<span class="control-documental__estado is-pendiente"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> Seguimiento</span>{% else %}<span class="control-documental__estado is-correcto"><i class="fas fa-check-circle" aria-hidden="true"></i> {% if control.aplicado and control.resumen.aprobacion_reutilizada %}Dirección vigente{% elif control.aplicado %}Autovalidado{% else %}Control correcto{% endif %}</span>{% endif %}
+    {% elif control.estado == 'bloqueado' %}<span class="control-documental__estado is-bloqueado"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> Con bloqueos</span>
+    {% elif control.estado == 'sin_archivo' %}<span class="control-documental__estado is-pendiente"><i class="fas fa-file" aria-hidden="true"></i> Sin archivo</span>
+    {% else %}<span class="control-documental__estado is-pendiente"><i class="fas fa-search" aria-hidden="true"></i> Por revisar</span>{% endif %}
+    {% if control.hallazgos %}<span class="control-documental__cantidad" aria-label="{{ control.hallazgos|length }} comprobaciones">{{ control.hallazgos|length }}</span>{% elif control.resumen.decision_automatica.motivos %}<span class="control-documental__cantidad" aria-label="{{ control.resumen.decision_automatica.motivos|length }} motivos de seguimiento">{{ control.resumen.decision_automatica.motivos|length }}</span>{% endif %}
+    <i class="fas fa-external-link-alt reporte-informacion__icono" aria-hidden="true"></i>
+  </button>
+  <template data-reporte-informacion-contenido>
+  <div class="control-documental__contenido">
+    {% if not control.vigente %}<p>{% if control.comprobado_en %}Actualizar comprobación: el documento cambió desde el último control.{% else %}Sin analizar: ejecuta el control automático del expediente.{% endif %}</p>
+    {% elif control.estado == 'automatico' %}<p>{% if control.aplicado and control.resumen.aprobacion_reutilizada %}Aprobación de Dirección conservada.{% elif control.aplicado %}Validado automáticamente.{% else %}Control automático correcto.{% endif %}</p>{% endif %}
+    {% if control.comprobado_en %}<small>Control: Sistema · {{ control.comprobado_en|date:'d/m/Y H:i' }}</small>{% endif %}
+    {% if control.resumen.aprobacion_reutilizada %}<small>Aprobación de Dirección del año {{ control.resumen.aprobacion_reutilizada.anio }} reutilizada: mismo archivo y versión.</small>{% endif %}
+    {% if fuente_recepcion %}<small>Recepción: {{ fuente_recepcion }}</small>{% endif %}
+    {% if integridad.aplica and not integridad.correspondencia_verificada %}<small>Correspondencia por revisar. {{ integridad.aviso }}</small>{% endif %}
+    {% if control.vigente and control.resumen.decision_automatica %}{% with decision=control.resumen.decision_automatica %}
+    <p class="control-documental__titulo">Atención y siguiente paso</p>
+    {% if lectura.excepcion_resuelta %}<p>La excepción documental fue resuelta por Dirección. Se conserva el motivo original en el historial.</p>{% elif decision.destino == 'direccion' %}<p>Dirección: revisar la excepción o dar seguimiento al resultado. La comprobación automática conserva el porcentaje calculado.</p>{% elif decision.destino == 'unidad' %}<p>La unidad debe corregir los faltantes y volver a comprobar el documento; no requiere una calificación manual.</p>{% else %}<p>Control resuelto automáticamente. Dirección puede auditarlo sin una revisión obligatoria.</p>{% endif %}
+    {% if decision.motivos %}<ul>{% for motivo in decision.motivos %}<li>{{ motivo.mensaje }}</li>{% endfor %}</ul>{% endif %}
+    {% if decision.indicadores_bajo_minimo %}<p>Indicadores por debajo del mínimo aplicado ({{ decision.minimo_cumplimiento }} %):</p><ul>{% for indicador in decision.indicadores_bajo_minimo %}<li>{{ indicador.nombre|default:indicador.codigo }}: {{ indicador.porcentaje }} %.</li>{% endfor %}</ul>{% endif %}
+    {% endwith %}{% endif %}
+    {% if control.hallazgos %}<p class="control-documental__titulo">Comprobaciones ({{ control.hallazgos|length }})</p><ul>{% for hallazgo in control.hallazgos %}<li><span>{{ hallazgo.mensaje }}</span>{% if hallazgo.url|slice:':1' == '/' and hallazgo.url|slice:':2' != '//' %} <a href="{{ hallazgo.url }}">Ir al registro</a>{% endif %}</li>{% endfor %}</ul>{% elif not control.resumen.decision_automatica.motivos %}<small>No hay incidencias registradas para este control.</small>{% endif %}
+  </div>
+</template>
+</div>{% endif %}

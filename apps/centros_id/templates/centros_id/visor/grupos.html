@@ -1,0 +1,36 @@
+{% extends 'centros_id/visor/base.html' %}
+{% load i18n %}
+{% comment %}Grupos, facultades y carreras: los grupos de investigación que participan conservando su identidad y las carreras que
+usan el centro, con las piezas de Laboratorios.{% endcomment %}
+
+{% block entradilla %}<p class="cv-entradilla">{% translate "Los grupos de investigación que participan en el centro conservando su identidad, y las facultades y carreras que lo usan." %}</p>{% endblock %}
+
+{% block contenido %}
+{% if grupos %}
+<section class="conoce__seccion" id="grupos">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Investigan con el centro" %}</span><h2>{% translate "Grupos de investigación" %}</h2></header>
+  <div class="area__actividades">{% for grupo in grupos %}<a class="area__actividad cv-tarjeta-enlace" href="{% url 'fragmento_centro_id' centro.slug 'grupo' grupo.pk %}" data-modal="{% url 'fragmento_centro_id' centro.slug 'grupo' grupo.pk %}"{% if abrir == grupo.pk %} data-abrir-auto{% endif %} data-aparecer>
+    <header><i class="fas fa-users" aria-hidden="true"></i><div>{% if grupo.sigla %}<span class="ficha__rol">{{ grupo.sigla }}</span>{% endif %}{% if grupo.facultad %}<span class="ficha__rol cv-rol--suave">{{ grupo.facultad }}</span>{% endif %}</div></header>
+    <h3>{{ grupo.nombre }}</h3>
+    {% if grupo.descripcion %}<p>{{ grupo.descripcion|truncatewords:26 }}</p>{% endif %}
+    <footer><span><strong>{{ grupo.integrantes.count }}</strong> {% translate "integrantes" %}</span>{% if grupo.lineas.count %}<span><strong>{{ grupo.lineas.count }}</strong> {% translate "líneas" %}</span>{% endif %}</footer>
+  </a>{% endfor %}</div>
+</section>
+{% else %}
+<section class="conoce__seccion area__primera">{% include 'centros_id/visor/_vacio.html' with texto=_("No hay grupos de investigación registrados.") enlace=completar %}</section>
+{% endif %}
+
+{% if carreras %}
+<section class="conoce__seccion" id="carreras">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo usan para formar" %}</span><h2>{% translate "Facultades y carreras que participan" %}</h2></header>
+  <ul class="area__puntos" data-aparecer>{% for fila in carreras %}<li><i class="fas fa-graduation-cap" aria-hidden="true"></i><span>{{ fila.actor }}{% if fila.forma %}<small>{{ fila.forma }}</small>{% endif %}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+{% if futuras %}
+<section class="conoce__seccion" id="futuras">
+  <header class="conoce__titulo" data-aparecer><span class="conoce__antetitulo">{% translate "Lo que viene" %}</span><h2>{% translate "Carreras y programas futuros" %}</h2></header>
+  <ul class="ficha__lineas" data-aparecer>{% for fila in futuras %}<li title="{{ fila.forma }}"><i class="fas fa-seedling" aria-hidden="true"></i>{{ fila.actor }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

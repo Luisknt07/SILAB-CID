@@ -1,0 +1,166 @@
+{
+  "retrieved": "2026-10-09",
+  "css_source": "https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap",
+  "files": [
+    {
+      "file": "montserrat-latin-ext-variable.woff2",
+      "family": "Montserrat",
+      "weight": "100 900",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wdhyzbi.woff2",
+      "bytes": 70688,
+      "sha256": "54d9a78b7ff60b689ad9f3017ffac8547b5d871afec733f6c1c3ae36577ee504"
+    },
+    {
+      "file": "montserrat-latin-variable.woff2",
+      "family": "Montserrat",
+      "weight": "100 900",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2",
+      "bytes": 37956,
+      "sha256": "06b16db7a969135d48d38c49183be7fb88d4452e2a3011957c7851941f4e4879"
+    },
+    {
+      "file": "poppins-latin-ext-300.woff2",
+      "family": "Poppins",
+      "weight": "300",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1JlFc-K.woff2",
+      "bytes": 5524,
+      "sha256": "33ff412e573782b800c68bb81a6be6f987ad40c36b681aeeaf188e723a9fc46c"
+    },
+    {
+      "file": "poppins-latin-300.woff2",
+      "family": "Poppins",
+      "weight": "300",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1xlFQ.woff2",
+      "bytes": 7840,
+      "sha256": "78bc3aa78faec288bbb3bf26c9a0fa4eb67b1e69da94a17233c5cab60525efdb"
+    },
+    {
+      "file": "poppins-latin-ext-400.woff2",
+      "family": "Poppins",
+      "weight": "400",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJnecmNE.woff2",
+      "bytes": 5644,
+      "sha256": "0b1fcab42c18b69bcfe9ce4799fcbff5af1621c53ffcfdc4723c6f5ec4ee3ffb"
+    },
+    {
+      "file": "poppins-latin-400.woff2",
+      "family": "Poppins",
+      "weight": "400",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2",
+      "bytes": 7884,
+      "sha256": "7d93459d86585bfcdbb7e0376056226adb25821ee54b96236fe2123e9560929f"
+    },
+    {
+      "file": "poppins-latin-ext-500.woff2",
+      "family": "Poppins",
+      "weight": "500",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1JlFc-K.woff2",
+      "bytes": 5484,
+      "sha256": "af5fda16a19169e029a132374616728e1bf326d90bef5a552395c5053e21cd0f"
+    },
+    {
+      "file": "poppins-latin-500.woff2",
+      "family": "Poppins",
+      "weight": "500",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1xlFQ.woff2",
+      "bytes": 7748,
+      "sha256": "cd36de204aca2d5fa263a731f7c20009b5e3d754ba1f1e03c33e93a48f3e7446"
+    },
+    {
+      "file": "poppins-latin-ext-600.woff2",
+      "family": "Poppins",
+      "weight": "600",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1JlFc-K.woff2",
+      "bytes": 5524,
+      "sha256": "bb1f2d582e7fba586ab70c91ef062d3becaf78b887654953863521b73665d171"
+    },
+    {
+      "file": "poppins-latin-600.woff2",
+      "family": "Poppins",
+      "weight": "600",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFQ.woff2",
+      "bytes": 8000,
+      "sha256": "f4e80d9dfd374d02989b87a27b5ed4cb78fbb177c27f1478e9a8b0afb7513149"
+    },
+    {
+      "file": "poppins-latin-ext-700.woff2",
+      "family": "Poppins",
+      "weight": "700",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1JlFc-K.woff2",
+      "bytes": 5432,
+      "sha256": "ccfd87f69ef00d811da3d06488cec4e79ec99d289cfbcbe4be42031cecae775a"
+    },
+    {
+      "file": "poppins-latin-700.woff2",
+      "family": "Poppins",
+      "weight": "700",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2",
+      "bytes": 7816,
+      "sha256": "9338e65fc077355c7a87ae0d64cc101e23b9bf8ad78ae65f0f319c857311b526"
+    },
+    {
+      "file": "poppins-latin-ext-800.woff2",
+      "family": "Poppins",
+      "weight": "800",
+      "subset": "latin-ext",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1JlFc-K.woff2",
+      "bytes": 5492,
+      "sha256": "a72eccfa6cfa9c26b4004e98dbf8592ea0fb3704b2fc749e8bd60a996e2e5a7c"
+    },
+    {
+      "file": "poppins-latin-800.woff2",
+      "family": "Poppins",
+      "weight": "800",
+      "subset": "latin",
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFQ.woff2",
+      "bytes": 7824,
+      "sha256": "60bf0aba6526436f3930c58c12047687fbb6bff4dd180cce4613458ed3439ea2"
+    },
+    {
+      "file": "OFL-Montserrat.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/montserrat/OFL.txt",
+      "bytes": 4400,
+      "sha256": "8b7141c03fa4f8d44e6345d5d4931709290f0f67875e452e95ac1fd3a027802e"
+    },
+    {
+      "file": "OFL-Poppins.txt",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/OFL.txt",
+      "bytes": 4385,
+      "sha256": "6be04893d770899a015649c7aa3b582f871b272f8747a92b78b17c3e5c8b2573"
+    },
+    {
+      "file": "poppins-latin-400.ttf",
+      "family": "Poppins",
+      "weight": "400",
+      "subset": "latin",
+      "derived_from": "poppins-latin-400.woff2",
+      "conversion": "Descompresión WOFF2 a TTF con FontTools; glifos originales sin modificaciones.",
+      "license": "OFL-Poppins.txt",
+      "bytes": 16136,
+      "sha256": "04d5b12bbd888916a586d9c3faebe9a10ce8a7c7affbeb069ae578c40e697405"
+    },
+    {
+      "file": "poppins-latin-700.ttf",
+      "family": "Poppins",
+      "weight": "700",
+      "subset": "latin",
+      "derived_from": "poppins-latin-700.woff2",
+      "conversion": "Descompresión WOFF2 a TTF con FontTools; glifos originales sin modificaciones.",
+      "license": "OFL-Poppins.txt",
+      "bytes": 15804,
+      "sha256": "127ac0c5996c84cef1ae184eae035bc7c2ef2660a34d1e4adde82a4170cdd130"
+    }
+  ]
+}

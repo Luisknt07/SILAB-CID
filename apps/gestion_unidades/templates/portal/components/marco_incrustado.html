@@ -1,0 +1,10 @@
+
+{% load i18n idiomas %}
+{% comment %}
+Dentro del visor de la ficha, el marco ya dice de qué documento se trata y de
+qué unidad es: la página no vuelve a repetirlo debajo. Al imprimirla o abrirla
+sola, el encabezado completo vuelve, porque ahí sí encabeza la hoja.
+
+Va en el <head> de toda página embebible para que no haya parpadeo.
+{% endcomment %}
+<script>if (window.self !== window.top) { document.documentElement.classList.add('esta-incrustado'); }</script>

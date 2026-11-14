@@ -1,0 +1,23 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n %}
+
+{% block titulo %}{% translate "Fichas metodológicas" %}{% endblock %}
+{% block encabezado %}{% translate "Fichas metodológicas" %}{% endblock %}
+{% block subtitulo %}{% translate "Qué mide cada indicador, cómo se calcula, de dónde sale el dato y cada cuánto se actualiza" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Indicadores" %}</dt><dd>{{ indicadores|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "Fichas metodológicas" %}{% endblock %}
+{% block contenido %}
+{% if indicadores %}
+<div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Indicador" %}</th><th>{% translate "Definición" %}</th><th>{% translate "Fórmula" %}</th><th>{% translate "Unidad" %}</th><th>{% translate "Fuente" %}</th><th>{% translate "Periodicidad" %}</th><th>{% translate "Desagregación" %}</th></tr></thead><tbody>
+  {% for indicador in indicadores %}<tr>
+    <td><a href="{% url 'indicador_observatorio' unidad.slug indicador.codigo %}"><strong>{{ indicador.nombre }}</strong></a></td>
+    <td>{{ indicador.definicion }}</td><td>{{ indicador.formula|default:"—" }}</td><td>{{ indicador.unidad_medida }}</td>
+    <td>{% if indicador.url_fuente %}<a href="{{ indicador.url_fuente }}" target="_blank" rel="noopener noreferrer">{{ indicador.fuente }}</a>{% else %}{{ indicador.fuente }}{% endif %}</td>
+    <td>{{ indicador.get_periodicidad_display }}</td><td>{{ indicador.desagregacion|default:"—" }}</td>
+  </tr>{% endfor %}
+</tbody></table></div>
+<p class="unit-report__notice">{% translate "Los campos siguen la ficha de metadatos de la Guía de Datos Abiertos del Ecuador. Las limitaciones de cada indicador están en su ficha." %}</p>
+{% else %}
+<p class="unit-report__notice">{% translate "El observatorio todavía no publica indicadores." %}</p>
+{% endif %}
+{% endblock %}

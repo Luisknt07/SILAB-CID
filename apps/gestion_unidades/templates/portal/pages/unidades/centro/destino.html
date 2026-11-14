@@ -1,0 +1,24 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load static i18n %}
+
+{% block titulo %}{% translate "A dónde va lo que produce" %}{% endblock %}
+{% block encabezado %}{% translate "A dónde va lo que produce" %}{% endblock %}
+{% block subtitulo %}{% translate "Las plantas piloto que abastece el centro, con qué, y el destino de lo que produce cada eje" %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Plantas que abastece" %}</dt><dd>{{ abastece|length }}</dd></div>{% if seccion %}<div><dt>{% translate "Sección" %}</dt><dd>{{ seccion }}</dd></div>{% endif %}{% endblock %}
+{% block pie %}{% translate "A dónde va lo que produce" %}{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/centro_experimental.css' %}?v=20261006-centro-v4">
+{% if abastece %}
+<section class="unit-report__section">
+  <h2>{% translate "Las plantas piloto que abastece" %}</h2>
+  <ul class="centro-destinos">{% for relacion in abastece %}<li><i class="fas fa-industry" aria-hidden="true"></i><div><strong><a href="{{ relacion.destino.get_absolute_url }}">{{ relacion.destino.nombre }}</a>{% if relacion.destino.estado_catalogo == 'en_creacion' %} <em>({% translate "en creación" %})</em>{% endif %}</strong>{% if relacion.que_fluye %}<p>{{ relacion.que_fluye }}</p>{% endif %}{% if relacion.descripcion %}<p>{{ relacion.descripcion }}</p>{% endif %}</div></li>{% endfor %}</ul>
+  <p class="centro-fuente"><a href="{% url 'red_unidades' %}?unidad={{ unidad.slug }}">{% translate "Ver al centro en la red de unidades" %} →</a></p>
+</section>
+{% endif %}
+{% for eje in ejes %}
+<section class="unit-report__section">
+  <h2><i class="{{ eje.icono }}" aria-hidden="true"></i> <a href="{% url 'eje_centro' unidad.slug eje.codigo %}">{{ eje.titulo }}</a></h2>
+  <ul class="centro-destinos">{% for destino, que in eje.destinos %}<li><i class="fas fa-arrow-right" aria-hidden="true"></i><div><strong>{{ destino }}</strong>{% if que %}<p>{{ que }}</p>{% endif %}</div></li>{% endfor %}</ul>
+</section>
+{% endfor %}
+{% endblock %}

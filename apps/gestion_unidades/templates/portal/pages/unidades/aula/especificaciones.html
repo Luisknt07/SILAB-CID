@@ -1,0 +1,22 @@
+{% extends 'portal/pages/unidades/aula/base.html' %}
+{% load i18n idiomas %}
+
+{% block titulo %}{% translate "Especificaciones de producto" %}{% endblock %}
+{% block encabezado %}{% translate "Especificaciones de producto" %}{% endblock %}
+{% block subtitulo %}{% if familia_activa %}{{ familia_activa.nombre }}{% else %}{% translate "Lo que cada lote debe cumplir para salir al despacho" %}{% endif %}{% endblock %}
+{% block datos %}<div><dt>{% translate "Productos" %}</dt><dd>{{ especificaciones|length }}</dd></div><div><dt>{% translate "Parámetros" %}</dt><dd>{{ parametros_totales }}</dd></div>{% endblock %}
+{% block pie %}{% translate "Especificaciones de producto" %}{% endblock %}
+{% block contenido %}
+<p class="unit-report__notice">{% translate "Cada especificación es el plan de liberación del producto: el lote sale al despacho cuando todos sus parámetros críticos están dentro del límite. La norma se cita cuando el requisito proviene de ella." %}</p>
+{% for item in especificaciones %}
+<section class="unit-report__section">
+  <header><span>{{ item.plan.producto.nombre|default:item.plan.nombre|upper }}</span><small>{{ item.plan.codigo }}{% if item.plan.familia %} · {{ item.plan.familia.nombre }}{% endif %}</small></header>
+  {% if item.plan.descripcion %}<p class="unit-report__notice">{{ item.plan.descripcion }}</p>{% endif %}
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Parámetro" %}</th><th>{% translate "Límite" %}</th><th>{% translate "Método" %}</th><th>{% translate "Decide el lote" %}</th></tr></thead><tbody>
+    {% for parametro in item.parametros %}<tr><td><strong>{{ parametro.nombre }}</strong></td><td>{{ parametro.limite_texto }}</td><td>{{ parametro.metodo|default:"—" }}</td><td>{% if parametro.critico %}{% translate "Sí" %}{% else %}{% translate "Referencial" %}{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% empty %}
+<p class="unit-report__notice">{% translate "La unidad todavía no publica especificaciones de producto." %}</p>
+{% endfor %}
+{% endblock %}

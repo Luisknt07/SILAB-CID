@@ -1,0 +1,95 @@
+
+{% load i18n idiomas %}
+          <div class="unit-console__report-actions"><div><span>{% translate "ALMACÉN" %}</span><strong>{% translate "Lo que el plan va a consumir, lo que está por vencer y lo que el conteo encuentra de verdad en el estante." %}</strong></div><div>{% if puede_operar_almacen %}<button type="button" data-agenda-operation-open="conteo_inventario"><i class="fas fa-clipboard-list"></i> {% translate "Nuevo conteo" %}</button>{% endif %}{% if cobertura_plan_url %}<a href="{{ cobertura_plan_url }}?formato=pdf" data-ver-pdf><i class="fas fa-file-alt"></i> {% translate "Ver el plan" %}</a>{% endif %}</div></div>
+          <div class="unit-console__metrics">
+            <article><span>{% translate "Insumos sin cubrir" %}</span><strong>{{ cobertura_plan.sin_cubrir }}</strong><small>{% if cobertura_plan.plan %}{% translate "frente al plan" %} {{ cobertura_plan.plan.codigo }}{% else %}{% translate "sin plan del período" %}{% endif %}</small></article>
+            <article><span>{% translate "Lotes por vencer" %}</span><strong>{{ lotes_por_vencer|length }}</strong><small>{% translate "en los próximos treinta días" %}</small></article>
+            <article><span>{% translate "Lotes vencidos" %}</span><strong>{{ lotes_vencidos|length }}</strong><small>{% translate "con saldo que dar de baja" %}</small></article>
+            <article><span>{% translate "Material del cliente" %}</span><strong>{{ material_cliente_almacen|length }}</strong><small>{% translate "está en bodega pero no es de la unidad" %}</small></article>
+          </div>
+
+          <article class="unit-console__card">
+            <header><div><span>{% translate "COBERTURA DESDE EL PLAN" %}</span><h3>{% translate "Lo que las corridas programadas van a consumir" %}</h3><p>{% translate "No es el promedio de lo que se gastó: es lo que las recetas del plan maestro piden, día por día, frente a lo que hay en bodega." %}</p></div></header>
+            {% if cobertura_plan.plan %}
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Insumo" %}</th><th>{% translate "Pide el plan" %}</th><th>{% translate "En bodega" %}</th><th>{% translate "En camino" %}</th><th>{% translate "Cobertura" %}</th><th>{% translate "Falta" %}</th></tr></thead><tbody>
+            {% for fila in cobertura_plan.filas %}<tr>
+              <td><strong>{{ fila.consumible.nombre }}</strong><br><small>{{ fila.consumible.codigo }} {% translate "· seguridad" %} {{ fila.seguridad|floatformat:"-3" }}</small></td>
+              <td>{{ fila.requerido|floatformat:"-3" }} {{ fila.consumible.unidad_medida }}</td>
+              <td>{{ fila.stock|floatformat:"-3" }}</td>
+              <td>{% if fila.en_camino %}{{ fila.en_camino|floatformat:"-3" }}{% else %}—{% endif %}</td>
+              <td><span class="unit-console__status{% if fila.cobertura_pct >= 100 %} is-confirmada{% elif fila.cobertura_pct >= 60 %} is-pendiente{% else %} is-rechazada{% endif %}">{{ fila.cobertura_pct }} %</span></td>
+              <td>{% if fila.falta %}<span class="unit-console__status is-rechazada">{{ fila.falta|floatformat:"-3" }} {{ fila.consumible.unidad_medida }}</span><br><small>{% translate "se necesita el" %} {{ fila.primera_falta|date:"d/m" }}</small>{% elif fila.en_camino %}<span class="unit-console__status is-confirmada">cubierto</span><br><small>{% translate "con lo que viene en camino" %}</small>{% else %}<span class="unit-console__status is-confirmada">cubierto</span>{% endif %}</td>
+            </tr>{% empty %}<tr><td colspan="6"><div class="unit-console__empty"><strong>{% translate "El plan no consume insumos" %}</strong><span>{% translate "Añade corridas al plan maestro para que la cobertura tenga qué medir." %}</span></div></td></tr>{% endfor %}
+            </tbody></table></div>
+            {% else %}
+            <div class="unit-console__empty"><strong>{% translate "Sin plan del período" %}</strong><span>{% translate "La cobertura sale del plan maestro: créalo en la pestaña de planificación." %}</span></div>
+            {% endif %}
+          </article>
+
+          <div class="unit-console__split">
+            <article class="unit-console__card">
+              <header><div><span>VENCIMIENTOS</span><h3>{% translate "Lo que vence primero sale primero" %}</h3><p>{% translate "Lotes con saldo que vencen dentro de treinta días o que ya vencieron. Un lote vencido se da de baja entero." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Lote" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Saldo" %}</th><th>{% translate "Vence" %}</th>{% if puede_operar_almacen %}<th></th>{% endif %}</tr></thead><tbody>
+              {% for fila in lotes_por_vencer %}<tr>
+                <td><strong>{{ fila.lote.codigo }}</strong><br><small>{{ fila.lote.ubicacion_completa }}{% if fila.del_cliente %} {% translate "· del cliente" %}{% endif %}</small></td>
+                <td>{{ fila.lote.consumible.nombre }}</td>
+                <td>{{ fila.lote.cantidad_actual|floatformat:"-3" }} {{ fila.lote.consumible.unidad_medida }}</td>
+                <td>{{ fila.lote.fecha_vencimiento|date:"d/m/Y" }}<br><small>{% if fila.vencido %}<span class="unit-console__status is-rechazada">vencido</span>{% else %}en {{ fila.dias }} {% translate "día" %}{{ fila.dias|pluralize }}{% endif %}</small></td>
+                {% if puede_operar_almacen %}<td>{% if fila.vencido %}<button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="baja_lote" data-field-registro_id="{{ fila.lote.pk }}"><i class="fas fa-ban"></i> {% translate "Dar de baja" %}</button>{% endif %}</td>{% endif %}
+              </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Nada por vencer" %}</strong><span>{% translate "Ningún lote con saldo vence en los próximos treinta días." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+            <article class="unit-console__card">
+              <header><div><span>{% translate "ORDEN DE SALIDA" %}</span><h3>{% translate "Cuál abrir cuando hay varios" %}</h3><p>{% translate "De cada insumo con más de un lote abierto, el que debe consumirse primero: el que antes vence y, si ninguno vence, el que antes entró." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Insumo" %}</th><th>{% translate "Sale primero" %}</th><th>{% translate "Después" %}</th></tr></thead><tbody>
+              {% for fila in orden_de_salida %}<tr>
+                <td><strong>{{ fila.consumible.nombre }}</strong></td>
+                <td><span class="unit-console__status is-confirmada">{{ fila.primero.codigo }}</span><br><small>{{ fila.primero.cantidad_actual|floatformat:"-3" }} {{ fila.consumible.unidad_medida }}{% if fila.primero.fecha_vencimiento %} {% translate "· vence" %} {{ fila.primero.fecha_vencimiento|date:"d/m/Y" }}{% endif %}</small></td>
+                <td><div class="unit-console__tag-list">{% for lote in fila.siguientes %}<span>{{ lote.codigo }} <small>{{ lote.cantidad_actual|floatformat:"-3" }}{% if lote.fecha_vencimiento %} · {{ lote.fecha_vencimiento|date:"d/m/Y" }}{% endif %}</small></span>{% endfor %}</div></td>
+              </tr>{% empty %}<tr><td colspan="3"><div class="unit-console__empty"><strong>{% translate "Un lote por insumo" %}</strong><span>{% translate "La regla aparece cuando un insumo tiene más de un lote abierto." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+          </div>
+
+          {% if conteo_abierto %}
+          <article class="unit-console__card">
+            <header><div><span>{% translate "CONTEO ABIERTO" %} {{ conteo_abierto.conteo.codigo }}</span><h3>{{ conteo_abierto.conteo.nombre }}</h3><p>{{ conteo_abierto.conteo.get_alcance_display|ui }}{% if conteo_abierto.conteo.referencia %} · {{ conteo_abierto.conteo.referencia }}{% endif %} · {{ conteo_abierto.contadas }} de {{ conteo_abierto.total }} {% translate "lotes contados ·" %} {{ conteo_abierto.diferencias }} {% translate "con diferencia" %}</p></div><div>{% if puede_operar_almacen %}<button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="cerrar_conteo" data-field-registro_id="{{ conteo_abierto.conteo.pk }}"><i class="fas fa-check"></i> {% translate "Cerrar y ajustar" %}</button>{% endif %}</div></header>
+            <p class="unit-console__note">{% translate "Al cerrarlo, cada diferencia entra al kardex como ajuste positivo o negativo con su responsable. Lo que no se contó queda como estaba." %}</p>
+            <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Lote" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "El sistema dice" %}</th><th>{% translate "Contado" %}</th><th>{% translate "Diferencia" %}</th>{% if puede_operar_almacen %}<th></th>{% endif %}</tr></thead><tbody>
+            {% for linea in conteo_abierto.lineas %}<tr>
+              <td><strong>{{ linea.lote.codigo }}</strong><br><small>{{ linea.lote.ubicacion_completa }}</small></td>
+              <td>{{ linea.consumible.nombre }}</td>
+              <td>{{ linea.cantidad_sistema|floatformat:"-3" }} {{ linea.consumible.unidad_medida }}</td>
+              <td>{% if linea.contada %}{{ linea.cantidad_contada|floatformat:"-3" }}{% else %}<span class="unit-console__status is-pendiente">{% translate "sin contar" %}</span>{% endif %}</td>
+              <td>{% if linea.contada %}{% if linea.cuadra %}<span class="unit-console__status is-confirmada">cuadra</span>{% else %}<span class="unit-console__status is-rechazada">{{ linea.diferencia|floatformat:"-3" }}</span>{% endif %}{% else %}—{% endif %}</td>
+              {% if puede_operar_almacen %}<td><button type="button" class="unit-console__row-action unit-console__row-action--text" data-agenda-operation-open="linea_conteo" data-field-registro_id="{{ linea.pk }}" data-field-cantidad_contada="{% if linea.contada %}{{ linea.cantidad_contada|floatformat:'-3u' }}{% endif %}" data-field-observaciones="{{ linea.observaciones }}"><i class="fas fa-pen"></i> {% translate "Contar" %}</button></td>{% endif %}
+            </tr>{% endfor %}
+            </tbody></table></div>
+          </article>
+          {% endif %}
+
+          <div class="unit-console__split">
+            <article class="unit-console__card">
+              <header><div><span>CONTEOS</span><h3>{% translate "Lo que se contó antes" %}</h3><p>{% translate "Cada conteo guarda lo que el sistema decía, lo que se encontró y el ajuste que se hizo." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Conteo" %}</th><th>{% translate "Alcance" %}</th><th>{% translate "Lotes" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+              {% for conteo in conteos_almacen %}<tr>
+                <td><strong>{{ conteo.codigo }}</strong><br><small>{{ conteo.fecha|date:"d/m/Y" }}{% if conteo.responsable %} · {{ conteo.responsable.get_full_name|default:conteo.responsable.username }}{% endif %}</small></td>
+                <td>{{ conteo.get_alcance_display|ui }}{% if conteo.referencia %}<br><small>{{ conteo.referencia }}</small>{% endif %}</td>
+                <td>{{ conteo.lineas.count }}</td>
+                <td><span class="unit-console__status{% if conteo.estado == 'cerrado' %} is-confirmada{% elif conteo.estado == 'abierto' %} is-pendiente{% endif %}">{{ conteo.get_estado_display|ui }}</span></td>
+              </tr>{% empty %}<tr><td colspan="4"><div class="unit-console__empty"><strong>{% translate "Sin conteos todavía" %}</strong><span>{% translate "Un conteo cíclico congela lo que el sistema cree tener y lo compara con el estante." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+            <article class="unit-console__card">
+              <header><div><span>{% translate "MATERIAL DEL CLIENTE" %}</span><h3>{% translate "Está en la bodega pero no es de la unidad" %}</h3><p>{% translate "La materia prima que el cliente trajo para su encargo entra con costo cero y no cuenta como existencia propia." %}</p></div></header>
+              <div class="unit-console__table-wrap"><table class="unit-console__table"><thead><tr><th>{% translate "Lote" %}</th><th>{% translate "Insumo" %}</th><th>{% translate "Saldo" %}</th><th>{% translate "Encargo" %}</th><th>{% translate "Estado" %}</th></tr></thead><tbody>
+              {% for lote in material_cliente_almacen %}<tr>
+                <td><strong>{{ lote.codigo }}</strong><br><small>{{ lote.fecha_ingreso|date:"d/m/Y" }}</small></td>
+                <td>{{ lote.consumible.nombre }}</td>
+                <td>{{ lote.cantidad_actual|floatformat:"-3" }} de {{ lote.cantidad_inicial|floatformat:"-3" }} {{ lote.consumible.unidad_medida }}</td>
+                <td>{% if lote.reserva %}{{ lote.reserva.codigo_reserva }}{% else %}—{% endif %}</td>
+                <td><span class="unit-console__status{% if lote.estado == 'agotado' %} is-confirmada{% endif %}">{{ lote.get_estado_display|ui }}</span></td>
+              </tr>{% empty %}<tr><td colspan="5"><div class="unit-console__empty"><strong>{% translate "Sin material de clientes" %}</strong><span>{% translate "Aparece cuando un encargo de maquila trae su propia materia prima." %}</span></div></td></tr>{% endfor %}
+              </tbody></table></div>
+            </article>
+          </div>

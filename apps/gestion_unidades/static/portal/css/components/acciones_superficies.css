@@ -1,0 +1,213 @@
+/* Contrato compartido de acciones y lectura, con o sin paleta institucional.
+   Los degradados quedan en capas decorativas; las acciones son solidas. */
+:root {
+  --accion-principal: var(--institucion-primario, #064e3b);
+  --accion-texto: var(--institucion-texto, #18312a);
+  --accion-acento: var(--institucion-acento, #f2bd3f);
+  --accion-borde: var(--institucion-borde, #ccd7d1);
+  --foto-oscuro: var(--institucion-oscuro-rgb, 7, 21, 37);
+}
+.home-btn.primary, .lab-unit-card__cta, .lab-filter-submit,
+.service-tech-card > div > a, .connected-unit__action,
+.upec-button--secondary,
+#unitDetail .unit-presentation__menu-button.is-active,
+.btn-primary:not(.btn-danger):not(.btn-success),
+#unitDetail #modulo-tabs .nav-link.active,
+#unitDetail #modulo-tabs .nav-link[aria-current="page"],
+#unitDetail #modulo-tabs .nav-link[aria-selected="true"],
+.unit-detail__module-nav .nav-link.active,
+.unit-console__module-tabs button.is-active,
+.unit-console__report-actions :is(a,button), .aula-form button,
+#equiposReservaModal.reservation-wizard-enhanced .rw-button--primary,
+#equiposReservaModal.reservation-wizard-enhanced .reservation-button--primary,
+#grp-content .grp-submit-row .grp-button:not(.grp-delete-link),
+.institution-presentation-review button[type="submit"] {
+  background: var(--accion-principal) !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: var(--accion-principal) !important;
+  text-shadow: none;
+}
+.home-btn.gold, .unit-action--primary, .upec-button--primary,
+#equiposReservaModal.reservation-wizard-enhanced .rw-button--gold,
+.upec-about__hero-actions a:not(.is-ghost),
+.page-servicios .services-hero__copy a:not(.is-outline) {
+  background: var(--accion-acento) !important;
+  background-image: none !important;
+  color: var(--accion-texto) !important;
+  border-color: var(--accion-acento) !important;
+}
+.page-servicios .services-hero__copy a.is-outline {
+  background: rgba(var(--foto-oscuro), .65) !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.7) !important;
+}
+.btn-secondary:not(.btn-danger):not(.btn-success), .btn-outline-primary, .unit-action--secondary,
+.unit-action--management, .upec-button--outline,
+.home-btn.secondary {
+  background: #fff !important;
+  background-image: none !important;
+  color: var(--accion-texto) !important;
+  border-color: var(--accion-borde) !important;
+}
+:is(.hero,.institutional-hero,.upec-about__hero,.showcase-slide,.project-detail-hero) :is(.home-btn.secondary,.is-ghost,.unit-action--secondary,.unit-action--management,.upec-button--outline) {
+  background: rgba(var(--foto-oscuro), .65) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.7) !important;
+  background-image: none !important;
+}
+.home-btn.primary:hover, .lab-unit-card__cta:hover, .lab-filter-submit:hover,
+.btn-primary:hover {
+  background-color: var(--institucion-primario-hover, #053f30) !important;
+}
+.btn-secondary:hover, .btn-outline-primary:hover {
+  background-color: var(--institucion-primario-suave, #f0f5f3) !important;
+  color: var(--accion-texto) !important;
+}
+.btn-success, .btn-success:hover {
+  background: #218838 !important;
+  color: #fff !important;
+  border-color: #218838 !important;
+}
+.btn-danger, .btn-danger:hover {
+  background: #b32d39 !important;
+  color: #fff !important;
+  border-color: #b32d39 !important;
+}
+:is(.home-btn,.upec-button,.btn,.unit-action,.connected-unit__action):focus-visible {
+  outline: 3px solid var(--accion-acento);
+  outline-offset: 3px;
+}
+:is(.home-btn,.upec-button,.btn,.unit-action,.connected-unit__action) > i {
+  color: inherit !important;
+}
+#unitDetail .unit-resource-list button.project-detail-resource-button {
+  background: #fff;
+  background-image: none !important;
+  color: var(--accion-texto) !important;
+}
+#unitDetail .unit-resource-list button.project-detail-resource-button.is-disabled {
+  color: #66736e !important;
+}
+#unitDetail .unit-resource-name small { color: inherit; }
+#unitDetail .unit-resource-list button.project-detail-resource-button:hover {
+  background: var(--institucion-primario-suave, #f0f5f3);
+}
+#unitDetail .unit-resource-list button.project-detail-resource-button.active,
+#unitDetail .unit-resource-list button.project-detail-resource-button[aria-current="true"] {
+  background: var(--accion-acento) !important;
+  color: var(--accion-texto) !important;
+}
+#unitDetail .unit-resource-list button.project-detail-resource-button.active > i,
+#unitDetail .unit-resource-list button.project-detail-resource-button[aria-current="true"] > i {
+  color: inherit !important;
+}
+/* La imagen permanece visible: sombreado continuo, sin cajas verdes. */
+.upec-home .hero::before, .institutional-hero__overlay,
+.page-servicios .services-hero__overlay,
+.portal.page-quienes .upec-about__shade,
+.portal.page-quienes .showcase-slide::after {
+  background: linear-gradient(90deg, rgba(var(--foto-oscuro), .95) 0%,
+    rgba(var(--foto-oscuro), .85) 45%, rgba(var(--foto-oscuro), .18) 100%),
+    linear-gradient(90deg, rgba(var(--institucion-capa-rgb, 7, 21, 37), calc(var(--institucion-capa-opacidad, .85) * .2)),
+    transparent var(--institucion-capa-ancho, 76%)) !important;
+}
+.upec-home .feature-card::before,
+.portal.page-quienes .showcase-selector button::after {
+  background: linear-gradient(0deg, rgba(var(--foto-oscuro), .95),
+    rgba(var(--foto-oscuro), .1) 80%) !important;
+}
+.upec-home .hero-content, .portal.page-quienes .showcase-slide-copy,
+.upec-home .feature-card .feature-body,
+.portal.page-quienes .showcase-selector b,
+.portal.page-quienes .showcase-selector button > span {
+  background: transparent !important;
+  border-radius: 0;
+  color: #fff;
+}
+.upec-home .hero-content, .portal.page-quienes .showcase-slide-copy,
+.upec-home .feature-card .feature-body { padding: 0; }
+.hero-content h1, .page-quienes .showcase-slide-copy h3,
+.feature-card .feature-body h3 { color: #fff !important; }
+.hero-content p, .page-quienes .showcase-slide-copy p { color: #fff; }
+.portal.page-quienes .showcase-selector b,
+.portal.page-quienes .showcase-selector button > span { padding: 0; }
+/* Cejas y acentos sobre imagen conservan el dorado institucional legible
+   (`--institucion-acento-sobre-oscuro`); solo la etiqueta de vista y la del
+   recorrido, que van sobre foto sin veladura, se fuerzan a blanco. */
+.portal.page-quienes .showcase-tour-overlay > span,
+.portal.page-quienes .showcase-view-label span {
+  color: #fff !important;
+}
+.connected-unit dt, .connected-unit dt i,
+.portal.page-quienes .connected-units__heading > span,
+.portal.page-quienes .connected-capabilities li:nth-child(n+4) i,
+.connected-unit--teaching .connected-unit__thumbs button.is-active span {
+  color: #fff !important;
+}
+.upec-home .hero-brand-mark, .portal.page-quienes .showcase-capability,
+.portal.page-quienes .showcase-view-label,
+.upec-home .connected-unit {
+  background: rgba(var(--foto-oscuro), .92) !important;
+}
+.connected-unit--teaching > header > span,
+.connected-unit--teaching > header em { color: var(--accion-texto) !important; }
+.upec-home .connected-unit > header,
+.portal.page-quienes .connected-unit > header {
+  grid-template-columns: 68px minmax(0,1fr);
+  min-height: 0;
+  height: auto;
+  flex-basis: auto;
+}
+.connected-unit > header > span {
+  grid-column: 2;
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+}
+:is(.upec-home,.portal.page-quienes) .connected-unit > header .connected-unit__title h3 {
+  color: #fff;
+  font-size: clamp(20px, 2vw, 30px) !important;
+  line-height: 1.2 !important;
+}
+.connected-unit > header .connected-unit__title h3 span {
+  display: inline;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  white-space: normal;
+}
+.upec-home .connected-unit--teaching .connected-unit__title .title-nowrap {
+  display: inline !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  white-space: normal !important;
+}
+.connected-unit__thumbs button { background: rgb(var(--foto-oscuro)) !important; }
+.connected-unit__thumbs button span {
+  background: rgba(var(--foto-oscuro), .95) !important;
+  color: #fff !important;
+}
+.portal.page-quienes .identity-grid article > span { color: #fff !important; }
+.portal.page-quienes .identity-grid article :is(p,li) { color: #fff !important; }
+.portal.page-quienes .identity-grid .identity-objectives {
+  background: var(--accion-acento);
+  color: var(--accion-texto);
+}
+.portal.page-quienes .identity-grid .identity-objectives :is(span,h3,p,li,i) {
+  color: var(--accion-texto) !important;
+}
+@media (max-width: 760px) {
+  .upec-home .hero::before, .institutional-hero__overlay,
+  .portal.page-quienes .showcase-slide::after {
+    background: linear-gradient(0deg, rgba(var(--foto-oscuro), .96) 0%,
+      rgba(var(--foto-oscuro), .88) 65%, rgba(var(--foto-oscuro), .3) 100%) !important;
+  }
+}
+@media (max-width: 650px) {
+  .upec-home .connected-unit > header,
+  .portal.page-quienes .connected-unit > header { grid-template-columns: 54px minmax(0,1fr); }
+  .connected-unit > header > span { grid-column: 1 / -1; justify-self: center; }
+}

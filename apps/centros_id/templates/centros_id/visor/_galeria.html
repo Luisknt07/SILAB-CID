@@ -1,0 +1,8 @@
+{% load i18n %}{% comment %}Galería con la pieza de Laboratorios: una imagen grande y las demás alrededor. Cada una se amplía en el visor
+de la página (_visor.html), que recorre las mismas imágenes en el mismo orden.{% endcomment %}<div class="area__collage area__collage--{{ imagenes|length|stringformat:'s' }}" data-aparecer>
+  {% for imagen in imagenes %}<button type="button" class="area__collage-pieza{% if imagen.es_plano %} cv-pieza--plano{% endif %}" data-abrir-imagen="{{ forloop.counter0 }}" aria-label="{% translate "Ampliar" %}: {{ imagen.titulo }}">
+    <img src="{{ imagen.imagen.url }}" alt="{{ imagen.titulo }}" loading="lazy">
+    <span class="area__collage-pie"><strong>{{ imagen.titulo }}</strong><small>{% if imagen.es_plano %}{% translate "Plano o diagrama" %}{% else %}{{ imagen.credito|default:_("Foto") }}{% endif %}</small></span>
+    <i class="fas fa-expand area__collage-ampliar" aria-hidden="true"></i>
+  </button>{% endfor %}
+</div>

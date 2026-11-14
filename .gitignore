@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.ruff_cache/
+.qa/
+.secreto-local
+.pytest_cache/
+.coverage
+htmlcov/
+.env
+.env.*
+!.env-example
+*.key
+*.pem
+*.p12
+*.pfx
+.venv/
+.venv_linux
+env.bak/
+venv.bak/
+.venvF
+.uv-cache/
+
+# Local agent and development runtime artifacts
+.agents/
+.codex-*
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+
+# Datos de ejecucion: adjuntos (var/media), estaticos recopilados (var/static),
+# caches, registros, salidas, respaldos y marca privada. Nunca se versionan;
+# los respaldos y la marca viajan en copias protegidas fuera de Git.
+/var/
+*.sql
+*.sql.gz
+data_backup.json
+
+# Restos del diseno anterior, cuando los adjuntos, los estaticos y los
+# respaldos vivian en la raiz. Quien venga de una rama antigua los deja en el
+# disco al cambiarse aqui; ignorarlos evita volver a versionarlos por error.
+/media/
+/backups/
+/static/
+/staticfiles/
+/logs/
+data_backup_no_userprofile.json
+webcitt_data.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
+/output/
+*.tmp
+*.temp
+
+# Respaldos y bases privadas: nunca publicar en el repositorio público.
+*.dump
+*.backup
+*.sqlite
+*.sqlite3
+*.bundle
+.pgpass
+pgpass.conf

@@ -1,0 +1,48 @@
+.page-comprobante-reserva .portal-main { background: var(--institucion-primario-suave, #f1f5f2); }
+.reservation-receipt-page { width: min(920px, calc(100% - 40px)); margin: 36px auto 54px; color: var(--institucion-texto, #173b2c); }
+.reservation-receipt-page__toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 16px; padding: 0 4px; }
+.reservation-receipt-page__toolbar span { display: block; margin-bottom: 5px; color: var(--institucion-acento-tinta, #9a7611); font: 700 11px/1.3 Montserrat, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+.reservation-receipt-page__toolbar h1 { margin: 0; color: var(--institucion-titulo, var(--institucion-texto, #173b2c)); font: 700 26px/1.25 Montserrat, sans-serif; }
+.reservation-receipt-page__toolbar p { margin: 6px 0 0; color: #6c7c75; font: 400 13px/1.5 Poppins, sans-serif; }
+.reservation-receipt-page__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.reservation-receipt-page__actions a, .reservation-receipt-page__actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 14px; border: 1px solid #bcd0c4; border-radius: 7px; background: #fff; color: var(--institucion-texto, #285e43); font: 700 12px/1.2 Montserrat, sans-serif; cursor: pointer; }
+.reservation-receipt-page__actions a:hover { color: var(--institucion-texto, #173b2c); text-decoration: none; }
+.reservation-receipt-page__actions button { border-color: var(--institucion-primario, #2f7854); background: var(--institucion-primario, #2f7854); color: #fff; }
+.reservation-receipt-page__actions a.is-primary { border-color: var(--institucion-primario, #2f7854); background: var(--institucion-primario, #2f7854); color: #fff; }
+.reservation-receipt-page__actions a.is-primary:hover { background: var(--institucion-primario, #215d40); color: #fff; }
+.reservation-receipt-email { display: flex; align-items: center; gap: 13px; margin: 0 0 16px; padding: 14px 17px; border: 1px solid var(--institucion-primario-suave, #d8e3dc); border-left: 4px solid var(--institucion-acento, #e3bd42); border-radius: 8px; background: #fff; box-shadow: 0 8px 22px rgba(var(--institucion-primario-rgb, 21, 57, 42), .05); }
+.reservation-receipt-email.is-enviado { border-left-color: #3b865e; background: var(--institucion-fondo, #f5fbf7); }
+.reservation-receipt-email > i { display: grid; flex: 0 0 36px; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: var(--institucion-primario-suave, #eef5f0); color: var(--institucion-icono, var(--institucion-primario-tinta, #377c57)); }
+.reservation-receipt-email strong, .reservation-receipt-email span { display: block; }
+.reservation-receipt-email strong { margin-bottom: 2px; font: 700 12px/1.4 Montserrat, sans-serif; }
+.reservation-receipt-email span { color: #687a72; font: 400 11px/1.5 Poppins, sans-serif; }
+.reservation-receipt-next { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; margin: 0 0 16px; padding: 16px 18px; border: 1px solid #c4d8cb; border-left: 5px solid var(--institucion-primario, #2f7854); border-radius: 9px; background: linear-gradient(110deg, var(--institucion-fondo, #f2faf5), #fffaf0); box-shadow: 0 9px 24px rgba(var(--institucion-primario-rgb, 21, 57, 42), .07); }
+.reservation-receipt-next > i { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 10px; background: var(--institucion-primario, #2f7854); color: #fff; font-size: 17px; }
+.reservation-receipt-next small,
+.reservation-receipt-next strong,
+.reservation-receipt-next span { display: block; }
+.reservation-receipt-next small { color: var(--institucion-acento-tinta, #9a7611); font: 800 9px/1.3 Montserrat, sans-serif; letter-spacing: .8px; text-transform: uppercase; }
+.reservation-receipt-next strong { margin-top: 2px; font: 700 14px/1.35 Montserrat, sans-serif; }
+.reservation-receipt-next span { margin-top: 3px; color: #60746a; font: 400 11px/1.45 Poppins, sans-serif; }
+.reservation-receipt-next > a { display: inline-flex; gap: 7px; align-items: center; min-height: 40px; padding: 9px 13px; border-radius: 7px; background: var(--institucion-primario, #2f7854); color: #fff; font: 700 11px/1.2 Montserrat, sans-serif; white-space: nowrap; }
+.reservation-receipt-next > a:hover { background: var(--institucion-primario, #215d40); color: #fff; text-decoration: none; }
+.reservation-receipt-page__document { box-shadow: 0 18px 46px rgba(var(--institucion-primario-rgb, 18, 46, 37), .09); }
+@media (max-width: 760px) { .reservation-receipt-page { width: min(100% - 20px, 920px); margin-top: 20px; } .reservation-receipt-page__toolbar { align-items: stretch; flex-direction: column; } .reservation-receipt-page__actions { justify-content: flex-start; } .reservation-receipt-next { grid-template-columns: auto minmax(0, 1fr); } .reservation-receipt-next > a { grid-column: 1 / -1; justify-content: center; } }
+@media print { .institutional-header, .reservation-receipt-page__toolbar, .reservation-receipt-email, .reservation-receipt-next, .portal-footer { display: none !important; } .reservation-receipt-page { width: 100%; margin: 0; } .reservation-receipt-page__document { box-shadow: none; } body, .page-comprobante-reserva .portal-main { background: #fff !important; } }
+
+/* Comprobante de pago de la orden de servicio. Reutiliza el lenguaje visual
+   del aviso de correo para que el usuario reconozca el bloque. */
+.reservation-receipt-payment { display: flex; align-items: center; flex-wrap: wrap; gap: 13px; margin: 0 0 16px; padding: 14px 17px; border: 1px solid var(--institucion-primario-suave, #d8e3dc); border-left: 4px solid var(--institucion-acento, #e3bd42); border-radius: 8px; background: #fff; box-shadow: 0 8px 22px rgba(var(--institucion-primario-rgb, 21, 57, 42), .05); }
+.reservation-receipt-payment.is-ready { border-left-color: #3b865e; background: var(--institucion-fondo, #f5fbf7); }
+.reservation-receipt-payment > i { display: grid; flex: 0 0 36px; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: var(--institucion-primario-suave, #eef5f0); color: var(--institucion-icono, var(--institucion-primario-tinta, #377c57)); }
+.reservation-receipt-payment > div { flex: 1 1 260px; min-width: 0; }
+.reservation-receipt-payment small { display: block; font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: #6d8579; }
+.reservation-receipt-payment strong { display: block; font-size: .98rem; color: var(--institucion-texto, #15392a); }
+.reservation-receipt-payment span { display: block; font-size: .86rem; color: #4d6559; }
+.reservation-receipt-payment a { display: inline-block; margin-top: 4px; font-size: .84rem; color: var(--institucion-texto, #2f6f4c); text-decoration: underline; }
+.reservation-receipt-payment form { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.reservation-receipt-payment label { font-size: .82rem; font-weight: 600; color: var(--institucion-texto, #15392a); }
+.reservation-receipt-payment input[type="file"] { max-width: 210px; font-size: .8rem; }
+.reservation-receipt-payment button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 0; border-radius: 7px; background: var(--institucion-primario, #2f6f4c); color: #fff; font-size: .84rem; font-weight: 600; cursor: pointer; }
+.reservation-receipt-payment button:hover { background: var(--institucion-primario, #265c3e); }
+@media (max-width: 640px) { .reservation-receipt-payment form { width: 100%; } .reservation-receipt-payment input[type="file"] { max-width: 100%; } }

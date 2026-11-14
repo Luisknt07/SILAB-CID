@@ -1,0 +1,14 @@
+{% load reportes_estilo %}{% if d.unidad|es_unidad_auditable %}
+<div class="expediente__correspondencia">
+  <p><strong>Comprueba el contenido del archivo:</strong> {{ d.nombre_documental|default:d.nombre_documental }} · {{ d.unidad.nombre }} · {{ d.etiqueta_corte }}.</p>
+  {% if d.integridad_documental.aviso %}<p role="status">{{ d.integridad_documental.aviso }}</p>{% endif %}
+  <input type="hidden" name="correspondencia_unidad_id" value="{{ d.unidad_id }}">
+  <input type="hidden" name="correspondencia_documento_id" value="{{ d.pk }}">
+  <input type="hidden" name="correspondencia_codigo" value="{{ d.exigido.codigo }}">
+  <input type="hidden" name="correspondencia_anio" value="{{ d.anio }}">
+  <input type="hidden" name="correspondencia_corte" value="{{ d.corte }}">
+  <input type="hidden" name="correspondencia_mes" value="{{ d.mes|default_if_none:'' }}">
+  <input type="hidden" name="correspondencia_version" value="{{ d.version }}">
+  <label><input type="checkbox" name="correspondencia_confirmada" value="1"{% if not opcional %} required{% endif %}> He abierto el archivo y comprobado que su contenido corresponde a este documento, unidad y período.{% if direccion %} Esta comprobación no sustituye la evaluación de calidad.{% endif %}</label>
+</div>
+{% endif %}

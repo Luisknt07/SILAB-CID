@@ -1,0 +1,58 @@
+# Alternativa al servidor dedicado de docker-compose.centros.yml; no combinarlos.
+# Dos bases y credenciales distintas en el servidor db existente. Aprovisionar
+# CENTROS_DB_NAME y su propietario antes de migrar; este archivo no copia datos.
+services:
+  migrate:
+    environment:
+      CENTROS_DB_HOST: db
+      CENTROS_DB_PORT: "5432"
+      CENTROS_DB_NETWORK_ISOLATED: "true"
+
+  web:
+    environment:
+      CENTROS_DB_HOST: db
+      CENTROS_DB_PORT: "5432"
+      CENTROS_DB_NETWORK_ISOLATED: "true"
+
+  scheduler:
+    environment:
+      CENTROS_DB_HOST: db
+      CENTROS_DB_PORT: "5432"
+      CENTROS_DB_NETWORK_ISOLATED: "true"
+
+  microproyectos:
+    environment:
+      CENTROS_DB_HOST: db
+      CENTROS_DB_PORT: "5432"
+      CENTROS_DB_NETWORK_ISOLATED: "true"
+
+  backup-centros:
+    container_name: slcid-respaldos-centros-investigacion
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    profiles: ["centros-backup"]
+    image: postgres:17
+    restart: always
+    tmpfs:
+      - /var/lib/postgresql/data:size=16m,mode=0700
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts:ro
+      - ${BACKUP_HOST_DIR:-./var/backups}:/backups
+    environment:
+      DB_NAME: ${CENTROS_DB_NAME:?Configure nombre distinto para Centros}
+      DB_USER: ${CENTROS_DB_BACKUP_USER:?Configure rol respaldo Centros}
+      DB_PASSWORD: ${CENTROS_DB_BACKUP_PASSWORD:?Configure clave respaldo Centros}
+      DB_HOST: db
+      DB_PORT: "5432"
+      BACKUP_DIR: /backups/centros
+      BACKUP_INCLUDE_MEDIA: "false"
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_VERIFY_RESTORE: ${BACKUP_VERIFY_RESTORE:-true}
+    entrypoint: ["sh", "/scripts/docker_backup_loop.sh"]

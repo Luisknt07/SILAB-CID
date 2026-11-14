@@ -1,0 +1,61 @@
+
+{% load i18n idiomas %}
+<section class="unit-report__criteria" aria-label="{% translate "Criterios aplicados" %}">
+  <div><span>{% translate "CRITERIOS APLICADOS" %}</span><strong>{% translate "La vista HTML y el PDF utilizan exactamente esta selección." %}</strong></div>
+  <ul>{% for label, value in reporte_gestion.filter_summary %}<li><small>{{ label }}</small><b>{{ value }}</b></li>{% endfor %}</ul>
+</section>
+{% if reporte_gestion.is_generic %}
+{% if reporte_gestion.dataset.registration_actions %}<nav class="unit-report__toolbar" aria-label="{% translate 'Completar evidencias' %}">{% for accion in reporte_gestion.dataset.registration_actions %}<a href="{{ accion.url }}">{{ accion.label }}</a>{% endfor %}</nav>{% endif %}
+<section class="unit-report__summary" aria-label="{% translate "Resumen del reporte" %}">
+  {% for tarjeta in reporte_gestion.dataset.cards %}<article><span>{{ tarjeta.0 }}</span><strong>{{ tarjeta.1 }}</strong><small>{{ tarjeta.2|default:reporte_gestion.category_label }}</small></article>{% endfor %}
+</section>
+{% if reporte_gestion.dataset.notes %}<section class="unit-report__context"><h2>{% translate "Alcance y respaldo del reporte" %}</h2>{% for nota in reporte_gestion.dataset.notes %}<p>{{ nota }}</p>{% endfor %}</section>{% endif %}
+{% if reporte_gestion.dataset.structured %}
+<section class="unit-report__section unit-report__section--records">
+  <header><span>{{ reporte_gestion.dataset.document_meta.title }}</span><small>{{ reporte_gestion.dataset.document_meta.code }} {% translate "· Revisión" %} {{ reporte_gestion.dataset.document_meta.revision }}</small></header>
+  <div class="unit-report__records">
+    {% for record in reporte_gestion.dataset.records %}
+    <article class="unit-report__record">
+      <header><div><span>{{ record.code }}</span><h3>{{ record.title }}</h3></div><b class="unit-report__status is-{{ record.status_code }}">{{ record.status }}</b></header>
+      <div class="unit-report__record-sections">
+        {% for section in record.sections %}
+        <section><h4>{{ section.title }}</h4><dl>{% for field in section.fields %}<div{% if field.wide %} class="is-wide"{% endif %}><dt>{{ field.label|ui }}</dt><dd>{{ field.value|linebreaksbr }}</dd></div>{% endfor %}</dl></section>
+        {% endfor %}
+      </div>
+    </article>
+    {% empty %}<div class="unit-report__empty">{% translate "No hay registros para los filtros seleccionados." %}</div>{% endfor %}
+  </div>
+  {% if reporte_gestion.dataset.truncated %}<p class="unit-report__notice">{% translate "La vista está limitada a 200 expedientes. Ajusta las fechas para consultar el detalle completo." %}</p>{% endif %}
+</section>
+{% else %}
+<section class="unit-report__section{% if reporte_gestion.dataset.matrix %} unit-report__section--matrix{% endif %}">
+  <header><span>{% firstof reporte_gestion.dataset.document_meta.title reporte_gestion.category_label|upper %}</span>{% if reporte_gestion.dataset.document_meta.code %}<small>{{ reporte_gestion.dataset.document_meta.code }} {% translate "· Revisión" %} {{ reporte_gestion.dataset.document_meta.revision }}</small>{% endif %}</header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details{% if reporte_gestion.dataset.matrix %} unit-report__table--matrix unit-report__table--matrix-{{ reporte_gestion.dataset.matrix_kind }}{% endif %}"><thead><tr>{% for header in reporte_gestion.dataset.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead><tbody>{% for row in reporte_gestion.dataset.rows %}<tr>{% for value in row %}<td>{{ value }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ reporte_gestion.dataset.column_count }}" class="unit-report__empty">{% translate "No hay datos en el período seleccionado." %}</td></tr>{% endfor %}</tbody></table></div>
+  {% if reporte_gestion.dataset.truncated %}<p class="unit-report__notice">{% translate "La vista está limitada a 500 registros. Ajusta las fechas para consultar el detalle completo." %}</p>{% endif %}
+</section>
+{% for tabla in reporte_gestion.dataset.tablas %}
+<section class="unit-report__section">
+  <header><span>{{ tabla.titulo }}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr>{% for header in tabla.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead><tbody>{% for row in tabla.rows %}<tr>{% for value in row %}<td>{{ value }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ tabla.headers|length }}" class="unit-report__empty">{{ tabla.vacio }}</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endfor %}
+{% if reporte_gestion.dataset.supporting_documents %}
+<section class="unit-report__section">
+  <header><span>{% translate "Consultar los respaldos" %}</span></header>
+  <div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Código" %}</th><th>{% translate "Evidencia" %}</th><th>{% translate "Documento" %}</th></tr></thead><tbody>
+  {% for fuente in reporte_gestion.dataset.supporting_documents %}<tr><td>{{ fuente.codigo }}</td><td>{{ fuente.titulo }}</td><td>{% if fuente.recurso %}<a href="{% url 'respaldo_meta_unidad' reporte_gestion.unit.slug fuente.pk %}"{% if fuente.recurso.archivo.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="{{ fuente.titulo }}"{% else %} download{% endif %}>{% if fuente.recurso.archivo.name|lower|slice:"-4:" == ".pdf" %}{% translate "Ver respaldo" %}{% else %}{% translate "Descargar respaldo" %}{% endif %}</a>{% elif fuente.enlace %}<a href="{{ fuente.enlace }}" target="_blank" rel="noopener">{% translate "Ver respaldo" %}</a>{% endif %}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+{% endif %}
+{% else %}
+{% if reporte_gestion.notes %}<section class="unit-report__context"><h2>{% translate "Alcance y respaldo del reporte" %}</h2>{% for nota in reporte_gestion.notes %}<p>{{ nota }}</p>{% endfor %}</section>{% endif %}
+<section class="unit-report__summary" aria-label="{% translate "Resumen del reporte" %}">
+  <article><span>{% translate "Solicitudes" %}</span><strong>{{ reporte_gestion.metrics.total }}</strong><small>{% translate "registros encontrados" %}</small></article>
+  <article><span>{% translate "Atenciones efectivas" %}</span><strong>{{ reporte_gestion.metrics.confirmed }}</strong><small>{% translate "cerradas como atendidas" %}</small></article>
+  <article><span>{% translate "Horas efectivas" %}</span><strong>{{ reporte_gestion.metrics.hours }}</strong><small>{% translate "solo actividades cumplidas" %}</small></article>
+  <article><span>{% translate "Participantes atendidos" %}</span><strong>{{ reporte_gestion.metrics.participants }}</strong><small>{% translate "en reservas completadas" %}</small></article>
+</section>
+<section class="unit-report__section"><header><span>{% translate "RESUMEN POR" %} {{ reporte_gestion.group_label|upper }}</span>{% if reporte_gestion.group_counts_twice %}<p class="unit-report__notice">{% translate "Una solicitud que combina varios recursos aparece en más de una fila, por lo que el total no suma el número de solicitudes." %}</p>{% endif %}</header><div class="unit-report__table-wrap"><table class="unit-report__table"><thead><tr><th>{% translate "Categoría" %}</th><th>{% translate "Solicitudes" %}</th><th>{% translate "Horas" %}</th><th>{% translate "Participantes" %}</th><th>{% translate "% del total" %}</th></tr></thead><tbody>{% for fila in reporte_gestion.rows %}<tr><td><strong>{{ fila.label }}</strong></td><td>{{ fila.total }}</td><td>{{ fila.hours }}</td><td>{{ fila.participants }}</td><td><span class="unit-report__percentage"><i style="width:{{ fila.percentage }}%"></i></span>{{ fila.percentage }}%</td></tr>{% empty %}<tr><td colspan="5" class="unit-report__empty">{% translate "No hay datos para los filtros seleccionados." %}</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="unit-report__section"><header><span>{% translate "DETALLE DE SOLICITUDES" %}</span></header><div class="unit-report__table-wrap"><table class="unit-report__table unit-report__table--details"><thead><tr><th>{% translate "Código" %}</th><th>{% translate "Fecha" %}</th><th>{% translate "Horario" %}</th><th>{% translate "Solicitud" %}</th><th>{% translate "Solicitante" %}</th><th>{% translate "Responsable" %}</th><th>{% translate "Tipo" %}</th><th>{% translate "Estado" %}</th><th>{% translate "Participantes" %}</th></tr></thead><tbody>{% for reserva in reporte_gestion.reservations %}<tr><td>{{ reserva.codigo_reserva|default:"—" }}</td><td>{{ reserva.fecha|date:"d/m/Y" }}</td><td>{{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }}</td><td><strong>{% firstof reserva.titulo_solicitud reserva.equipo_nombre "Solicitud de recursos" %}</strong><small>{{ reserva.get_proposito_codigo_display|default:reserva.proposito|truncatechars:90|ui }}</small></td><td>{% firstof reserva.nombre_completo_solicitante reserva.usuario.get_full_name reserva.usuario.username "—" %}</td><td>{% if reserva.responsable_asignado %}{{ reserva.responsable_asignado.nombre_publico }}{% else %}{% translate "Sin asignar" %}{% endif %}</td><td>{{ reserva.tipo_solicitud_reportado|ui }}</td><td><span class="unit-report__status is-{{ reserva.estado }}">{{ reserva.get_estado_display|ui }}</span><small>{% if reserva.es_efectiva %}{% translate "Atención efectiva" %}{% else %}{% translate "No efectiva" %}{% endif %}</small></td><td>{{ reserva.numero_participantes }}</td></tr>{% empty %}<tr><td colspan="9" class="unit-report__empty">{% translate "No hay solicitudes registradas en el período." %}</td></tr>{% endfor %}</tbody></table></div>{% if reporte_gestion.detail_truncated %}<p class="unit-report__notice">{% translate "La vista muestra los primeros 150 registros. Ajusta los filtros para consultar el detalle completo." %}</p>{% endif %}</section>
+{% endif %}

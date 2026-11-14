@@ -1,0 +1,1 @@
+<span class="area__ilustracion area__ilustracion--{{ tamano }}{% if equipo.imagen_url %} con-foto{% endif %}" aria-hidden="true">{% if equipo.imagen_url %}<img src="{{ equipo.imagen_url }}" alt="" loading="lazy">{% else %}<i class="{{ equipo.icono|default:'fas fa-cogs' }}"></i>{% endif %}</span>
