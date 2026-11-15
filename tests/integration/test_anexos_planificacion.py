@@ -7,7 +7,7 @@ from django.http import QueryDict
 from django.test import SimpleTestCase
 
 from apps.documentos.presentation.evaluacion_cierre import ANEXOS_METAS, detalle_anexo, evaluar_meta
-from apps.documentos.presentation.expediente_catalogo import CATALOGO, CATALOGO_PERFILES
+from apps.documentos.presentation.expediente_catalogo import CATALOGO, CATALOGO_PERFILES, RETIRADOS
 from apps.documentos.presentation.expediente_redaccion import (
     filas_del_plan, leer_formulario, pdf_del_documento, obtener_redaccion,
 )
@@ -17,7 +17,9 @@ from tests.integration.test_expediente_redaccion import BaseDeRedaccion, PLAN_CO
 class ContratoIndicadoresTests(SimpleTestCase):
     def test_todos_los_anexos_del_cierre_tienen_un_indicador_de_planeacion(self):
         anexos = {f[0] for f in (*CATALOGO, *CATALOGO_PERFILES) if f[-1] == 'INFORME-SEMESTRAL'}
-        self.assertEqual(anexos, set(ANEXOS_METAS))
+        self.assertTrue(anexos <= set(ANEXOS_METAS))
+        # Lo demás son anexos retirados (documentos.0025) que se conservan solo para leer cierres anteriores.
+        self.assertTrue(set(ANEXOS_METAS) - anexos <= set(RETIRADOS))
 
     def test_opcional_y_no_aplica_no_se_convierten_en_obligaciones_incumplidas(self):
         fila = dict(codigo='PRESTAMOS', nombre='Préstamos', indicador='Préstamos entregados',
@@ -38,6 +40,9 @@ class ContratoIndicadoresTests(SimpleTestCase):
                               indicador='FT03', meta='6', registrado=3), {}),
         ])
         self.assertEqual(detalle_anexo('PRACTICAS-FT02', cierre)[0]['porcentaje'], 100)
+        # El anexo de prácticas académicas presenta también la ejecución (documentos.0025); un cierre anterior
+        # con el anexo de ejecución aparte se sigue leyendo igual.
+        self.assertEqual([f['porcentaje'] for f in detalle_anexo('PRACTICAS-FT02', cierre)][:2], [100, 50])
         self.assertEqual(detalle_anexo('PRACTICAS-FT03', cierre)[0]['porcentaje'], 50)
 
 
@@ -56,12 +61,15 @@ class PlanificaExigenciasTests(BaseDeRedaccion):
         self.assertTrue(filas['PRESTAMOS']['solo_anexo'])
         self.assertEqual(filas['PRESTAMOS']['meta'], '')
         self.assertFalse(filas['INSUMOS']['aplica'])
-        # Los préstamos son consulta de gestión, no anexo; los insumos viajan en el inventario.
+        # Los préstamos son consulta de gestión, no anexo; los insumos, el inventario y el mantenimiento viajan en
+        # el anexo de equipos e inventario (documentos.0025).
+        equipos = ['Equipos e inventario: revisión física, mantenimiento y existencias']
         self.assertEqual(filas['PRESTAMOS']['anexos'], [])
-        self.assertEqual(filas['INSUMOS']['anexos'], ['Inventario de equipos, software, espacios e insumos al corte'])
+        self.assertEqual(filas['INSUMOS']['anexos'], equipos)
         self.assertEqual(filas['INSUMOS']['nombre_reporte'], filas['INSUMOS']['nombre'])
-        self.assertEqual(filas['MANTENIMIENTO']['anexos'],
-                         ['Mantenimiento, disponibilidad y funcionalidad del equipamiento'])
+        self.assertEqual(filas['MANTENIMIENTO']['anexos'], equipos)
+        self.assertEqual(filas['INVENTARIO']['anexos'], equipos)
+        self.assertEqual(filas['GUIAS']['anexos'], ['Prácticas académicas: planificación, ejecución y guías'])
 
     def test_no_se_acepta_una_exigencia_inventada(self):
         post = QueryDict('act__GUIAS__exigencia=aprobar_sin_revisar')

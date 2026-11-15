@@ -254,67 +254,73 @@ editor de guías de práctica:
 Lo automático nunca se guarda en el contenido: se lee al mostrar y al
 generar, así el PDF siempre refleja la plataforma.
 
-## Un solo formato para toda la documentación
+## Dos formatos: documentos principales y anexos
 
-Todos los PDF del sistema salen del marco de
-`apps/core/presentation/pdf_institucional.py`. El 15 de noviembre de 2026 se
-retiró la variante de encabezado «informe», que usaban la planificación, el
-informe, los anexos y el Centro de reportes. Desde entonces todos llevan el
-mismo encabezado.
+Todos los PDF salen del marco de `apps/core/presentation/pdf_institucional.py`, con
+LiberationSans (Helvetica solo si falta la fuente), el mismo pie (línea dorada,
+`SLCID · UPEC · <documento>` y «Página: n de N») y el mismo verde institucional.
+Desde el 15 de noviembre de 2026 hay dos formatos.
 
-**Encabezado.** Es una tabla de tres columnas en todas las páginas:
+### Documentos principales
 
-- a la izquierda, el logo sobre el color institucional;
-- al centro, el nombre del formato en mayúsculas y la institución;
-- a la derecha, los datos del documento.
+Son los cuatro que la unidad redacta y firma: protocolo de seguridad, plan anual de
+compras, planificación semestral e informe semestral
+(`expediente_pdf.DOCUMENTOS_PRINCIPALES`). La resolución de creación se carga, no se
+genera. Llevan el formato del informe institucional (`marco_institucional(estilo='informe')`):
 
-La columna de datos mide 45 mm en vertical y 62 mm en apaisado, para que el código
-se lea en una línea. Los datos van siempre en el mismo orden (`metadatos_documento`):
+1. **Portada:** bloque verde con el logo, institución, título, unidad, período, código
+   de referencia y fecha de emisión (`dibujar_portada`).
+2. **Responsabilidad y contenido:** el cuadro de aprobación con QR (o, en borrador,
+   los responsables del documento) y el índice con el número de página de cada
+   apartado.
+3. **Documento:** el nombre de la unidad, la línea del período y los apartados
+   numerados. Cada apartado es un título verde en mayúsculas, subrayado en dorado
+   (`titulo_seccion(..., principal=True)`); los subapartados («1.1 …») van en negrita.
 
-- **documentos del expediente y anexos:** Código, Revisión, Período y Versión;
-- **consultas:** el período y la fecha de generación;
-- **actas y formatos de gestión:** sus propios datos, por ejemplo cliente, entrega
-  y emisión.
+El encabezado de las páginas interiores lleva el logo en su recuadro verde a la
+izquierda y, a la derecha, la institución, el título y la línea «Código de
+referencia: … · Cobertura: …».
 
-**Pie.** Línea dorada, `SLCID · UPEC · <documento>` y «Página: n de N».
-
-**Primera página.** No hay portada ni índice. La primera página ya es el documento:
-encabezado, título en verde («Planificación semestral: <unidad>») y la línea del
-período con su fecha de elaboración. Las secciones van en una banda verde con el
-título en mayúsculas y línea dorada (`titulo_seccion`). Las tablas tienen cabecera
-verde con texto blanco.
-
-**Letra.** LiberationSans en todos los generadores. La hoja común es
-`hoja_de_estilos()` y Helvetica solo queda como respaldo si falta la fuente. La
-escala es la misma en vertical y en apaisado (`estilos_informe`):
-
-| Elemento | Tamaño |
+| Elemento | Letra |
 | --- | --- |
-| Cuerpo | 9,5 pt |
-| Tablas | 8,5 pt |
-| Bandas | 10,5 pt |
-| Notas | 7,5 pt |
-| Matrices oficiales FT02/FT03 | 5,1 pt, para que quepan sus 16 columnas |
+| Texto y listas | 10 pt, interlineado sencillo (12 pt) |
+| Tablas | 9 pt, interlineado sencillo (11 pt) |
+| Títulos de apartado | 12 pt, verde |
+| Subapartados | 10,5 pt, negrita |
+| Notas | 8 pt |
 
-**Orientación.**
+Para que nada quede desbordado ni suelto: un título de apartado viaja siempre con
+su subtítulo y su tabla; una tabla empieza en la hoja solo si caben su cabecera y
+sus primeras filas; y cada tabla deja un espacio antes del texto que la sigue.
 
-- **Vertical**, A4 con márgenes de 14 mm: documentos redactados (planificación,
-  informe, plan de compras, protocolo, acciones de mejora), guía de práctica,
-  comprobante y ficha de equipo.
-- **Apaisado**, A4 con márgenes de 13 mm: anexos y consultas del Centro de
-  reportes, FT02/FT03, cumplimiento de la Dirección y actas de gestión.
+### Anexos, consultas y demás documentos
 
-Todas las tablas ocupan el ancho útil de la página: 182 mm en vertical y 271 mm
-en apaisado. Quien genera un PDF solo declara su formato y sus datos.
+Conservan el encabezado de tres columnas en todas las páginas: logo; nombre del
+documento e institución; Código, Revisión, Período y Versión
+(`metadatos_documento`). Las consultas muestran el período y la fecha de
+generación; las actas y formatos de gestión, sus propios datos. Las secciones van
+en banda verde con línea dorada y la escala es la compacta de `estilos_informe`
+(cuerpo 9,5 pt, tablas 8,5 pt).
+
+Los cinco anexos del informe (`anexos_evidencia.py`) usan una plantilla común,
+apaisada:
+
+1. el nombre de la unidad y la línea «Anexo del informe semestral · Período …»;
+2. **Qué respalda este anexo:** sus metas con las mismas cifras del informe
+   (comprometido, registrado, con respaldo, avance y estado);
+3. los registros que cuentan, con un máximo de ocho columnas y texto oscuro;
+4. **Qué falta para cumplir:** cada requisito pendiente y cuántos registros lo tienen.
+
+Sus tablas tienen la cabecera en verde claro con texto oscuro, para no apilar dos
+barras verdes bajo la banda de la sección. Las listas completas (todas las
+solicitudes, el inventario entero, la bitácora) quedan en el Centro de reportes.
+
+**Orientación.** Vertical (A4, márgenes de 14 mm): documentos principales, guía de
+práctica, comprobante y ficha de equipo. Apaisado (A4, márgenes de 13 mm): anexos,
+consultas del Centro de reportes, cumplimiento de la Dirección y actas de gestión.
 
 No llevan este marco, por diseño, los certificados de curso, las etiquetas de
-equipo y los reportes científicos de los Centros I+D, que tienen su propio
-diseño.
-
-Un archivo que reúne dos formatos —FT02 y FT03 en el mismo expediente de
-práctica— abre cada uno con `encabezado_en_flujo`, la misma caja como bloque
-del contenido, y comparte el pie de `pie_institucional`. Sin logo cargado, la
-caja lleva las siglas de la institución.
+equipo y los reportes científicos de los Centros I+D.
 
 ## Centro de reportes frente al expediente
 

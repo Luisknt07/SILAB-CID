@@ -36,8 +36,8 @@ class PlanificacionEstandarTests(BaseDeRedaccion):
         self.assertEqual(filas['GUIAS']['meta'], '1')
         self.assertEqual(dato['metas_estandar']['carga_docente']['sesiones_programadas'], 0)
         self.assertTrue(dato['metas_estandar']['carga_docente']['avisos'])
-        self.assertEqual(filas['PRACTICAS']['nombre_reporte'],
-            'FT03 · Registro de ejecución con asistencia, bitácora y evidencias')
+        # La ejecución va en el anexo de prácticas académicas (documentos.0025).
+        self.assertEqual(filas['PRACTICAS']['nombre_reporte'], 'Prácticas académicas: planificación, ejecución y guías')
         self.assertNotContains(respuesta, 'Seguimiento al corte')
         self.assertNotContains(respuesta, 'data-plan-seguimiento')
         self.assertNotContains(respuesta, 'type="number" name="act__')

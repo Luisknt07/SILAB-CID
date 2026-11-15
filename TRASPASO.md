@@ -1,5 +1,24 @@
 # Estado actual del proyecto — 15 de noviembre de 2026
 
+**Documentos principales con el formato del informe y seis documentos por semestre (15 de noviembre, rediseño).**
+
+- **Formato principal.** El protocolo, el plan de compras, la planificación y el
+  informe vuelven al formato del informe institucional: portada, responsabilidad y
+  contenido, y apartados en verde subrayados en dorado. Usan 10 pt con interlineado
+  sencillo y tablas de 9 pt, sin desbordes.
+- **Anexos.** Los demás documentos conservan el encabezado de tres columnas. El
+  informe lleva cinco anexos con una sola plantilla: qué respalda, registros que
+  cuentan y qué falta.
+- **Paquete del FabLab.** Seis documentos por semestre, que pasan de 124 a 30
+  páginas.
+- **Nombres.** FT02/FT03 pasan a «prácticas planificadas» y «prácticas ejecutadas».
+- **Pendiente, a cargo del usuario:** aplicar `documentos.0023`, `0024` y `0025` con
+  un respaldo nuevo y volver a generar los informes 2026-B ya preparados.
+
+Detalle en
+[docs/calificacion-y-anexos-del-expediente.md](docs/calificacion-y-anexos-del-expediente.md#seis-documentos-por-semestre-15-de-noviembre-de-2026-rediseño)
+y [docs/expediente-de-calidad.md](docs/expediente-de-calidad.md#dos-formatos-documentos-principales-y-anexos).
+
 **Formato único y expediente depurado (15 de noviembre, cierre).**
 
 - **Encabezado.** Todos los PDF de las unidades llevan el encabezado
@@ -23,7 +42,7 @@
   FabLab y en Realidad Extendida; los guiones están en `var/validacion-20261115/`.
 
 Formato en
-[docs/expediente-de-calidad.md](docs/expediente-de-calidad.md#un-solo-formato-para-toda-la-documentación);
+[docs/expediente-de-calidad.md](docs/expediente-de-calidad.md#dos-formatos-documentos-principales-y-anexos);
 expediente depurado en
 [docs/calificacion-y-anexos-del-expediente.md](docs/calificacion-y-anexos-del-expediente.md).
 

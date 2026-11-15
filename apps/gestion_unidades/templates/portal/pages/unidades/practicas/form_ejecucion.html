@@ -9,7 +9,7 @@
   <form class="practice-form" method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}<input type="hidden" name="detalle_operativo_registrado" value="1">
     <header>
-      <div><span>{% translate "UPEC-P10-S01-FT03 · RESULTADO REAL" %}</span><h2>{% translate "Ejecución y evaluación de la práctica" %}</h2><p>{% translate "La información se precargó desde la reserva" %} {{ plan.reserva.codigo_reserva }}{% translate ". Confirma únicamente lo que ocurrió." %}</p></div>
+      <div><span>{% translate "EJECUCIÓN DE LA PRÁCTICA · RESULTADO REAL" %}</span><h2>{% translate "Ejecución y evaluación de la práctica" %}</h2><p>{% translate "La información se precargó desde la reserva" %} {{ plan.reserva.codigo_reserva }}{% translate ". Confirma únicamente lo que ocurrió." %}</p></div>
       {% if ejecucion.pk %}<span class="practice-status is-{{ ejecucion.estado }}">{{ ejecucion.get_estado_display|ui }}</span>{% endif %}
     </header>
     {% if form.cierre_operativo %}<p class="practice-callout" role="status">{% translate "La reserva ya está cerrada. Puedes completar la documentación; se conservan los datos de operación, asistencia y consumo registrados." %}</p>{% endif %}

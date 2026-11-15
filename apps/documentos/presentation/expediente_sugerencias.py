@@ -120,7 +120,7 @@ POR_TIPO = {
                     'planificadas y evaluadas, y apoyar la investigación formativa y los trabajos de titulación con '
                     'equipamiento y acompañamiento técnico.')],
         'objetivos_especificos': [('Laboratorio · prácticas',
-                                   'Ejecutar las prácticas planificadas por asignatura con guía aprobada (FT02/FT03).\n'
+                                   'Ejecutar las prácticas planificadas por asignatura con guía aprobada.\n'
                                    'Actualizar al menos una guía de práctica por asignatura atendida.\n'
                                    'Atender los trabajos de titulación y semilleros que requieran el laboratorio.')],
         'diagnostico': [('Laboratorio · estado',

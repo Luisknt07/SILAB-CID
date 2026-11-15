@@ -59,7 +59,8 @@ class CatalogoYPlazosTests(BaseDelExpediente):
     def test_la_unidad_firma_dos_documentos_por_periodo_y_lo_demas_viaja_como_anexo(self):
         """Lo mínimo suficiente: planificación al abrir, informe al cerrar, y dos de una sola vez."""
         carpetas = {c for c in DocumentoExigido.objects.filter(activo=True).values_list('carpeta', flat=True)}
-        self.assertEqual(carpetas, {'planeacion', 'ejecucion', 'evaluacion', 'mejora'})
+        # Las acciones de mejora van en la sección 8 del informe (documentos.0025): no hay carpeta de mejora aparte.
+        self.assertEqual(carpetas, {'planeacion', 'ejecucion', 'evaluacion'})
         firmados = DocumentoExigido.objects.filter(activo=True, anexo_de__isnull=True, periodicidad='semestral')
         self.assertEqual({e.codigo for e in firmados}, {'PLANIFICACION', 'INFORME-SEMESTRAL'})
         self.assertTrue(all(e.requiere_firma for e in firmados))
@@ -70,23 +71,27 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         self.assertTrue(plan.redactable and plan.generable and plan.cargable)
         # Todo lo demás es anexo del informe y ya no es «condicional»; la planificación viaja sin anexos.
         anexos = DocumentoExigido.objects.filter(activo=True, anexo_de__isnull=False)
-        self.assertEqual(anexos.count(), 17)
+        # Cinco anexos comunes (documentos.0025) y los seis formatos nativos de otras tipologías.
+        self.assertEqual(anexos.count(), 11)
         self.assertFalse(anexos.exclude(anexo_de__codigo='INFORME-SEMESTRAL').exists())
         # Los seis formatos nativos de otras tipologías no añaden obligaciones
         # a un laboratorio ni desaparecen del catálogo de sus propias unidades.
         aplicables = [e for e in anexos if e.aplica_a(self.unidad.dependencia,
                                                     base=self.unidad.codigo_base)]
-        self.assertEqual(len(aplicables), 11)
+        self.assertEqual({e.codigo for e in aplicables},
+                         {'PRACTICAS-FT02', 'REGISTRO-USO', 'INDUCCION-SEGURIDAD', 'EQUIPAMIENTO', 'INVESTIGACION'})
         self.assertFalse(any(e.codigo.startswith(('PP-', 'CE-', 'OBS-')) for e in aplicables))
+        # Investigación y vinculación solo se presenta si el plan la compromete, pero eso lo decide la
+        # generación: en el catálogo ningún anexo es «condicional» que la unidad declare.
         self.assertFalse(anexos.filter(condicional=True).exists())
-        self.assertEqual(self.exigido('GUIAS').anexo_de.codigo, 'INFORME-SEMESTRAL')
-        # El inventario es anual en el catálogo y viaja con el informe B; el perfil lo vuelve semestral.
-        self.assertEqual(self.exigido('INVENTARIO-CORTE').corte_del_anexo_anual, 'B')
-        self.assertEqual(self.exigido('INVENTARIO-CORTE').periodicidad, 'anual')
-        self.assertEqual(self.exigido('INVENTARIO-CORTE').periodicidad_para(self.unidad), 'semestral')
-        # Las listas de chequeo y los anexos depurados dejaron de pedirse aparte.
+        self.assertEqual(self.exigido('PRACTICAS-FT02').anexo_de.codigo, 'INFORME-SEMESTRAL')
+        # Equipos e inventario es semestral en el catálogo y viaja con el informe de cada período.
+        self.assertEqual(self.exigido('EQUIPAMIENTO').periodicidad, 'semestral')
+        self.assertEqual(self.exigido('EQUIPAMIENTO').periodicidad_para(self.unidad), 'semestral')
+        # Las listas de chequeo, los anexos depurados y los absorbidos por los cinco anexos dejaron de pedirse aparte.
         for codigo in ('CHEQUEO-SEGURIDAD', 'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS',
-                       'INSUMOS-CORTE'):
+                       'INSUMOS-CORTE', 'PRACTICAS-FT03', 'GUIAS', 'DESECHOS', 'INVENTARIO-CORTE', 'TRANSFERENCIA',
+                       'ACCIONES-MEJORA'):
             self.assertFalse(DocumentoExigido.objects.filter(codigo=codigo, activo=True).exists(), codigo)
     def test_los_cortes_de_gestion_son_naturales_y_el_calendario_solo_es_referencia(self):
         cortes = cortes_del_anio(2026)
@@ -111,14 +116,14 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         informes = [d for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL']
         self.assertEqual({(d.corte, d.vence_el) for d in informes},
                          {('A', date(2026, 7, 15)), ('B', date(2027, 1, 15))})
-        # Un anexo semestral tiene fila en los dos períodos; el anual, solo en el suyo.
-        guias = [d for d in documentos if d.exigido.codigo == 'GUIAS']
-        self.assertEqual(sorted(d.corte for d in guias), ['A', 'B'])
-        # El mantenimiento y el inventario viajan con el informe de cada período.
+        # Un anexo semestral tiene fila en los dos períodos.
+        practicas = [d for d in documentos if d.exigido.codigo == 'PRACTICAS-FT02']
+        self.assertEqual(sorted(d.corte for d in practicas), ['A', 'B'])
+        # Equipos e inventario (mantenimiento, revisión física y existencias) viaja con el informe de cada período.
         self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO'), ['A', 'B'])
-        self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE'), ['A', 'B'])
-        self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE'}
-                         & {d.exigido.codigo for d in documentos})
+        self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE',
+                          'PRACTICAS-FT03', 'GUIAS', 'DESECHOS', 'INVENTARIO-CORTE', 'TRANSFERENCIA',
+                          'ACCIONES-MEJORA'} & {d.exigido.codigo for d in documentos})
         self.assertNotIn('ORGANIGRAMA', {d.exigido.codigo for d in documentos})
         # Construir otra vez no duplica.
         self.assertEqual(len(construir_expediente(self.unidad, 2026, hoy=date(2026, 9, 22))), len(documentos))
@@ -141,19 +146,19 @@ class GenerarCargarValidarTests(BaseDelExpediente):
         """La evidencia lleva la fecha del informe que la presenta."""
         from apps.documentos.presentation.expediente import anexos_del
 
-        guias = self.documento('GUIAS', corte='A')
+        practicas = self.documento('PRACTICAS-FT02', corte='A')
         with self.assertRaises(ValidationError) as contexto:
-            generar_documento(abrir_entrega(guias), self.coordinador)
+            generar_documento(abrir_entrega(practicas), self.coordinador)
         self.assertIn('es un anexo', ' '.join(contexto.exception.messages))
 
         informe = self.documento('INFORME-SEMESTRAL', corte='A')
         generar_documento(abrir_entrega(informe), self.coordinador)
 
         informe.refresh_from_db()
-        guias.refresh_from_db()
+        practicas.refresh_from_db()
         self.assertEqual((informe.estado, informe.version), ('generado', 1))
-        self.assertEqual((guias.estado, guias.version), ('generado', 1))
-        recurso = guias.recurso
+        self.assertEqual((practicas.estado, practicas.version), ('generado', 1))
+        recurso = practicas.recurso
         self.assertTrue(recurso.archivo.read().startswith(b'%PDF'))
         self.assertEqual(recurso.carpeta.nombre, 'Ejecución')
         self.assertEqual(recurso.carpeta.carpeta_padre.nombre, 'Expediente de calidad 2026')
@@ -161,29 +166,31 @@ class GenerarCargarValidarTests(BaseDelExpediente):
         self.assertFalse(recurso.seguridad_verificada)
         self.assertIn('01/01/2026 al 30/06/2026', recurso.descripcion)
         anexos = anexos_del(informe)
-        self.assertIn(guias.pk, [a.pk for a in anexos])
+        self.assertIn(practicas.pk, [a.pk for a in anexos])
+        # Investigación y vinculación no se presenta sin metas comprometidas; todo lo que sí se presenta tiene archivo.
+        self.assertNotIn('INVESTIGACION', {a.exigido.codigo for a in anexos})
         self.assertTrue(all(a.recurso_id for a in anexos))
-        # El perfil de laboratorio requiere el inventario en ambos semestres.
-        self.assertIn('INVENTARIO-CORTE', {a.exigido.codigo for a in anexos})
-        self.assertIn('INVENTARIO-CORTE',
+        # Equipos e inventario va con el informe de los dos semestres.
+        self.assertIn('EQUIPAMIENTO', {a.exigido.codigo for a in anexos})
+        self.assertIn('EQUIPAMIENTO',
                       {a.exigido.codigo for a in anexos_del(self.documento('INFORME-SEMESTRAL', corte='B'))})
 
         generar_documento(abrir_entrega(informe), self.coordinador)
-        guias.refresh_from_db()
-        self.assertEqual(guias.version, 2)
+        practicas.refresh_from_db()
+        self.assertEqual(practicas.version, 2)
         self.assertEqual(Recurso.objects.get(pk=recurso.pk).estado, 'obsoleto')
-        self.assertEqual(guias.recurso.reemplaza_a_id, recurso.pk)
-        anexo_original = guias.recurso_id
+        self.assertEqual(practicas.recurso.reemplaza_a_id, recurso.pk)
+        anexo_original = practicas.recurso_id
         cargar_documento_revisado(informe, SimpleUploadedFile('informe-firmado.pdf', PDF_FIRMADO), self.coordinador)
-        guias.refresh_from_db()
-        self.assertEqual(guias.version, 2)
-        self.assertEqual(guias.recurso_id, anexo_original)
+        practicas.refresh_from_db()
+        self.assertEqual(practicas.version, 2)
+        self.assertEqual(practicas.recurso_id, anexo_original)
 
     def test_no_se_genera_lo_que_la_unidad_debe_cargar_ni_se_carga_lo_que_genera_el_sistema(self):
         with self.assertRaises(ValidationError):
             generar_documento(self.documento('RESOLUCION-CREACION'), self.coordinador)
         with self.assertRaises(ValidationError):
-            cargar_documento_revisado(abrir_entrega(self.documento('GUIAS', corte='A')),
+            cargar_documento_revisado(abrir_entrega(self.documento('PRACTICAS-FT02', corte='A')),
                              SimpleUploadedFile('g.pdf', pdf_legible_prueba('%PDF-1.4')), self.coordinador)
 
     def test_la_planificacion_exige_pdf_firmado(self):
@@ -256,9 +263,9 @@ class GenerarCargarValidarTests(BaseDelExpediente):
         self.assertGreater(cifras['vencidos'], 0)
         self.assertEqual(cifras['validados'], 0)
         self.assertEqual(cifras['completo'], 0)
-        guias = next(d for d in documentos if d.exigido.codigo == 'GUIAS' and d.corte == 'A')
-        self.assertTrue(guias.exigido.es_anexo)
-        self.assertFalse(guias.exigible)
+        practicas = next(d for d in documentos if d.exigido.codigo == 'PRACTICAS-FT02' and d.corte == 'A')
+        self.assertTrue(practicas.exigido.es_anexo)
+        self.assertFalse(practicas.exigible)
     def test_lo_que_cierra_el_periodo_no_se_reclama_antes_de_su_ventana(self):
         """Un informe de cierre no puede aparecer pendiente desde enero."""
         documentos = construir_expediente(self.unidad, 2026, hoy=date(2026, 9, 22))
@@ -285,7 +292,10 @@ class GenerarCargarValidarTests(BaseDelExpediente):
         from apps.documentos.presentation.expediente import marcar_no_aplica
 
         with self.assertRaises(ValidationError):
-            marcar_no_aplica(self.documento('GUIAS', corte='A'), self.coordinador, 'no tuvimos prácticas')
+            marcar_no_aplica(self.documento('PRACTICAS-FT02', corte='A'), self.coordinador, 'no tuvimos prácticas')
+        # Ni siquiera el anexo condicional: si no aplica lo decide la generación con el plan, no la unidad.
+        with self.assertRaises(ValidationError):
+            marcar_no_aplica(self.documento('INVESTIGACION', corte='A'), self.coordinador, 'no investigamos')
         with self.assertRaises(ValidationError):
             marcar_no_aplica(self.documento('INFORME-SEMESTRAL', corte='A'), self.coordinador, 'no queremos')
         cifras = resumen(construir_expediente(self.unidad, 2026, hoy=date(2026, 9, 22)), hoy=date(2026, 9, 22))
@@ -328,8 +338,9 @@ class ConsolaYAdminTests(BaseDelExpediente):
                              fetch_redirect_response=False)
         informe.refresh_from_db()
         self.assertEqual(informe.estado, 'generado')
-        guias = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='GUIAS', anio=2026, corte='A')
-        self.assertEqual(guias.estado, 'generado')
+        practicas = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='PRACTICAS-FT02', anio=2026,
+                                                    corte='A')
+        self.assertEqual(practicas.estado, 'generado')
 
         organigrama = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='RESOLUCION-CREACION',
                                                       anio=2026)
@@ -339,7 +350,8 @@ class ConsolaYAdminTests(BaseDelExpediente):
                                 'archivo': SimpleUploadedFile('resolucion.pdf', pdf_legible_prueba('%PDF-1.4 res'))})
         organigrama.refresh_from_db()
         self.assertEqual(organigrama.estado, 'cargado')
-        desechos = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='DESECHOS',
+        # Los desechos van en el anexo de seguridad y desechos (documentos.0025).
+        desechos = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='INDUCCION-SEGURIDAD',
                                                    anio=2026, corte='A')
         # Un anexo no se declara «no aplica»: si no hubo desechos, el registro sale vacío y lo dice.
         self.client.post(ruta, {'anio': 2026, 'documento': desechos.pk, 'accion': 'no_aplica',

@@ -43,6 +43,7 @@ def ruta_borrador(documento):
 def borrador_actual(request, documento):
     from apps.documentos.presentation.expediente import tramo_del_documento
     from apps.documentos.presentation.expediente_redaccion import obtener_redaccion, pdf_del_documento
+    from apps.documentos.presentation.anexos_evidencia import es_anexo_de_evidencia
     from apps.gestion_unidades.presentation.gestion_reportes import build_unit_report, render_unit_report_pdf
 
     if not documento.exigido.generable:
@@ -53,6 +54,15 @@ def borrador_actual(request, documento):
     elif documento.exigido.fuente_reporte == 'mejora':
         from apps.documentos.presentation.expediente_redaccion import pdf_acciones_de_mejora
         contenido = pdf_acciones_de_mejora(documento, inicio, fin, borrador=True)
+    elif es_anexo_de_evidencia(documento.exigido):
+        # El borrador es el mismo anexo que se archiva: metas, registros que cuentan y lo que falta.
+        from apps.documentos.presentation.anexos_evidencia import pdf_del_anexo
+        from apps.documentos.presentation.perfil_laboratorios import referencia_interna
+        from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
+        contenido = pdf_del_anexo(
+            documento, inicio, fin, version=documento.version + 1, borrador=True,
+            codigo_documento=(referencia_interna(documento) if es_unidad_auditable(documento.unidad)
+                              else documento.exigido.codigo))
     else:
         peticion = HttpRequest()
         peticion.method, peticion.user = 'GET', request.user

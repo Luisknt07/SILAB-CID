@@ -668,7 +668,7 @@ def _render_practice_pdf(plan, ejecucion):
         )
 
     story.extend([
-        institutional_head("PLANIFICACIÓN DE USO DE LABORATORIOS", "UPEC-P10-S01-FT02"),
+        institutional_head("PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS", "SLCID-PRACTICAS-PLAN"),
         Spacer(1, 5*mm),
     ])
 
@@ -705,7 +705,7 @@ def _render_practice_pdf(plan, ejecucion):
             f"{item.get('nombre', '—')}: {item.get('consumida', '0')} {item.get('unidad', '')}"
             for item in detalle.get("consumibles", [])
         )
-        story.extend([PageBreak(), institutional_head("REGISTRO DE EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS", "UPEC-P10-S01-FT03"), Spacer(1, 5*mm), section("F2 · EJECUCIÓN"), data_table([
+        story.extend([PageBreak(), institutional_head("EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS", "SLCID-PRACTICAS-EJECUCION"), Spacer(1, 5*mm), section("F2 · EJECUCIÓN"), data_table([
             ("N.º referencia", plan.codigo), ("Fecha de ejecución", f"{ejecucion.fecha_ejecucion:%d/%m/%Y}"),
             ("Horario real", f"{ejecucion.hora_inicio_real:%H:%M}–{ejecucion.hora_fin_real:%H:%M}" if ejecucion.hora_inicio_real and ejecucion.hora_fin_real else "—"),
             ("Resultado", ejecucion.get_resultado_display()), ("Motivo", ejecucion.motivo),

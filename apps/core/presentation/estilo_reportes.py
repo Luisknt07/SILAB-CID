@@ -8,12 +8,40 @@ from reportlab.lib.units import mm
 from reportlab.platypus import CondPageBreak, Paragraph, Spacer, Table, TableStyle
 
 
-def estilos_informe(tinta):
+def estilos_informe(tinta, *, principal=False):
+    """Estilos de párrafo de los documentos institucionales.
+
+    ``principal`` es la escala de los documentos que la unidad firma (protocolo, plan de
+    compras, planificación e informe): texto de 10 pt con interlineado sencillo y tablas de
+    9 pt. Los anexos y reportes conservan su escala compacta.
+    """
     from apps.core.reportes import _fuentes_pdf
     regular, negrita = _fuentes_pdf()
     base = dict(fontName=regular, textColor=tinta['oscuro'], splitLongWords=False)
     def estilo(nombre, **kw):
         return ParagraphStyle(nombre, **(base | kw))
+    if principal:
+        return {
+            'texto': estilo('PrincipalCuerpo', fontSize=10, leading=12, alignment=TA_JUSTIFY,
+                            leftIndent=3*mm, rightIndent=1*mm, spaceAfter=6),
+            'lista': estilo('PrincipalLista', fontSize=10, leading=12, leftIndent=8*mm, rightIndent=1*mm,
+                            bulletIndent=3.5*mm, bulletFontName=regular, bulletFontSize=10, spaceAfter=3),
+            'seccion': estilo('PrincipalSeccion', fontName=negrita, fontSize=12, leading=15,
+                              textColor=tinta['primario']),
+            'banda': estilo('PrincipalBanda', fontName=negrita, fontSize=10.5, leading=13, textColor=colors.white),
+            'bloque': estilo('PrincipalSubtitulo', fontName=negrita, fontSize=10.5, leading=13, spaceBefore=8,
+                             spaceAfter=4, keepWithNext=True),
+            'subapartado': estilo('PrincipalSubapartado', fontName=negrita, fontSize=10, leading=12, spaceBefore=6,
+                                  spaceAfter=3, keepWithNext=True),
+            'celda': estilo('PrincipalCelda', fontSize=9, leading=11, splitLongWords=True),
+            'celda_b': estilo('PrincipalCeldaNegrita', fontName=negrita, fontSize=9, leading=11, splitLongWords=True),
+            'cabecera': estilo('PrincipalCabecera', fontName=negrita, fontSize=9, leading=11, textColor=colors.white,
+                               splitLongWords=True),
+            'meta': estilo('PrincipalNota', fontSize=8, leading=10, textColor=tinta['tenue']),
+            'vacio': estilo('PrincipalVacio', fontSize=10, leading=12, leftIndent=3*mm, rightIndent=1*mm,
+                            textColor=tinta['tenue'], spaceAfter=4),
+            'firma': estilo('PrincipalFirma', fontSize=9, leading=11, alignment=1),
+        }
     # Una sola escala para vertical y apaisado: cuerpo 9,5; tablas 8,5; bandas 10,5; notas 7,5.
     return {
         'texto': estilo('InformeCuerpo', fontSize=9.5, leading=13.5, alignment=TA_JUSTIFY,
@@ -35,18 +63,32 @@ def estilos_informe(tinta):
     }
 
 
-def titulo_seccion(texto, ancho, tinta, *, numero=None):
-    """Banda verde con el título en mayúsculas y línea dorada, igual en todos los documentos."""
-    estilo = estilos_informe(tinta)['banda']
+def titulo_seccion(texto, ancho, tinta, *, numero=None, principal=False):
+    """Título de apartado en mayúsculas.
+
+    En los documentos principales es texto verde subrayado con una línea dorada; en los
+    anexos y reportes, una banda verde con línea dorada.
+    """
     valor = f'{numero}. {texto}' if numero is not None else texto
-    tabla = Table([[Paragraph(escape(str(valor).upper()), estilo)]], colWidths=[ancho],
-                  spaceBefore=6, spaceAfter=5)
-    tabla.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), tinta['primario']),
-        ('LINEBELOW', (0, 0), (-1, -1), 1.6, tinta['acento']),
-        ('LEFTPADDING', (0, 0), (-1, -1), 7), ('RIGHTPADDING', (0, 0), (-1, -1), 7),
-        ('TOPPADDING', (0, 0), (-1, -1), 5), ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-    ]))
+    if principal:
+        estilo = estilos_informe(tinta, principal=True)['seccion']
+        tabla = Table([[Paragraph(escape(str(valor).upper()), estilo)]], colWidths=[ancho],
+                      spaceBefore=4, spaceAfter=3)
+        tabla.setStyle(TableStyle([
+            ('LINEBELOW', (0, 0), (-1, -1), .8, tinta['acento']),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0), ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 4), ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ]))
+    else:
+        estilo = estilos_informe(tinta)['banda']
+        tabla = Table([[Paragraph(escape(str(valor).upper()), estilo)]], colWidths=[ancho],
+                      spaceBefore=6, spaceAfter=5)
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), tinta['primario']),
+            ('LINEBELOW', (0, 0), (-1, -1), 1.6, tinta['acento']),
+            ('LEFTPADDING', (0, 0), (-1, -1), 7), ('RIGHTPADDING', (0, 0), (-1, -1), 7),
+            ('TOPPADDING', (0, 0), (-1, -1), 5), ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ]))
     tabla.keepWithNext = True
     if numero is not None:
         tabla.titulo_indice = (numero, texto)

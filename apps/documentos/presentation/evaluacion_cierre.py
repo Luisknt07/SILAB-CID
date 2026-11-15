@@ -18,12 +18,15 @@ VERSIONES = ('metas-cierre-1', 'metas-cierre-2', 'metas-cierre-3', VERSION, VERS
 # Qué metas presenta cada anexo del informe. La primera es la que respalda; las de
 # ANEXOS_AUTOMATICOS (disponibilidad, insumos, mejora) son registro del período y nunca cuentan en la nota.
 ANEXOS_METAS = {
-    'REGISTRO-USO': ('USO',), 'PRACTICAS-FT02': ('PRACTICAS-PLAN',),
-    'PRACTICAS-FT03': ('PRACTICAS',), 'GUIAS': ('GUIAS',),
-    'INDUCCION-SEGURIDAD': ('SEGURIDAD', 'INSPECCIONES'), 'DESECHOS': ('DESECHOS',),
-    'INVENTARIO-CORTE': ('INVENTARIO', 'INSUMOS'), 'INVESTIGACION': ('INVESTIGACION',),
-    'TRANSFERENCIA': ('TRANSFERENCIA', 'SERVICIOS'),
-    'EQUIPAMIENTO': ('MANTENIMIENTO', 'EQUIPAMIENTO'), 'ACCIONES-MEJORA': ('MEJORA',),
+    # Los cinco anexos del informe (documentos.0025): cada uno respalda un grupo de metas.
+    'REGISTRO-USO': ('USO',), 'PRACTICAS-FT02': ('PRACTICAS-PLAN', 'PRACTICAS', 'GUIAS'),
+    'INDUCCION-SEGURIDAD': ('SEGURIDAD', 'INSPECCIONES', 'DESECHOS'),
+    'EQUIPAMIENTO': ('INVENTARIO', 'MANTENIMIENTO', 'EQUIPAMIENTO', 'INSUMOS'),
+    'INVESTIGACION': ('INVESTIGACION', 'TRANSFERENCIA', 'SERVICIOS'),
+    # Retirados en documentos.0025: solo para leer cierres anteriores que aún los traen.
+    'PRACTICAS-FT03': ('PRACTICAS',), 'GUIAS': ('GUIAS',), 'DESECHOS': ('DESECHOS',),
+    'INVENTARIO-CORTE': ('INVENTARIO', 'INSUMOS'), 'TRANSFERENCIA': ('TRANSFERENCIA', 'SERVICIOS'),
+    'ACCIONES-MEJORA': ('MEJORA',),
     'PP-PRODUCCION': ('PRODUCCION',), 'PP-CALIDAD': ('CONTROL-CALIDAD',),
     'CE-ENSAYOS': ('ENSAYOS',), 'OBS-DATOS': ('DATOS-ACTUALIZADOS',),
     'OBS-BOLETINES': ('BOLETINES',), 'OBS-EVENTOS': ('EVENTOS',),

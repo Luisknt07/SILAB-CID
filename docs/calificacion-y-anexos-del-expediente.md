@@ -86,19 +86,15 @@ opcional no cuenta. Los registros sin meta (disponibilidad del equipamiento,
 movimientos de insumos, seguimiento de acciones de mejora y préstamos;
 `ANEXOS_AUTOMATICOS`) nunca cuentan, aunque la planificación los mencione.
 
-| Anexo del informe | Contiene | Meta que respalda |
+Desde `documentos.0025` el informe lleva cinco anexos, uno por grupo de metas:
+
+| Anexo del informe | Contiene | Metas que respalda |
 | --- | --- | --- |
-| Registro de uso (no en observatorios) | Sesiones registradas en la plataforma, por propósito, con fecha, horario, solicitante y estado | Registro de todas las sesiones de uso |
-| FT02 | Cada práctica planificada con asignatura, fecha, escenario, docente, responsable y guía | Prácticas planificadas |
-| FT03 | Ejecución de cada práctica con asistencia, bitácora, resultados y evidencias | Prácticas ejecutadas |
-| Guías | Guías vigentes usadas en las prácticas del período, con código, versión, aprobación y syllabus | Guías |
-| Inducción y seguridad | Requisitos de acceso, inducciones, habilitaciones, inspecciones, incidentes y protocolo vigente | Inducción de seguridad e inspecciones |
-| Desechos | Tipo, origen, cantidad, almacenamiento, responsable, gestor y manifiesto | Gestión de desechos |
-| Mantenimiento, disponibilidad y funcionalidad del equipamiento | Órdenes de mantenimiento programadas y ejecutadas del período, programa crítico anual de equipos e infraestructura con su medición del 80 %, disponibilidad por equipo (días fuera de servicio, incidencias) y pruebas funcionales. No repite el inventario | Mantenimiento (80 % de lo programado en equipos críticos). La disponibilidad es registro sin meta |
-| Inventario al corte | Equipos, software y espacios con custodio, ubicación y condición; actas de revisión física; donde hay insumos, existencias, lotes, vencimientos y movimientos del período | Revisión física del inventario, con el acta verificada. Los movimientos de insumos son registro sin meta |
-| Investigación | Productos de investigación aplicada y desarrollo con proyecto, responsable y respaldo | Resultados de investigación |
-| Transferencia | Entregables de transferencia y servicios con destinatario y aceptación | Transferencia y servicios |
-| Acciones de mejora | Hallazgo, acción, responsable, plazo, estado y evidencia de cierre | Registro sin meta |
+| Prácticas académicas: planificación, ejecución y guías | Prácticas aprobadas con su estado de respaldo; prácticas ejecutadas con asistencia y evidencias; guías de práctica; lo que le falta a cada registro | Prácticas planificadas, prácticas ejecutadas y guías |
+| Uso de la unidad: sesiones, horas y usuarios (no en observatorios) | Resumen del período, sesiones por propósito, sesiones atendidas con sus horas y, aparte, las que no se cerraron | Registro de sesiones y uso efectivo |
+| Seguridad y desechos: inducciones, inspecciones y desechos (no en observatorios) | Inspecciones mensuales, inducciones y habilitaciones, ingresos con lo pendiente de su control y desechos generados | Inducción, inspecciones y desechos |
+| Equipos e inventario: revisión física, mantenimiento y existencias | Acta de revisión física, datos pendientes de los equipos, mantenimientos frente al programa crítico, equipos fuera de servicio e insumos bajo el mínimo | Revisión del inventario y mantenimiento (80 %) |
+| Investigación y vinculación: resultados, transferencia y servicios | Productos de investigación, transferencias y servicios entregados y aceptados, solicitudes de servicio | Investigación, transferencia y servicios. Solo se presenta si la planificación compromete alguna; si no, queda «no aplica» con su motivo |
 | Producción (plantas piloto) | Producción frente al plan, cantidades, estados y trazabilidad de lotes | Lotes o procesos ejecutados |
 | Control de calidad (plantas piloto) | Parámetros, mediciones, liberación y rechazo por lote | Control de calidad de lotes finalizados |
 | Ensayos (centro experimental) | Objetivo, escenario, manejo, mediciones y resultados | Ensayos y parcelas con seguimiento |
@@ -106,11 +102,88 @@ movimientos de insumos, seguimiento de acciones de mejora y préstamos;
 | Boletines (observatorios) | Publicaciones previstas y efectivas con respaldo consultable | Boletines, informes o bases publicados |
 | Socialización (observatorios) | Actividades, destinatarios y productos difundidos | Eventos de socialización |
 
+Cada anexo de los cinco comunes abre con «Qué respalda este anexo», con las mismas
+cifras que la tabla de cumplimiento del informe, y cierra con «Qué falta para
+cumplir». Los anexos se numeran en el informe («Anexo 1 …») y la tabla de
+cumplimiento dice en qué anexo está cada meta.
+
 La planificación no lleva anexos. Su PDF ya trae la carga programada por
 asignatura y la sección de mantenimientos previstos.
 
 Dos metas del informe no tienen anexo: **capacitación** y **difusión**. Se miden
 con evidencias verificadas y figuran en el cierre como metas sin anexo.
+
+## Seis documentos por semestre (15 de noviembre de 2026, rediseño)
+
+La auditoría de los PDF del FabLab en 2026-B encontró:
+
+- **Volumen:** 124 páginas por semestre, 104 de ellas en once anexos.
+- **Repetición:** títulos repetidos hasta cuatro veces en la primera página.
+- **Cifras que no cuadraban:** el informe daba tres cifras para las prácticas
+  planificadas (3, 8 y 76) y cuatro para las guías.
+- **Listas sin meta:** listas completas donde la meta pedía un dato, por ejemplo
+  41 páginas de inventario para acreditar un acta.
+
+Con `documentos.0025` un laboratorio entrega por semestre la planificación, el
+informe y cuatro anexos. Son seis documentos, siete si su plan compromete
+investigación o vinculación.
+
+| Antes | Ahora |
+| --- | --- |
+| FT02, FT03 y guías (3 anexos) | Prácticas académicas: planificación, ejecución y guías |
+| Registro de uso | Uso de la unidad: sesiones atendidas y horas, sin la lista de solicitudes |
+| Inducciones y desechos (2 anexos) | Seguridad y desechos |
+| Equipamiento e inventario al corte (2 anexos) | Equipos e inventario; la lista completa queda en el Centro de reportes |
+| Investigación y transferencia (2 anexos) | Investigación y vinculación, solo si el plan la compromete |
+| Acciones de mejora | Sección 8 del informe |
+
+Con los datos de la copia de validación, el FabLab pasa de 124 a 30 páginas:
+
+| Documento | Páginas |
+| --- | --- |
+| Planificación | 10 |
+| Informe | 6 |
+| Prácticas | 5 |
+| Equipos | 4 |
+| Seguridad | 3 |
+| Uso | 2 |
+
+**Informe.** La tabla de cumplimiento tiene las columnas Meta, Comprometido,
+Registrado, Con respaldo, Avance, Estado y Anexo. Una nota explica que solo «Con
+respaldo» cuenta para la nota. «Qué falta para cumplir» lista solo las metas
+pendientes y remite a su anexo. La sección de uso ya no repite cifras de metas
+(prácticas, guías, desechos, mantenimiento), que estaban en dos lugares con
+valores distintos.
+
+**Planificación.** Lleva el resumen del inventario y los equipos por categoría.
+La lista completa de equipos, software e insumos se consulta en el Centro de
+reportes.
+
+**Nombres.** La planificación y la ejecución de prácticas no son formatos
+institucionales, así que ya no se llaman FT02/FT03:
+
+| Antes | Ahora |
+| --- | --- |
+| Meta FT02 | «Prácticas académicas planificadas y aprobadas» |
+| Meta FT03 | «Prácticas académicas ejecutadas con asistencia y evidencias» |
+| Matriz FT02 | «PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS», código SLCID-PRACTICAS-PLAN |
+| Matriz FT03 | «EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS», código SLCID-PRACTICAS-EJECUCION |
+
+Los códigos internos de los hallazgos automáticos conservan la sigla. La guía de
+práctica conserva su formato FT04.
+
+**Historia.** Los seis documentos retirados quedan inactivos; sus filas, archivos y
+entregas se conservan y los cierres anteriores se leen igual (`ANEXOS_METAS`
+mantiene sus claves). Un informe ya enviado no cambia. Los informes 2026-B ya
+preparados deben generarse de nuevo para que sus anexos salgan con la plantilla
+nueva.
+
+**Aplicar.** Con un respaldo nuevo, la misma orden de mantenimiento aplica
+`documentos.0025` junto con las anteriores:
+
+```
+docker compose -f docker-compose.local.yml --profile mantenimiento run --rm migrar
+```
 
 ## Expediente depurado
 

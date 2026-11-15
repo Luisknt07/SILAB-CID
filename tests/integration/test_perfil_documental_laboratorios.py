@@ -36,10 +36,11 @@ class AlcanceDocumentalTests(SimpleTestCase):
 
 
 class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
+    # Equipos e inventario reúne el acta de revisión física del inventario (documentos.0025): un corte por semestre.
     def test_lectura_proyecta_dos_cortes_de_inventario_sin_escribir(self):
         antes = DocumentoExpediente.objects.count()
         documentos = leer_expediente(self.unidad, 2026, hoy=date(2026, 10, 17))
-        inventarios = [d for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE']
+        inventarios = [d for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO']
         self.assertEqual({d.corte for d in inventarios}, {'A', 'B'})
         self.assertEqual(DocumentoExpediente.objects.count(), antes)
         for d in inventarios:
@@ -49,27 +50,27 @@ class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
         for _ in range(2):
             construir_expediente(self.unidad, 2026, hoy=date(2026, 10, 17))
         inventarios = DocumentoExpediente.objects.filter(unidad=self.unidad, anio=2026,
-            exigido__codigo='INVENTARIO-CORTE').order_by('corte')
+            exigido__codigo='EQUIPAMIENTO').order_by('corte')
         self.assertEqual(inventarios.count(), 2)
         self.assertEqual(tramo_del_documento(inventarios[0]), (date(2026, 1, 1), date(2026, 6, 30)))
         self.assertEqual(tramo_del_documento(inventarios[1]), (date(2026, 7, 1), date(2026, 12, 31)))
         self.assertEqual({d.marco_periodo for d in inventarios}, {'gestion_v1'})
         self.assertEqual(cortes_academicos_del_anio(2026)['A'], (date(2026, 3, 9), date(2026, 7, 17)))
-        self.assertEqual(inventarios[0].exigido.periodicidad, 'anual')  # Catálogo compartido intacto.
+        self.assertEqual(inventarios[0].exigido.periodicidad, 'semestral')  # Semestral en el catálogo compartido.
 
-    def test_observatorio_conserva_inventario_anual_con_nombre_propio(self):
+    def test_observatorio_lleva_equipos_e_inventario_cada_semestre_con_nombre_propio(self):
         self.unidad.dependencia = 'observatorios'
         self.unidad.save(update_fields=['dependencia'])
         documentos = leer_expediente(self.unidad, 2026, hoy=date(2026, 10, 17))
-        inventarios = [d for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE']
-        self.assertEqual(len(inventarios), 1)
-        self.assertEqual(inventarios[0].corte, 'B')
-        self.assertEqual(inventarios[0].nombre_documental,
-                         'Inventario de equipos informáticos, software y espacios del observatorio')
+        self.assertNotIn('INVENTARIO-CORTE', {d.exigido.codigo for d in documentos})
+        inventarios = [d for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO']
+        self.assertEqual(sorted(d.corte for d in inventarios), ['A', 'B'])
+        self.assertEqual({d.nombre_documental for d in inventarios},
+                         {'Equipos e inventario del observatorio: revisión física, mantenimiento y software'})
 
     def test_nombre_personalizado_no_se_pisa(self):
-        d = self.documento('PRACTICAS-FT03')
-        self.assertEqual(d.nombre_documental, 'FT03 · Registro de ejecución y evaluación de prácticas')
+        d = self.documento('PRACTICAS-FT02')
+        self.assertEqual(d.nombre_documental, 'Prácticas académicas: planificación, ejecución y guías')
         d.exigido.nombre = 'Registro adaptado por la institución'
         self.assertEqual(d.nombre_documental, 'Registro adaptado por la institución')
 
@@ -140,7 +141,7 @@ class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
         self.assertTrue(datos['solo_lectura'])
         self.assertEqual(len(datos['unidades']), 1)
         self.assertEqual(datos['unidades'][0]['enviados'], 0)
-        inventarios = [d for d in datos['unidades'][0]['documentos'] if d['codigo'] == 'INVENTARIO-CORTE']
+        inventarios = [d for d in datos['unidades'][0]['documentos'] if d['codigo'] == 'EQUIPAMIENTO']
         self.assertEqual(len(inventarios), 2)
         self.assertTrue(all(d['pendientes'] and not d['archivo_integro'] for d in inventarios))
         self.assertEqual(DocumentoExpediente.objects.count(), antes)

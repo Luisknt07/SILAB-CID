@@ -8,7 +8,7 @@
   </header>
   <form class="practice-form" method="post" novalidate>
     {% csrf_token %}
-    <header><div><span>{% translate "UPEC-P10-S01-FT02 · DATOS ESTRUCTURADOS" %}</span><h2>{% translate "Planificación de uso del laboratorio" %}</h2><p>{% translate "La reserva aporta fecha, horario, solicitante y recursos. Completa o confirma únicamente la información académica y operativa faltante." %}</p></div>{% if plan.pk %}<span class="practice-status is-{{ plan.estado }}">{{ plan.get_estado_display|ui }}</span>{% endif %}</header>
+    <header><div><span>{% translate "PLANIFICACIÓN DE LA PRÁCTICA · DATOS ESTRUCTURADOS" %}</span><h2>{% translate "Planificación de la práctica académica" %}</h2><p>{% translate "La reserva aporta fecha, horario, solicitante y recursos. Completa o confirma únicamente la información académica y operativa faltante." %}</p></div>{% if plan.pk %}<span class="practice-status is-{{ plan.estado }}">{{ plan.get_estado_display|ui }}</span>{% endif %}</header>
     {% if form.non_field_errors %}<div class="practice-form__errors">{{ form.non_field_errors }}</div>{% endif %}
 
     <section class="practice-form__section">

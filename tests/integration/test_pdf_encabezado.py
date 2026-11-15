@@ -36,6 +36,9 @@ class EncabezadoPdfTests(SimpleTestCase):
             for modulo in ('apps.core.presentation.identidad', 'apps.core.presentation.pdf_institucional'):
                 pila.enter_context(patch(modulo+'.logo_institucional', return_value=None))
             pdf = PdfReader(BytesIO(render_documento_pdf(compuesto)))
+            # Lo que no es documento principal conserva el encabezado de tres columnas, con la versión.
+            anexo = PdfReader(BytesIO(render_documento_pdf(dict(compuesto, tipo='mejora'))))
+        self.assertIn('Versión: 7', '\n'.join(p.extract_text() or '' for p in anexo.pages))
         posiciones, fuentes = {}, set()
         def recoger(texto, cm, tm, fuente, tamano):
             if texto.strip():
@@ -45,8 +48,8 @@ class EncabezadoPdfTests(SimpleTestCase):
                 if etiqueta in texto:
                     posiciones[etiqueta] = cm[0]*tm[4]+cm[2]*tm[5]+cm[4]
         texto = '\n'.join(p.extract_text(visitor_text=recoger) or '' for p in pdf.pages)
-        # La versión va en el encabezado, con código, revisión y período; nunca en el cuerpo.
-        self.assertIn('Versión: 7', texto)
+        # El informe es documento principal: su encabezado lleva código y cobertura, sin versión; nunca en el cuerpo.
+        self.assertNotIn('Versión:', texto)
         self.assertNotIn('Versión del documento:', texto)
         self.assertEqual(fuentes, {'LiberationSans', 'LiberationSans-Bold'})
         self.assertGreater(posiciones['Párrafo breve de prueba.'], posiciones['Criterio de prueba'])
@@ -290,9 +293,10 @@ class EncabezadoPdfTests(SimpleTestCase):
             contenido = render_documento_pdf(compuesto)
         self.assertTrue(contenido.startswith(b'%PDF'))
         self.assertGreater(contenido.count(b'/Type /Page\n'), 1)
-        self.assertEqual(marco.call_args.kwargs['formato'], 'Formato Informe de prueba')
-        self.assertIn('Período: 2026-B', marco.call_args.kwargs['metadatos'])
-        self.assertIn('Revisión: 01', marco.call_args.kwargs['metadatos'])
+        # Documento principal: encabezado del informe institucional, con su título sin «Formato».
+        self.assertEqual(marco.call_args.kwargs['estilo'], 'informe')
+        self.assertEqual(marco.call_args.kwargs['formato'], 'Informe de prueba')
+        self.assertEqual(tuple(marco.call_args.kwargs['metadatos']), ('Código: FORMATO-01', 'Cobertura: 2026-B'))
 
     def test_titulo_y_codigo_largos_quedan_dentro_de_sus_columnas(self):
         ancho = 182 * mm

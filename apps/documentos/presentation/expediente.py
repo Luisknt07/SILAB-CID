@@ -287,8 +287,12 @@ def preparar_expediente(unidad, anio, usuario, request=None):
     return documentos
 
 
-def anexos_del(documento):
-    """Las filas anexas al documento firmado, en su mismo año y período."""
+def anexos_del(documento, *, incluir_no_aplica=False):
+    """Las filas anexas al documento firmado, en su mismo año y período.
+
+    Un anexo condicional que la planificación no compromete queda «no aplica»: no se presenta,
+    no se valida ni se califica. Solo la generación lo vuelve a mirar, por si el plan cambió.
+    """
     if documento.exigido.es_anexo or documento.mes:
         return []
     from apps.documentos.presentation.perfil_unidades import documento_visible
@@ -303,7 +307,8 @@ def anexos_del(documento):
     # Cada anexo lleva el corte del período con el que viaja (el anual, solo uno):
     # basta con quedarse con los del mismo corte que el documento.
     return sorted(
-        (f for f in filas if f.corte == documento.corte and documento_visible(f, documento.unidad)),
+        (f for f in filas if f.corte == documento.corte and documento_visible(f, documento.unidad)
+         and (incluir_no_aplica or f.estado != 'no_aplica')),
         key=lambda f: (f.exigido.carpeta, f.exigido.orden, f.exigido.codigo),
     )
 
@@ -313,7 +318,24 @@ def generar_anexos(documento, usuario, solo_faltantes=False):
     """Produce con lo registrado cada anexo del documento firmado que aún no esté cerrado."""
     if documento.estado == 'validado':
         raise ValidationError('Los anexos de una entrega enviada no se reemplazan.')
-    for anexo in anexos_del(documento):
+    from apps.documentos.presentation.anexos_evidencia import (
+        CONDICIONALES, NO_COMPROMETIDO, aplica_el_anexo, lectura_de_metas)
+    lectura = None
+    for anexo in anexos_del(documento, incluir_no_aplica=True):
+        if anexo.exigido.codigo in CONDICIONALES:
+            # Investigación y vinculación solo se presenta si el plan compromete alguna de sus metas.
+            if lectura is None:
+                lectura = lectura_de_metas(anexo, *tramo_del_documento(anexo))
+            if not aplica_el_anexo(anexo.exigido.codigo, lectura):
+                if anexo.estado != 'no_aplica':
+                    anexo.estado = 'no_aplica'
+                    anexo.observacion = NO_COMPROMETIDO
+                    anexo.save(update_fields=['estado', 'observacion', 'actualizado_en'])
+                continue
+            if anexo.estado == 'no_aplica':
+                anexo.estado = 'pendiente'
+                anexo.observacion = ''
+                anexo.save(update_fields=['estado', 'observacion', 'actualizado_en'])
         if documento.exigido.codigo == 'INFORME-SEMESTRAL' and not solo_faltantes:
             anexo.estado = 'generado'
             anexo.save(update_fields=['estado'])
@@ -666,8 +688,9 @@ def arbol_del_expediente(unidad, anio, hoy=None, cortes=None):
              if d.corte == corte and not d.mes and not d.exigido.es_anexo and d.exigido.periodicidad != 'unica'),
             key=lambda d: (0 if d.exigido.plazo_regla == 'inicio' else 1, d.exigido.orden))
         for documento in firmados:
+            # Como en anexos_del: el anexo condicional que el plan no compromete («no aplica») no se presenta.
             anexos = [d for d in documentos if d.exigido.anexo_de_id == documento.exigido_id
-                      and d.corte == documento.corte and d.mes is None]
+                      and d.corte == documento.corte and d.mes is None and d.estado != 'no_aplica']
             for anexo in anexos:
                 if not hasattr(anexo, 'semaforo_actual'):
                     _preparar(anexo, hoy, cortes, categorias)
@@ -880,6 +903,9 @@ def _generar(documento, usuario):
     inicio, fin = tramo_del_documento(documento)
     if exigido.redactable or exigido.fuente_reporte == 'mejora':
         return _generar_redactado(documento, usuario, inicio, fin)
+    from apps.documentos.presentation.anexos_evidencia import es_anexo_de_evidencia
+    if es_anexo_de_evidencia(exigido):
+        return _generar_anexo_de_evidencia(documento, inicio, fin)
     peticion = HttpRequest()
     peticion.method = 'GET'
     peticion.GET = QueryDict(urlencode({
@@ -902,6 +928,32 @@ def _generar(documento, usuario):
             f'{exigido.codigo}-{documento.anio}{documento.corte}{f"-{documento.mes:02d}" if documento.mes else ""}.pdf',
             autor='Generado por el sistema',
             descripcion=f'{exigido.nombre} del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y}, generado desde el Centro de reportes.',
+            tipo_adjunto='informe',
+        )
+        documento.estado = 'generado'
+        documento.generado_en = timezone.now()
+        if not documento.correccion_hasta:
+            documento.observacion = ''
+        documento.save()
+
+
+def _generar_anexo_de_evidencia(documento, inicio, fin):
+    """Anexo del informe con la plantilla común: metas que respalda, registros que cuentan y lo que falta."""
+    from apps.documentos.presentation.anexos_evidencia import pdf_del_anexo
+    from apps.documentos.presentation.perfil_laboratorios import referencia_interna
+    from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
+
+    exigido = documento.exigido
+    contenido = pdf_del_anexo(
+        documento, inicio, fin, version=documento.version + 1,
+        codigo_documento=referencia_interna(documento) if es_unidad_auditable(documento.unidad) else exigido.codigo)
+    with transaction.atomic():
+        _archivar(
+            documento, contenido,
+            f'{exigido.codigo}-{documento.anio}{documento.corte}.pdf',
+            autor='Generado por el sistema',
+            descripcion=f'{documento.nombre_documental} del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y}: metas que respalda, '
+                        'registros que cuentan y lo que falta.',
             tipo_adjunto='informe',
         )
         documento.estado = 'generado'

@@ -25,7 +25,8 @@ class FuentesGeneracionAutomaticaTests(TestCase):
         cls.unidad = Unidad.objects.create(nombre='Laboratorio fuentes QA', slug='qa-fuentes-generacion',
             dependencia='laboratorios', administrador=cls.actor, fecha_inicio=date(2025, 1, 1))
         documentos = construir_expediente(cls.unidad, 2025)
-        cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'ACCIONES-MEJORA' and d.corte == 'B')
+        # Un anexo con la plantilla común de los cinco anexos del informe (documentos.0025).
+        cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO' and d.corte == 'B')
 
     def setUp(self):
         self.temporal = TemporaryDirectory(prefix='citt-qa-fuentes-generacion-')
@@ -48,7 +49,7 @@ class FuentesGeneracionAutomaticaTests(TestCase):
             _generar(self.anexo, self.actor)
         self.assertEqual(constructor.call_count, 2)
         for contexto in contextos:
-            contexto.analizar.assert_called_once_with('ACCIONES-MEJORA')
+            contexto.analizar.assert_called_once_with('EQUIPAMIENTO')
         evento = RegistroAuditoriaUnidad.objects.get(objeto_id=str(self.anexo.pk), descripcion=AUDITORIA_PROCEDENCIA)
         self.assertEqual(evento.datos_nuevos['fuentes_sha256'], huella(fuentes))
         from apps.documentos.presentation.calidad_automatica_laboratorios import VERSION_REGLAS

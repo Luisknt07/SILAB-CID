@@ -42,7 +42,8 @@ class CierreAutomaticoLaboratoriosTests(TestCase):
             nombre='Informe semestral QA', carpeta='evaluacion', periodicidad='semestral', origen='ambos',
             fuente_reporte='informe', requiere_firma=True, activo=True, anexo_de=None))
         cls.catalogo_anexos = []
-        for codigo, fuente in (('REGISTRO-USO', 'reservas'), ('GUIAS', 'guias')):
+        # Dos anexos del informe (documentos.0025): uso de la unidad y prácticas académicas, que trae las guías.
+        for codigo, fuente in (('REGISTRO-USO', 'reservas'), ('PRACTICAS-FT02', 'planificaciones')):
             exigido, _ = DocumentoExigido.objects.update_or_create(codigo=codigo, defaults=dict(
                 nombre=codigo + ' QA', carpeta='ejecucion', periodicidad='semestral', origen='sistema',
                 fuente_reporte=fuente, requiere_firma=False, activo=True, anexo_de=cls.exigido))
@@ -135,7 +136,7 @@ class CierreAutomaticoLaboratoriosTests(TestCase):
         self.assertEqual(resumen['nota_calculada'], 100)
         self.assertEqual((DocumentoExpediente.objects.count(), ControlAutomaticoDocumento.objects.count(),
                          RegistroAuditoriaUnidad.objects.count()), antes)
-        self.assertEqual({c.args[0] for c in self.contexto.analizar.call_args_list}, {'REGISTRO-USO', 'GUIAS'})
+        self.assertEqual({c.args[0] for c in self.contexto.analizar.call_args_list}, {'REGISTRO-USO', 'PRACTICAS-FT02'})
 
     def test_envio_firmado_periodo_terminado_y_todas_metas_completas_concede_cien_del_sistema(self):
         control = procesar_documento(self.doc)
@@ -277,12 +278,12 @@ class CierreAutomaticoLaboratoriosTests(TestCase):
         self.comprobar_retenida('anexos_incompletos')
 
     def test_anexo_no_conforme_propaga_hallazgos_sin_convertirlo_en_nota(self):
-        self.calidades['GUIAS'].update(automatico=False, hallazgos=[dict(regla='syllabus_pendiente',
+        self.calidades['PRACTICAS-FT02'].update(automatico=False, hallazgos=[dict(regla='syllabus_pendiente',
             severidad='revision', mensaje='Falta revisar el vínculo académico.', url='', entidad='', id=None)])
         self.comprobar_retenida('syllabus_pendiente', 'revision')
 
     def test_detectores_no_automatizables_sin_hallazgos_tambien_requieren_revision(self):
-        self.calidades['GUIAS']['automatico'] = False
+        self.calidades['PRACTICAS-FT02']['automatico'] = False
         self.comprobar_retenida('anexo_por_revisar', 'revision')
 
     def test_pdf_anexo_sin_procedencia_confiable_bloquea_aunque_datos_estan_completos(self):
@@ -343,7 +344,7 @@ class CierreAutomaticoLaboratoriosTests(TestCase):
             nombre='Material adquirido después del cierre aceptado', stock_total=Decimal('25'),
             unidad_medida='kg', ubicacion='Nueva bodega QA')
         self.calidades['REGISTRO-USO']['fuentes']['inventario_actual'] = {'saldo': 25, 'compras_posteriores': 1}
-        self.calidades['GUIAS'].update(automatico=False, hallazgos=[dict(regla='nuevo_periodo_sin_guia',
+        self.calidades['PRACTICAS-FT02'].update(automatico=False, hallazgos=[dict(regla='nuevo_periodo_sin_guia',
             severidad='revision', mensaje='Actividad del período siguiente, ajena al cierre aceptado.')])
         self.prohibir_recalculo_vivo()
         segundo = procesar_documento(self.doc)

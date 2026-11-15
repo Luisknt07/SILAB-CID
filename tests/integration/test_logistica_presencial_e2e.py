@@ -282,7 +282,9 @@ class EnsayoPresencialLogisticaTests(TestCase):
                 "hasta": self.fecha.isoformat(),
             },
         )
-        self.assertContains(respuesta, "FT03")
+        # La ejecución de la práctica ya no se nombra FT03: lleva su título y su código interno.
+        self.assertContains(respuesta, "EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS")
+        self.assertContains(respuesta, "SLCID-PRACTICAS-EJECUCION")
         self.assertContains(respuesta, ejecucion.observaciones_docente)
         self.assertContains(respuesta, "Informe de estudiante")
         self.assertEqual(ejecucion.evidencias.get().pk, evidencia.pk)

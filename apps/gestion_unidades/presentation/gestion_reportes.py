@@ -46,8 +46,8 @@ EFFECTIVENESS_CHOICES = (
 REPORT_FAMILIES = (
     ("1 · Planificación y registros de uso de laboratorios", (
         ("asignaturas", "Plan semestral de prácticas por asignatura"),
-        ("planificaciones", "FT02 · Planificación de cada práctica, previa a la sesión"),
-        ("ejecuciones", "FT03 · Registro de ejecución: asistencia, bitácora y evidencias"),
+        ("planificaciones", "Prácticas planificadas: asignatura, docente, escenario y guía"),
+        ("ejecuciones", "Prácticas ejecutadas: asistencia, bitácora y evidencias"),
         ("reservas", "Registro de uso: sesiones, horas y participantes"),
         ("uso-capacidad", "Capacidad y aprovechamiento: disponibilidad, uso efectivo y metas"),
         ("aula", "Aula: ejercicios, escalas y notas"),
@@ -172,13 +172,13 @@ def _ruta_del_expediente(unit, category, exigidos):
 
 PRACTICE_REPORT_META = {
     "planificaciones": {
-        "title": "PLANIFICACIÓN DE USO DE LABORATORIOS",
-        "code": "UPEC-P10-S01-FT02",
+        "title": "PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS",
+        "code": "SLCID-PRACTICAS-PLAN",
         "revision": "01",
     },
     "ejecuciones": {
-        "title": "REGISTRO DE EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS",
-        "code": "UPEC-P10-S01-FT03",
+        "title": "EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS",
+        "code": "SLCID-PRACTICAS-EJECUCION",
         "revision": "01",
     },
 }

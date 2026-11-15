@@ -67,9 +67,9 @@ def render_practices_xlsx(plans, *, unidad=None):
             ])
 
     hojas = [
-        ("F1-Planificacion", "FT02 · PLANIFICACIÓN DE USO DE LABORATORIOS · UPEC-P10-S01-FT02"
+        ("F1-Planificacion", "PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS · SLCID-PRACTICAS-PLAN"
          if solo_laboratorios else "F1 · PLANIFICACIÓN DE PRÁCTICAS", PLAN_HEADERS, plan_rows),
-        ("F2-Ejecucion", "FT03 · REGISTRO DE EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS · UPEC-P10-S01-FT03"
+        ("F2-Ejecucion", "EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS · SLCID-PRACTICAS-EJECUCION"
          if solo_laboratorios else "F2 · EJECUCIÓN DE PRÁCTICAS", EXEC_HEADERS, execution_rows),
     ]
     if solo_laboratorios:

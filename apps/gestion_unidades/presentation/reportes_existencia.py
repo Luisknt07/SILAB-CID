@@ -95,7 +95,20 @@ def _produccion(unidad):
     return OrdenProduccion.objects.reales().filter(unidad=unidad).exists()
 
 
+def _ejecuciones(unidad):
+    from apps.formacion.models.practicas import EjecucionPractica
+    return EjecucionPractica.objects.filter(planificacion__unidad=unidad).exists()
+
+
+def _desechos(unidad):
+    from apps.recursos.models.desechos import RegistroDesecho
+    return RegistroDesecho.objects.filter(unidad=unidad).exists()
+
+
+# Ejecuciones y desechos son consultas de detalle desde documentos.0025: su evidencia va en los anexos de
+# prácticas y de seguridad, y la consulta solo se ofrece si la unidad tiene registros.
 LECTURAS = {
+    'ejecuciones': _ejecuciones, 'desechos': _desechos,
     'asignaturas': _asignaturas, 'reservas': _reservas, 'aula': _aula, 'mantenimiento': _mantenimiento,
     'retiros': _retiros, 'inventario': _inventario, 'prestamos': _prestamos, 'visitas': _visitas,
     'cursos': _cursos, 'finanzas': _finanzas, 'procesos': _procesos, 'calidad': _calidad,

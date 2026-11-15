@@ -1,6 +1,7 @@
 """Paso automático real, excepciones, autoría y conservación de resultados."""
 from datetime import date
 from decimal import Decimal
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -11,6 +12,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from reportlab.pdfgen.canvas import Canvas
 
 from apps.directorio_unidades.models.core import Unidad
 from apps.documentos.models.control_automatico import ControlAutomaticoDocumento
@@ -32,8 +34,9 @@ class AutomatizacionDocumentalLaboratoriosTests(TestCase):
         cls.unidad = Unidad.objects.create(nombre='Laboratorio automático QA', slug='auto-lab-qa',
             dependencia='laboratorios', administrador=cls.actor, fecha_inicio=date(2025, 1, 1))
         documentos = construir_expediente(cls.unidad, 2025)
-        # El anexo de acciones de mejora es registro sin meta: sin acciones sale vacío y lo dice.
-        cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'ACCIONES-MEJORA' and d.corte == 'B')
+        # Investigación y vinculación (documentos.0025), con la plantilla común de los anexos del informe: con un
+        # resultado verificado por el responsable queda completo y no necesita al Director.
+        cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'INVESTIGACION' and d.corte == 'B')
         cls.informe_id = next(d.pk for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL' and d.corte == 'B')
 
     def setUp(self):
@@ -42,7 +45,25 @@ class AutomatizacionDocumentalLaboratoriosTests(TestCase):
         medio = override_settings(MEDIA_ROOT=carpeta.name)
         medio.enable()
         self.addCleanup(medio.disable)
+        self.registrar_resultado()
         self.anexo = DocumentoExpediente.objects.select_related('unidad', 'exigido', 'recurso').get(pk=self.anexo_id)
+
+    def registrar_resultado(self):
+        """Un resultado de investigación del período, con su respaldo en PDF y verificado por el responsable."""
+        from apps.documentos.presentation.medicion_metas import registrar_evidencia
+        salida = BytesIO()
+        pagina = Canvas(salida)
+        pagina.drawString(35, 780, 'AUTO-RESULTADO-QA: respaldo real de prueba aislada, procedimiento, alcance y '
+                                   'resultado verificables.')
+        pagina.save()
+        return registrar_evidencia(self.unidad, self.actor, dict(
+            tipo='INVESTIGACION', codigo='AUTO-RESULTADO-QA', fecha=date(2025, 10, 17),
+            titulo='Resultado documentado AUTO-RESULTADO-QA',
+            descripcion='Resultado ocurrido, revisado y atribuido al responsable de la unidad QA.',
+            responsable=self.actor, detalle=dict(
+                proyecto='Proyecto de laboratorio QA', tipo_producto='informe',
+                producto='Informe de resultados obtenidos QA', beneficiario='Comunidad universitaria QA')),
+            verificar=True, archivo=SimpleUploadedFile('AUTO-RESULTADO-QA.pdf', salida.getvalue(), 'application/pdf'))
 
     def generar(self):
         _generar(self.anexo, self.actor)

@@ -199,9 +199,9 @@ class RangoEnElVisorTests(BaseDeCumplimiento):
         pdf = reverse('gestion_reporte_unidad_pdf', args=[self.laboratorio.slug])
         contenido = pagina.content.decode()
         # El visor recibe la dirección del informe y el rango del período.
-        # Las evidencias de guías conservan el documento y período definidos;
+        # Las evidencias de prácticas (con sus guías) conservan el documento y período definidos;
         # los informes de consulta permiten variar el rango en el visor.
-        self.assertIn('anexo=GUIAS&amp;borrador=1', contenido)
+        self.assertIn('anexo=PRACTICAS-FT02&amp;borrador=1', contenido)
         self.assertIn('data-ver-pdf', contenido)
         self.assertIn(f'data-pdf-desde="{cortes["A"][0]}" data-pdf-hasta="{cortes["A"][1]}"', contenido)
         self.assertIn(f'data-pdf-rango="{pdf}?categoria_reporte=aula"', contenido)

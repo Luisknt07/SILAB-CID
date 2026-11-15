@@ -38,11 +38,14 @@ existiendo, pero como **anexos** del documento firmado que los presenta
   el informe que la presenta.
 - Se validan con él, en una sola validación. No se validan, observan ni
   generan sueltos.
-- No son «condicionales»: si no hubo datos, el anexo sale vacío y lo dice.
+- No son «condicionales»: si no hubo datos, el anexo sale vacío y lo dice. La excepción es
+  «Investigación y vinculación», que queda «no aplica» cuando la planificación no compromete
+  ninguna de sus metas (`documentos.0025`).
 
-> **Actualizado el 15 de noviembre de 2026 (expediente depurado, `documentos.0024`):** la planificación
-> viaja sin anexos y el informe lleva once anexos comunes. Ver
-> [calificacion-y-anexos-del-expediente.md](calificacion-y-anexos-del-expediente.md#expediente-depurado).
+> **Actualizado el 15 de noviembre de 2026 (`documentos.0025`):** la planificación viaja sin anexos y
+> el informe lleva cinco anexos comunes, uno por grupo de metas; el de investigación y vinculación solo
+> cuando el plan lo compromete. Ver
+> [calificacion-y-anexos-del-expediente.md](calificacion-y-anexos-del-expediente.md#seis-documentos-por-semestre-15-de-noviembre-de-2026-rediseño).
 
 | Documento firmado | Anexos |
 | --- | --- |

@@ -48,7 +48,7 @@ from apps.reservas.workflows.reservas import ESTADOS_ATENCION_EFECTIVA
 from apps.documentos.presentation.metas_plan import (
     ANEXOS_AUTOMATICOS, control_meta, meta_con_minimo, obligatoria_por_tipo,
 )
-from apps.documentos.presentation.perfil_laboratorios import es_laboratorio, referencia_interna
+from apps.documentos.presentation.perfil_laboratorios import referencia_interna
 from apps.documentos.presentation.perfil_unidades import base_de, es_unidad_auditable
 from apps.documentos.presentation.presupuesto_documental import (
     CATEGORIAS_INVERSION, PRIORIDADES, FUENTES_FINANCIAMIENTO, analizar_presupuesto,
@@ -310,7 +310,7 @@ SECCIONES = {
                         ('plazo', 'Plazo', 'texto', ()),
                         ('estado', 'Estado', 'opcion', ESTADOS_ACCION),
                     )),
-                )),
+                ), automatico='mejora'),
         Seccion('necesidades', 'Necesidades para el siguiente período', '', (
                     Campo('necesidades_siguiente', 'Necesidades', 'rico'),
                 )),
@@ -357,7 +357,7 @@ ACTIVIDADES_PLAN = (
               '≥ 1 por período', (), 'gestion_capacitacion'),
     Actividad('DIFUSION', 'Difusión de servicios y resultados de la unidad',
               'Publicaciones, eventos o materiales de difusión', '≥ 1 por período', (), 'gestion_difusion'),
-    Actividad('PRACTICAS', 'Prácticas académicas planificadas y ejecutadas (FT02/FT03)',
+    Actividad('PRACTICAS', 'Prácticas académicas ejecutadas con asistencia y evidencias',
               'Prácticas validadas con asistencia y evidencias', '≥ 6 por período',
               ('laboratorios', 'plantas_piloto', 'centro_experimental'), 'practicas'),
     Actividad('GUIAS', 'Guías de práctica nuevas o actualizadas', 'Guías vigentes con aprobación y syllabus', '≥ 1 por período',
@@ -382,7 +382,7 @@ ACTIVIDADES_PLAN = (
               ('centros_id',), 'gestion_proyectos'),
     Actividad('PUBLICACIONES', 'Publicaciones científicas y ponencias', 'Artículos y ponencias', '≥ 1 por período',
               ('centros_id',), 'gestion_publicaciones'),
-    Actividad('PRACTICAS-PLAN', 'Planificación de prácticas (FT02)', 'Prácticas aprobadas con escenario y responsable',
+    Actividad('PRACTICAS-PLAN', 'Prácticas académicas planificadas y aprobadas', 'Prácticas aprobadas con escenario y responsable',
               '≥ 6 por período', ('laboratorios', 'plantas_piloto', 'centro_experimental'), 'practicas_planificadas_aprobadas'),
     Actividad('PRESTAMOS', 'Préstamos de equipos', 'Préstamos entregados en el período', '', (), 'prestamos'),
     Actividad('EQUIPAMIENTO', 'Disponibilidad del equipamiento', 'Equipos disponibles en el inventario al corte',
@@ -1119,22 +1119,10 @@ def _pares_uso_informe(unidad, registros):
         ('Horas de uso efectivas', f"{registros['horas']:g}" if 'horas' in registros else valor('horas')),
         ('Usuarios distintos', valor('usuarios')),
     ]
+    # Las cifras de cada meta (prácticas, guías, desechos, mantenimiento…) están una sola vez, en el
+    # apartado de cumplimiento y en su anexo; aquí solo el uso, para que no haya dos cifras distintas.
     base = base_de(unidad)
-    if base != 'observatorios':
-        pares.extend([
-            ('Prácticas planificadas (FT02)', valor('practicas_planificadas')),
-            ('Prácticas ejecutadas y validadas (FT03)', valor('practicas')),
-            ('Guías aprobadas', valor('guias')),
-            ('Habilitaciones de acceso', valor('habilitaciones')),
-            ('Servicios completados', valor('servicios')),
-            ('Registros de desechos', valor('desechos')),
-        ])
-    pares.extend([
-        ('Mantenimientos completados / programados',
-         f"{registros['mantenimientos']} / {registros['mantenimientos_programados']}"
-         if 'mantenimientos' in registros and 'mantenimientos_programados' in registros else 'Sin medición disponible'),
-        ('Incidencias reportadas', valor('incidencias')),
-    ])
+    pares.append(('Incidencias de equipos reportadas', valor('incidencias')))
     indicadores = {
         'observatorios': (
             ('Publicaciones con revisión técnica', 'gestion_boletines'),
@@ -1249,17 +1237,8 @@ def datos_automaticos(documento, inicio, fin, contenido=None):
         valor = equipos.aggregate(total=Sum('valor_referencial'))['total'] or Decimal(0)
         software = SoftwareDisponible.objects.filter(unidad=unidad).order_by('nombre')
         insumos = Consumible.objects.filter(unidad=unidad).order_by('nombre')
-        nombres_estado = dict(UnidadEquipo.ESTADO_UNIDAD_CHOICES)
-        filas_equipos = []
-        for e in equipos.order_by('codigo_unidad'):
-            categorias = ', '.join(c.nombre for c in e.equipo.categorias.all()) or '—'
-            marca = ' '.join(p for p in (e.equipo.marca, e.equipo.modelo) if p)
-            filas_equipos.append([
-                e.codigo_unidad, e.equipo.nombre + (f' ({marca})' if marca else ''), categorias,
-                nombres_estado.get(e.estado_unidad, e.estado_unidad),
-                f'{e.fecha_adquisicion:%Y}' if e.fecha_adquisicion else '—',
-                f'{e.valor_referencial:,.2f}' if e.valor_referencial is not None else '—',
-            ])
+        # La planificación lleva el resumen del inventario; la lista completa de equipos, software e insumos
+        # se consulta y exporta en el Centro de reportes y su revisión física va en el anexo de equipos.
         bloques['inventario'] = [
             {'tipo': 'pares', 'titulo': 'Resumen del inventario', 'pares': [
                 ('Equipos registrados', str(equipos.count())),
@@ -1271,18 +1250,8 @@ def datos_automaticos(documento, inicio, fin, contenido=None):
             ]},
             {'tipo': 'tabla', 'titulo': 'Equipos por categoría', 'cabecera': ['Categoría', 'Equipos'],
              'filas': [[k or 'Sin categoría', str(v)] for k, v in sorted(por_categoria.items(), key=lambda x: str(x[0]))]},
-            {'tipo': 'tabla', 'titulo': 'Equipos registrados',
-             'cabecera': ['Código', 'Equipo', 'Categoría', 'Estado', 'Año', 'Valor (USD)'], 'filas': filas_equipos},
-            {'tipo': 'tabla', 'titulo': 'Software y licencias',
-             'cabecera': ['Software', 'Versión', 'Tipo', 'Acceso', 'Licencias (disp./total)'],
-             'filas': [[s.nombre, s.version or '—', s.get_tipo_recurso_display(), s.get_tipo_acceso_display(),
-                        f'{s.licencias_disponibles}/{s.licencias_totales}'] for s in software]},
-            {'tipo': 'tabla', 'titulo': 'Insumos, reactivos y materiales',
-             'cabecera': ['Código', 'Insumo', 'Clasificación', 'Existencia', 'Mínimo'],
-             'filas': [[i.codigo, i.nombre + (f' · {i.marca}' if i.marca else ''), i.get_clasificacion_display(),
-                        f'{_cantidad(i.stock_total)} {i.unidad_medida or ""}'.strip(),
-                        _cantidad(i.minimo) if i.minimo is not None else '—']
-                       for i in insumos]},
+            {'tipo': 'parrafo', 'texto': 'La lista completa de equipos, software e insumos se consulta y se exporta '
+                                         'en el Centro de reportes de la unidad.'},
         ]
         nuevo = bool((contenido.get('actividades') or {}).get('metas_estandar'))
         bloques['cronograma'] = [_bloque_cronograma(unidad, contenido, inicio, fin)]
@@ -1303,15 +1272,58 @@ def datos_automaticos(documento, inicio, fin, contenido=None):
              'filas': [[tipos_usuario.get(k, 'Sin tipo' if k == 'sin_tipo' else k), str(v)]
                        for k, v in sorted(registros['usuarios_por_tipo'].items(), key=lambda x: -x[1])]},
         ]
-        # El enlace abre la evidencia exacta; una marca manual no certifica sus indicadores.
-        bloques['anexos'] = [{'tipo': 'lista', 'titulo': 'Evidencias del período · abrir documento', 'items': [
-            {'texto': d.nombre_documental,
-             'url': settings.SITE_URL.rstrip('/') + reverse('recurso_unidad', args=[d.recurso_id])}
-            for d in DocumentoExpediente.objects.filter(
-                unidad=unidad, anio=documento.anio, recurso__isnull=False, exigido__activo=True,
-            ).filter(Q(corte=documento.corte) | Q(corte='')).exclude(pk=documento.pk).select_related('exigido')
-        ]}]
+        # El enlace abre la evidencia exacta; una marca manual no certifica sus indicadores. Los anexos llevan
+        # el mismo número que la columna «Anexo» del cumplimiento.
+        from apps.documentos.presentation.anexos_evidencia import anexos_numerados
+        base_url = settings.SITE_URL.rstrip('/')
+        numerados = anexos_numerados(documento)
+        items = [{'texto': f'Anexo {numero}. {d.nombre_documental}',
+                  **({'url': base_url + reverse('recurso_unidad', args=[d.recurso_id])} if d.recurso_id else {})}
+                 for numero, d in numerados]
+        presentados = {d.pk for _, d in numerados}
+        items.extend({'texto': d.nombre_documental,
+                      'url': base_url + reverse('recurso_unidad', args=[d.recurso_id])}
+                     for d in DocumentoExpediente.objects.filter(
+                         unidad=unidad, anio=documento.anio, recurso__isnull=False, exigido__activo=True,
+                         exigido__codigo='PLANIFICACION', corte=documento.corte,
+                     ).exclude(pk__in=presentados).select_related('exigido'))
+        bloques['anexos'] = [{'tipo': 'lista', 'titulo': 'Anexos del informe y planificación del período · abrir documento',
+                              'items': items}]
         bloques['_registros'] = registros
+        if documento.pk:
+            bloques['mejora'] = _bloques_de_mejora_formal(documento)
+    return bloques
+
+
+def _bloques_de_mejora_formal(documento):
+    """Lo que antes iba en el anexo «Acciones de mejora» (documentos.0025): las acciones que dispuso la
+    Dirección con su seguimiento y los incumplimientos del expediente del período, sin transcribirlos."""
+    from apps.documentos.models.mejora import AccionMejora
+
+    bloques = []
+    acciones = AccionMejora.objects.filter(
+        informe__unidad=documento.unidad, informe__anio=documento.anio,
+    ).filter(Q(informe__corte=documento.corte) | Q(informe__corte='')).select_related(
+        'responsable', 'informe').prefetch_related('seguimientos__creado_por')
+    formales, avances = [], []
+    for accion in acciones:
+        formales.append([str(accion.pk), accion.descripcion, str(accion.responsable), f'{accion.vence_el:%d/%m/%Y}',
+                         'Cerrada' if accion.cerrada_en else 'Pendiente'])
+        avances.extend([str(accion.pk), f'{timezone.localtime(avance.creado_en):%d/%m/%Y}', str(avance.creado_por),
+                        avance.detalle, 'Sí' if avance.cierre else 'No'] for avance in accion.seguimientos.all())
+    if formales:
+        bloques.append({'tipo': 'tabla', 'titulo': 'Acciones dispuestas por la Dirección',
+                        'cabecera': ['N.º', 'Acción', 'Responsable', 'Plazo', 'Estado'], 'filas': formales,
+                        'anchos_relativos': [.07, .45, .20, .13, .15]})
+    if avances:
+        bloques.append({'tipo': 'tabla', 'titulo': 'Seguimiento de esas acciones',
+                        'cabecera': ['Acción', 'Fecha', 'Autor', 'Avance y evidencia', 'Cierre verificado'],
+                        'filas': avances, 'anchos_relativos': [.09, .13, .18, .44, .16]})
+    incumplidos = incumplimientos_del_periodo(documento)
+    if incumplidos:
+        bloques.append({'tipo': 'tabla', 'titulo': 'Entregas del expediente fuera de plazo u observadas',
+                        'cabecera': ['Documento', 'Período', 'Estado', 'Venció', 'Atraso', 'Motivo'],
+                        'filas': incumplidos, 'anchos_relativos': [.24, .12, .14, .12, .08, .30]})
     return bloques
 
 
@@ -1762,36 +1774,41 @@ def _bloques_del_campo(campo, valor, documento, contenido, inicio, fin, registro
             return [{'tipo': 'vacio', 'texto': 'La planificación del período no comprometió actividades.'}]
         filas = []
         detalles = []
+        from apps.documentos.presentation.anexos_evidencia import anexo_de_cada_meta, cifra, con_respaldo
         from apps.documentos.presentation.evaluacion_cierre import evaluar_meta
+        anexos = anexo_de_cada_meta(documento)
         for f in datos['filas']:
             medido = evaluar_meta(f, registros)
-            registrado = '—' if medido['registrado'] is None else str(medido['registrado'])
-            porcentaje = f"{medido['porcentaje']} %" if medido['porcentaje'] is not None else '—'
-            if es_laboratorio(documento.unidad):
-                filas.append([f['nombre'], f['meta'] or f['minimo'] or '—', registrado, f['realizado'] or '—',
-                              medido['estado'], porcentaje])
-                detalle = medido['exigencia'] + '. ' + (medido['motivo'] or '')
-                if f['observacion']:
-                    detalle += ' Observación de la unidad: ' + str(f['observacion'])
-                detalles.append([f['nombre'], detalle.strip()])
-            else:
-                filas.append([f['nombre'], f['meta'] or f['minimo'] or '—', registrado, f['realizado'] or '—',
-                              f"{porcentaje} · {medido['exigencia']}",
-                              medido['motivo'] or f['observacion'] or '—'])
+            porcentaje = f"{cifra(medido['porcentaje'])} %" if medido['porcentaje'] is not None else '—'
+            anexo = anexos.get(f['codigo'], '—')
+            filas.append([f['nombre'], f['meta'] or f['minimo'] or '—', cifra(f['registrado']),
+                          con_respaldo(f['codigo'], medido, registros), porcentaje, medido['estado'], anexo])
+            if medido['estado'] == 'Cumple':
+                continue
+            detalle = (medido['motivo'] or 'Sin evidencia registrada en el período.').strip()
+            reportado = str(f.get('realizado') or '').strip()
+            if reportado and reportado != str(f.get('registrado') if f.get('registrado') is not None else ''):
+                detalle += f' La unidad reporta {reportado}.'
+            if f['observacion']:
+                detalle += ' Observación de la unidad: ' + str(f['observacion'])
+            if anexo != '—':
+                detalle += f' Detalle en el {anexo.lower()}.'
+            detalles.append([f['nombre'], detalle])
         medibles = [evaluar_meta(f, registros) for f in datos['filas'] if f.get('obligatoria', True)]
         cumplidas = sum(f['porcentaje'] == 100 for f in medibles)
-        bloques = [{'tipo': 'parrafo', 'titulo': 'Información registrada en el sistema',
-                 'texto': (f'De {len(medibles)} metas medibles o pendientes con los registros de la plataforma, '
-                           f'la unidad alcanzó {cumplidas}. El avance parcial se acredita proporcionalmente, '
-                           'hasta 100 %. Sin evidencia o sin denominador verificable se acredita 0 %. '
-                           'Solo las metas obligatorias integran la nota; las opcionales son de seguimiento. '
-                           'Lo reportado por la unidad no sustituye los registros verificables.')},
+        bloques = [{'tipo': 'parrafo', 'titulo': 'Cómo se lee el cumplimiento',
+                 'texto': (f'De {len(medibles)} metas obligatorias, la unidad cumple {cumplidas}. «Registrado» es lo '
+                           'que la plataforma tiene del período; «Con respaldo» es lo que cumple todos los requisitos '
+                           'de la meta y es lo único que cuenta para la nota. El avance parcial se acredita en '
+                           'proporción, hasta 100 %; sin evidencia se acredita 0 %. Lo que la unidad reporta no '
+                           'reemplaza los registros.')},
                 {'tipo': 'tabla', 'titulo': 'Planificado frente a realizado',
-                 'cabecera': ['Actividad', 'Meta', 'Registrado en el sistema', 'Reportado por la unidad',
-                              'Cumple', 'Avance' if es_laboratorio(documento.unidad) else 'Observación'], 'filas': filas}]
+                 'cabecera': ['Meta', 'Comprometido', 'Registrado', 'Con respaldo', 'Avance', 'Estado', 'Anexo'],
+                 'filas': filas, 'anchos_relativos': [.25, .15, .13, .12, .09, .14, .12]}]
         if detalles:
-            bloques.append({'tipo': 'tabla', 'titulo': 'Respaldo y pendientes de las metas',
-                            'cabecera': ['Actividad', 'Comprobación documental y observaciones'], 'filas': detalles})
+            bloques.append({'tipo': 'tabla', 'titulo': 'Qué falta para cumplir',
+                            'cabecera': ['Meta', 'Qué falta'], 'filas': detalles,
+                            'anchos_relativos': [.32, .68]})
         return bloques
     return []
 

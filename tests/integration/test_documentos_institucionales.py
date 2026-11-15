@@ -1,8 +1,10 @@
 """Un solo formato para toda la documentación, y una sola ruta para entregarla.
 
-La guía de práctica, la planificación, el informe y los reportes del Centro
-comparten el mismo marco: caja con el logo, nombre del formato, código y
-metadatos a la derecha, y al pie «Página: n de N». El Centro de reportes
+La guía de práctica, los anexos y los reportes del Centro comparten el mismo
+marco: caja con el logo, nombre del formato, código y metadatos a la derecha, y
+al pie «Página: n de N». Los documentos que la unidad firma (planificación,
+informe, plan de compras y protocolo) llevan el encabezado del informe
+institucional, con su título, código de referencia y cobertura. El Centro de reportes
 consulta; lo que la unidad entrega y se audita vive en el expediente, y cada
 categoría dice a qué documento del expediente alimenta.
 """
@@ -141,10 +143,13 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
         self.assertEqual(pdf.status_code, 200)
         self.assertTrue(pdf.content.startswith(b'%PDF'))
         argumentos = marco.call_args.kwargs
-        self.assertEqual(argumentos['formato'], 'Formato Planificación semestral de actividades de la unidad')
+        # La planificación es un documento principal: encabezado del informe institucional, con su título,
+        # el código de referencia y la cobertura en una línea, sin las cuatro líneas del formato de anexos.
+        self.assertEqual(argumentos['estilo'], 'informe')
+        self.assertEqual(argumentos['formato'], 'Planificación semestral de actividades de la unidad')
         self.assertEqual(argumentos['pie'], 'Expediente de calidad')
-        self.assertIn('Período: 2026-A', argumentos['metadatos'])
-        self.assertIn('Revisión: 01', argumentos['metadatos'])
+        self.assertEqual(tuple(argumentos['metadatos']),
+                         ('Código de referencia: SLCID-LAB-PLAN', 'Cobertura: Período 2026-A'))
 
     def test_el_reporte_del_centro_usa_el_mismo_marco_apaisado(self):
         peticion = RequestFactory().get('/', {'categoria_reporte': 'planificaciones'})
@@ -158,8 +163,8 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
         argumentos = marco.call_args.kwargs
         self.assertTrue(argumentos['apaisado'])
         # Un formato institucional se anuncia por su nombre; una consulta, como reporte.
-        self.assertEqual(argumentos['formato'], 'PLANIFICACIÓN DE USO DE LABORATORIOS')
-        self.assertIn('Código: UPEC-P10-S01-FT02', argumentos['metadatos'])
+        self.assertEqual(argumentos['formato'], 'PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS')
+        self.assertIn('Código: SLCID-PRACTICAS-PLAN', argumentos['metadatos'])
         self.assertEqual(argumentos['pie'], 'Centro de reportes')
 
         peticion = RequestFactory().get('/', {'categoria_reporte': 'auditoria'})
@@ -185,8 +190,8 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
 
         self.assertTrue(contenido.startswith(b'%PDF'))
         formatos = [llamada.kwargs['formato'] for llamada in encabezado.call_args_list]
-        self.assertEqual(formatos, ['PLANIFICACIÓN DE USO DE LABORATORIOS'])
-        self.assertIn('Código: UPEC-P10-S01-FT02', encabezado.call_args.kwargs['metadatos'])
+        self.assertEqual(formatos, ['PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS'])
+        self.assertIn('Código: SLCID-PRACTICAS-PLAN', encabezado.call_args.kwargs['metadatos'])
 
         ejecucion = EjecucionPractica.objects.create(
             planificacion=plan, fecha_ejecucion=date(2026, 4, 8), estado='validada', resultado='ejecutada',
@@ -195,8 +200,9 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
             practicas._render_practice_pdf(plan, ejecucion)
         # Dos formatos en el mismo archivo: cada uno se anuncia con su código.
         self.assertEqual([llamada.kwargs['formato'] for llamada in encabezado.call_args_list],
-                         ['PLANIFICACIÓN DE USO DE LABORATORIOS',
-                          'REGISTRO DE EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS'])
+                         ['PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS',
+                          'EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS'])
+        self.assertIn('Código: SLCID-PRACTICAS-EJECUCION', encabezado.call_args.kwargs['metadatos'])
 
     def test_el_documento_generado_al_expediente_sigue_saliendo_en_pdf(self):
         construir_expediente(self.unidad, 2026, hoy=date(2026, 9, 22))
@@ -205,9 +211,9 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
 
         generar_documento(abrir_entrega(informe), self.coordinador)
 
-        guias = DocumentoExpediente.objects.get(
-            unidad=self.unidad, exigido__codigo='GUIAS', anio=2026, corte='A')
-        self.assertTrue(guias.recurso.archivo.read().startswith(b'%PDF'))
+        practicas = DocumentoExpediente.objects.get(
+            unidad=self.unidad, exigido__codigo='PRACTICAS-FT02', anio=2026, corte='A')
+        self.assertTrue(practicas.recurso.archivo.read().startswith(b'%PDF'))
 
 
 @override_settings(MEDIA_ROOT=MEDIA_TEMPORAL)
@@ -227,9 +233,13 @@ class RutaDelCentroDeReportesTests(TestCase):
     def test_las_categorias_que_alimentan_el_expediente_estan_identificadas(self):
         exigidos = documentos_del_expediente(self.unidad)
 
-        self.assertEqual(exigidos['guias'].codigo, 'GUIAS')
+        self.assertEqual(exigidos['planificaciones'].codigo, 'PRACTICAS-FT02')
         self.assertEqual(exigidos['reservas'].codigo, 'REGISTRO-USO')
-        self.assertEqual(exigidos['recursos'].codigo, 'INVENTARIO-CORTE')
+        self.assertEqual(exigidos['equipamiento'].codigo, 'EQUIPAMIENTO')
+        # Las guías y el inventario completo van dentro de los anexos de prácticas y de equipos (documentos.0025):
+        # sus listas son consultas, no alimentan un documento propio.
+        self.assertNotIn('guias', exigidos)
+        self.assertNotIn('recursos', exigidos)
         # Una consulta de apoyo no es un documento exigido.
         self.assertNotIn('auditoria', exigidos)
         self.assertNotIn('aula', exigidos)
@@ -252,7 +262,7 @@ class RutaDelCentroDeReportesTests(TestCase):
         self.assertNotIn('ACCIONES-MEJORA', codigos)
 
     def test_el_reporte_dice_a_que_documento_del_expediente_alimenta(self):
-        peticion = RequestFactory().get('/', {'categoria_reporte': 'guias'})
+        peticion = RequestFactory().get('/', {'categoria_reporte': 'planificaciones'})
         peticion.user = self.coordinador
 
         reporte = build_unit_report(peticion, self.unidad)
@@ -260,9 +270,9 @@ class RutaDelCentroDeReportesTests(TestCase):
         ruta = reporte['expediente']
         self.assertEqual(ruta['carpeta'], 'Ejecución')
         self.assertTrue(ruta['lo_genera_el_sistema'])
-        self.assertIn('Registro de guías de práctica', ruta['nombre'])
+        self.assertIn('Prácticas académicas: planificación, ejecución y guías', ruta['nombre'])
         self.assertEqual(ruta['url'], reverse('gestion_expediente_unidad', args=[self.unidad.slug]))
-        self.assertIn('guias', reporte['choices']['expediente'])
+        self.assertIn('planificaciones', reporte['choices']['expediente'])
 
         peticion = RequestFactory().get('/', {'categoria_reporte': 'auditoria'})
         peticion.user = self.coordinador
@@ -297,13 +307,13 @@ class RutaDelCentroDeReportesTests(TestCase):
         self.client.force_login(self.coordinador)
 
         panel = self.client.get(reverse('gestion_unidad', args=[self.unidad.slug]),
-                                {'view': 'reportes', 'categoria_reporte': 'guias'})
+                                {'view': 'reportes', 'categoria_reporte': 'planificaciones'})
 
         self.assertContains(panel, 'unit-console__report-filters')
         self.assertContains(panel, 'unit-console__report-preview')
         self.assertContains(panel, 'Volver a las entregas del período')
         self.assertContains(panel, 'CONSULTA Y ANÁLISIS')
-        # Las guías son un anexo del informe: el Centro lo dice, y dice que aquí solo se consulta.
+        # Las prácticas son un anexo del informe: el Centro lo dice, y dice que aquí solo se consulta.
         self.assertContains(panel, 'anexo del informe de cierre')
         self.assertContains(panel, 'el sistema lo adjunta con las fechas del período')
         # El expediente no se repite debajo del informe.

@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from apps.documentos.presentation.anexos_evidencia import anexos_numerados
 from apps.documentos.presentation.expediente_catalogo import asegurar_catalogo
 from apps.documentos.presentation.expediente import construir_expediente, generar_documento
 from apps.documentos.presentation.expediente_redaccion import actividades_para, avance, componer, leer_formulario, meses_del_tramo, obtener_redaccion, registros_del_periodo
@@ -293,18 +294,24 @@ class ComponerYGenerarTests(BaseDeRedaccion):
         self.assertEqual(inicial['cronograma_auto']['mantenimiento_ventana'], '2026-07-13')
         self.assertEqual(inicial['cronograma_auto']['mantenimiento_meses_por_equipo'], [])
 
-    def test_el_inventario_detalla_equipos_software_e_insumos_y_los_mantenimientos_previstos(self):
+    def test_el_inventario_resume_equipos_software_e_insumos_y_los_mantenimientos_previstos(self):
         plan = self.documento('PLANIFICACION')
         compuesto = componer(plan, PLAN_COMPLETO, date(2026, 3, 9), date(2026, 7, 17))
         inventario = next(s for s in compuesto['secciones'] if s['codigo'] == 'inventario')
+        # La planificación trae el resumen y los equipos por categoría; las listas completas de equipos, software
+        # e insumos se consultan en el Centro de reportes (documentos.0025).
+        self.assertEqual([(b['tipo'], b.get('titulo')) for b in inventario['bloques']],
+                         [('pares', 'Resumen del inventario'), ('tabla', 'Equipos por categoría'), ('parrafo', None)])
+        resumen = dict(inventario['bloques'][0]['pares'])
+        self.assertEqual(resumen['Equipos registrados'], '1')
+        self.assertEqual(resumen['Valor referencial total (USD)'], '1,200.00')
+        self.assertEqual(resumen['Software y licencias'], '1 programas · 30 licencias')
+        self.assertEqual(resumen['Insumos y materiales en catálogo'], '1')
+        self.assertEqual(inventario['bloques'][1]['filas'], [['Sin categoría', '1']])
+        self.assertIn('Centro de reportes', inventario['bloques'][2]['texto'])
         titulos = [b.get('titulo') for b in inventario['bloques']]
-        self.assertEqual(titulos[:5], ['Resumen del inventario', 'Equipos por categoría', 'Equipos registrados',
-                                        'Software y licencias', 'Insumos, reactivos y materiales'])
-        equipos = inventario['bloques'][2]
-        self.assertEqual(equipos['filas'][0], ['RED-SW-01', 'Switch de núcleo (Cisco)', '—', 'Disponible', '2024',
-                                               '1,200.00'])
-        self.assertEqual(inventario['bloques'][3]['filas'][0][:2], ['Packet Tracer', '8.2'])
-        self.assertEqual(inventario['bloques'][4]['filas'][0][:4], ['CAB-UTP', 'Cable UTP cat. 6', 'Material', '300 m'])
+        self.assertFalse({'Equipos registrados', 'Software y licencias', 'Insumos, reactivos y materiales'}
+                         & set(titulos))
         cronograma = next(s for s in compuesto['secciones'] if s['codigo'] == 'cronograma')
         mantenimientos = cronograma['bloques'][1]
         self.assertEqual(mantenimientos['titulo'], 'Mantenimientos previstos por los planes de los equipos')
@@ -369,26 +376,47 @@ class ComponerYGenerarTests(BaseDeRedaccion):
         }
         compuesto = componer(informe, contenido, date(2026, 3, 9), date(2026, 7, 17))
         bloques = next(s for s in compuesto['secciones'] if s['codigo'] == 'cumplimiento')['bloques']
-        # Primero lo que dice el sistema; después la tabla con el veredicto por actividad.
-        self.assertEqual(bloques[0]['tipo'], 'parrafo')
-        self.assertIn('metas medibles', bloques[0]['texto'])
+        # 3.1 cómo se lee; 3.2 la tabla con el veredicto por meta y su anexo; 3.3 lo que falta.
+        self.assertEqual((bloques[0]['tipo'], bloques[0]['titulo']), ('parrafo', 'Cómo se lee el cumplimiento'))
+        self.assertIn('metas obligatorias', bloques[0]['texto'])
+        self.assertIn('«Con respaldo»', bloques[0]['texto'])
         cumplimiento = bloques[1]
-        self.assertEqual(cumplimiento['tipo'], 'tabla')
-        self.assertIn('Cumple', cumplimiento['cabecera'])
-        fila = next(f for f in cumplimiento['filas'] if f[0].startswith('Prácticas académicas'))
-        self.assertEqual(fila[1:4], ['8', '0', '7'])
+        self.assertEqual((cumplimiento['tipo'], cumplimiento['titulo']), ('tabla', 'Planificado frente a realizado'))
+        self.assertEqual(cumplimiento['cabecera'],
+                         ['Meta', 'Comprometido', 'Registrado', 'Con respaldo', 'Avance', 'Estado', 'Anexo'])
+        numero = {d.exigido.codigo: n for n, d in anexos_numerados(informe)}
+        fila = next(f for f in cumplimiento['filas']
+                    if f[0] == 'Prácticas académicas ejecutadas con asistencia y evidencias')
+        self.assertEqual(fila[1:], ['8', '0', '0', '0 %', 'No cumple', f"Anexo {numero['PRACTICAS-FT02']}"])
         propia = next(f for f in cumplimiento['filas'] if f[0] == 'Jornada de puertas abiertas')
         self.assertEqual(propia[2], '—')
+        # Solo lo que no se cumple, con lo que reporta la unidad y el anexo que trae el detalle.
+        faltas = bloques[2]
+        self.assertEqual((faltas['titulo'], faltas['cabecera']), ('Qué falta para cumplir', ['Meta', 'Qué falta']))
+        estados = {f[0]: f[5] for f in cumplimiento['filas']}
+        self.assertTrue(all(estados[nombre] != 'Cumple' for nombre, _detalle in faltas['filas']))
+        detalle = dict(faltas['filas'])['Prácticas académicas ejecutadas con asistencia y evidencias']
+        self.assertIn('La unidad reporta 7.', detalle)
+        self.assertIn('Observación de la unidad: Una práctica se movió a B.', detalle)
+        self.assertIn(f"Detalle en el anexo {numero['PRACTICAS-FT02']}.", detalle)
         self.assertEqual(registros_del_periodo(self.unidad, date(2026, 3, 9), date(2026, 7, 17))['sesiones'], 0)
 
         redaccion_informe = obtener_redaccion(informe)
         redaccion_informe.contenido = contenido
         redaccion_informe.save()
-        # El seguimiento de mejora es un anexo: sale con el informe que lo presenta.
         generar_documento(abrir_entrega(informe), self.coordinador)
-        mejora = self.documento('ACCIONES-MEJORA')
-        self.assertEqual(mejora.estado, 'generado')
-        self.assertTrue(mejora.recurso.archivo.read().startswith(b'%PDF'))
+        # La planificación compromete investigación y transferencia: el anexo condicional se presenta.
+        investigacion = self.documento('INVESTIGACION')
+        self.assertEqual(investigacion.estado, 'generado')
+        self.assertTrue(investigacion.recurso.archivo.read().startswith(b'%PDF'))
+        # Las acciones de mejora ya no son un anexo (documentos.0025): el apartado de mejora del informe trae las
+        # de la unidad y los incumplimientos del expediente del período.
+        self.assertFalse(DocumentoExpediente.objects.filter(unidad=self.unidad,
+                                                            exigido__codigo='ACCIONES-MEJORA').exists())
+        compuesto = componer(informe, contenido, date(2026, 3, 9), date(2026, 7, 17))
+        mejora = next(s for s in compuesto['secciones'] if s['codigo'] == 'mejora')['bloques']
+        self.assertIn('Entregas del expediente fuera de plazo u observadas', [b.get('titulo') for b in mejora])
+        self.assertIn('Habilitar bitácora', str([b.get('filas') for b in mejora]))
 
 
 class EditorEnLaConsolaTests(BaseDeRedaccion):
@@ -404,7 +432,8 @@ class EditorEnLaConsolaTests(BaseDeRedaccion):
         self.assertRegex(pagina.content.decode(),
             r'<td>\s*Luis Técnico\s*</td>\s*<td>\s*Responsable técnico\s*</td>')
         self.assertContains(pagina, 'Área de racks')
-        self.assertContains(pagina, 'Prácticas académicas planificadas y ejecutadas')
+        self.assertContains(pagina, 'Prácticas académicas ejecutadas con asistencia y evidencias')
+        self.assertContains(pagina, 'Prácticas académicas planificadas y aprobadas')
         self.assertContains(pagina, 'Para finalizar')
         self.assertContains(pagina, 'Todavía falta:')
         self.assertContains(pagina, 'Generar y enviar')
@@ -501,8 +530,8 @@ class EditorEnLaConsolaTests(BaseDeRedaccion):
 
     def test_solo_los_redactables_abren_el_editor_y_solo_quien_gestiona(self):
         self.client.force_login(self.coordinador)
-        guias = self.documento('GUIAS')
-        self.assertEqual(self.client.get(self.ruta_editor(guias)).status_code, 404)
+        practicas = self.documento('PRACTICAS-FT02')
+        self.assertEqual(self.client.get(self.ruta_editor(practicas)).status_code, 404)
         ajeno = get_user_model().objects.create_user('ajeno-redaccion', password='clave-segura')
         identificar(ajeno, tipo_usuario='estudiante')
         self.client.force_login(ajeno)

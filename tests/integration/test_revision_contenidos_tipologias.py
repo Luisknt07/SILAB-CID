@@ -68,7 +68,19 @@ class ResumenesDePerfilTests(SimpleTestCase):
                                       dict(sesiones=2, horas=1.5)))
         self.assertEqual(pares['Sesiones registradas'], '2')
         self.assertEqual(pares['Horas de uso efectivas'], '1.5')
-        self.assertEqual(pares['Incidencias reportadas'], 'Sin medición disponible')
+        self.assertEqual(pares['Incidencias de equipos reportadas'], 'Sin medición disponible')
+
+    def test_el_uso_del_informe_no_repite_las_cifras_de_las_metas(self):
+        # Prácticas, guías, habilitaciones, servicios, desechos y mantenimientos están una sola vez: en el
+        # apartado de cumplimiento y en su anexo (documentos.0025).
+        pares = self.resumen('laboratorios')
+        self.assertEqual(list(pares)[:5], ['Sesiones registradas', 'Sesiones atendidas', 'Horas de uso efectivas',
+                                           'Usuarios distintos', 'Incidencias de equipos reportadas'])
+        self.assertEqual(pares['Incidencias de equipos reportadas'], '0')
+        for repetida in ('Prácticas planificadas (FT02)', 'Prácticas ejecutadas y validadas (FT03)', 'Guías aprobadas',
+                         'Habilitaciones de acceso', 'Servicios completados', 'Registros de desechos',
+                         'Mantenimientos completados / programados'):
+            self.assertNotIn(repetida, pares)
 
     def test_ningun_perfil_declara_sustituido_el_manual_de_funciones(self):
         for base in ('laboratorios', 'plantas_piloto', 'centro_experimental', 'observatorios'):

@@ -157,7 +157,8 @@ class SelectorPorFamiliasTests(BaseDeReportes):
                 # ocho familias siguen siendo las mismas.
                 self.assertContains(panel, familia)
         self.assertContains(panel, 'Planificación semestral de prácticas por asignatura')
-        self.assertContains(panel, 'FT02 · Planificación de uso de laboratorios')
+        self.assertContains(panel, 'Prácticas planificadas: asignatura, docente, escenario y guía')
+        self.assertContains(panel, 'Prácticas ejecutadas: asistencia, bitácora y evidencias')
         # Un laboratorio que no produce no ofrece producción, pero sí transferencia.
         self.assertNotContains(panel, 'categoria_reporte=produccion')
         self.assertNotContains(panel, 'Producción (plantas piloto)')

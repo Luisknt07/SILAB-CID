@@ -150,8 +150,10 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
                 with ZipFile(BytesIO(render_practices_xlsx([], unidad=unidad))) as archivo:
                     plan = archivo.read('xl/worksheets/sheet1.xml').decode()
                     ejecucion = archivo.read('xl/worksheets/sheet2.xml').decode()
-                    self.assertEqual('UPEC-P10-S01-FT02' in plan, oficial)
-                    self.assertEqual('UPEC-P10-S01-FT03' in ejecucion, oficial)
+                    # Códigos internos del formato de laboratorio, sin los nombres FT02/FT03.
+                    self.assertEqual('SLCID-PRACTICAS-PLAN' in plan, oficial)
+                    self.assertEqual('SLCID-PRACTICAS-EJECUCION' in ejecucion, oficial)
+                    self.assertNotIn('UPEC-P10-S01-FT0', plan + ejecucion)
                     self.assertEqual('xl/worksheets/sheet3.xml' in archivo.namelist(), oficial)
 
     def test_xlsx_archivado_conserva_historia_y_declara_falta_de_vigencia(self):

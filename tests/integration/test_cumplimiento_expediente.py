@@ -223,7 +223,7 @@ class ValidarDesdeLaConsolaTests(BaseDeCumplimiento):
         with self.assertRaises(ValidationError):
             validar_documento(self.documento('INFORME-SEMESTRAL'), self.coordinador)
         with self.assertRaises(ValidationError) as contexto:
-            validar_documento(self.documento('GUIAS'), self.coordinador)
+            validar_documento(self.documento('PRACTICAS-FT02'), self.coordinador)
         self.assertIn('es un anexo', ' '.join(contexto.exception.messages))
     def test_la_consola_ofrece_enviar_y_reserva_observaciones_para_direccion(self):
         documento = self.documento('INFORME-SEMESTRAL')
@@ -249,8 +249,12 @@ class ValidarDesdeLaConsolaTests(BaseDeCumplimiento):
         documento.refresh_from_db()
         self.assertEqual(documento.estado, 'validado')
         self.assertEqual(documento.validado_por, self.coordinador)
-        guias = self.documento('GUIAS')
-        self.assertEqual((guias.estado, guias.validado_por), ('validado', self.coordinador))
+        practicas = self.documento('PRACTICAS-FT02')
+        self.assertEqual((practicas.estado, practicas.validado_por), ('validado', self.coordinador))
+        # El anexo condicional que el plan no compromete no se presenta ni se cierra con la entrega.
+        investigacion = self.documento('INVESTIGACION')
+        self.assertEqual(investigacion.estado, 'no_aplica')
+        self.assertIsNone(investigacion.validado_por)
 
     def test_el_borrador_heredado_sin_firma_ni_constancia_no_se_valida(self):
         from django.core.exceptions import ValidationError
@@ -303,13 +307,17 @@ class ValidarDesdeLaConsolaTests(BaseDeCumplimiento):
 class MejoraContinuaTests(BaseDeCumplimiento):
     """El incumplimiento entra como hallazgo, sin que nadie lo transcriba."""
 
-    def test_el_documento_de_mejora_recoge_lo_incumplido(self):
-        from apps.documentos.presentation.expediente_redaccion import incumplimientos_del_periodo
+    def test_el_informe_recoge_lo_incumplido_en_su_apartado_de_mejora(self):
+        from apps.documentos.presentation.expediente_redaccion import (
+            _bloques_de_mejora_formal, incumplimientos_del_periodo,
+        )
 
         documentos = construir_expediente(self.laboratorio, 2026, date(2026, 9, 22))
-        mejora = next(d for d in documentos if d.exigido.codigo == 'ACCIONES-MEJORA' and d.corte == 'A')
+        # Las acciones de mejora van en la sección 8 del informe (documentos.0025), no en un anexo aparte.
+        self.assertNotIn('ACCIONES-MEJORA', {d.exigido.codigo for d in documentos})
+        informe = next(d for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL' and d.corte == 'A')
 
-        filas = incumplimientos_del_periodo(mejora)
+        filas = incumplimientos_del_periodo(informe)
 
         self.assertTrue(filas)
         # Cada hallazgo trae qué documento, de qué período y por qué incumple.
@@ -317,8 +325,10 @@ class MejoraContinuaTests(BaseDeCumplimiento):
         self.assertTrue(documento)
         self.assertEqual(estado, 'Vencido')
         self.assertIn('plazo', motivo)
-        # La propia mejora no se reclama a sí misma.
-        self.assertFalse(any('mejora' in fila[0].lower() for fila in filas))
+        # El informe los presenta tal cual, sin que nadie los transcriba.
+        tabla = next(b for b in _bloques_de_mejora_formal(informe)
+                     if b['titulo'] == 'Entregas del expediente fuera de plazo u observadas')
+        self.assertEqual(tabla['filas'], filas)
 
 
 class DocumentoEnviadoTests(BaseDeCumplimiento):
@@ -507,10 +517,11 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
 
         # El visor conserva la entrega, las consultas y el período elegidos.
         contenido = pagina.content.decode()
-        self.assertIn('anexo=GUIAS&amp;borrador=1', contenido)
+        self.assertIn('anexo=PRACTICAS-FT02&amp;borrador=1', contenido)
         self.assertIn('corte=A&amp;gestionar=INFORME-SEMESTRAL', contenido)
         enlaces = enlaces_de(contenido)
-        anexo = next(a for a in enlaces if parse_qs(urlsplit(a.get('href', '')).query).get('anexo') == ['GUIAS'])
+        anexo = next(a for a in enlaces
+                     if parse_qs(urlsplit(a.get('href', '')).query).get('anexo') == ['PRACTICAS-FT02'])
         self.assertIn('data-ver-pdf', anexo)
         self.assertNotIn('target', anexo)
         self.assertNotIn('data-pdf-directo', anexo)
@@ -539,10 +550,11 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
             'Planificación semestral de actividades de la unidad',
             'Informe semestral de actividades y cumplimiento de la planificación'])
         codigos = {a.exigido.codigo for a in periodo['entregas'][1]['anexos']}
-        self.assertIn('GUIAS', codigos)
-        # El mantenimiento y el inventario viajan con el informe; la planificación, sin anexos.
-        self.assertTrue({'EQUIPAMIENTO', 'INVENTARIO-CORTE'} <= codigos)
-        self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE'} & codigos)
+        # Los cinco anexos del informe (documentos.0025); la planificación, sin anexos.
+        self.assertEqual(codigos, {'PRACTICAS-FT02', 'REGISTRO-USO', 'INDUCCION-SEGURIDAD', 'EQUIPAMIENTO',
+                                   'INVESTIGACION'})
+        self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE',
+                          'INVENTARIO-CORTE', 'GUIAS', 'ACCIONES-MEJORA'} & codigos)
         plan = periodo['entregas'][0]
         self.assertEqual(plan['anexos'], [])
         self.assertEqual(plan['anexos_integrados'], [])
@@ -748,16 +760,16 @@ class RevisionDeAnexosTests(BaseDeCumplimiento):
         from apps.documentos.presentation.expediente import anexos_del, validar_anexo
 
         documento, url = self.informe_firmado()
-        guias = next(a for a in anexos_del(documento) if a.exigido.codigo == 'GUIAS')
-        validar_anexo(guias, self.coordinador)
-        version = guias.version
-        anterior = guias.recurso_id
+        practicas = next(a for a in anexos_del(documento) if a.exigido.codigo == 'PRACTICAS-FT02')
+        validar_anexo(practicas, self.coordinador)
+        version = practicas.version
+        anterior = practicas.recurso_id
 
         self.client.post(url, {'anio': 2026, 'corte': 'A', 'documento': documento.pk, 'accion': 'anexos'})
 
-        guias.refresh_from_db()
-        self.assertEqual((guias.estado, guias.version), ('generado', version + 1))
-        self.assertEqual(guias.recurso.reemplaza_a_id, anterior)
+        practicas.refresh_from_db()
+        self.assertEqual((practicas.estado, practicas.version), ('generado', version + 1))
+        self.assertEqual(practicas.recurso.reemplaza_a_id, anterior)
         otro = next(a for a in anexos_del(documento) if a.exigido.codigo == 'REGISTRO-USO')
         self.assertEqual(otro.version, version + 1)
 
@@ -959,7 +971,7 @@ class GeneracionExplicitaDeAnexosTests(BaseDeCumplimiento):
         pagina = self.client.get(url, {'anio': 2026, 'corte': 'A'})
 
         pdf = reverse('gestion_reporte_unidad_pdf', args=[self.laboratorio.slug])
-        self.assertContains(pagina, 'anexo=GUIAS&amp;borrador=1')
+        self.assertContains(pagina, 'anexo=PRACTICAS-FT02&amp;borrador=1')
         self.assertContains(pagina, 'Informes de gestión')
         # Solo se ofrecen las consultas con registros de la unidad; la auditoría, siempre.
         consultas = pagina.content.decode().split('id="informes-gestion"', 1)[1].split('</section>', 1)[0]
@@ -984,15 +996,15 @@ class GeneracionExplicitaDeAnexosTests(BaseDeCumplimiento):
         informe = next(
             d for d in construir_expediente(self.laboratorio, 2026, date(2026, 9, 22))
             if d.exigido.codigo == 'INFORME-SEMESTRAL' and d.corte == 'A')
-        guias = next(
+        practicas = next(
             d for d in construir_expediente(self.laboratorio, 2026, date(2026, 9, 22))
-            if d.exigido.codigo == 'GUIAS' and d.corte == 'A')
-        self.assertEqual(guias.version, 0)
+            if d.exigido.codigo == 'PRACTICAS-FT02' and d.corte == 'A')
+        self.assertEqual(practicas.version, 0)
         self.client.post(url, {'anio': 2026, 'corte': 'A', 'documento': informe.pk, 'accion': 'anexos'})
-        guias.refresh_from_db()
-        self.assertEqual(guias.version, 1)
+        practicas.refresh_from_db()
+        self.assertEqual(practicas.version, 1)
 
         self.client.post(url, {'anio': 2026, 'corte': 'A', 'documento': informe.pk, 'accion': 'anexos'})
 
-        guias.refresh_from_db()
-        self.assertEqual(guias.version, 2)
+        practicas.refresh_from_db()
+        self.assertEqual(practicas.version, 2)

@@ -8,9 +8,9 @@ ALCANCE = {
     'asignaturas': (
         'Compara las sesiones previstas por asignatura con su ejecución. Una sesión sin escenario, responsable, guía o ejecución validada conserva sus pendientes.',),
     'planificaciones': (
-        'FT02 registra la programación. Los borradores y planes archivados se distinguen de las planificaciones aprobadas y vigentes; programar una práctica no demuestra su ejecución.',),
+        'La planificación registra cada práctica programada. Los borradores y planes archivados se distinguen de las planificaciones aprobadas y vigentes; programar una práctica no demuestra su ejecución.',),
     'ejecuciones': (
-        'FT03 registra lo ejecutado, la asistencia, los recursos y el resultado de aprendizaje. Su validación operativa y la integridad de las evidencias se muestran por separado.',),
+        'La ejecución registra lo realizado, la asistencia, los recursos y el resultado de aprendizaje. Su validación operativa y la integridad de las evidencias se muestran por separado.',),
     'reservas': (
         'Una solicitud o reserva no demuestra atención. Las horas y participantes efectivos proceden de sesiones cerradas como atendidas.',),
     'mantenimiento': (

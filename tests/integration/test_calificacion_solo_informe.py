@@ -158,6 +158,9 @@ class LosAnexosDicenLoQueContienenTests(BaseDeCumplimiento):
         self.assertFalse(inventario & equipamiento)
 
     def test_la_vista_previa_de_acciones_de_mejora_es_el_documento_que_se_archiva(self):
+        # Retirado en documentos.0025 (las acciones van en la sección 8 del informe); un expediente anterior que
+        # lo conserva sigue abriendo su vista previa con el mismo documento que se archiva.
+        DocumentoExigido.objects.filter(codigo='ACCIONES-MEJORA').update(activo=True)
         anexo = next(d for d in construir_expediente(self.laboratorio, 2026, date(2026, 9, 22))
                      if d.exigido.codigo == 'ACCIONES-MEJORA' and d.corte == 'A')
         self.client.force_login(self.coordinador)

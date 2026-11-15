@@ -234,15 +234,18 @@ class ProtocoloSeguridadTests(BaseDeRedaccion):
         self.assertEqual(len(compuesto['secciones']), 9)
         pdf = PdfReader(BytesIO(pdf_del_documento(self.protocolo,
             DocumentoElaborado(documento=self.protocolo, contenido=contenido), *self.tramo())))
-        texto = '\n'.join(p.extract_text() or '' for p in pdf.pages)
+        paginas = [p.extract_text() or '' for p in pdf.pages]
+        texto = '\n'.join(paginas)
         self.assertTrue(pdf.outline)
-        # Encabezado del formato institucional: nombre, código, revisión, período y versión.
-        self.assertIn('FORMATO PROTOCOLO DE SEGURIDAD', texto)
-        self.assertIn('Código: SLCID-LAB-SEGURIDAD', texto)
-        self.assertIn('Revisión: 01', texto)
-        self.assertIn('Período: Documento permanente', texto)
-        self.assertIn('Versión:', texto)
-        self.assertNotIn('CONTENIDO', texto)
+        # Documento principal: portada, contenido con su índice y el encabezado del informe institucional, con el
+        # código de referencia y la cobertura en una línea (sin revisión ni versión del formato de los anexos).
+        self.assertIn('Código de referencia: SLCID-LAB-SEGURIDAD', paginas[0])
+        self.assertIn('CONTENIDO', paginas[1])
+        self.assertIn('Código de referencia: SLCID-LAB-SEGURIDAD · Cobertura: Documento permanente', texto)
+        self.assertNotIn('Revisión: 01', texto)
+        self.assertNotIn('Versión:', texto)
+        self.assertTrue(any(a.get_object().get('/Dest') for pagina in pdf.pages
+                            for a in pagina.get('/Annots', [])))
         self.assertIn('EMERGENCIAS Y COMUNICACIÓN', texto)
 
     def test_borrador_muestra_responsables_al_inicio_sin_firma_manual_ni_duplicados(self):
@@ -251,10 +254,11 @@ class ProtocoloSeguridadTests(BaseDeRedaccion):
         self.assertTrue(admite_aprobacion_en_linea(self.protocolo))
         pdf = PdfReader(BytesIO(pdf_del_documento(self.protocolo,
             obtener_redaccion(self.protocolo), *self.tramo(), estricto=False)))
-        # Sin portada: los responsables abren la primera página, antes del primer apartado.
-        pagina_responsables = pdf.pages[0].extract_text()
+        # Tras la portada, los responsables abren la segunda página, antes del contenido.
+        pagina_responsables = pdf.pages[1].extract_text()
         texto = '\n'.join(p.extract_text() or '' for p in pdf.pages)
-        self.assertLess(texto.index('RESPONSABLES DEL DOCUMENTO'), texto.index('\n1. '))
+        self.assertLess(pagina_responsables.index('RESPONSABLES DEL DOCUMENTO'),
+                        pagina_responsables.index('CONTENIDO'))
         self.assertIn('Pendiente de envío a Dirección', pagina_responsables)
         self.assertEqual(texto.count('RESPONSABLES DEL DOCUMENTO'), 1)
         self.assertNotIn('9. RESPONSABLES', texto)
@@ -270,11 +274,10 @@ class ProtocoloSeguridadTests(BaseDeRedaccion):
         self.assertIsNotNone(c.enviado_en)
         with c.recurso.archivo.open('rb') as archivo:
             emitido = PdfReader(BytesIO(archivo.read()))
-        # El cuadro de aprobación ocupa la primera página; el contenido empieza en la siguiente.
-        inicio = emitido.pages[0].extract_text()
+        # Tras la portada, el cuadro de aprobación abre la segunda página, antes del contenido.
+        inicio = emitido.pages[1].extract_text()
         self.assertIn('RESPONSABILIDAD Y APROBACIÓN', inicio)
-        self.assertIn('DOCUMENTO EMITIDO PARA REVISIÓN', inicio)
-        self.assertNotIn('1. ', emitido.pages[0].extract_text().split('RESPONSABILIDAD Y APROBACIÓN')[-1])
+        self.assertLess(inicio.index('DOCUMENTO EMITIDO PARA REVISIÓN'), inicio.index('CONTENIDO'))
         self.assertIn('0400000001', inicio)
         self.assertIn('PENDIENTE DE APROBACIÓN', inicio)
         self.assertFalse(aprobacion_vigente(self.protocolo))
@@ -289,8 +292,8 @@ class ProtocoloSeguridadTests(BaseDeRedaccion):
             copia = copia_aprobada(archivo.read(), c)
         aprobado = PdfReader(BytesIO(copia))
         texto = '\n'.join(p.extract_text() or '' for p in aprobado.pages)
-        inicio_aprobado = aprobado.pages[0].extract_text()
-        self.assertIn('DOCUMENTO APROBADO POR DIRECCIÓN', inicio_aprobado)
+        inicio_aprobado = aprobado.pages[1].extract_text()
+        self.assertLess(inicio_aprobado.index('DOCUMENTO APROBADO POR DIRECCIÓN'), inicio_aprobado.index('CONTENIDO'))
         self.assertIn('RESPONSABILIDAD Y APROBACIÓN', inicio_aprobado)
         self.assertNotIn('9. RESPONSABLES', texto)
         self.assertNotIn('versión firmada electrónicamente', texto)

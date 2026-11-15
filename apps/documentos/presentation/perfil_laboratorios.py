@@ -10,15 +10,17 @@ NOMBRES = {
     'PLAN-COMPRAS-ANUAL': 'Plan anual de compras y presupuesto para el año siguiente',
     'PLANIFICACION': 'Planificación semestral de actividades de la unidad',
     'INFORME-SEMESTRAL': 'Informe semestral de actividades y cumplimiento de la planificación',
-    'REGISTRO-USO': 'Registro de uso de laboratorios: sesiones, horas y usuarios por finalidad',
-    'PRACTICAS-FT02': 'FT02 · Planificación de uso de laboratorios',
-    'PRACTICAS-FT03': 'FT03 · Registro de ejecución y evaluación de prácticas',
+    # Anexos del informe (documentos.0025): cinco, cada uno respalda un grupo de metas.
+    'REGISTRO-USO': 'Uso de la unidad: sesiones, horas y usuarios',
+    'PRACTICAS-FT02': 'Prácticas académicas: planificación, ejecución y guías',
+    'INDUCCION-SEGURIDAD': 'Seguridad y desechos: inducciones, inspecciones y desechos',
+    'EQUIPAMIENTO': 'Equipos e inventario: revisión física, mantenimiento y existencias',
+    'INVESTIGACION': 'Investigación y vinculación: resultados, transferencia y servicios',
+    # Retirados en documentos.0025; sus nombres se conservan para leer lo ya archivado.
+    'PRACTICAS-FT03': 'Registro de ejecución y evaluación de prácticas',
     'GUIAS': 'Registro de guías de práctica y vinculación con el syllabus',
-    'INDUCCION-SEGURIDAD': 'Registro de inducciones e inspecciones de seguridad',
     'DESECHOS': 'Registro de generación y gestión de desechos peligrosos y especiales',
-    'EQUIPAMIENTO': 'Mantenimiento, disponibilidad y funcionalidad del equipamiento',
     'INVENTARIO-CORTE': 'Inventario integral de recursos de la unidad',
-    'INVESTIGACION': 'Informe de resultados de investigación aplicada y desarrollo tecnológico',
     'TRANSFERENCIA': 'Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad',
     'ACCIONES-MEJORA': 'Seguimiento de acciones de mejora',
 }
@@ -35,25 +37,24 @@ REQUISITOS = {
                           'Anexos revisados, evidencias reales, dificultades y acciones de mejora; emisión y aprobación en la plataforma.'),
     'REGISTRO-USO': ('Sesiones efectivamente realizadas, fechas, horas, usuarios y finalidad.',
                      'Conciliación independiente que permita comprobar la cobertura del registro; no confundir reservas con atenciones.'),
-    'PRACTICAS-FT02': ('Asignatura, unidad, fecha, escenario, docente y responsable técnico.',
-                       'Tema, objetivos, resultados de aprendizaje, recursos, seguridad y guía; aprobación y versión verificables.'),
-    'PRACTICAS-FT03': ('Referencia al FT02, ejecución, asistencia, bitácora y evaluación de resultados.',
+    'PRACTICAS-FT02': ('Prácticas aprobadas con asignatura, fecha, escenario, docente, responsable técnico y guía.',
+                       'Prácticas ejecutadas con asistencia y evidencia; guías vigentes, aprobadas y vinculadas al syllabus.'),
+    'PRACTICAS-FT03': ('Referencia a la práctica planificada, ejecución, asistencia, bitácora y evaluación de resultados.',
                        'Evidencias identificadas de la sesión: fotografías, capturas, informes o productos, según corresponda.'),
     'GUIAS': ('Guías individuales FT04 vigentes, con elaboración, revisión y aprobación documentadas.',
               'Vínculo verificable con asignatura, tema y resultado del syllabus; el listado no sustituye las guías.'),
-    'INDUCCION-SEGURIDAD': ('Protocolo vigente e inducción verificable de usuarios nuevos.',
-                            'Inspecciones mensuales al corte, hallazgos, responsables, acciones, plazos y respaldo.'),
+    'INDUCCION-SEGURIDAD': ('Inducción verificable de usuarios nuevos e inspecciones mensuales al corte, con respaldo.',
+                            'Desechos generados con cantidad, almacenamiento, responsable y entrega al gestor autorizado.'),
     'DESECHOS': ('Tipo, origen, cantidad, fecha, envase, etiquetado, almacenamiento y responsable.',
                  'Cuando se entregue: gestor, autorización o licencia, manifiesto y respaldo de recepción.'),
-    'EQUIPAMIENTO': ('Órdenes de mantenimiento programadas y ejecutadas del período con resultado, responsable e informe; '
-                     'medición del programa anual crítico de equipos e infraestructura (80 %).',
-                     'Estado y períodos de indisponibilidad al corte real, verificaciones funcionales e incidencias; '
-                     'disponibilidad no equivale a funcionalidad comprobada.'),
+    'EQUIPAMIENTO': ('Acta de revisión física del inventario y datos pendientes de identificación de los equipos.',
+                     'Mantenimientos del período frente al programa crítico (80 %), equipos fuera de servicio e '
+                     'insumos bajo su mínimo de reposición.'),
     'INVENTARIO-CORTE': ('Corte de cada semestre: equipos, software, simuladores, espacios, reactivos e insumos.',
                          'Custodios, ubicación, condición, existencia física y acta integral respaldada; existencias, lotes y '
                          'movimientos de insumos del período, con diferencias conciliadas.'),
-    'INVESTIGACION': ('Proyecto o trabajo, responsable, producto obtenido y resultado verificable.',
-                       'Respaldo real del informe, prototipo, publicación, conjunto de datos u otro producto; una reserva no acredita resultados.'),
+    'INVESTIGACION': ('Solo si el plan lo compromete: productos de investigación con su proyecto, responsable y respaldo.',
+                       'Transferencias y servicios entregados y aceptados; una solicitud o reserva no acredita resultados.'),
     'TRANSFERENCIA': ('Producto o servicio entregado, responsable, destinatario y fecha.',
                        'Respaldo de entrega y aceptación del beneficiario; una solicitud o reserva no acredita transferencia.'),
     'ACCIONES-MEJORA': ('Hallazgo, acción concreta, responsable, plazo, avance y respaldo.',
@@ -64,18 +65,19 @@ REQUISITOS = {
 # (asignaturas, mantenimiento, inventario, préstamos…) son consultas de gestión.
 REPORTES = {
     'asignaturas': 'Planificación semestral de prácticas por asignatura',
-    'planificaciones': NOMBRES['PRACTICAS-FT02'],
-    'ejecuciones': NOMBRES['PRACTICAS-FT03'],
+    # Consultas de detalle; el anexo del informe reúne planificación, ejecución y guías.
+    'planificaciones': 'Prácticas planificadas: asignatura, docente, escenario y guía',
+    'ejecuciones': 'Prácticas ejecutadas: asistencia, bitácora y evidencias',
     'reservas': NOMBRES['REGISTRO-USO'],
     'mantenimiento': 'Informe de mantenimiento: planificación, ejecución e incidencias',
-    'equipamiento': NOMBRES['EQUIPAMIENTO'],
+    'equipamiento': 'Mantenimiento, disponibilidad y funcionalidad del equipamiento',
     'recursos': NOMBRES['INVENTARIO-CORTE'],
     'inventario': 'Inventario de reactivos e insumos: existencias, lotes y movimientos',
     'prestamos': 'Registro de préstamos y devoluciones de equipos',
     'guias': NOMBRES['GUIAS'],
-    'seguridad': NOMBRES['INDUCCION-SEGURIDAD'],
+    'seguridad': 'Inducciones, inspecciones y controles de seguridad',
     'desechos': NOMBRES['DESECHOS'],
-    'investigacion': NOMBRES['INVESTIGACION'],
+    'investigacion': 'Resultados de investigación aplicada y desarrollo tecnológico',
     'transferencia': NOMBRES['TRANSFERENCIA'],
     'cursos': 'Formación: cursos y eventos, ediciones, inscripciones y certificados',
     'finanzas': 'Informe financiero de servicios: ingresos, egresos y costos',
@@ -109,7 +111,9 @@ def referencia_interna(documento):
 
     sufijo = {'PLANIFICACION': 'PLAN', 'INFORME-SEMESTRAL': 'INFORME',
               'PLAN-COMPRAS-ANUAL': 'COMPRAS', 'ACCIONES-MEJORA': 'MEJORA',
-              'PROTOCOLO-BIOSEGURIDAD': 'SEGURIDAD'}.get(
+              'PROTOCOLO-BIOSEGURIDAD': 'SEGURIDAD', 'REGISTRO-USO': 'USO', 'PRACTICAS-FT02': 'PRACTICAS',
+              'INDUCCION-SEGURIDAD': 'SEGURIDAD-DESECHOS', 'EQUIPAMIENTO': 'EQUIPOS-INVENTARIO',
+              'INVESTIGACION': 'INVESTIGACION-VINCULACION'}.get(
                   documento.exigido.codigo, documento.exigido.codigo)
     perfil = {'laboratorios': 'LAB', 'plantas_piloto': 'PP',
               'centro_experimental': 'CE', 'observatorios': 'OBS'}.get(

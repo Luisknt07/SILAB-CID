@@ -199,9 +199,28 @@ class CircuitoMejoraTests(BaseDelExpediente):
         self.assertEqual((informe.anio, informe.corte), (ANIO, 'A'))
         self.assertIsNone(informe.remitido_en)
 
-    def test_anexo_incluye_acciones_formales_y_avances(self):
+    def test_el_informe_incluye_acciones_formales_y_avances(self):
+        from apps.documentos.presentation.expediente_redaccion import _bloques_de_mejora_formal
+
+        informe = self.resuelto()
+        tarea = self.tramitar(informe, 'crear_accion_mejora', descripcion='Acción formal verificable',
+                             responsable=str(self.coordinador.pk), vence_el=timezone.localdate().isoformat())
+        self.tramitar(informe, 'seguir_mejora', self.coordinador,
+                      tarea=tarea.pk, detalle='Avance registrado verificable')
+        # Las acciones de mejora van en la sección 8 del informe semestral (documentos.0025).
+        documento = self.documento(self.laboratorio, 'INFORME-SEMESTRAL', 'A')
+        bloques = {b['titulo']: b for b in _bloques_de_mejora_formal(documento)}
+        acciones = bloques['Acciones dispuestas por la Dirección']['filas']
+        self.assertEqual([(fila[0], fila[1]) for fila in acciones], [(str(tarea.pk), 'Acción formal verificable')])
+        avances = bloques['Seguimiento de esas acciones']['filas']
+        self.assertEqual([(fila[0], fila[3]) for fila in avances], [(str(tarea.pk), 'Avance registrado verificable')])
+
+    def test_el_anexo_anterior_de_mejora_incluye_acciones_formales_y_avances(self):
+        from apps.documentos.models.expediente import DocumentoExigido
         from apps.documentos.presentation.expediente_redaccion import pdf_acciones_de_mejora
 
+        # Retirado en documentos.0025: un expediente anterior que conserva el anexo sigue produciéndolo.
+        DocumentoExigido.objects.filter(codigo='ACCIONES-MEJORA').update(activo=True)
         informe = self.resuelto()
         tarea = self.tramitar(informe, 'crear_accion_mejora', descripcion='Acción formal verificable',
                              responsable=str(self.coordinador.pk), vence_el=timezone.localdate().isoformat())

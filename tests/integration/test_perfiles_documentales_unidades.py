@@ -11,7 +11,7 @@ from apps.directorio_unidades.models.core import Unidad
 from apps.documentos.models.expediente import DocumentoExigido, DocumentoExpediente
 from apps.documentos.presentation.expediente import anexos_del, construir_expediente, leer_expediente
 from apps.documentos.presentation.expediente_catalogo import (
-    CATALOGO, CATALOGO_PERFILES, NOMBRES_ESTANDAR_ANTERIORES, TIPOS_CATALOGO_PERFILES,
+    CATALOGO, CATALOGO_PERFILES, NOMBRES_ESTANDAR_ANTERIORES, RETIRADOS, TIPOS_CATALOGO_PERFILES,
     asegurar_catalogo,
 )
 from apps.documentos.presentation.perfil_unidades import (
@@ -29,12 +29,13 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
         return SimpleNamespace(dependencia=base, codigo_base=base)
 
     def test_el_observatorio_no_hereda_formatos_de_practicas_ni_controles_biologicos(self):
-        # Tampoco el registro de uso: el observatorio no tiene meta de sesiones que respaldar.
-        for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'PRACTICAS-FT03',
-                       'GUIAS', 'INDUCCION-SEGURIDAD', 'DESECHOS'):
+        # Tampoco el registro de uso: el observatorio no tiene meta de sesiones que respaldar. Ejecución,
+        # guías y desechos ya no son anexos aparte: van en prácticas y en seguridad (documentos.0025).
+        for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'INDUCCION-SEGURIDAD'):
             with self.subTest(codigo=codigo):
                 self.assertFalse(aplica_documento(self.exigido(codigo), 'observatorios'))
                 self.assertTrue(aplica_documento(self.exigido(codigo), 'laboratorios'))
+        self.assertTrue(set(RETIRADOS).isdisjoint(f[0] for f in (*CATALOGO, *CATALOGO_PERFILES)))
 
     def test_protocolo_general_disponible_para_todos_los_perfiles_sin_forzar_bioseguridad(self):
         exigido = self.exigido('PROTOCOLO-BIOSEGURIDAD')
@@ -45,10 +46,18 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
                 self.assertTrue(requisitos)
         observatorio = SimpleNamespace(unidad=self.unidad('observatorios'), exigido=exigido)
         self.assertIn('información', ' '.join(requisitos_para(observatorio)))
-        self.assertFalse(aplica_documento(self.exigido('DESECHOS'), 'observatorios'))
+        # Los desechos van en el anexo de seguridad y desechos, que el observatorio no lleva.
+        self.assertFalse(aplica_documento(self.exigido('INDUCCION-SEGURIDAD'), 'observatorios'))
 
     def test_nombres_anteriores_solo_se_actualizan_en_presentacion_si_la_fuente_sigue_estandar(self):
         for codigo, nombres in NOMBRES_ESTANDAR_ANTERIORES.items():
+            if codigo in RETIRADOS:
+                # Sin definición vigente, el anexo retirado conserva en su historia el nombre con que se archivó.
+                for nombre in nombres:
+                    with self.subTest(codigo=codigo, nombre=nombre):
+                        exigido = SimpleNamespace(codigo=codigo, nombre=nombre, fuente_reporte='', tipos_unidad=[])
+                        self.assertEqual(nombre_para(exigido, self.unidad('laboratorios')), nombre)
+                continue
             for nombre in nombres:
                 exigido = self.exigido(codigo, nombre=nombre)
                 with self.subTest(codigo=codigo, nombre=nombre):
@@ -71,7 +80,8 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
 
     def test_las_practicas_de_planta_y_campo_siguen_disponibles(self):
         for tipo in ('plantas_piloto', 'centro_experimental'):
-            for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS'):
+            # Prácticas académicas reúne planificación, ejecución y guías (documentos.0025).
+            for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'INDUCCION-SEGURIDAD'):
                 with self.subTest(tipo=tipo, codigo=codigo):
                     self.assertTrue(aplica_documento(self.exigido(codigo), tipo))
 
@@ -97,7 +107,7 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
         self.assertFalse(es_laboratorio(observatorio))
 
     def test_historia_enviada_o_evaluada_no_desaparece_al_cambiar_el_perfil(self):
-        base = dict(exigido=self.exigido('PRACTICAS-FT03'), unidad=self.unidad('observatorios'),
+        base = dict(exigido=self.exigido('PRACTICAS-FT02'), unidad=self.unidad('observatorios'),
                     estado='pendiente', entregado_en=None, validado_en=None,
                     recibido_en=None, evaluado_en=None, evaluacion=None)
         self.assertFalse(documento_visible(SimpleNamespace(**base)))
@@ -180,14 +190,16 @@ class PerfilesDocumentalesPersistidosTests(TestCase):
     def test_materializar_cada_tipo_con_sus_anexos_y_sin_los_de_otro_perfil(self):
         for tipo, unidad in self.unidades.items():
             codigos = {d.exigido.codigo for d in construir_expediente(unidad, 2026, hoy=date(2026, 10, 17))}
-            propios = {'laboratorios': {'PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS'},
+            propios = {'laboratorios': {'PRACTICAS-FT02', 'INDUCCION-SEGURIDAD'},
                        'plantas_piloto': {'PP-PRODUCCION', 'PP-CALIDAD'},
                        'centro_experimental': {'CE-ENSAYOS'},
                        'observatorios': {'OBS-DATOS', 'OBS-BOLETINES', 'OBS-EVENTOS'}}[tipo]
             with self.subTest(tipo=tipo):
                 self.assertTrue(propios <= codigos)
+                # Ningún tipo materializa los anexos retirados en documentos.0025.
+                self.assertTrue(set(RETIRADOS).isdisjoint(codigos))
                 if tipo == 'observatorios':
-                    self.assertTrue({'PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS', 'DESECHOS'}.isdisjoint(codigos))
+                    self.assertTrue({'PRACTICAS-FT02', 'REGISTRO-USO', 'INDUCCION-SEGURIDAD'}.isdisjoint(codigos))
                     self.assertIn('PROTOCOLO-BIOSEGURIDAD', codigos)
                 if tipo == 'laboratorios':
                     self.assertFalse(any(c.startswith(('OBS-', 'PP-', 'CE-')) for c in codigos))

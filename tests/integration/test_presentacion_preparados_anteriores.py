@@ -84,7 +84,8 @@ class PresentacionPreparadosAnterioresTests(BaseDeRedaccion):
         pdf = PdfReader(BytesIO(copia))
         texto = '\n'.join(p.extract_text() or '' for p in pdf.pages)
         self.assertTrue(pdf.outline)
-        self.assertIn('FORMATO INFORME SEMESTRAL', texto)
+        # El informe es un documento principal: portada, responsabilidad y contenido.
+        self.assertIn('CONTENIDO', texto)
         self.assertIn('Unidad archivada', texto)
         self.assertIn('Ana Archivada', texto)
         self.assertIn('17', texto)

@@ -245,8 +245,9 @@ class AprobacionDocumentalQrTests(BaseDeRedaccion):
         nueva = copia_aprobada(original, c)
         self.assertNotEqual(nueva, contenido_anterior)
         texto_nuevo = '\n'.join(p.extract_text() or '' for p in PdfReader(BytesIO(nueva)).pages)
-        # El formato vigente declara la versión en el encabezado, no en el cuerpo.
-        self.assertIn('Versión:', texto_nuevo)
+        # El plan de compras es un documento principal: su encabezado lleva código de referencia y cobertura, sin
+        # la versión del formato de los anexos; el sello «Versión: 4» de la copia anterior no se arrastra.
+        self.assertNotIn('Versión:', texto_nuevo)
         self.assertNotIn('Versión del documento:', texto_nuevo)
         self.assertIn('ELABORADO POR', texto_nuevo)
         self.assertIn('APROBADO POR', texto_nuevo)

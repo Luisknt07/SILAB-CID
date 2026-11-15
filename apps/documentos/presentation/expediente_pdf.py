@@ -42,12 +42,21 @@ def _p(texto, estilo):
     return Paragraph(escape('' if texto is None else str(texto)).replace('\n', '<br/>'), estilo)
 
 
+# Los documentos que la unidad firma llevan el formato del informe institucional: portada,
+# responsabilidad y contenido, encabezado con el logo a la izquierda y apartados en verde
+# subrayados en dorado. Los demás conservan el encabezado de tres columnas de los anexos.
+DOCUMENTOS_PRINCIPALES = frozenset(('protocolo', 'compras', 'planificacion', 'informe'))
+
+
 def render_documento_pdf(compuesto):
+    from functools import partial
+
     from reportlab.lib import colors
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import mm
     from reportlab.platypus import CondPageBreak, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-    from apps.core.presentation.estilo_reportes import estilos_informe, titulo_seccion as encabezado_seccion
+    from reportlab.platypus.tableofcontents import TableOfContents
+    from apps.core.presentation.estilo_reportes import dibujar_portada, estilos_informe, titulo_seccion
     from apps.core.presentation.pdf_institucional import metadatos_documento
 
     institucion = identidad_actual()[1]
@@ -59,13 +68,23 @@ def render_documento_pdf(compuesto):
     responsables_al_inicio = bool(sello or compuesto.get('_presentacion_archivada') or
         (documento_origen is not None and admite_aprobacion_en_linea(documento_origen)))
     inicio, fin = compuesto['tramo']
-    # Las cuatro líneas del formato institucional: código, revisión, período y versión.
-    metadatos = metadatos_documento(compuesto['codigo_formato'], periodo=compuesto['periodo'],
-                                    version=compuesto.get('version'))
+    principal = compuesto['tipo'] in DOCUMENTOS_PRINCIPALES
+    encabezado_seccion = partial(titulo_seccion, principal=principal)
+    if principal:
+        etiqueta = compuesto.get('codigo_etiqueta', 'Código')
+        etiqueta = 'Código de referencia' if etiqueta == 'Referencia interna' else etiqueta
+        metadatos = (f"{etiqueta}: {compuesto['codigo_formato']}", f"Cobertura: {compuesto['periodo']}")
+        formato = compuesto['titulo']
+    else:
+        # Las cuatro líneas del formato institucional: código, revisión, período y versión.
+        metadatos = metadatos_documento(compuesto['codigo_formato'], periodo=compuesto['periodo'],
+                                        version=compuesto.get('version'))
+        formato = f"Formato {compuesto['titulo']}"
     dibujar_encabezado, CanvasNumerado, medidas = marco_institucional(
-        formato=f"Formato {compuesto['titulo']}",
+        formato=formato,
         metadatos=metadatos,
         pie='Expediente de calidad',
+        estilo='informe' if principal else None,
     )
     tinta = medidas['colores']
     if compuesto.get('borrador'):
@@ -95,24 +114,31 @@ def render_documento_pdf(compuesto):
         invariant=True if compuesto.get('_presentacion_archivada') else None,
     )
     base = getSampleStyleSheet()
-    estilos = estilos_informe(tinta)
+    estilos = estilos_informe(tinta, principal=principal)
     fecha = compuesto.get('_fecha_elaboracion') or timezone.now()
 
     titulo_documento = Paragraph(
-        escape(f"{compuesto['titulo']}: {compuesto['unidad'].nombre}"),
+        escape(compuesto['unidad'].nombre if principal else f"{compuesto['titulo']}: {compuesto['unidad'].nombre}"),
         ParagraphStyle('doc', parent=base['Title'], fontName=estilos['bloque'].fontName, fontSize=14, leading=18,
-                       textColor=verde, alignment=1, spaceBefore=2, spaceAfter=4),
+                       textColor=tinta['oscuro'] if principal else verde, alignment=1, spaceBefore=2, spaceAfter=4),
     )
     cobertura = (compuesto['periodo'] if compuesto['tipo'] == 'protocolo' or pac_por_areas else
                  f"{compuesto['periodo']} · {inicio:%d/%m/%Y} - {fin:%d/%m/%Y}")
     subtitulo_documento = Paragraph(
         escape(f"{cobertura} · Fecha de elaboración: {timezone.localtime(fecha):%d/%m/%Y %H:%M}"),
         ParagraphStyle('docs', parent=base['BodyText'], fontName=estilos['texto'].fontName,
-                       fontSize=8, leading=11, textColor=gris, alignment=1),
+                       fontSize=9 if principal else 8, leading=11, textColor=gris, alignment=1),
     )
-    # Sin portada ni índice: la primera página ya es el documento, con su encabezado.
-    historia = [titulo_documento, subtitulo_documento, Spacer(1, 4 * mm)]
-    if sello:
+    if principal:
+        # Portada, luego responsabilidad y contenido, y el documento desde la tercera página.
+        historia = [PageBreak()]
+    else:
+        # Sin portada ni índice: la primera página ya es el documento, con su encabezado.
+        historia = [titulo_documento, subtitulo_documento, Spacer(1, 4 * mm)]
+    if sello and principal:
+        historia.extend([encabezado_seccion('RESPONSABILIDAD Y APROBACIÓN', ancho_util, tinta),
+                         Spacer(1, 3 * mm), BloqueValidacion(sello), Spacer(1, 6 * mm)])
+    elif sello:
         # El cuadro de aprobación es un formulario que se reemplaza en la copia aprobada; va solo en
         # la primera página para que su texto no se confunda con las tablas al recuperar el contenido.
         historia.extend([encabezado_seccion('RESPONSABILIDAD Y APROBACIÓN',ancho_util,tinta),
@@ -132,6 +158,12 @@ def render_documento_pdf(compuesto):
             Spacer(1,3*mm),responsables,Spacer(1,6*mm)])
         if compuesto.get('borrador'):
             historia.extend([_p('Borrador. Pendiente de envío a Dirección.', estilos['meta']), Spacer(1,3*mm)])
+    if principal:
+        indice = TableOfContents()
+        indice.levelStyles = [ParagraphStyle('ContenidoIndice', fontName=estilos['texto'].fontName, fontSize=10,
+                                             leading=12, textColor=tinta['oscuro'], spaceBefore=6)]
+        historia.extend([encabezado_seccion('CONTENIDO', ancho_util, tinta), Spacer(1, 3 * mm), indice,
+                         PageBreak(), titulo_documento, subtitulo_documento, Spacer(1, 3 * mm)])
 
     def tabla(cabecera, filas, anchos=None, resaltar_ultima=False, conservar_total=False):
         con_cabecera=any(cabecera)
@@ -172,14 +204,19 @@ def render_documento_pdf(compuesto):
         if conservar_total and len(filas) >= 2:
             estilo.append(('NOSPLIT', (0, len(datos) - 2), (-1, len(datos) - 1)))
         t.setStyle(TableStyle(estilo))
-        muestra=Table(datos[:2 if con_cabecera else 1],colWidths=anchos)
+        if principal:
+            t.spaceAfter = 6
+        # Una tabla empieza en la hoja solo si caben su cabecera y sus primeras filas.
+        muestra=Table(datos[:(4 if principal else 2) if con_cabecera else 1],colWidths=anchos)
         muestra.setStyle(TableStyle([('LEFTPADDING',(0,0),(-1,-1),6),('RIGHTPADDING',(0,0),(-1,-1),6),
             ('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
         t.altura_inicio=muestra.wrap(ancho_util,10000)[1]
         return t
 
     def incorporar_tabla(cuerpo, t):
-        if (compuesto['tipo'] == 'protocolo' or pac_por_areas) and cuerpo and cuerpo[-1].getKeepWithNext():
+        # El título del apartado, su separación y el subtítulo viajan con la tabla: ninguno queda
+        # solo al pie de una hoja.
+        if (principal or pac_por_areas) and cuerpo and cuerpo[-1].getKeepWithNext():
             encabezados = []
             while cuerpo and cuerpo[-1].getKeepWithNext():
                 encabezados.insert(0, cuerpo.pop())
@@ -307,6 +344,8 @@ def render_documento_pdf(compuesto):
                         ('BACKGROUND', (0, 0), (0, -1), suave), ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                         ('TOPPADDING', (0, 0), (-1, -1), 3), ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
                     ]+([('BACKGROUND',(2,i),(2,i),suave) for i in dobles]+spans if ficha else [])))
+                    if principal:
+                        t.spaceAfter = 6
                     incorporar_tabla(cuerpo,t)
             elif bloque['tipo'] == 'parrafo':
                 texto = texto_archivado(bloque['texto'], seccion)
@@ -399,6 +438,15 @@ def render_documento_pdf(compuesto):
             huso = local.strftime('%z')
             lienzo.setDateFormatter(lambda *_: f"D:{local:%Y%m%d%H%M%S}{huso[:3]}'{huso[3:]}'")
         return lienzo
-    documento.multiBuild(historia, onFirstPage=dibujar_encabezado, onLaterPages=dibujar_encabezado,
+    primera_pagina = dibujar_encabezado
+    if principal:
+        def primera_pagina(canvas, doc):
+            dibujar_portada(canvas, doc, titulo=compuesto['titulo'], unidad=compuesto['unidad'].nombre,
+                            periodo=compuesto['periodo'], codigo=compuesto['codigo_formato'],
+                            fecha=f'{timezone.localtime(fecha):%d/%m/%Y}', medidas=medidas)
+        if compuesto.get('borrador'):
+            from apps.documentos.presentation.documentos_entrega import con_marca_borrador
+            primera_pagina = con_marca_borrador(primera_pagina)
+    documento.multiBuild(historia, onFirstPage=primera_pagina, onLaterPages=dibujar_encabezado,
                          canvasmaker=crear_lienzo)
     return buffer.getvalue()

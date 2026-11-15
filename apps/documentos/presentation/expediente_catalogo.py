@@ -56,63 +56,33 @@ CATALOGO = (
      'en el expediente. Es el único documento que se califica: su nota es el cumplimiento de las metas de '
      'la planificación, medido con los registros y las evidencias del período, y no se obtiene por haberlo '
      'entregado. Una entrega tardía descuenta los puntos que fija la política de calidad.', ''),
-    ('REGISTRO-USO', 'Registro de uso del período: sesiones, horas y usuarios por tipo y finalidad', 'ejecucion',
-     'semestral', 'sistema', False, False, 'cierre', 15, 'reservas', 10,
-     'Sesiones registradas en la plataforma durante el período, agrupadas por propósito, con fecha, '
-     'horario, solicitante y estado. Respalda la meta de registrar todas las sesiones de uso; el uso '
-     'efectivo frente a la capacidad se detalla en los indicadores del informe.',
+    # Cinco anexos, cada uno respalda un grupo de metas con las mismas cifras del informe
+    # (documentos.0025). Las listas completas quedan como consultas del Centro de reportes.
+    ('PRACTICAS-FT02', 'Prácticas académicas: planificación, ejecución y guías', 'ejecucion', 'semestral',
+     'sistema', False, False, 'cierre', 15, 'planificaciones', 20,
+     'Prácticas planificadas y aprobadas, prácticas ejecutadas con asistencia y evidencias, y guías de práctica '
+     'vigentes, con lo que falta a cada registro para contar. Respalda las metas de prácticas planificadas, '
+     'prácticas ejecutadas y guías.', 'INFORME-SEMESTRAL'),
+    ('REGISTRO-USO', 'Uso de la unidad: sesiones, horas y usuarios', 'ejecucion', 'semestral', 'sistema', False,
+     False, 'cierre', 15, 'reservas', 10,
+     'Sesiones registradas y atendidas del período, horas de uso efectivo y usuarios, por propósito, con el detalle '
+     'de las sesiones atendidas. Respalda las metas de registro de sesiones y de uso efectivo.',
      'INFORME-SEMESTRAL'),
-    ('PRACTICAS-FT02', 'FT02 · Planificación de cada práctica', 'ejecucion', 'semestral', 'sistema', False, False,
-     'cierre', 15, 'planificaciones', 20, 'Matriz FT02 del período: cada práctica planificada con asignatura, fecha, escenario, docente, '
-     'responsable y guía, y la comprobación de su aprobación y su respaldo. Respalda la meta de prácticas '
-     'planificadas.', 'INFORME-SEMESTRAL'),
-    ('PRACTICAS-FT03', 'FT03 · Registro de ejecución con asistencia, bitácora y evidencias', 'ejecucion',
-     'semestral', 'sistema', False, False, 'cierre', 15, 'ejecuciones', 30, 'Registro FT03 del período: ejecución de cada práctica con asistencia, bitácora, resultados y '
-     'evidencias, y la comprobación de su respaldo. Respalda la meta de prácticas ejecutadas.', 'INFORME-SEMESTRAL'),
-    ('GUIAS', 'Guías de prácticas: aprobación y vínculo con el syllabus', 'ejecucion', 'semestral', 'sistema',
-     False, False, 'cierre', 15, 'guias', 40, 'Guías de práctica vigentes usadas en el período: código, versión, aprobación y vínculo con la '
-     'asignatura y el syllabus. Respalda la meta de guías.',
-     'INFORME-SEMESTRAL'),
-    ('INDUCCION-SEGURIDAD', 'Registro de inducciones y controles de seguridad', 'ejecucion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'seguridad', 70, 'Requisitos de acceso, inducciones y habilitaciones de usuarios nuevos, inspecciones de seguridad del '
-     'período, incidentes y estado del protocolo vigente. Respalda las metas de inducción de seguridad y '
-     'de inspecciones.', 'INFORME-SEMESTRAL'),
-    ('DESECHOS', 'Registro de desechos peligrosos y especiales', 'ejecucion', 'semestral', 'sistema', False, False,
-     'cierre', 15, 'desechos', 80, 'Desechos peligrosos y especiales del período: tipo, origen, cantidad, almacenamiento, responsable y, '
-     'cuando se entregan, gestor autorizado y manifiesto. Respalda la meta de gestión de desechos.', 'INFORME-SEMESTRAL'),
-    ('EQUIPAMIENTO', 'Mantenimiento, disponibilidad y funcionalidad del equipamiento', 'evaluacion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'equipamiento', 40,
-     'Mantenimientos del período, programados y ejecutados, con la medición del programa crítico anual de '
-     'equipos e infraestructura (80 % de lo programado en equipos críticos), y la disponibilidad y '
-     'funcionalidad de cada equipo: estado, días fuera de servicio, pruebas funcionales e incidencias. No '
-     'repite el inventario, que va en su propio anexo. Respalda la meta de mantenimiento; la disponibilidad '
-     'es registro del período, sin meta propia.', 'INFORME-SEMESTRAL'),
-    # Periodicidad anual en el catálogo: el perfil la vuelve semestral donde hay insumos (todas las unidades
-    # menos los observatorios), que conservan su corte anual con el informe B.
-    ('INVENTARIO-CORTE', 'Inventario de equipos, software, espacios e insumos al corte', 'evaluacion', 'anual',
-     'sistema', False, False, 'cierre', 15, 'recursos', 30,
-     'Inventario integral de la unidad al corte: equipos, software y espacios con custodio, ubicación y '
-     'condición, el acta de revisión física y, donde hay insumos, sus existencias, lotes y vencimientos y '
-     'los movimientos del período (entradas, consumos y ajustes). Se presenta cada semestre; en los '
-     'observatorios, una vez al año con el informe B. Respalda la meta de revisión física del inventario, '
-     'que se acredita con el acta verificada; los movimientos de insumos son registro del período, sin meta '
-     'propia.', 'INFORME-SEMESTRAL'),
-    ('INVESTIGACION', 'Resultados de investigación aplicada y desarrollo tecnológico', 'evaluacion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'investigacion', 60,
-     'Productos de investigación aplicada y desarrollo tecnológico obtenidos en el período, con su '
-     'proyecto, responsable y respaldo verificable; el uso de la unidad para investigación y titulación se '
-     'muestra aparte. Respalda la meta de resultados de investigación.',
-     'INFORME-SEMESTRAL'),
-    ('TRANSFERENCIA', 'Transferencia de conocimiento y servicios especializados a la sociedad', 'evaluacion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'transferencia', 70,
-     'Entregables de transferencia de conocimiento y servicios especializados, con su destinatario y su '
-     'aceptación documentada; las solicitudes de servicio y las reservas se muestran aparte. Respalda las '
-     'metas de transferencia y de servicios.', 'INFORME-SEMESTRAL'),
-    ('ACCIONES-MEJORA', 'Seguimiento de acciones de mejora', 'mejora', 'semestral', 'sistema', False, False, 'cierre',
-     15, 'mejora', 10,
-     'Acciones de mejora consolidadas desde los informes: hallazgo, acción, responsable, plazo, estado y '
-     'evidencia de cierre; su vista previa es el mismo documento que se archiva. Es registro del período: '
-     'el seguimiento de las acciones no tiene meta propia ni cuenta en la nota.', 'INFORME-SEMESTRAL'),
+    ('INDUCCION-SEGURIDAD', 'Seguridad y desechos: inducciones, inspecciones y desechos', 'ejecucion',
+     'semestral', 'sistema', False, False, 'cierre', 15, 'seguridad', 70,
+     'Inspecciones mensuales, inducciones y habilitaciones de usuarios nuevos, ingresos a la unidad y desechos '
+     'peligrosos y especiales generados y entregados. Respalda las metas de inducción, inspecciones y gestión '
+     'de desechos.', 'INFORME-SEMESTRAL'),
+    ('EQUIPAMIENTO', 'Equipos e inventario: revisión física, mantenimiento y existencias', 'evaluacion',
+     'semestral', 'sistema', False, False, 'cierre', 15, 'equipamiento', 40,
+     'Acta de revisión física del inventario, datos pendientes de los equipos, mantenimientos del período frente '
+     'al programa crítico (80 %), equipos fuera de servicio e insumos bajo su mínimo. Respalda las metas de '
+     'revisión del inventario y de mantenimiento.', 'INFORME-SEMESTRAL'),
+    ('INVESTIGACION', 'Investigación y vinculación: resultados, transferencia y servicios', 'evaluacion',
+     'semestral', 'sistema', False, False, 'cierre', 15, 'investigacion', 60,
+     'Solo cuando la planificación compromete estas metas: productos de investigación, transferencias y '
+     'servicios entregados y aceptados, con su respaldo. Respalda las metas de investigación, transferencia y '
+     'servicios.', 'INFORME-SEMESTRAL'),
 )
 
 # Evidencias propias de las otras implementaciones. Conservan fuentes y
@@ -158,7 +128,16 @@ TIPOS_CATALOGO_PERFILES = {'PP-PRODUCCION': ['plantas_piloto'], 'PP-CALIDAD': ['
 # - PRESTAMOS-EQUIPOS: registro sin meta; queda como consulta de gestión (documentos.0024).
 # - INSUMOS-CORTE: repetía existencias y lotes del inventario; sus movimientos
 #   van en INVENTARIO-CORTE (documentos.0024).
-RETIRADOS = ('CHEQUEO-SEGURIDAD', 'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE')
+# - PRACTICAS-FT03 y GUIAS: van con la planificación de prácticas en un solo anexo de
+#   prácticas académicas (documentos.0025).
+# - DESECHOS: va con las inducciones e inspecciones en el anexo de seguridad (documentos.0025).
+# - INVENTARIO-CORTE: el acta y el resumen van en el anexo de equipos e inventario; la lista
+#   completa es consulta del Centro de reportes (documentos.0025).
+# - TRANSFERENCIA: va con la investigación, que solo se presenta si el plan la compromete
+#   (documentos.0025).
+# - ACCIONES-MEJORA: las acciones van en la sección 8 del informe (documentos.0025).
+RETIRADOS = ('CHEQUEO-SEGURIDAD', 'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE',
+             'PRACTICAS-FT03', 'GUIAS', 'DESECHOS', 'INVENTARIO-CORTE', 'TRANSFERENCIA', 'ACCIONES-MEJORA')
 
 # Se reconocen sólo los nombres anteriores del catálogo distribuido. Permite
 # presentar su denominación actual sin reescribir catálogos editados ni archivos.
@@ -166,9 +145,14 @@ NOMBRES_ESTANDAR_ANTERIORES = {
     'PLAN-COMPRAS-ANUAL': frozenset(('Plan anual de compras y presupuesto del año siguiente (firmado)',)),
     'PLANIFICACION': frozenset(('Planificación semestral de la unidad (firmada)',)),
     'INFORME-SEMESTRAL': frozenset(('Informe semestral de actividades (firmado)',)),
-    'INDUCCION-SEGURIDAD': frozenset(('Seguridad y condiciones de operación: protocolo, inducciones y controles',)),
-    'EQUIPAMIENTO': frozenset(('Equipamiento: disponibilidad y funcionalidad del período',)),
+    'EQUIPAMIENTO': frozenset(('Equipamiento: disponibilidad y funcionalidad del período',
+                               'Mantenimiento, disponibilidad y funcionalidad del equipamiento')),
     'INVENTARIO-CORTE': frozenset(('Inventario anual de equipos, software y espacios',)),
+    'REGISTRO-USO': frozenset(('Registro de uso del período: sesiones, horas y usuarios por tipo y finalidad',)),
+    'PRACTICAS-FT02': frozenset(('FT02 · Planificación de cada práctica',)),
+    'INDUCCION-SEGURIDAD': frozenset(('Seguridad y condiciones de operación: protocolo, inducciones y controles',
+                                      'Registro de inducciones y controles de seguridad')),
+    'INVESTIGACION': frozenset(('Resultados de investigación aplicada y desarrollo tecnológico',)),
 }
 
 # Ventanas fijas en el calendario (plazo «entre dos meses»): de qué mes a qué mes.

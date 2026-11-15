@@ -180,8 +180,11 @@ def marco_institucional(*, formato, metadatos=(), pie='', apaisado=False, margen
     encabezado; ``metadatos`` son las líneas de la derecha (``"Código: …"``);
     ``pie`` es lo que acompaña a las siglas al pie de cada página.
 
-    Todos los documentos llevan el mismo encabezado de tres columnas; ``estilo`` se
-    conserva solo para no romper a quien todavía lo pase.
+    Los anexos, reportes y formatos llevan el encabezado de tres columnas. Con
+    ``estilo='informe'`` (los documentos principales que firma la unidad: protocolo,
+    plan de compras, planificación e informe) el encabezado es el del informe
+    institucional: logo en su recuadro verde a la izquierda y, a la derecha, la
+    institución, el título y una línea con el código y la cobertura.
 
     Devuelve ``(dibujar_encabezado, CanvasNumerado, medidas)``: el primero se
     pasa a ``onFirstPage``/``onLaterPages``, el segundo a ``canvasmaker`` y el
@@ -227,7 +230,36 @@ def marco_institucional(*, formato, metadatos=(), pie='', apaisado=False, margen
             _, alto = bloque.wrapOn(lienzo, anchura - 6 * mm, ALTO_ENCABEZADO - 4 * mm)
             bloque.drawOn(lienzo, x + 3 * mm, y_caja + (ALTO_ENCABEZADO - alto) / 2)
 
-    return pie_institucional(pie=pie, apaisado=apaisado, margen=margen, encabezado=encabezado, fuentes=fuentes)
+    def encabezado_informe(lienzo, medidas):
+        regular, negrita = fuentes
+        x, ancho = medidas['margen'], medidas['ancho_util']
+        alto = medidas['pagesize'][1]
+        tinta = medidas['colores']
+        lienzo.setFillColor(tinta['acento'])
+        lienzo.rect(x - 3 * mm, alto - 30 * mm, 1.2 * mm, 20 * mm, fill=1, stroke=0)
+        lienzo.setFillColor(tinta['primario'])
+        lienzo.roundRect(x, alto - 28 * mm, 53 * mm, 17 * mm, 2 * mm, fill=1, stroke=0)
+        if logo:
+            lienzo.drawImage(str(logo), x + 3 * mm, alto - 26 * mm, width=47 * mm, height=13 * mm,
+                             preserveAspectRatio=True, anchor='c', mask='auto')
+        else:
+            lienzo.setFillColor(colors.white)
+            lienzo.setFont(negrita, 14)
+            lienzo.drawString(x + 5 * mm, alto - 21 * mm, institucion.siglas)
+        derecha = ParagraphStyle('InformeDerecha', fontName=regular, fontSize=7, leading=9,
+                                 textColor=tinta['tenue'], alignment=2)
+        bloque = KeepInFrame(ancho - 61 * mm, 19 * mm, [
+            Paragraph(escape(nombre_institucion), derecha),
+            Paragraph(escape(str(formato)), ParagraphStyle(
+                'InformeTituloEncabezado', fontName=negrita, fontSize=9, leading=11, textColor=tinta['oscuro'],
+                alignment=2, spaceBefore=2, spaceAfter=2)),
+            Paragraph(' · '.join(escape(linea) for linea in lineas), derecha),
+        ], mode='shrink')
+        _, alto_bloque = bloque.wrapOn(lienzo, ancho - 61 * mm, 19 * mm)
+        bloque.drawOn(lienzo, x + 61 * mm, alto - 10 * mm - alto_bloque)
+
+    return pie_institucional(pie=pie, apaisado=apaisado, margen=margen,
+                             encabezado=encabezado_informe if estilo == 'informe' else encabezado, fuentes=fuentes)
 
 
 def _bloques_encabezado(formato, subtitulo, metadatos, ancho, tinta):
