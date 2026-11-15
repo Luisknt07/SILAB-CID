@@ -1,5 +1,32 @@
 # Estado actual del proyecto — 15 de noviembre de 2026
 
+**Formato único y expediente depurado (15 de noviembre, cierre).**
+
+- **Encabezado.** Todos los PDF de las unidades llevan el encabezado
+  institucional de tres columnas: logo; formato e institución; Código,
+  Revisión, Período y Versión. Va en todas las páginas, con LiberationSans y
+  una sola escala de letra, en vertical y en apaisado.
+- **Documentos redactados.** Ya no tienen portada ni índice; las secciones van
+  en banda verde.
+- **Anexos.** El expediente pasa de 17/16 a 13 documentos por semestre en un
+  laboratorio:
+  - se retiran el plan semestral de prácticas, el plan de mantenimiento, los
+    préstamos y los insumos al corte;
+  - el inventario trae los movimientos de insumos;
+  - el equipamiento reúne mantenimiento, disponibilidad y funcionalidad, con
+    anexo para la meta de mantenimiento en A y en B;
+  - los observatorios ya no reciben el registro de uso;
+  - las consultas sin registros no se muestran.
+- **Pendiente, a cargo del usuario:** aplicar las migraciones
+  `documentos.0023` y `0024` en la base local.
+- **Validación.** Se hizo sobre una copia restaurada, con datos de prueba en el
+  FabLab y en Realidad Extendida; los guiones están en `var/validacion-20261115/`.
+
+Formato en
+[docs/expediente-de-calidad.md](docs/expediente-de-calidad.md#un-solo-formato-para-toda-la-documentación);
+expediente depurado en
+[docs/calificacion-y-anexos-del-expediente.md](docs/calificacion-y-anexos-del-expediente.md).
+
 **Centro de reportes: solo el informe semestral se califica (15 de noviembre, noche).** El informe de
 actividades y cumplimiento de la planificación es el único documento con nota, y esa nota es el
 cumplimiento de las metas del plan medido con los registros del período: la Dirección confirma el cierre
