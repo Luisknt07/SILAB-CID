@@ -20,6 +20,7 @@ from apps.gestion_unidades.models.espacios import EspacioReservable
 from apps.recursos.models.software import SoftwareDisponible
 from apps.directorio_unidades.models.core import Unidad
 from apps.recursos.models.unidades import UnidadEquipo
+from apps.recursos.presentation.existencias import describe_propuesta
 
 SLUG = 'laboratorio-realidad-extendida'
 AREA = 'XR-AREA-RA'
@@ -49,16 +50,18 @@ class EquipamientoTrazableTests(TestCase):
     def test_cada_elemento_de_la_ficha_queda_registrado_en_su_area(self):
         espacio = EspacioReservable.objects.get(unidad=self.laboratorio, codigo=AREA)
         elementos = ElementoFichaArea.objects.filter(ficha__espacio=espacio)
-        self.assertFalse(elementos.filter(tipo='equipo', registrado__isnull=True).exists())
         self.assertFalse(elementos.filter(tipo='insumo', insumo_registrado__isnull=True).exists())
         self.assertFalse(elementos.filter(tipo='software', software_registrado__isnull=True).exists())
         for elemento in elementos.filter(tipo='equipo').select_related('registrado__equipo'):
             with self.subTest(equipo=elemento.nombre):
+                if describe_propuesta(elemento) and elemento.registrado_id != self.previo.pk:
+                    # Lo que la ficha describe como alta capacidad no se convierte en inventario: es propuesta.
+                    self.assertEqual((elemento.solo_referencia, elemento.registrado_id), (True, None))
+                    continue
                 self.assertTrue(elemento.registrado.espacios_asociados.filter(pk=espacio.pk).exists())
                 self.assertTrue(elemento.registrado.equipo.icono)
-                estado = 'no_disponible' if elemento.nivel == 'alta' else 'disponible'
                 if elemento.registrado_id != self.previo.pk:
-                    self.assertEqual(elemento.registrado.estado_unidad, estado)
+                    self.assertEqual(elemento.registrado.estado_unidad, 'disponible')
         self.assertTrue(Consumible.objects.filter(unidad=self.laboratorio, elementos_de_ficha__isnull=False).exists())
         self.assertTrue(SoftwareDisponible.objects.filter(unidad=self.laboratorio, elementos_de_ficha__isnull=False).exists())
 

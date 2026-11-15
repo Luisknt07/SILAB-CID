@@ -184,7 +184,8 @@ def reporte_equipamiento(unit, start_date, end_date, state='', search=''):
 def _funcionalidad(unidad, desde, hasta, estado='', buscar=''):
     from apps.documentos.presentation.funcionalidad_laboratorios import funcionalidad_documentada
     datos = funcionalidad_documentada(unidad, desde, hasta)
-    equipos = UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad)).distinct()
+    equipos = (UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad))
+               .exclude(activa=False, fecha_baja__isnull=True).distinct())
     if estado in dict(UnidadEquipo.ESTADO_UNIDAD_CHOICES):
         equipos = equipos.filter(estado_unidad=estado)
     if buscar:
@@ -466,7 +467,9 @@ def _tablas_desechos(unidad, desde, hasta, estado, buscar):
 
 def _tablas_inventario(unidad, desde, hasta, buscar, estado=''):
     hasta = corte_efectivo(unidad, hasta)
-    equipos = UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad)).distinct()
+    # El inventario lista lo que existe y las bajas con su historia; las referencias no son inventario.
+    equipos = (UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad))
+               .exclude(activa=False, fecha_baja__isnull=True).distinct())
     if estado in dict(UnidadEquipo.ESTADO_UNIDAD_CHOICES):
         equipos = equipos.filter(estado_unidad=estado)
     if buscar:

@@ -9,7 +9,7 @@ opera y qué le corresponde completar a la unidad. Unidad `laboratorio-realidad-
 | Qué | Estado |
 | --- | --- |
 | Áreas | 5 activas, con ficha explicativa publicada, ilustración propia y aforo: Desarrollo de experiencias XR (8), Simulación y gemelos digitales (8), Contenidos 3D y captura (6), Metaverso (12) y Sala de experiencias (12) |
-| Equipos | 123 activos, todos asociados a su área (46, 19, 24, 11 y 24). Siguen siendo equipamiento de referencia: sin marca ni serie, 1 con existencia verificada |
+| Equipos | 102 existentes por confirmar, todos en su área; 1 con existencia verificada. Los 21 de alta capacidad quedaron como referencia ([existencias y referencias](existencias-y-referencias.md)) |
 | Insumos y software | 31 insumos y 32 programas, ya registrados; no se modificaron |
 | Servicios | 7 nuevos, sin tarifa: sesión inmersiva guiada, digitalización 3D, prototipo de RV o RA, recorrido 360°, captura de movimiento, prototipo de gemelo digital y pruebas con usuarios |
 | Requisitos de acceso | 4: inducción anual y condiciones de salud (obligatorios), higiene del visor y consentimiento (informativos) |
@@ -103,9 +103,10 @@ consecutiva con la anterior. Es normal.
 
 ## Lo que le corresponde a la unidad
 
-1. **Verificar el equipamiento.** De 123 equipos, 1 tiene existencia verificada, 21
-   están como no disponibles y ninguno tiene serie. El sistema no inventa marcas,
-   series ni existencias: se registran en la ficha de cada equipo al recibirlos.
+1. **Verificar el equipamiento.** De 102 equipos existentes, 1 tiene existencia
+   verificada y ninguno tiene serie; los 21 de alta capacidad pasaron a referencia y
+   no se muestran. El sistema no inventa marcas, series ni existencias: se registran
+   en la ficha de cada equipo al recibirlos, o al importar el reporte de bodega.
 2. **Facultad.** La ficha dice «Facultad de Comercio integración» y el código es
    `LAB-FIACA-001`; hay que dejar la que corresponda.
 3. **Cuentas del personal.** El coordinador PhD. Luis Omar Alpala figura como

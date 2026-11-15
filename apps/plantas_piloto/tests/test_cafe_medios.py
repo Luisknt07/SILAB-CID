@@ -2,6 +2,7 @@
 
 from io import StringIO
 from unittest.mock import patch
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.staticfiles import finders
 from django.core.management import call_command
@@ -77,10 +78,13 @@ class CafeMediosTests(TestCase):
         self.inicial()
         self.medios()
         elemento = FichaContenido.objects.get(codigo="CAF-REF-TRILLA").objeto
+        url = reverse("ficha_equipo_referencia", args=[self.unidad.slug, elemento.pk])
+        # La planta no registró la trilladora: el público no ve un equipo que no existe; quien la gestiona, sí.
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_login(get_user_model().objects.create_superuser(
+            "gestor_cafe_medios", "gestor@example.test", "clave-solo-fixture"))
         with CaptureQueriesContext(connection) as consultas:
-            r = self.client.get(
-                reverse("ficha_equipo_referencia", args=[self.unidad.slug, elemento.pk])
-            )
+            r = self.client.get(url)
         self.assertEqual(r.status_code, 200)
         self.assertTemplateUsed(r, "portal/pages/unidades/aula/equipo.html")
         for texto in (
@@ -101,7 +105,7 @@ class CafeMediosTests(TestCase):
                 for q in consultas
             )
         )
-        self.assertLessEqual(len(consultas), 20)
+        self.assertLessEqual(len(consultas), 30)
 
     def test_repetir_conserva_foto_y_medios_renombrados_o_archivados(self):
         self.inicial()
@@ -168,7 +172,9 @@ class CafeMediosTests(TestCase):
         indice.estado = "archivada"
         indice.save()
         equipo = FichaContenido.objects.get(codigo="CAF-REF-CATACION").objeto
-        r = self.client.get(
-            reverse("ficha_equipo_referencia", args=[self.unidad.slug, equipo.pk])
-        )
-        self.assertNotContains(r, video.youtube_id)
+        # El equipo no está registrado: su ficha no se publica, y el video archivado tampoco sale en el área.
+        self.assertEqual(self.client.get(
+            reverse("ficha_equipo_referencia", args=[self.unidad.slug, equipo.pk])).status_code, 404)
+        area = self.client.get(reverse("area_unidad", args=[self.unidad.slug, equipo.ficha.espacio.codigo]))
+        self.assertEqual(area.status_code, 200)
+        self.assertNotContains(area, video.youtube_id)

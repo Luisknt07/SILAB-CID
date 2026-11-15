@@ -33,7 +33,10 @@ def publicos_para(equipos, unidad, usuario):
 
 
 def verificar_existencia(equipo, usuario, existe=True, nota=''):
-    """Confirma que el equipo existe o anota que no se localizó (pasa a «No localizado»)."""
+    """Confirma que el equipo existe o anota que no se localizó (pasa a «No localizado»).
+
+    Una referencia que se confirma vuelve a existir: se activa y deja de ser dotación propuesta en la ficha.
+    """
     with transaction.atomic():
         equipo.existencia_verificada = existe
         equipo.existencia_verificada_en = timezone.now()
@@ -43,6 +46,9 @@ def verificar_existencia(equipo, usuario, existe=True, nota=''):
             equipo.estado_unidad = 'disponible'
         elif not existe:
             equipo.estado_unidad = 'no_localizado'
+        if existe and not equipo.activa and not equipo.fecha_baja:
+            equipo.activa = True
+            equipo.elementos_de_ficha.filter(solo_referencia=True).update(solo_referencia=False)
         equipo.save()
         quien = usuario.get_full_name() or usuario.username
         EventoCicloVidaEquipo.objects.create(

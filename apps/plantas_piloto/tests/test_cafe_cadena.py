@@ -190,12 +190,15 @@ class CafeCadenaTests(TestCase):
         self.ampliar()
         elemento = FichaContenido.objects.get(codigo="CAF-REF-SILO-SECO").objeto
         url = reverse("ficha_equipo_referencia", args=[self.unidad.slug, elemento.pk])
+        # El silo no está registrado en la planta: el público no lo ve; quien la gestiona revisa su ficha.
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.force_login(get_user_model().objects.create_superuser(
+            "gestor_cafe_silo", "gestor@example.test", "clave-solo-fixture"))
         with CaptureQueriesContext(connection) as consultas:
             respuesta = self.client.get(url)
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, "Silo de alimentación de café seco")
         self.assertContains(respuesta, "Controles y mediciones")
-        self.assertNotContains(respuesta, "Editar equipamiento")
         self.assertFalse(
             any(
                 q["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE"))
@@ -218,6 +221,7 @@ class CafeCadenaTests(TestCase):
         indice = FichaContenido.objects.get(codigo="CAF-REF-SILO-SECO")
         indice.estado = "archivada"
         indice.save()
+        self.client.logout()
         self.assertEqual(self.client.get(url).status_code, 404)
         area_url = reverse(
             "area_unidad", args=[self.unidad.slug, elemento.ficha.espacio.codigo]
@@ -261,7 +265,8 @@ class CafeCadenaTests(TestCase):
         self.assertLessEqual(len(consultas), 8)
         response = self.client.get(self.unidad.get_absolute_url())
         self.assertContains(response, "Laboratorio de calidad, muestreo y catación")
-        self.assertContains(response, "equipamiento-referencia")
+        # La planta no registró esos equipos: el visor no los muestra como si existieran.
+        self.assertNotContains(response, "equipamiento-referencia")
         self.assertContains(response, "cafe-cadena")
 
     def test_cadena_y_balances_no_confunden_trilla_molino_o_envase(self):

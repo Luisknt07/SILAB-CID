@@ -17,6 +17,7 @@ from apps.gestion_unidades.models.operaciones import ventana_atencion
 from apps.reservas.models.reservas import CatalogoActividadReserva, EjemploSolicitudUnidad, GuiaActividadReserva, Reserva
 from apps.gestion_unidades.models.operaciones import ConfiguracionOperativaUnidad, HorarioOperacionUnidad
 from apps.recursos.models.consumibles import Consumible
+from apps.recursos.models.unidades import UnidadEquipo
 from apps.gestion_unidades.models.espacios import EspacioReservable, ResponsableUnidad
 from apps.laboratorios.operacion.models.fablab import FablabService
 from apps.recursos.models.software import SoftwareDisponible
@@ -265,6 +266,10 @@ def proyecto_detalle_view(request, slug):
     puede_crear_guias_reserva = puede_crear_guias_unidad(request.user, unidad)
     segmento_tarifario, _, pertenencia_tarifaria = clasificacion_tarifaria_actual(request.user)
     servicios_por_consumible = {}
+    # Un insumo se vincula con los modelos de los que la unidad tiene equipos que existen, no con referencias.
+    modelos_existentes = set(UnidadEquipo.objects.filter(
+        Q(laboratorio=unidad) | Q(laboratorios=unidad), activa=True, fecha_baja__isnull=True,
+    ).values_list("equipo_id", flat=True))
     for servicio in servicios_reserva:
         relaciones_consumibles = list(servicio.service_consumibles.all())
         ids_consumibles = [
@@ -295,9 +300,11 @@ def proyecto_detalle_view(request, slug):
                 # Equipos compatibles del insumo: opciones de equipo del trabajo.
                 "equipos_ids_csv": ",".join(
                     str(item.equipo_id) for item in relacion.consumible.por_equipo.all()
+                    if item.equipo_id in modelos_existentes
                 ),
                 "equipos_nombres": " / ".join(
                     item.equipo.nombre for item in relacion.consumible.por_equipo.all()
+                    if item.equipo_id in modelos_existentes
                 ),
             }
             for relacion in relaciones_consumibles

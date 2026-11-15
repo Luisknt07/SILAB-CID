@@ -592,32 +592,26 @@ def carpetas_del_aula(unidad, modulos, procesos, usuario=None):
             ]))
     # Las áreas y los equipos van a su pestaña; sin ella, junto a los procesos de la planta.
     modulo_equipos = _modulo_entre(claves, MODULOS_EQUIPOS, modulo_del_aula(modulos) if procesos else '')
-    vista_gestor_catalogo = usuario is not None and puede_gestionar_unidad(usuario, unidad)
+    # El visor muestra lo que existe, también a quien gestiona: las referencias, las áreas inactivas y la dotación
+    # propuesta se administran desde la gestión de la unidad.
     equipos_unidad = list(
         UnidadEquipo.objects.filter(
-            Q(laboratorio=unidad) | Q(laboratorios=unidad),
-            **({} if vista_gestor_catalogo else {'activa': True, 'fecha_baja__isnull': True}),
+            Q(laboratorio=unidad) | Q(laboratorios=unidad), activa=True, fecha_baja__isnull=True,
         ).select_related('equipo').distinct().order_by('equipo__nombre', 'codigo_unidad')
     ) if modulo_equipos else []
     if usuario is not None:
         equipos_unidad = publicos_para(visibles_para(equipos_unidad, unidad, usuario), unidad, usuario)
     # Cada área es un botón del menú y abre su propia página.
     areas = list(
-        EspacioReservable.objects.filter(unidad=unidad, **({} if vista_gestor_catalogo else {'activo': True}))
-        .annotate(total_equipos=Count('equipos_asociados', filter=Q(equipos_asociados__activa=True), distinct=True))
-        .order_by('orden', 'nombre')
+        EspacioReservable.objects.filter(unidad=unidad, activo=True).order_by('orden', 'nombre')
     ) if modulo_equipos else []
     # El número de cada área cuenta lo que el visitante puede ver, igual que la lista de fichas.
-    visibles = {equipo.pk for equipo in equipos_unidad if equipo.activa and not equipo.fecha_baja}
+    visibles = {equipo.pk for equipo in equipos_unidad}
     por_area = Counter(
         espacio_id for espacio_id, equipo_id in EspacioReservable.equipos_asociados.through.objects
         .filter(espacioreservable__in=areas).values_list('espacioreservable_id', 'unidadequipo_id') if equipo_id in visibles)
     for area in areas:
         area.total_equipos = por_area.get(area.pk, 0)
-    from apps.recursos.presentation.equipo_referencia import referencias_por_area
-    referencias_equipo = referencias_por_area(areas, usuario)
-    for area in areas:
-        area.total_referencias = len(referencias_equipo.get(area.pk, []))
     if areas:
         carpetas.append(_carpeta(modulo_equipos, 'AreasEquipos', 'Áreas de la unidad', 'fas fa-warehouse', [
             {'nombre': '', 'botones': [
@@ -625,9 +619,7 @@ def carpetas_del_aula(unidad, modulos, procesos, usuario=None):
                     f'area-{area.pk}', area.nombre, reverse('area_unidad', args=[slug, area.codigo]),
                     ICONOS_DE_ESPACIO.get(area.tipo, 'fas fa-vector-square'),
                     f'{area.nombre}: qué se hace, cómo se reserva, quién la atiende y sus equipos',
-                    subtitulo=(f'{area.total_equipos} registrado{pluralize(area.total_equipos)} · '
-                               f'{area.total_referencias} ficha{pluralize(area.total_referencias)} de referencia'
-                               if area.total_referencias else f'{area.get_tipo_display()} · {area.total_equipos} equipo{pluralize(area.total_equipos)}'),
+                    subtitulo=f'{area.get_tipo_display()} · {area.total_equipos} equipo{pluralize(area.total_equipos)}',
                 )
                 for area in areas
             ]},
@@ -640,14 +632,14 @@ def carpetas_del_aula(unidad, modulos, procesos, usuario=None):
                        'fas fa-cogs', 'Los equipos de la unidad con su ficha técnica'),
             ]},
         ], numero=num('areas_equipos'), seccion=bool(mapa), mapa=mapa))
-    if mapa and modulo_equipos and (equipos_unidad or referencias_equipo):
+    if mapa and modulo_equipos and equipos_unidad:
         # Primero el escáner: se lee la etiqueta o el QR de un equipo y se llega a su ficha.
         escaner = {'nombre': 'Escáner de equipos', 'clave': 'escaner', 'botones': [_boton(
             'escaner-equipos', 'Escáner de equipos', reverse('escaner_unidad', args=[slug]), 'fas fa-barcode',
             'Lee la etiqueta de bodega o el QR de un equipo y abre su ficha', subtitulo='Etiqueta de bodega o QR',
         )]}
         fichas = _carpeta(modulo_equipos, 'FichasEquipo', 'Fichas de equipo', 'fas fa-microchip',
-                          [escaner] + _fichas_por_area(slug, areas, equipos_unidad, estado_objeto, referencias_equipo),
+                          [escaner] + _fichas_por_area(slug, areas, equipos_unidad, estado_objeto),
                           numero=num('fichas_equipo'), seccion=True, mapa=mapa)
         fichas['total'] -= 1  # El escáner es una herramienta: el número de la carpeta cuenta equipos.
         carpetas.append(fichas)
@@ -1178,9 +1170,9 @@ ICONOS_DE_ESPACIO = {
 }
 
 
-def _fichas_por_area(slug, areas, equipos_unidad, estado_objeto, referencias=None):
+def _fichas_por_area(slug, areas, equipos_unidad, estado_objeto):
     """Las fichas de equipo agrupadas por área: un botón por equipo (no por unidad física), con su foto o
-    su ícono y cuántas unidades tiene; lo que no está en ningún área va al final."""
+    su ícono y cuántas unidades tiene; lo que no está en ningún área va al final. Solo lo que existe."""
     ids_por_area = {}
     for espacio_id, equipo_id in EspacioReservable.equipos_asociados.through.objects.filter(
             espacioreservable__in=areas).values_list('espacioreservable_id', 'unidadequipo_id'):
@@ -1196,9 +1188,6 @@ def _fichas_por_area(slug, areas, equipos_unidad, estado_objeto, referencias=Non
             disponibles = sum(1 for fisica in unidades if fisica.estado_unidad == 'disponible')
             subtitulo = (f'{primera.codigo_unidad} · {primera.get_estado_unidad_display()}' if len(unidades) == 1
                          else f'{len(unidades)} unidades · {disponibles} disponible{pluralize(disponibles)}')
-            existentes = sum(1 for fisica in unidades if fisica.activa and not fisica.fecha_baja)
-            if existentes < len(unidades):
-                subtitulo = f'{existentes} existentes · {len(unidades) - existentes} referencias inactivas (vista de gestión)'
             resultado.append(_boton(
                 f'ficha-equipo-{primera.pk}', tipo.nombre,
                 reverse('ficha_equipo_publica', args=[slug, primera.codigo_unidad]),
@@ -1213,12 +1202,6 @@ def _fichas_por_area(slug, areas, equipos_unidad, estado_objeto, referencias=Non
         fisicas = [fisica for fisica in equipos_unidad if fisica.pk in ids]
         asignados |= ids
         items = botones(fisicas)
-        items.extend(_boton(
-            f'equipo-referencia-{elemento.pk}', elemento.nombre,
-            reverse('ficha_equipo_referencia', args=[slug, elemento.pk]),
-            elemento.icono or 'fas fa-cogs', elemento.para_que,
-            subtitulo='Ficha técnica de referencia', imagen=elemento.imagen_url,
-        ) for elemento in (referencias or {}).get(area.pk, []))
         if items:
             grupos.append({'nombre': area.nombre, 'clave': f'area-{slugify(area.codigo)}', 'botones': items})
     sueltos = [fisica for fisica in equipos_unidad if fisica.pk not in asignados]
@@ -1256,7 +1239,7 @@ def areas_y_equipos(unidad, usuario=None):
         areas.append({
             'espacio': espacio,
             'equipos': [unidad_equipo for unidad_equipo in unidades_equipo if unidad_equipo.pk in ids],
-            'software': sorted({software.nombre for unidad_equipo in espacio.equipos_asociados.all()
+            'software': sorted({software.nombre for unidad_equipo in espacio.equipos_existentes
                                 for software in unidad_equipo.software_instalado.all() if software.activo}),
             'recursos': recursos_por_area.get(espacio.pk, []),
             'responsable': espacio.responsable if espacio.responsable_id and espacio.responsable.activo

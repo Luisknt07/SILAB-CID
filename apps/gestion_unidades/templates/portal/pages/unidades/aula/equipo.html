@@ -51,7 +51,7 @@
     <div data-aparecer><i class="fas fa-boxes" aria-hidden="true"></i><strong>{{ detalle.insumos_de_ficha|length }}</strong><span>{% translate "Insumos que usa" %}</span></div>
     <div data-aparecer><i class="fas fa-shield-alt" aria-hidden="true"></i><strong>{{ detalle.cuidados|length }}</strong><span>{% translate "Cuidados de operación" %}</span></div>
     {% else %}
-    <div data-aparecer><i class="fas fa-cubes" aria-hidden="true"></i><strong data-contar="{{ detalle.unidades|length }}">{{ detalle.unidades|length }}</strong><span>{% translate "Unidades en inventario" %}</span></div>
+    <div data-aparecer><i class="fas fa-cubes" aria-hidden="true"></i><strong data-contar="{{ detalle.en_inventario }}">{{ detalle.en_inventario }}</strong><span>{% translate "Unidades en inventario" %}</span></div>
     <div data-aparecer><i class="fas fa-calendar-check" aria-hidden="true"></i><strong data-contar="{{ detalle.disponibles }}">{{ detalle.disponibles }}</strong><span>{% translate "Disponibles para reservar" %}</span></div>
     <div data-aparecer><i class="fas fa-boxes" aria-hidden="true"></i><strong>{% firstof detalle.insumos|length detalle.insumos_de_ficha|length 0 %}</strong><span>{% translate "Insumos que usa" %}</span></div>
     <div data-aparecer><i class="fas fa-laptop-code" aria-hidden="true"></i><strong>{% firstof detalle.software|length detalle.software_de_ficha|length 0 %}</strong><span>{% translate "Programas" %}</span></div>
@@ -128,7 +128,7 @@
             </dl>
             {% endif %}
             <div class="equipo__acciones">
-              {% if fisica.estado_unidad == 'disponible' %}<button type="button" class="equipo__accion is-principal" data-accion="reservar"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Reservar" %}</button>{% endif %}
+              {% if fisica.activa and fisica.estado_unidad == 'disponible' %}<button type="button" class="equipo__accion is-principal" data-accion="reservar"><i class="fas fa-calendar-check" aria-hidden="true"></i> {% translate "Reservar" %}</button>{% endif %}
               {% with area=fisica.areas_detalle.0 %}{% if area %}<a class="equipo__accion" href="{{ area.url }}"><i class="{{ area.icono }}" aria-hidden="true"></i> {% translate "Ver su área" %}</a>{% endif %}{% endwith %}
               {% if gestor %}{% if fisica.activa %}<a class="equipo__accion" href="{% url 'etiquetas_equipos' unidad.slug %}?equipo={{ fisica.pk }}" data-ver-pdf data-pdf-titulo="Etiqueta del equipo"><i class="fas fa-print" aria-hidden="true"></i> {% translate "Imprimir etiqueta" %}</a>{% endif %}
               <a class="equipo__accion" href="{% url 'lector_equipos' %}?unidad={{ unidad.slug }}&amp;codigo={{ fisica.codigo_unidad|urlencode }}" target="_top"><i class="fas fa-barcode" aria-hidden="true"></i> {% translate "Abrir en el lector" %}</a>{% endif %}

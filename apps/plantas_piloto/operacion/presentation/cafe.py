@@ -137,7 +137,10 @@ def cadena_cafe(request, slug):
         from django.http import Http404
 
         raise Http404("La cadena necesita las cinco áreas publicadas.")
-    referencias = referencias_por_area(areas, request.user)
+    from apps.gestion_unidades.presentation.permisos import puede_gestionar_unidad
+
+    # El equipamiento que la planta solo describe no existe: lo revisa quien la gestiona, el público no lo ve.
+    referencias = referencias_por_area(areas, request.user) if puede_gestionar_unidad(request.user, unidad) else {}
     return render(
         request,
         "plantas_piloto/cafe_cadena.html",
@@ -146,7 +149,7 @@ def cadena_cafe(request, slug):
             "volver_url": unidad.get_absolute_url() + "#procesos-protocolos",
             "generado_en": timezone.localtime(),
             "nodos": NODOS_CADENA,
-            "grupos": [(a, referencias.get(a.pk, [])) for a in areas],
+            "grupos": [(a, referencias[a.pk]) for a in areas if referencias.get(a.pk)],
         },
     )
 

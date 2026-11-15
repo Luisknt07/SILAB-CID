@@ -91,14 +91,16 @@ class CargaDeContenidosTests(TestCase):
         self.assertContains(self.client.get(reverse('productos_laboratorio', args=[SLUG])), 'Borrador')
 
         # La ficha explicativa del área también es borrador: su administrador la ve con el aviso,
-        # con su diagrama, su boceto, la tabla de equipos con ficha técnica, insumos y seguridad.
+        # con su diagrama, su boceto, insumos y seguridad.
         call_command('cargar_fichas_area', '--unidad', SLUG, stdout=StringIO())
         area = reverse('area_unidad', args=[SLUG, 'XR-AREA-RA'])
         pagina_area = self.client.get(area)
-        for visible in ('Ficha en borrador', 'Qué es y cómo funciona', 'data-diagrama', 'data-plano', 'data-abrir-ficha',
+        for visible in ('Ficha en borrador', 'Qué es y cómo funciona', 'data-diagrama', 'data-plano',
                         'Insumos y materiales', 'data-verificacion', 'ARCore', 'Desarrollo de una aplicación de realidad aumentada',
                         'area__collage', 'data-abrir-imagen', 'data-visor', 'area__franja', 'data-videos', 'i.ytimg.com/vi/'):
             self.assertContains(pagina_area, visible)
+        # Los equipos que la ficha solo describe no están registrados: no existen y no salen en la tabla de equipos.
+        self.assertNotContains(pagina_area, 'data-abrir-ficha')
         # El video se inserta solo al pulsarlo: la página no trae marcos de YouTube.
         self.assertNotContains(pagina_area, '<iframe')
 

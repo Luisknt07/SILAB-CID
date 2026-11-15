@@ -340,6 +340,9 @@ def resultados_selector(request, unidad):
             return {"items": [], "pagina": 1, "paginas": 1, "total": 0}
         consulta = buscar(consulta, campos, texto)
     if tipo == "equipos":
+        # Una referencia ya vinculada se sigue resolviendo por su identificador; al buscar no se ofrece.
+        if not seleccion:
+            consulta = consulta.filter(activa=True, fecha_baja__isnull=True)
         consulta = consulta.select_related("equipo").only(
             "pk", "codigo_unidad", "equipo__nombre"
         )

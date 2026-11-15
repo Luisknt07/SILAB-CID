@@ -188,20 +188,30 @@ class EspacioReservable(models.Model):
 
     @property
     def equipos_asociados_ids_csv(self):
+        """Todos los equipos asociados, también las referencias: lo usa el formulario de gestión del área."""
         return ','.join(str(equipo.pk) for equipo in self.equipos_asociados.all())
+
+    @property
+    def equipos_existentes(self):
+        """Los equipos asociados que existen: activos y sin baja. Una referencia no se muestra ni se ofrece."""
+        return [equipo for equipo in self.equipos_asociados.all() if equipo.activa and not equipo.fecha_baja]
+
+    @property
+    def equipos_existentes_ids_csv(self):
+        return ','.join(str(equipo.pk) for equipo in self.equipos_existentes)
 
     @property
     def equipos_asociados_resumen(self):
         return ', '.join(
             f'{equipo.equipo.nombre} · {equipo.codigo_unidad}'
-            for equipo in self.equipos_asociados.all()
+            for equipo in self.equipos_existentes
         )
 
     @property
     def software_asociado_resumen(self):
         nombres = {
             software.nombre
-            for equipo in self.equipos_asociados.all()
+            for equipo in self.equipos_existentes
             for software in equipo.software_instalado.all()
             if software.activo and software.requiere_reserva
         }

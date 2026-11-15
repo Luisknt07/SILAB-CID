@@ -10,7 +10,10 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from django.http import Http404
 
+from django.db.models import Q
+
 from apps.recursos.models.consumibles import Consumible, ConsumiblePorEquipo
+from apps.recursos.models.unidades import UnidadEquipo
 from apps.directorio_unidades.models.core import Unidad
 
 from apps.laboratorios.operacion.presentation.actividad_laboratorio import GRUPOS, actividades_de
@@ -83,7 +86,10 @@ def insumos_unidad_view(request, slug):
     gestor = puede_gestionar_unidad(request.user, unidad)
     insumos = list(Consumible.objects.filter(unidad=unidad, **({} if gestor else {'activo': True})).order_by('clasificacion', 'nombre'))
     equipos = {}
-    for relacion in ConsumiblePorEquipo.objects.filter(consumible__in=insumos).select_related('equipo'):
+    # «Equipos que lo usan» nombra solo los modelos de los que la unidad tiene equipos que existen.
+    existentes = UnidadEquipo.objects.filter(
+        Q(laboratorio=unidad) | Q(laboratorios=unidad), activa=True, fecha_baja__isnull=True).values('equipo_id')
+    for relacion in ConsumiblePorEquipo.objects.filter(consumible__in=insumos, equipo_id__in=existentes).select_related('equipo'):
         equipos.setdefault(relacion.consumible_id, set()).add(relacion.equipo.nombre)
     clases = dict(Consumible.CLASIFICACIONES)
     grupos = []

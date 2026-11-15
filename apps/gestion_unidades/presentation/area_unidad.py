@@ -131,7 +131,10 @@ def ficha_de(espacio, gestor, inventario=(), usuario=None):
         ).select_related('consumible'),
         to_attr='consumibles_del_area',
     )))
-    elementos = visibles_para(originales, espacio.unidad, usuario)
+    # La página del área muestra lo que existe. La dotación propuesta y los equipos que no se registraron o que
+    # pasaron a referencia se administran al editar la ficha y desde la gestión de la unidad.
+    elementos = [elemento for elemento in visibles_para(originales, espacio.unidad, usuario) if elemento.tipo != 'equipo'
+                 or (elemento.registrado_id and not elemento.solo_referencia and elemento.registrado.activa)]
     ids_visibles = {elemento.pk for elemento in elementos}
     ocultos = {elemento.nombre for elemento in originales if elemento.pk not in ids_visibles}
     zonas = ficha.zonas

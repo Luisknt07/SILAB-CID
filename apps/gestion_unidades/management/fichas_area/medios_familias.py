@@ -37,7 +37,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=Qbyc71GfA7U', 'Analizador de Tiras de orina H500', 'Tecnologia Inteligente', 'es'),
             ('https://www.youtube.com/watch?v=ChVRRlVRxxo', 'HC300 Urine Analyzer Operation Video', 'DiagnosticSolution', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/analizadores-automatizados-de-orina.jpg', 'Roto2esdios · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Cobas_u_411.JPG'),
     },
     'Analizadores de calidad de leche': {
         'videos': [
@@ -203,7 +203,7 @@ MEDIOS = {
         'videos': [
             ('https://www.youtube.com/watch?v=0tRddYAMBrU', 'Limpieza y Mantenimiento de Campanas y Ductos de Cocina Industrial | Industrias Cleaning Mach', 'Industrias Cleaning Mach', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/campanas-y-canales-de-extraccion-industrial.jpg', 'Azylber · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Extractor_hood_with_turboswing_filters.jpg'),
     },
     'Canales y trampas de sedimentación de proceso': {
         'videos': [
@@ -217,6 +217,13 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=avI8z6XHUAc', 'Revisión Sistemática del Carro De Emergencia', 'Centro de Simulación', 'es'),
         ],
         'foto': ('img/catalogo/familias/carros-de-paro-y-de-medicacion.jpg', 'أمين · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Crash_cart_001.jpg'),
+    },
+    'Carros portabandejas': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=NZwn4dbKoPo', 'Health & Safety - Bakery Racks', 'UCB Bakery & Patisserie', 'en'),
+            ('https://www.youtube.com/watch?v=Zg8kaDGJ_gk', 'Commercial Baking Rack Safety', 'Schaumburg Specialties', 'en'),
+        ],
+        'foto': ('img/catalogo/familias/carros-portabandejas.jpg', 'Bakkerbartman · Public domain · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Wagens_met_deeg_voor_busbrood.jpg'),
     },
     'Casilleros y estaciones de carga de dispositivos': {
         'videos': [
@@ -256,7 +263,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=TkkxqVDDLn0', 'Cómo funciona las Unidades de Precisión aire acondicionado', 'aires acondicionados', 'es'),
             ('https://www.youtube.com/watch?v=jw05huBlpgQ', 'MANTENIMIENTO DE EQUIPOS DE REFRIGERACIÓN DE PRECISIÓN EMERSON EN UN DATA CENTER', 'horacio alberto Bermudez', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/climatizacion-de-precision.jpg', 'Robert.Harker · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:CRAC_Cabinets_2.jpg'),
     },
     'Colorímetros de laboratorio': {
         'videos': [
@@ -312,7 +319,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=KWshQTdx9f0', '1 - Zebra Tech TC Android Basic Introduction', 'symmoto', 'en'),
             ('https://www.youtube.com/watch?v=M-I_uS8xtAI', 'Nueva Computadora Móvil TC15 Zebra Technologies Inventarios Almacén @ZebraTechnologiesGlobal', 'Infotecno', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/computadores-moviles-con-escaner-integrado.jpg', 'Bartolo Bernoulli · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Android-MDE-mit-LTE.jpg'),
     },
     'Conmutadores de red (switches)': {
         'videos': [
@@ -451,7 +458,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=CZOHOww9OUc', 'Cómo usar la cámara de vacío de 2 galones (7.5 litros) para desgasificar materiales', 'Smooth-On en Español', 'es'),
             ('https://www.youtube.com/watch?v=XLhWWRaBR78', 'How To Use The Smooth-On 5 Gallon Vacuum Chamber To De-Gas Mold Making Materials', 'Smooth-On', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/camaras-de-vacio-y-preparacion-de-moldes.jpg', 'Emccorm · CC BY 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Studio_vacuum_chamber.jpg'),
     },
     'Cámaras de videovigilancia de salas de simulación': {
         'videos': [
@@ -479,7 +486,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=dR6T-_WWUMU', 'BBG / Demostración mezcla para salchichas cutter  BBG Ref:  CT-20', 'BBG COLOMBIA - Basculas y Equipos para alimentos', 'es'),
             ('https://www.youtube.com/watch?v=R0xxa8FkgKc', 'Cutter cocción y de vacío K 604 AC 8', 'Empresa LpfTec  Asesorias en procesos Productivos ', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/cuters-y-mezcladoras-de-emulsion-carnica.jpg', 'Seydelmann · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:KochVakuumKutter.jpg'),
     },
     'Descremadoras y separadoras centrífugas': {
         'videos': [
@@ -508,6 +515,13 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=KWZFMFsQ0K8', 'Determinación del Nitrógeno Total Kjeldahl', 'Ingenia UdeA', 'es'),
         ],
         'foto': ('img/catalogo/familias/digestores-y-destiladores-kjeldahl.jpg', 'Giancarlo Dessì · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Kjeldahl.jpg'),
+    },
+    'Dispensadores automáticos de medios de cultivo': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=MEt7hyHlP1g', 'Systec Mediaprep & Systec Mediafill (culture media sterilizer & automated petri-dish plate-pourer)', 'Systec GmbH & Co. KG', 'en'),
+            ('https://www.youtube.com/watch?v=7OYHsvLW53g', 'RAYPA | Estación de dispensación para medios de cultivo de Tejidos Vegetales y Microbiología | DW-MP', 'RAYPA | Sterilization Equipment', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/dispensadores-automaticos-de-medios-de-cultivo.jpg', 'AndrewPapp · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Sterile_Media_Dispenser_with_Electromagnetic_Pump.jpg'),
     },
     'Divisoras, laminadoras y formadoras de masa': {
         'videos': [
@@ -747,13 +761,24 @@ MEDIOS = {
         ],
         'foto': ('img/catalogo/familias/estaciones-meteorologicas.jpg', 'JoJo Eumerus mobile · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:22_August_2020,_automatic_weather_station,_Monte_Generoso.jpg'),
     },
+    'Estanterías de acero inoxidable para alimentos': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=k9KNMf4EaJQ', 'Almacenamiento para alimentos | Microguía', 'Global Standards', 'es'),
+            ('https://www.youtube.com/watch?v=Q7kQir5XbDY', 'Recepción, Almacenamiento y Sistema PEPS en Alimentos | Módulo 7 Curso BPM 📦', 'YaGo', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/estanterias-de-acero-inoxidable-para-alimentos.jpg', 'Pohled 111 · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:N%C3%A1%C5%99ad%C3%AD_a_n%C3%A1dob%C3%AD_pro_velkokapacitn%C3%AD_kuchyn%C4%9B.jpg'),
+    },
     'Estanterías de bodega y almacenamiento de laboratorio': {
         'videos': [
+            ('https://www.youtube.com/watch?v=SJwy8Sny2Vw', 'Seguridad en el Laboratorio: uso y almacenaje de reactivos químicos  CFATA UNAM', 'CFATA UNAM', 'es'),
+            ('https://www.youtube.com/watch?v=7cIIC-iyyt4', 'Buenas Prácticas de Almacenamiento (BPA) en Laboratorios IFA: orden, seguridad y control', 'Laboratorios IFA S.A.', 'es'),
         ],
         'foto': ('img/catalogo/familias/estanterias-de-bodega-y-almacenamiento-de-laboratorio.jpg', 'Patrick.thm · CC BY 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Steckregal_Super_Schwerlastregal_Industrie.webp'),
     },
     'Esterilizadores y lavabos sanitarios de planta': {
         'videos': [
+            ('https://www.youtube.com/watch?v=NypJ_JS-59s', 'Esterilizador de Cuchillos y Chairas | Comind', 'COMIND INDUSTRIES -Resistencias Eléctricas ', 'es'),
+            ('https://www.youtube.com/watch?v=Dd6nlxX3XnU', 'Estación Higiene Desinfección con Torniquete - Manos y Botas', 'INDOSAL - INSUMOS INDUSTRIA ALIMENTOS', 'es'),
         ],
         'foto': ('img/catalogo/familias/esterilizadores-y-lavabos-sanitarios-de-planta.jpg', 'Historic American Engineering Record (Library of Congress) · Dominio público · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:DETAIL_OF_COMBINATION_HANDWASH_SINK-KNIFE_STERILIZER_ON_SPLITTERS%27_PLATFORM%3B_KNIVES_AND_CLEAVERS_WERE_CLEANED_FREQUENTLY_BY_DIPPING_THEM_INTO_STEAM-HEATED_W'),
     },
@@ -783,7 +808,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=Ek_YFU4iWV8', 'How to use KingFisher Flex-Ready DNA Ultra 2.0 prefilled plates for KingFisher Flex', 'Thermo Fisher Scientific', 'en'),
             ('https://www.youtube.com/watch?v=aoM4jB8dKSY', 'KingFisher Flex Tutorial for SARS-CoV-2 RNA extraction', 'Jim Scott', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/extractores-automaticos-de-acidos-nucleicos.jpg', 'Ajay Kumar Chaurasiya · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Zybio_Nucleic_Acid_Extraction_machine.jpg'),
     },
     'Extractores de grasa Soxhlet': {
         'videos': [
@@ -852,7 +877,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=ZjyDoUwsufM', 'XREAL Air 2 and XREAL Air 2 Pro User Guide', 'XREAL', 'en'),
             ('https://www.youtube.com/watch?v=J3ZT5Qh6-Xo', 'XREAL (Nreal) Air AR Glasses: How to Setup / Install (step by step)', 'WorldofTech', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/gafas-y-visores-opticos-de-realidad-aumentada.jpg', 'Kārlis Dambrāns · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Microsoft_Hololens_-_Mobile_World_Congress_2016_(24867822994).jpg'),
     },
     'Gavetas y pallets de producto': {
         'videos': [
@@ -876,6 +901,8 @@ MEDIOS = {
     },
     'Gradería y mobiliario de auditorio': {
         'videos': [
+            ('https://www.youtube.com/watch?v=cYsNlZ9T1CQ', 'GRADERIOS RETRACTILES CON BUTACA ELEVABLE Y ABATIBLE AUTOMATICA [apertura grada]', 'TalleresPalautordera', 'es'),
+            ('https://www.youtube.com/watch?v=65X4mdt_0Nc', 'MXP Telescopic Platform Basic Operation & Safety Warnings', 'Hussey Seating Company', 'en'),
         ],
         'foto': ('img/catalogo/familias/graderia-y-mobiliario-de-auditorio.jpg', 'อิทธิชัย เพ็ขรจำเนียร · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:TRUE_ICON_HALL-Retractable_Seating.jpg'),
     },
@@ -912,7 +939,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=SP3tQRrXakQ', 'Manejo y Funcionamiento del Homogenizador Stomacher 400 C // Seward', 'indelab sac', 'es'),
             ('https://www.youtube.com/watch?v=BB0nq6W_eVw', 'How to Use Stomacher 400 | Circulator | Seward', 'Gunawan', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/homogeneizadores-y-licuadoras-de-laboratorio.jpg', 'Vigorous action · CC BY 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Stomacher1.jpg'),
     },
     'Hornos de cocción y ahumado': {
         'videos': [
@@ -953,7 +980,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=SktuqOam6iU', 'How to 3D Print Composites on the Markforged FX10', 'Mark3D UK - THE Additive Experts', 'en'),
             ('https://www.youtube.com/watch?v=LyARw-9kBTc', 'Fiber Routing Techniques for Markforged 3D Printers', 'Hawk Ridge Systems', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/impresoras-3d-de-fibra-continua-y-compuestos.jpg', 'Lance Cpl. Marcus Henson, U.S. Marine Corps · Public domain · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:U_S_Marines_with_3d_Marine_Logistics_Group_showcase_3D_Printing_Capabilities_to_the_U_S_Coast_Guard_at_CJLOTS_26_(9832271).jpg'),
     },
     'Impresoras 3D de filamento (FDM)': {
         'videos': [
@@ -1086,7 +1113,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=T_O52rA2xlk', 'Tips de Facilitación 1: ¿CÓMO INICIAR CON ÉXITO UN TALLER DE FACILITACIÓN GRUPAL?', 'Facilita Connect', 'es'),
             ('https://www.youtube.com/watch?v=h_ZDJXI1pZg', 'Metodologias Participativas. Juegos, recursos y dinámicas, para el trabajo grupal y comunitario.', 'VacaBonsai Colectivo Audiovisual', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/kits-de-facilitacion-y-dinamicas-participativas.jpg', 'Filipinayzd · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Post_it_note_wall_at_Wikimania_Singapore_2023.jpg'),
     },
     'Kits de microcontroladores y electrónica educativa': {
         'videos': [
@@ -1101,6 +1128,13 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=_7fOEzxlZoM', 'Proceso de Embalaje de Muestras', 'Educación IMSS en Línea', 'es'),
         ],
         'foto': ('img/catalogo/familias/kits-de-muestreo-y-transporte-de-muestras.jpg', 'Meganbeckett27 · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Large_cooler_box.jpg'),
+    },
+    'Kits de seguridad y medición de campo': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=MWin8g7vFHM', 'Distanciometro o medidor láser (Qué es y como utilizarlo)', 'Mundo DDD', 'es'),
+            ('https://www.youtube.com/watch?v=0n30KUaOERo', 'Cómo medir alturas utilizando un clinómetro.', 'David Alejandro Rivera', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/kits-de-seguridad-y-medicion-de-campo.jpg', 'Btomli2 · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Clinometer_commonly_used_by_foresters.JPG'),
     },
     'Kits de sensores y actuadores': {
         'videos': [
@@ -1228,12 +1262,26 @@ MEDIOS = {
         ],
         'foto': ('img/catalogo/familias/medidores-de-ph-y-conductividad.jpg', 'OER CampLev · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:PH-Meter_METTLER_TOLEDO_FiveEasy.jpg'),
     },
+    'Mesas de corte y selección de frutas y hortalizas': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=8C2wNkjGjsc', 'Proceso de selección de frutas', 'Frutas Stelzer', 'es'),
+            ('https://www.youtube.com/watch?v=VjCLNAJERbU', 'Clasificación de frutas y hortalizas', 'Billy Botía', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/mesas-de-corte-y-seleccion-de-frutas-y-hortalizas.jpg', 'LID · CC BY-SA 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Apple_sorting_Sursee.jpeg'),
+    },
     'Mesas de disección y anatomía virtual': {
         'videos': [
             ('https://www.youtube.com/watch?v=X6xMX-PsBOQ', 'Capacitación Mesa de Disección Virtual y Anatomía 1', 'Case Solutions PR', 'es'),
             ('https://www.youtube.com/watch?v=kcsQUvyySVo', 'Anatomage Table - Basics', 'Spencer S. Eccles Health Sciences Library', 'en'),
         ],
         'foto': ('img/catalogo/familias/mesas-de-diseccion-y-anatomia-virtual.jpg', 'Binil Zack · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:3D_Interactive_Anatomage_Table_.jpg'),
+    },
+    'Mesas de llenado y empaque de alimentos': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=IgdVfA1F-V8', 'Llenadora  Envasadora Jugos Frutas en Caliente, Lima Perú', 'LLENADORA TECNICO SALESIANO ', 'es'),
+            ('https://www.youtube.com/watch?v=kPb1ymxtBs0', '💥EMPACADORA DE PULPA DE FRUTAS - COMO EMPACARLA Y DOSIFICAR LA PULPA', ' TECNOMACK MAPLASCALI', 'es'),
+        ],
+        'foto': None,
     },
     'Mesas y cajas de luz para escaneo y fotografía': {
         'videos': [
@@ -1242,8 +1290,17 @@ MEDIOS = {
         ],
         'foto': ('img/catalogo/familias/mesas-y-cajas-de-luz-para-escaneo-y-fotografia.jpg', 'Alison Christine from North Yorkshire, UK · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Light_Tent_DIY.jpg'),
     },
+    'Mesas y mesones de proceso cárnico': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=0zpJZxMM-t4', 'CERDO, Cortes y Despiece. (TUTORIAL)', 'Victor Solar Cabrera', 'es'),
+            ('https://www.youtube.com/watch?v=LIllE-kPxmw', 'Buenas Practicas de Desinfección en la Industria Carnica', 'MeatsPad Español', 'es'),
+        ],
+        'foto': None,
+    },
     'Mesas y sillas modulares': {
         'videos': [
+            ('https://www.youtube.com/watch?v=WZOBLrqTxlY', 'Organizando mi sala de clases (5 modelos)', 'Jose Stein', 'es'),
+            ('https://www.youtube.com/watch?v=5g4oyZ_SEK0', 'A Versatile Seating Arrangement That Really Works', 'Edutopia', 'en'),
         ],
         'foto': ('img/catalogo/familias/mesas-y-sillas-modulares.jpg', 'Marie from Malang, East Java, Indonesia · CC BY-SA 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Classroom_in_the_U.S.jpg'),
     },
@@ -1251,6 +1308,13 @@ MEDIOS = {
         'videos': [
             ('https://www.youtube.com/watch?v=6dIMi4Ui8MU', 'COMO CONFIGURAR DISPOSITIVO ROTATIVO EN MAQUINAS LÁSER CONTROLAR RUIDA', 'IMPOEQUIPOS DE LOS RIOS', 'es'),
             ('https://www.youtube.com/watch?v=IkhKC2oy1uw', 'How to Make a Work Holding CNC Wasteboard | ToolsToday', 'ToolsToday', 'en'),
+        ],
+        'foto': ('img/catalogo/familias/mesas-y-sistemas-de-sujecion-para-maquinas.jpg', 'Senior Airman David Owsianka · Public domain · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Sparks_fly_at_metal_tech_150623-F-CB366-093.jpg'),
+    },
+    'Mesones de control de proceso de acero inoxidable': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=HnBsGCWgrwg', 'Limpieza y desinfección de superficies en Industria Alimentaria', 'Cleanity', 'es'),
+            ('https://www.youtube.com/watch?v=NbsXfon-JV0', 'Limpieza y Desinfección en la Industria de Alimentos', 'Javier Vega', 'es'),
         ],
         'foto': None,
     },
@@ -1294,7 +1358,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=gL11TgF-O04', 'Simulador Fabrica Industria 4.0 de FischerTechnik en el ITGAM.', 'Profesor Rojas del ITGAM', 'es'),
             ('https://www.youtube.com/watch?v=pfOQQBFJTTs', 'Training Factory Industry 4.0 24V I Smart Factory I  fischertechnik I Industry 4.0', 'fischertechnik', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/minifabricas-automatizadas-a-escala.jpg', 'Festo (Unternehmen) · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Festo_Didactic_Llearning-systems.jpg'),
     },
     'Mobiliario de almacenamiento y picking logístico': {
         'videos': [
@@ -1303,8 +1367,17 @@ MEDIOS = {
         ],
         'foto': ('img/catalogo/familias/mobiliario-de-almacenamiento-y-picking-logistico.jpg', 'Axisadman · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Modern_warehouse_with_pallet_rack_storage_system.jpg'),
     },
+    'Mobiliario de aprendizaje informal': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=kv_6twB4_88', 'Un lugar para aprender con todas las comodidades', 'Universidad EAFIT', 'es'),
+            ('https://www.youtube.com/watch?v=tfc2XieKCNs', 'La arquitectura de espacios de aprendizaje', 'Investigación, creación e innovación | Uniandes', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/mobiliario-de-aprendizaje-informal.jpg', 'college.library · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Beanbag_Lounge_-_Dec._2007_(2117825827).jpg'),
+    },
     'Mobiliario de exhibición y vitrinas': {
         'videos': [
+            ('https://www.youtube.com/watch?v=znDjKTxoBS0', '¿Cómo se hace el montaje de una exposición? #DestrásDelMuseo', 'Casa Museo Quinta de Bolívar', 'es'),
+            ('https://www.youtube.com/watch?v=BFmRdboi1zc', 'How to Set Up Museum Display Tables | Product Assembly | Displays2go®', 'Displays2Go', 'en'),
         ],
         'foto': ('img/catalogo/familias/mobiliario-de-exhibicion-y-vitrinas.jpg', 'Marlene Oostryck (Wiki Takes Fremantle participant) · CC BY 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:WTF_Marlene_Oostryck_Maritime_Museum_display_cases_1.jpg'),
     },
@@ -1314,14 +1387,23 @@ MEDIOS = {
         ],
         'foto': None,
     },
+    'Mobiliario y señalización de salas de realidad extendida': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=gmKiG0FsB2w', 'Gafas VR Limite de seguridad', 'Mentoría Digital', 'es'),
+            ('https://www.youtube.com/watch?v=qcjd5CZAHSA', '⚙️   Activar y Configurar Límites Visibles Oculus Quest 2', 'Solvetic', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/mobiliario-y-senalizacion-de-salas-de-realidad-extendida.jpg', 'Adrian Grycuk · CC BY-SA 3.0 pl · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Floor_marking_5S_safety_Scanfil_Sieradz.jpg'),
+    },
     'Mochilas y kits de rodaje': {
         'videos': [
             ('https://www.youtube.com/watch?v=7hoBRGTiBv8', 'Equipo técnico y humano para hacer cine sin (casi) dinero', 'Mi Primera Escuela de Cine', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/mochilas-y-kits-de-rodaje.jpg', 'THOR · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Medium_Walkabout_Kit.jpg'),
     },
     'Modelos anatómicos': {
         'videos': [
+            ('https://www.youtube.com/watch?v=dEDRbcLRmaA', 'Laboratorio de modelos anatómicos - Dr. Ricardo Luque', 'Centro E-learning Universidad del Rosario', 'es'),
+            ('https://www.youtube.com/watch?v=fLyaJ4rYnEI', 'Torso humano bisexo, espalda abierta. Marca Nahita', 'Auxilab', 'es'),
         ],
         'foto': ('img/catalogo/familias/modelos-anatomicos.jpg', 'RWhitwam · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Plastic_human_torso_model.png'),
     },
@@ -1343,7 +1425,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=s_ZyqVXn9yE', 'Curso gratis Atomos Ninja V ✅ | V+ / Atomos Ultra | Aprende a como usar tu monitor y sus funciones.', 'CHRIS AGUILA REY', 'es'),
             ('https://www.youtube.com/watch?v=D8QdQSqRSQA', 'Calibrating the SmallHD OLED 22" 4K Reference Monitor w/ Calman | Step-by-Step Tutorial', 'Portrait Displays', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/monitores-y-pantallas-de-referencia-de-video.jpg', 'Asterzenback · CC0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Television_News_Control_Room.png'),
     },
     'Monitores y simuladores virtuales de signos vitales': {
         'videos': [
@@ -1354,6 +1436,8 @@ MEDIOS = {
     },
     'Mostradores y mobiliario de atención al público': {
         'videos': [
+            ('https://www.youtube.com/watch?v=GU_ev-z2DMM', 'Check in y entrega de habitación Hotel Swissotel Quito - Facultad de Turismo y Hospitalidad', 'Dirección de Educación en Línea', 'es'),
+            ('https://www.youtube.com/watch?v=178WyY_VeGw', 'Protocolo de Atención al Ciudadano desde un Enfoque Diferencial - SENA', 'SENA', 'es'),
         ],
         'foto': ('img/catalogo/familias/mostradores-y-mobiliario-de-atencion-al-publico.jpg', 'W.carter · CC0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Reception_desk_for_Clinical_Physiology_-_N%C3%84L_hospital_1.jpg'),
     },
@@ -1496,6 +1580,8 @@ MEDIOS = {
     },
     'Reactores de hidrólisis y cocción': {
         'videos': [
+            ('https://www.youtube.com/watch?v=D8TtzRENtlY', '🌟FUNCIONAMIENTO DE UNA MARMITA A GAS INDUSTRIAL Y SUS USOS', ' TECNOMACK MAPLASCALI', 'es'),
+            ('https://www.youtube.com/watch?v=_MNaBr8C5WQ', 'Marmita industrial con agitador', 'RO-CA TECNOALIMENTARIA', 'es'),
         ],
         'foto': ('img/catalogo/familias/reactores-de-hidrolisis-y-coccion.jpg', 'PEO, Assembled Chemical Weapons Alternatives · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Jacketed_vessels.jpg'),
     },
@@ -1621,7 +1707,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=sQbbDOdpU5Q', 'TOMA DE MUESTRA DE SANGRE VENOSA - EXTRACCIÓN DE SANGRE VENOSA - VENOPUNCIÓN', 'VITAL SUPPORT SAS', 'es'),
             ('https://www.youtube.com/watch?v=Q7lkVgL2eQQ', 'Toma de muestra en sangre venosa', 'Edu. Vitual y a Distancia de la U. de Cundinamarca', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/sillones-y-brazos-de-flebotomia.jpg', 'Jengod · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Blood_draw_procedure_at_the_laboratory_at_UCLA_Medical_Plaza.jpg'),
     },
     'Simuladores de operación de montacargas': {
         'videos': [
@@ -1649,7 +1735,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=E_9klQ-fp1k', 'Montaje Vitek 2 Compact', 'Tecno Learning', 'es'),
             ('https://www.youtube.com/watch?v=t-_GWg2OK2M', 'vitek 2 compact: Procedimiento, Manejo de equipo, staphylococcus aureus', 'Victor Salvatierra', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/sistemas-automatizados-de-identificacion-microbiana.jpg', 'Spicy · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Microbial_identification_using_Bruker_Biotyper_MALDI-TOF.jpg'),
     },
     'Sistemas de PCR en cartucho cerrado': {
         'videos': [
@@ -1676,7 +1762,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=2IruFzYUH80', 'Cómo medir con ImageJ', 'Emmanuel González', 'es'),
             ('https://www.youtube.com/watch?v=wCeOyqtwz0U', 'IMAGE J - Análisis de imagen', 'You Tec', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/sistemas-de-analisis-de-imagen.jpg', 'Friedrich Haag · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:001_2021_03_05_Lichtzeltfotografie.jpg'),
     },
     'Sistemas de captura de movimiento inercial': {
         'videos': [
@@ -1690,7 +1776,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=HyrHhaRVOaM', 'OptiTrack - Motive 3.0 | Quick Start Guide', 'OptiTrack', 'en'),
             ('https://www.youtube.com/watch?v=cNZaFEghTBU', 'OptiTrack Motive - Volume setup and calibration', 'OptiTrack', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/sistemas-de-captura-de-movimiento-optica.jpg', 'yoggy0 from Yokohama, Japan · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Another_Shadow_-_OptiTrack_camera_was_used_-_SIGGRAPH_Asia_2009.jpg'),
     },
     'Sistemas de desinfección UV-C': {
         'videos': [
@@ -1704,7 +1790,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=-gloLlNvGys', 'Kalenis LIMS & ERP: Demo ingreso de muestras', 'Kalenis LIMS & ERP', 'es'),
             ('https://www.youtube.com/watch?v=v6hfR0gGPo8', 'Transformando la Gestión de Laboratorios con LIMS parte 1 ¿Qué es un LIMS y por qué es clave?', 'Juan Pablo Molineiro Cornejo', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/sistemas-de-gestion-de-informacion-de-laboratorio-lims-lis.jpg', 'Steve Knight · CC BY 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Scientific_sample_tubes.jpg'),
     },
     'Sistemas de gestión y grabación de simulación clínica': {
         'videos': [
@@ -1724,10 +1810,12 @@ MEDIOS = {
         'videos': [
             ('https://www.youtube.com/watch?v=h5j9xzDhe6c', 'Sistema de Monitoreo Continuo ViewLinc de VAISALA by AKRIBIS', 'AKRIBIS - Sinergizando Conocimiento y Tecnología', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/sistemas-de-monitoreo-de-temperatura-y-oxigeno-de-sala.jpg', 'Aperegoy · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Data_Logger.jpg'),
     },
     'Sistemas de observación (espejos e intercomunicadores)': {
         'videos': [
+            ('https://www.youtube.com/watch?v=V1OqQit7Edo', 'Así funciona la “cámara Gesell”, una habitación donde los niños declaran sin presión', 'Telemadrid', 'es'),
+            ('https://www.youtube.com/watch?v=bL0Oj3xJtd0', 'Cámara Gesell - Psicología UNHEVAL', 'DTI UNHEVAL Dirección Transferencia e Innovación', 'es'),
         ],
         'foto': ('img/catalogo/familias/sistemas-de-observacion-espejos-e-intercomunicadores.jpg', 'Dale Mahalko · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:University_of_Wisconsin_-_Eau_Claire_-_Laboratory_School_-_Park_School_-_Observation_room_alongside_classroom_with_one-way_mirror.jpg'),
     },
@@ -1872,7 +1960,7 @@ MEDIOS = {
         'videos': [
             ('https://www.youtube.com/watch?v=bmIGzvGdfBQ', 'Sim U Suit Obesity Suit Demonstration', 'Sim U Suit', 'en'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/trajes-y-kits-de-simulacion-de-condiciones-de-salud.jpg', 'Gundolf Meyer-Hentschel · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Agesuit_alterssimulationsanzug_ageman_basic_two_women.jpg'),
     },
     'Trampas de insectos y control de plagas': {
         'videos': [
@@ -1885,7 +1973,7 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=ntwD3SqW8r8', '¿Cómo tratar acústicamente tu HOME STUDIO? Verdades y mitos', 'Jaime Altozano', 'es'),
             ('https://www.youtube.com/watch?v=HdySQ8Mranc', 'Guía sobre TRATAMIENTO ACÚSTICO para HOME STUDIO  -  Home Studio', 'Academia Perma', 'es'),
         ],
-        'foto': None,
+        'foto': ('img/catalogo/familias/tratamiento-acustico.jpg', 'Chlod Alejandro · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Acoustic_foam_closeup.jpg'),
     },
     'Trípodes y estabilizadores de cámara': {
         'videos': [
@@ -1914,5 +2002,44 @@ MEDIOS = {
             ('https://www.youtube.com/watch?v=pFZrkI4O-cI', 'Cómo CONECTAR las META QUEST 3 a PC 🧐 **RÁPIDO CON / SIN CABLE**', 'VrPatch', 'es'),
         ],
         'foto': ('img/catalogo/familias/visores-de-realidad-virtual-y-mixta.jpg', 'Roy.wonder.cohen · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Meta_Quest_3_front_View.jpg'),
+    },
+}
+
+# Los modelos que no pertenecen a ninguna familia: foto y videos de su tipo, por el nombre del modelo.
+MEDIOS_DE_MODELO = {
+    'Audífonos con micrófono para voz espacial': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=160rcwgy9q8', 'Como Configurar Audifonos con Microfono en Pc o Laptop Windows 11', 'Erick Clavijo Morante', 'es'),
+            ('https://www.youtube.com/watch?v=dyXqdEuB0Zw', '🎤 Cómo CONFIGURAR el MICRÓFONO en WINDOWS correctamente || Tutorial 2026', 'GabiTUTOS', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/audifonos-con-microfono-para-voz-espacial.jpg', 'Blefort · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Casque_Avec_Micro.jpg'),
+    },
+    'Barra de videoconferencia con cámara y micrófonos': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=jAxe2PO36MU', 'Logitech Rally Bar, Rally bar mini y Logitech TAP', 'Selfie&tech', 'es'),
+            ('https://www.youtube.com/watch?v=Yzq0iK9ZxD0', 'Logitech Rally Bar - Overview, Appliance Setup & Demo', 'Expert of Things & Stuff', 'en'),
+        ],
+        'foto': ('img/catalogo/familias/barra-de-videoconferencia-con-camara-y-microfonos.jpg', 'BrokenSphere · CC BY-SA 3.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Polycom_VSX_7000_with_2_video_conferencing_screens.JPG'),
+    },
+    'Estación anfitriona para mundos virtuales': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=dPaIAgHSh3U', 'Creando una sala virtual inmersiva con hubs.mozilla.com', 'eLMformacion', 'es'),
+            ('https://www.youtube.com/watch?v=FrZouulTQSE', '👨\u200d🎓 Crea tu clase inmersiva con realidad virtual y Mozilla Hubs! (EN Captions)', 'Emilius | AR + AI', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/estacion-anfitriona-para-mundos-virtuales.jpg', 'Brian Wong · CC BY-SA 2.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Gaming_PC-Setup_-_Astaroth-_The_Completed_System.jpg'),
+    },
+    'Pantalla interactiva para sesiones híbridas': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=Tyqzsu_v0Qk', '🎥 Tutorial: Funciones Básicas para el Uso de Pantallas Interactivas en las Aulas | UNTUMBES', 'UNIVERSIDAD NACIONAL DE TUMBES', 'es'),
+            ('https://www.youtube.com/watch?v=9UA435c3Vng', 'Cómo utilizar las herramientas integradas en las pantallas interactivas Samsung WAF', 'Perú Data - Tecnología para crecer', 'es'),
+        ],
+        'foto': ('img/catalogo/familias/pantalla-interactiva-para-sesiones-hibridas.jpg', 'Arnav2005kochi · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:Interactive_Panel_in_6B_Class.jpg'),
+    },
+    'Servidor para salas virtuales propias': {
+        'videos': [
+            ('https://www.youtube.com/watch?v=mjP06XGnotw', '👨\u200d💻 Cómo INSTALAR UBUNTU SERVER 22.04.2 paso a paso', 'AprendoLinux', 'es'),
+            ('https://www.youtube.com/watch?v=AnPcsXQKAsA', 'Complete walkthrough setting up Hubs Community Edition on Google Cloud and AWS Route 53 for Windows', '4D Research Lab', 'en'),
+        ],
+        'foto': ('img/catalogo/familias/servidor-para-salas-virtuales-propias.jpg', 'Btrs · CC BY-SA 4.0 · Wikimedia Commons', 'https://commons.wikimedia.org/wiki/File:HPE_ProLiant_DL360_Gen10_nodes_in_MAM_cluster.jpg'),
     },
 }

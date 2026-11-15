@@ -204,7 +204,7 @@ def validar_equipos_para_software(software, recursos):
         return
     recursos_ids = {int(recurso["id"]) for recurso in recursos or []}
     for programa in software:
-        equipos_ids = {equipo.pk for equipo in programa.equipos_instalados.all()}
+        equipos_ids = {equipo.pk for equipo in programa.equipos_existentes}
         if programa.tipo_acceso == "instalacion" and not equipos_ids:
             raise ValueError(
                 f"{programa.nombre} todavía no tiene configurado el equipo donde "
@@ -246,7 +246,7 @@ def validar_equipos_para_espacios(espacios, recursos, *, reserva_unidad_completa
     for espacio in espacios:
         if not espacio.requiere_recurso_tecnico:
             continue
-        equipos_ids = {equipo.pk for equipo in espacio.equipos_asociados.all()}
+        equipos_ids = {equipo.pk for equipo in espacio.equipos_existentes}
         if not equipos_ids:
             raise ValueError(
                 f"{espacio.nombre} está configurada como área técnica, pero todavía "

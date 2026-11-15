@@ -168,11 +168,21 @@ class SoftwareDisponible(models.Model):
 
     @property
     def equipos_instalados_ids_csv(self):
+        """Todos los equipos vinculados, también las referencias: lo usa el formulario de gestión del programa."""
         return ",".join(str(equipo.pk) for equipo in self.equipos_instalados.all())
+
+    @property
+    def equipos_existentes(self):
+        """Los equipos donde está instalado y que existen: activos y sin baja."""
+        return [equipo for equipo in self.equipos_instalados.all() if equipo.activa and not equipo.fecha_baja]
+
+    @property
+    def equipos_existentes_ids_csv(self):
+        return ",".join(str(equipo.pk) for equipo in self.equipos_existentes)
 
     @property
     def equipos_instalados_resumen(self):
         return ", ".join(
             f"{equipo.equipo.nombre} · {equipo.codigo_unidad}"
-            for equipo in self.equipos_instalados.all()
+            for equipo in self.equipos_existentes
         )

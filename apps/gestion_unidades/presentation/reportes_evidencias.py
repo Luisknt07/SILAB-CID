@@ -332,8 +332,10 @@ def reporte_desechos(unit, start_date, end_date, state='', search=''):
 def reporte_equipamiento(unit, start_date, end_date, state='', search=''):
     """Cada equipo con su estado, su disponibilidad en el período y lo que le pasó."""
     state_choices = UnidadEquipo._meta.get_field('estado_unidad').choices
+    # Una referencia (inactiva y sin baja) no existe: no se reporta ni suma disponibilidad.
     equipos = (
         UnidadEquipo.objects.filter(Q(laboratorio=unit) | Q(laboratorios=unit))
+        .exclude(activa=False, fecha_baja__isnull=True)
         .select_related('equipo').distinct().order_by('codigo_unidad')
     )
     if state in dict(state_choices):

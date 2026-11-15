@@ -166,7 +166,7 @@ def obtener_unidades_equipo(request, equipo_id):
 
     try:
         equipo = EquiposServicios.objects.get(id=equipo_id)
-        unidades = UnidadEquipo.objects.filter(equipo=equipo).order_by("codigo_unidad")
+        unidades = UnidadEquipo.objects.publicos().filter(equipo=equipo).order_by("codigo_unidad")
         fecha = request.GET.get("fecha")
         horas_json = request.GET.get("horas")
         try:

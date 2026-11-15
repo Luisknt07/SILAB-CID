@@ -1748,6 +1748,17 @@ def _equipos_de_unidad(unidad):
     ).distinct()
 
 
+def _equipos_existentes_de_unidad(unidad):
+    """Los equipos con los que se opera: una referencia o una baja no se presta, no se repara ni consume insumos."""
+    return _equipos_de_unidad(unidad).filter(activa=True, fecha_baja__isnull=True)
+
+
+def _equipo_existente_bloqueado(unidad, equipo_id):
+    if not _equipos_existentes_de_unidad(unidad).filter(pk=equipo_id).exists():
+        raise ValidationError("Ese equipo no existe en la unidad: es una referencia o se dio de baja.")
+    return _equipo_bloqueado_de_unidad(unidad, equipo_id)
+
+
 def _aplicar_rol_de_equipo(request, unidad, catalogo):
     """Principal o auxiliar, y a qué principales apoya un auxiliar."""
     if "rol_equipo" not in request.POST:
@@ -2021,7 +2032,8 @@ def _operar_recurso(request, unidad):
         equipos_seleccionados = list(_equipos_de_unidad(unidad).filter(pk__in=equipos_ids))
         if len(equipos_seleccionados) != len(equipos_ids):
             raise ValidationError("Selecciona únicamente equipos de esta unidad.")
-        objeto.equipos_asociados.set(equipos_seleccionados)
+        referencias = list(objeto.equipos_asociados.filter(activa=False)) if objeto.pk else []
+        objeto.equipos_asociados.set({*equipos_seleccionados, *referencias})
         if not creado and estaba_activo != activar:
             return objeto, desactivar_area(objeto) if estaba_activo else activar_area(objeto), False
         return objeto, "Espacio creado" if creado else "Espacio actualizado", creado
@@ -2067,7 +2079,8 @@ def _operar_recurso(request, unidad):
         equipos_seleccionados = list(_equipos_de_unidad(unidad).filter(pk__in=equipos_ids))
         if len(equipos_seleccionados) != len(equipos_ids):
             raise ValidationError("Selecciona únicamente equipos de esta unidad.")
-        objeto.equipos_instalados.set(equipos_seleccionados)
+        referencias = list(objeto.equipos_instalados.filter(activa=False)) if objeto.pk else []
+        objeto.equipos_instalados.set({*equipos_seleccionados, *referencias})
         return objeto, "Software creado" if creado else "Software actualizado", creado
     raise ValidationError("Selecciona un recurso válido.")
 
@@ -2099,10 +2112,7 @@ def _operar_incidencia(request, unidad):
         )
         creado = False
     else:
-        equipo = get_object_or_404(
-            _equipos_de_unidad(unidad),
-            pk=request.POST.get("equipo_id"),
-        )
+        equipo = _equipo_existente_bloqueado(unidad, request.POST.get("equipo_id"))
         objeto = IncidenciaEquipo(
             equipo=equipo,
             unidad=unidad,
@@ -2135,10 +2145,7 @@ def _operar_mantenimiento(request, unidad):
         )
         creado = False
     else:
-        equipo = get_object_or_404(
-            _equipos_de_unidad(unidad),
-            pk=request.POST.get("equipo_id"),
-        )
+        equipo = _equipo_existente_bloqueado(unidad, request.POST.get("equipo_id"))
         objeto = MantenimientoEquipo(equipo=equipo, unidad=unidad)
         creado = True
     objeto.tipo = (request.POST.get("tipo") or "preventivo").strip()
@@ -2221,10 +2228,7 @@ def _operar_prestamo(request, unidad):
         )
         creado = False
     else:
-        equipo = get_object_or_404(
-            _equipos_de_unidad(unidad),
-            pk=request.POST.get("equipo_id"),
-        )
+        equipo = _equipo_existente_bloqueado(unidad, request.POST.get("equipo_id"))
         objeto = PrestamoEquipo(equipo=equipo, unidad=unidad, entregado_por=request.user)
         creado = True
     objeto.tipo = (request.POST.get("tipo") or "interno").strip()
@@ -2334,7 +2338,7 @@ def _operar_inventario(request, unidad):
         objeto.lote_inventario = lote
     equipo_id = (request.POST.get("equipo_id") or "").strip()
     if equipo_id:
-        objeto.equipo = _equipo_bloqueado_de_unidad(unidad, equipo_id)
+        objeto.equipo = _equipo_existente_bloqueado(unidad, equipo_id)
     elif lote is not None and lote.equipo_en_uso_id:
         objeto.equipo = lote.equipo_en_uso
     reserva_id = (request.POST.get("reserva_id") or "").strip()
@@ -2469,7 +2473,7 @@ def _operar_lote_consumible(request, unidad):
     if estado_solicitado == "en_uso":
         if not equipo_id:
             raise ValidationError("Selecciona el equipo donde se encuentra el lote abierto.")
-        objeto.equipo_en_uso = _equipo_bloqueado_de_unidad(unidad, equipo_id)
+        objeto.equipo_en_uso = _equipo_existente_bloqueado(unidad, equipo_id)
         objeto.fecha_apertura = fecha_apertura or objeto.fecha_apertura or timezone.localdate()
     else:
         objeto.equipo_en_uso = None
@@ -2563,7 +2567,7 @@ def _operar_lote_consumible(request, unidad):
             objeto.refresh_from_db()
             objeto.estado = "en_uso"
             objeto.equipo_en_uso = (
-                _equipo_bloqueado_de_unidad(unidad, equipo_id) if equipo_id else None
+                _equipo_existente_bloqueado(unidad, equipo_id) if equipo_id else None
             )
             objeto.fecha_apertura = objeto.fecha_apertura or timezone.localdate()
             objeto.actualizado_por = request.user

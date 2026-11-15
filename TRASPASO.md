@@ -1,5 +1,26 @@
 # Estado actual del proyecto — 15 de noviembre de 2026
 
+**Existencias y referencias (15 de noviembre, tarde).** Lo que no existe en una
+unidad ya no se muestra ni se cuenta: queda como referencia inactiva o dotación
+propuesta, fuera del visor (también para quien gestiona), de las páginas de área,
+del inventario, los reportes, los insumos, el software instalado, las reservas y
+las operaciones. `manage.py conciliar_existencias --aplicar` separó en la base
+local 426 de 2 463 equipos (respaldo previo en
+`var/backups/pre-existencias-20261115/`). Existe lo verificado, lo patrimonial del
+reporte de bodega y lo declarado; sin reporte de bodega sigue lo básico por
+confirmar. El FabLab quedó con sus 26 bienes reales y 12 impresoras declaradas
+(se aplicó `preparar_fablab_2026`) y con 4 áreas. La sincronización de fichas ya
+no crea existencias que nada respalda. `--revertir` lo deshace. Regla, cifras y
+pendientes en [docs/existencias-y-referencias.md](docs/existencias-y-referencias.md).
+
+**Imágenes y videos del catálogo.** `manage.py completar_medios_catalogo --aplicar`
+cargó 35 fotos nuevas de familias de equipos y 48 videos (ninguna familia activa
+queda sin videos), 22 fotos de insumos y 49 íconos oficiales de programas, todo
+con su crédito: fotos libres de Wikimedia Commons y videos verificados para
+insertarse. Quedan sin imagen 29 modelos de equipo y 94 insumos para los que no
+hay una foto libre que los represente; 66 programas son herramientas internas
+sin ícono propio.
+
 **Laboratorio de Realidad Extendida, listo para atender (15 de noviembre).**
 `manage.py preparar_laboratorio_xr --aplicar` completó su operación y ya está
 aplicado en la base local (respaldo previo en

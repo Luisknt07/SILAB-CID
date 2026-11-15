@@ -374,7 +374,8 @@ def equipos_del_observatorio(unidad):
     from django.db.models import Q
 
     from apps.recursos.models.unidades import UnidadEquipo
-    return UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad)).distinct().select_related('equipo')
+    return (UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad), activa=True, fecha_baja__isnull=True)
+            .distinct().select_related('equipo'))
 
 
 def _contenido(slug):

@@ -3,6 +3,7 @@ from datetime import date
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
@@ -130,7 +131,9 @@ class FichaAreaPropuestasIntegracionTests(TestCase):
     def test_ficha_agrupa_sin_modificar_registros_y_precarga_relaciones(self):
         with patch('apps.gestion_unidades.presentation.area_unidad.visibles_para', side_effect=lambda elementos, *_: elementos):
             contenido = ficha_de(self.area, True, [self.activo])
-        self.assertEqual(contenido['total_equipos'], 2)
+        # La propuesta no existe en la unidad: la página del área no la muestra.
+        self.assertEqual(contenido['total_equipos'], 1)
+        self.assertFalse(any(equipo.solo_referencia for equipo in contenido['equipos']))
         real = next(x for x in contenido['equipos'] if x.modelo_registrado)
         self.assertEqual(len(real.unidades), 1)
         self.assertEqual(real.zonas, [0, 1])
@@ -141,10 +144,14 @@ class FichaAreaPropuestasIntegracionTests(TestCase):
         self.assertEqual(ElementoFichaArea.objects.get(pk=real.pk).ejemplo, 'Prusa antigua')
 
     def test_ficha_individual_no_redirige_propuesta_con_fk_a_un_activo(self):
+        url = reverse('ficha_equipo_referencia', args=[self.unidad.slug, self.propuesta.pk])
         with patch('apps.recursos.presentation.equipo_referencia.objeto_visible_para', return_value=True), patch(
             'apps.recursos.presentation.equipo_referencia.visibles_para', side_effect=lambda elementos, *_: elementos,
         ):
-            pagina = self.client.get(reverse('ficha_equipo_referencia', args=[self.unidad.slug, self.propuesta.pk]))
+            # Al público no se le muestra una propuesta: no existe en la unidad.
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.client.force_login(get_user_model().objects.create_superuser('gestor-propuestas', 'g@example.org', 'clave'))
+            pagina = self.client.get(url)
         self.assertEqual(pagina.status_code, 200)
         self.assertContains(pagina, 'Propuesta por evaluar · no adquirida')
         self.assertContains(pagina, 'Cantidad propuesta (referencial)')

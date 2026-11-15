@@ -8,9 +8,13 @@ inventario de materiales y el software al catálogo de programas, instalado en l
 área. Así reservas, gestión, reportes y páginas públicas leen los mismos registros.
 
 Lo que la unidad ya cargó no se pisa: solo se llenan los campos vacíos y se cambian los textos de
-relleno («Demostración», «dato de prueba»). Los registros de prueba dejan de verse. El equipamiento
-de alta capacidad se registra como no disponible hasta que la unidad lo confirme. Es idempotente y
-`--simular` no guarda nada.
+relleno («Demostración», «dato de prueba»). Los registros de prueba dejan de verse. Una descripción no
+crea existencias que nada respalda: el equipamiento de alta capacidad, el «por verificar» y el opcional
+quedan como dotación propuesta hasta que la unidad los confirme; en una unidad cuyo reporte de bodega ya se
+importó, el inventario es ese, y en una que todavía no registra ningún equipo sus fichas describen lo que
+proyecta: en ambas la ficha solo enlaza lo registrado. Las áreas inactivas no reciben equipos,
+y una unidad que pasó a referencia cuenta para la cantidad de la ficha, de modo que no se vuelve a crear.
+Es idempotente y `--simular` no guarda nada.
 """
 import re
 from collections import Counter
@@ -22,6 +26,7 @@ from django.db.models import Q
 from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
 from apps.core.presentation.codigos_sistema import siguiente_codigo_modelo, siguiente_codigo_unidad
 from apps.recursos.presentation.catalogo_inventario import asignar_familia, clave_de_programa, heredar_foto, normalizar
+from apps.recursos.presentation.existencias import describe_propuesta, tiene_inventario_patrimonial
 from apps.gestion_unidades.management.fichas_area.imagenes_equipos import imagen_de_equipo
 from apps.gestion_unidades.management.fichas_area.imagenes_insumos import imagen_de_insumo
 from apps.gestion_unidades.management.fichas_area.logos_software import logo_de
@@ -156,7 +161,11 @@ class Command(BaseCommand):
         programas = {}
         for programa in SoftwareDisponible.objects.filter(unidad=unidad).order_by('-activo', 'codigo'):
             programas.setdefault(clave_de_programa(programa.nombre), programa)
-        fichas = FichaArea.objects.filter(espacio__unidad=unidad).select_related('espacio').prefetch_related('elementos')
+        # Solo se enlaza, sin crear equipos, donde el inventario es el patrimonial o donde aún no hay ninguno.
+        self.solo_enlaza = (tiene_inventario_patrimonial(unidad)
+                            or not UnidadEquipo.objects.filter(laboratorio=unidad).exists())
+        fichas = (FichaArea.objects.filter(espacio__unidad=unidad, espacio__activo=True)
+                  .select_related('espacio').prefetch_related('elementos'))
         for ficha in fichas:
             espacio = ficha.espacio
             zona_de = {normalizar(nombre): zona['nombre'] for zona in ficha.zonas for nombre in zona['equipos']}
@@ -168,6 +177,8 @@ class Command(BaseCommand):
             for elemento in (e for e in elementos if e.tipo == 'equipo'):
                 ubicacion = ' · '.join(filter(None, (espacio.nombre, zona_de.get(normalizar(elemento.nombre)))))
                 tipo, unidades = self._equipo(unidad, espacio, elemento, ubicacion, software, sin_ficha, resumen)
+                if tipo is None:
+                    continue
                 tipos[elemento.pk] = (elemento, tipo)
                 if any(palabra in f'{normalizar(tipo.nombre)} ' for palabra in COMPUTADORAS):
                     computadoras += unidades
@@ -213,6 +224,12 @@ class Command(BaseCommand):
         registrado = elemento.registrado if elemento.registrado_id and elemento.registrado.activa else None
         if registrado is None:
             registrado = self._ya_registrado(sin_ficha, normalizar(elemento.nombre))
+        if registrado is None and (self.solo_enlaza or describe_propuesta(elemento)):
+            # Nada lo respalda: queda como dotación propuesta y no se crea un equipo que nadie confirmó.
+            elemento.solo_referencia = True
+            elemento.save(update_fields=['solo_referencia'])
+            resumen['equipos de ficha como dotación propuesta'] += 1
+            return None, []
         if registrado is not None:
             tipo = registrado.equipo
         else:
@@ -223,7 +240,7 @@ class Command(BaseCommand):
             )
             resumen['tipos de equipo creados'] += 1
         self._completar_tipo(tipo, elemento, software)
-        cantidad, opcional = cantidad_de(elemento.cantidad)
+        cantidad, _opcional = cantidad_de(elemento.cantidad)
         # Las unidades del área (o sin área) de ese tipo; lo que falta para la cantidad de la ficha se crea.
         unidades = list(UnidadEquipo.objects.filter(
             Q(espacios_asociados=espacio) | Q(espacios_asociados__isnull=True),
@@ -231,17 +248,21 @@ class Command(BaseCommand):
         ).distinct().order_by('codigo_unidad'))
         if registrado is not None and registrado not in unidades:
             unidades.insert(0, registrado)
-        while len(unidades) < cantidad:
+        # Las que la unidad pasó a referencia también cuentan: no se reponen con equipos nuevos.
+        referencias = UnidadEquipo.objects.filter(
+            Q(laboratorio=unidad) | Q(laboratorios=unidad), espacios_asociados=espacio, equipo=tipo, activa=False,
+            fecha_baja__isnull=True,
+        ).distinct().count()
+        if self.solo_enlaza or describe_propuesta(elemento):
+            # Ni el inventario patrimonial ni una propuesta se completan con equipos que nadie confirmó.
+            cantidad = len(unidades)
+        while len(unidades) + referencias < cantidad:
             codigo = siguiente_codigo_unidad(unidad, espacio, tipo)
             nueva = UnidadEquipo(
                 codigo_unidad=codigo, equipo=tipo, laboratorio=unidad,
-                estado_unidad='no_disponible' if (opcional or elemento.nivel == 'alta') else 'disponible',
-                ubicacion_especifica=ubicacion[:200], criticidad='normal',
-                observaciones=(
-                    f'Registrado desde la ficha del área {espacio.nombre}. Confirmar marca, modelo y número de serie.'
-                    + (' Equipamiento de alta capacidad: se habilita para reservas cuando la unidad lo confirme.'
-                       if (opcional or elemento.nivel == 'alta') else '')
-                ),
+                estado_unidad='disponible', ubicacion_especifica=ubicacion[:200], criticidad='normal',
+                observaciones=(f'Registrado desde la ficha del área {espacio.nombre}. '
+                               'Confirmar marca, modelo y número de serie.'),
             )
             nueva.save()
             nueva.laboratorios.add(unidad)
