@@ -201,8 +201,12 @@ class MantenimientoPerfilesAuditablesTests(TestCase):
         funcionalidad = funcionalidad_documentada(self.unidades[base], self.inicio, self.fin)
         self.assertEqual(funcionalidad['reales'], 1)
         unidad = self.unidades[base]
-        self.assertEqual(len(documentos_condiciones('equipamiento', unidad, self.inicio, self.fin)), 1)
-        self.assertIn('tipo=FUNCIONALIDAD', acciones_condiciones('equipamiento', unidad, self.inicio, self.fin)[0]['url'])
+        # El anexo del equipamiento enlaza el alcance de mantenimiento y la prueba funcional, una vez cada uno.
+        documentos = documentos_condiciones('equipamiento', unidad, self.inicio, self.fin)
+        self.assertEqual(len(documentos), 2)
+        self.assertIn('FUNC-OBS-QA', {d['codigo'] for d in documentos})
+        self.assertTrue(any('tipo=FUNCIONALIDAD' in a['url']
+                            for a in acciones_condiciones('equipamiento', unidad, self.inicio, self.fin)))
         self.assertIn('Arranque y ejecución del análisis QA.', str(tablas_condiciones(
             'equipamiento', unidad, self.inicio, self.fin)))
         self.assertIn('Equipos con prueba funcional del período', str(reporte_equipamiento(

@@ -29,8 +29,9 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
         return SimpleNamespace(dependencia=base, codigo_base=base)
 
     def test_el_observatorio_no_hereda_formatos_de_practicas_ni_controles_biologicos(self):
-        for codigo in ('INDICADORES-PLAN', 'PRACTICAS-FT02', 'PRACTICAS-FT03',
-                       'GUIAS', 'INDUCCION-SEGURIDAD', 'DESECHOS', 'INSUMOS-CORTE'):
+        # Tampoco el registro de uso: el observatorio no tiene meta de sesiones que respaldar.
+        for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'PRACTICAS-FT03',
+                       'GUIAS', 'INDUCCION-SEGURIDAD', 'DESECHOS'):
             with self.subTest(codigo=codigo):
                 self.assertFalse(aplica_documento(self.exigido(codigo), 'observatorios'))
                 self.assertTrue(aplica_documento(self.exigido(codigo), 'laboratorios'))
@@ -70,7 +71,7 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
 
     def test_las_practicas_de_planta_y_campo_siguen_disponibles(self):
         for tipo in ('plantas_piloto', 'centro_experimental'):
-            for codigo in ('INDICADORES-PLAN', 'PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS'):
+            for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS'):
                 with self.subTest(tipo=tipo, codigo=codigo):
                     self.assertTrue(aplica_documento(self.exigido(codigo), tipo))
 

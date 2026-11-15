@@ -16,8 +16,10 @@ def _alcance(documento):
 def contextualizar_soportes_planificacion(documentos):
     """Enlaza soportes del mismo plan, unidad, semestre y marco conservado.
 
-    INDICADORES-PLAN es un único consolidado por semestre. Su avance refleja
-    las prácticas de FT02 y no agrega otra meta ni otro aporte al expediente.
+    El catálogo distribuido ya no da anexos a la planificación (documentos.0024):
+    la carga por asignatura y los mantenimientos previstos son secciones de su
+    PDF. Un anexo que la institución agregue al plan se presenta aquí como
+    respaldo, sin meta ni aporte propio al expediente.
     """
     documentos = list(documentos)
     planes = {_alcance(d): d for d in documentos if d.exigido.codigo == 'PLANIFICACION'}
@@ -41,7 +43,6 @@ def contextualizar_soportes_planificacion(documentos):
         unidad = padre.unidad
         parametros = dict(anio=padre.anio, corte=padre.corte,
                           gestionar=padre.pk or padre.exigido.codigo)
-        practicas = documento.exigido.codigo == 'INDICADORES-PLAN'
         documento.soporte_planificacion = dict(
             documento=padre, codigo=padre.exigido.codigo, nombre=padre.nombre_documental,
             url=reverse('gestion_expediente_unidad', args=[unidad.slug]) + '?' + urlencode(parametros),
@@ -49,14 +50,9 @@ def contextualizar_soportes_planificacion(documentos):
                 unidad=unidad.slug, anio=padre.anio, corte=padre.corte,
                 **({'revisar': padre.pk} if padre.pk else {}))),
             etiqueta='Soporte de la planificación semestral', es_soporte=True, aporta_puntos=False,
-            meta_codigo='PRACTICAS-PLAN' if practicas else '',
-            unidad_medida='Un documento consolidado por semestre' if practicas else 'Documento de respaldo',
-            descripcion=(
-                'Un solo documento reúne la programación de prácticas por asignatura del semestre. '
-                'La cantidad de prácticas aprobadas se mide en FT02; este respaldo muestra el mismo '
-                'seguimiento y no añade una meta ni puntos independientes.' if practicas else
-                'Respalda el plan semestral y conserva su propio alcance; no añade una obligación '
-                'ni puntos independientes.'),
+            meta_codigo='', unidad_medida='Documento de respaldo',
+            descripcion=('Respalda el plan semestral y conserva su propio alcance; no añade una obligación, '
+                         'una meta ni puntos independientes.'),
         )
         padre.anexos_integrados.append(documento)
     for plan in planes.values():

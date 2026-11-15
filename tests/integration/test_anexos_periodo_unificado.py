@@ -60,7 +60,7 @@ class AnexosPeriodoUnificadoTests(SimpleTestCase):
                 url_informe='/reportes/?tipo=practicas', desde=date(2026, 7, 1),
                 hasta=date(2026, 12, 31))
 
-        soporte = anexo(11, 'INDICADORES-PLAN', 'Planificación de prácticas por asignatura')
+        soporte = anexo(11, 'SOPORTE-PLAN-PROPIO', 'Respaldo propio de la planificación')
         ft02 = anexo(21, 'PRACTICAS-FT02', 'FT02 · Programación de actividades')
         cierre = dict(filas=[deepcopy(indicador)], alertas=[], nota=50, avance_metas=50,
             congelado=informe_enviado, provisional=False, demostracion=False,
@@ -84,11 +84,11 @@ class AnexosPeriodoUnificadoTests(SimpleTestCase):
         html = self.html(self.periodo())
         self.assertEqual(html.count('data-cierre-evidencias'), 1)
         self.assertEqual(html.count('class="cierre-anexos-tabla"'), 1)
-        self.assertEqual(html.count('data-soporte-planificacion="INDICADORES-PLAN"'), 1)
+        self.assertEqual(html.count('data-soporte-planificacion="SOPORTE-PLAN-PROPIO"'), 1)
         self.assertEqual(html.count('id="entrega-11"'), 1)
         self.assertEqual(html.count('id="entrega-21"'), 1)
         tabla = html.split('data-cierre-evidencias', 1)[1].split('</table>', 1)[0]
-        self.assertIn('Planificación de prácticas por asignatura', tabla)
+        self.assertIn('Respaldo propio de la planificación', tabla)
         self.assertIn('FT02 · Programación de actividades', tabla)
         self.assertIn('Anexo de planificación', tabla)
         self.assertIn('Anexo de informe de cierre', tabla)
@@ -198,7 +198,7 @@ class AnexosPeriodoUnificadoTests(SimpleTestCase):
         self.assertEqual(resumen_metas_cierre(evidencias_cierre({}, tabla['anexos']))['total'], 0)
         html = self.html(periodo)
         self.assertEqual(html.count('data-cierre-evidencias'), 1)
-        self.assertIn('data-soporte-planificacion="INDICADORES-PLAN"', html)
+        self.assertIn('data-soporte-planificacion="SOPORTE-PLAN-PROPIO"', html)
         self.assertNotIn('gestionar=20', html)
         vacio = dict(corte='B', etiqueta='2026-B', entregas=[])
         self.assertEqual(anexos_del_periodo(vacio)['anexos'], [])

@@ -30,8 +30,8 @@ class ProgresoDocumentoLecturaTests(SimpleTestCase):
                 self.assertEqual((lectura['porcentaje'], lectura['alcance']), (100, 'conformidad'))
                 self.assertIn('No acredita la ejecución', lectura['descripcion'])
 
-    def test_anexo_inicial_muestra_uno_de_seis_como_meta_y_no_cien_por_pdf(self):
-        documento = self.documento('INDICADORES-PLAN', indicadores_cierre=[dict(
+    def test_anexo_ft02_muestra_uno_de_seis_como_meta_y_no_cien_por_pdf(self):
+        documento = self.documento('PRACTICAS-FT02', indicadores_cierre=[dict(
             codigo='PRACTICAS-PLAN', exigible=True, porcentaje=100 / 6, pendiente=False)])
         documento.exigido.es_anexo = True
         documento.automatizacion = dict(vigente=True, aplicado=True, estado='automatico',
@@ -41,8 +41,8 @@ class ProgresoDocumentoLecturaTests(SimpleTestCase):
         self.assertEqual(lectura['etiqueta'], 'Metas al corte')
 
     def test_anexo_sin_meta_no_genera_obligacion_independiente(self):
-        documento = self.documento('PRESTAMOS-EQUIPOS', indicadores_cierre=[dict(
-            codigo='PRESTAMOS', exigible=False, aplica=False, porcentaje=None)])
+        documento = self.documento('ACCIONES-MEJORA', indicadores_cierre=[dict(
+            codigo='MEJORA', exigible=False, aplica=False, porcentaje=None)])
         documento.exigido.es_anexo = True
         lectura = leer_avance(documento)
         self.assertFalse(lectura['medido'])
@@ -50,7 +50,7 @@ class ProgresoDocumentoLecturaTests(SimpleTestCase):
         self.assertEqual(lectura['etiqueta'], 'Sin meta independiente')
 
     def test_pdf_solo_y_control_desactualizado_no_inventan_avance(self):
-        documento = self.documento('INDICADORES-PLAN')
+        documento = self.documento('PRACTICAS-FT02')
         documento.exigido.es_anexo = True
         documento.recurso_id = 10
         for control in ({}, dict(vigente=False, resumen=dict(cumplimiento=100))):
@@ -61,7 +61,7 @@ class ProgresoDocumentoLecturaTests(SimpleTestCase):
                 self.assertIn('no acredita 100', lectura['descripcion'])
 
     def test_respaldo_comprobado_sin_meta_se_identifica_como_calidad(self):
-        documento = self.documento('INDICADORES-PLAN')
+        documento = self.documento('PRACTICAS-FT02')
         documento.exigido.es_anexo = True
         documento.automatizacion = dict(vigente=True, resumen=dict(cumplimiento=75))
         lectura = leer_avance(documento)
@@ -182,17 +182,25 @@ class ProgresoDocumentoLoteTests(TestCase):
         self.assertIsNone(filas[0]['progreso_general']['resultado_porcentaje'])
         self.assertEqual(filas[0]['progreso_general']['completados'], 0)
 
-    def test_plan_practicas_conserva_parent_y_se_muestra_con_los_anexos(self):
+    def test_soporte_propio_del_plan_conserva_parent_y_se_muestra_con_los_anexos(self):
+        from apps.documentos.models.expediente import DocumentoExigido
         from apps.documentos.presentation.expediente import arbol_del_expediente, construir_expediente
+        from apps.documentos.presentation.expediente_catalogo import asegurar_catalogo
         from apps.documentos.presentation.cumplimiento import cumplimiento_por_periodo
+        # El catálogo distribuido no da anexos a la planificación; uno institucional sí puede acompañarla.
+        asegurar_catalogo()
+        DocumentoExigido.objects.create(codigo='SOPORTE-PLAN-PROPIO', nombre='Respaldo propio de la planificación',
+            carpeta='planeacion', periodicidad='semestral', origen='sistema', fuente_reporte='asignaturas',
+            plazo_regla='inicio', plazo_dias=15, orden=30,
+            anexo_de=DocumentoExigido.objects.get(codigo='PLANIFICACION'))
         unidad = self.unidad()
         construir_expediente(unidad, 2025)
         arbol = arbol_del_expediente(unidad, 2025)
         periodo = next(p for p in arbol['periodos'] if p['corte'] == 'B')
         plan = next(e for e in periodo['entregas'] if e['documento'].exigido.codigo == 'PLANIFICACION')
-        soporte = next(a for a in plan['anexos_integrados'] if a.exigido.codigo == 'INDICADORES-PLAN')
+        soporte = next(a for a in plan['anexos_integrados'] if a.exigido.codigo == 'SOPORTE-PLAN-PROPIO')
         self.assertIs(soporte.soporte_planificacion['documento'], plan['documento'])
-        self.assertEqual(soporte.soporte_planificacion['meta_codigo'], 'PRACTICAS-PLAN')
+        self.assertEqual(soporte.soporte_planificacion['meta_codigo'], '')
         self.assertFalse(soporte.soporte_planificacion['aporta_puntos'])
         self.assertNotIn('PRACTICAS-FT02', [a.exigido.codigo for a in plan['anexos_integrados']])
 

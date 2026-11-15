@@ -44,16 +44,8 @@ CATALOGO = (
      'emitir se registra al responsable; la aprobación se consulta mediante el mismo QR. Cumplimiento '
      'obligatorio: la Dirección confirma su conformidad; no se califica. Sus metas son las que mide el '
      'informe semestral.', ''),
-    ('INDICADORES-PLAN', 'Plan semestral de prácticas por asignatura', 'planeacion', 'semestral', 'sistema',
-     False, False, 'inicio', 15, 'asignaturas', 30,
-     'Programación consolidada del semestre: asignatura, fecha, escenario y responsable de cada práctica, '
-     'con su FT02 y su guía vinculados. Respalda la planificación; no tiene meta propia (las prácticas '
-     'aprobadas se miden en el FT02).', 'PLANIFICACION'),
-    ('PLAN-MANTENIMIENTO', 'Plan anual de mantenimiento preventivo y correctivo', 'planeacion', 'anual', 'sistema',
-     False, False, 'inicio', 15, 'mantenimiento', 50,
-     'Equipos e infraestructura, criticidad, intervenciones, frecuencia, responsables y calendario del '
-     'año; viaja con la planificación del período A. Respalda la meta de mantenimiento, que se mide en el '
-     'informe semestral: 80 % de lo programado en equipos críticos.', 'PLANIFICACION'),
+    # La planificación viaja sin anexos: la carga por asignatura y los mantenimientos previstos son
+    # secciones de su propio PDF, y su ejecución se presenta en los anexos del informe.
 
     # -- Cierre del período: el informe firmado y sus anexos de evidencia ----------------------
     ('INFORME-SEMESTRAL', 'Informe semestral de actividades y cumplimiento de la planificación', 'evaluacion', 'semestral', 'ambos', True,
@@ -81,11 +73,6 @@ CATALOGO = (
      False, False, 'cierre', 15, 'guias', 40, 'Guías de práctica vigentes usadas en el período: código, versión, aprobación y vínculo con la '
      'asignatura y el syllabus. Respalda la meta de guías.',
      'INFORME-SEMESTRAL'),
-    ('PRESTAMOS-EQUIPOS', 'Registro de préstamos de equipos', 'ejecucion', 'semestral', 'sistema', False, False,
-     'cierre', 15, 'prestamos', 50,
-     'Quién retira, cuándo, para qué actividad y cuándo devuelve, con el estado del equipo. Sale de los '
-     'préstamos registrados en la consola; el externo además exige su acta. Respalda la meta opcional de '
-     'préstamos de equipos: cuenta en la nota solo si la planificación la incluyó.', 'INFORME-SEMESTRAL'),
     ('INDUCCION-SEGURIDAD', 'Registro de inducciones y controles de seguridad', 'ejecucion', 'semestral',
      'sistema', False, False, 'cierre', 15, 'seguridad', 70, 'Requisitos de acceso, inducciones y habilitaciones de usuarios nuevos, inspecciones de seguridad del '
      'período, incidentes y estado del protocolo vigente. Respalda las metas de inducción de seguridad y '
@@ -93,21 +80,23 @@ CATALOGO = (
     ('DESECHOS', 'Registro de desechos peligrosos y especiales', 'ejecucion', 'semestral', 'sistema', False, False,
      'cierre', 15, 'desechos', 80, 'Desechos peligrosos y especiales del período: tipo, origen, cantidad, almacenamiento, responsable y, '
      'cuando se entregan, gestor autorizado y manifiesto. Respalda la meta de gestión de desechos.', 'INFORME-SEMESTRAL'),
-    ('EQUIPAMIENTO', 'Equipamiento: disponibilidad y funcionalidad del período', 'evaluacion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'equipamiento', 40, 'Disponibilidad y funcionalidad del equipamiento en el período: estado al corte, días fuera de '
-     'servicio, verificaciones funcionales e incidencias. El inventario completo va en el anexo de '
-     'recursos. Respalda la meta opcional de disponibilidad del equipamiento: cuenta en la nota solo si la '
-     'planificación la incluyó.', 'INFORME-SEMESTRAL'),
-    ('INSUMOS-CORTE', 'Reactivos e insumos: existencias y movimientos del período', 'evaluacion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'inventario', 50,
-     'Movimientos de reactivos e insumos del período (entradas, consumos y ajustes) y existencias y lotes '
-     'vigentes con sus vencimientos; complementa el inventario integral. Respalda la meta opcional de '
-     'movimientos de insumos: cuenta en la nota solo si la planificación la incluyó.', 'INFORME-SEMESTRAL'),
-    ('INVENTARIO-CORTE', 'Inventario anual de equipos, software y espacios', 'evaluacion', 'anual',
+    ('EQUIPAMIENTO', 'Mantenimiento, disponibilidad y funcionalidad del equipamiento', 'evaluacion', 'semestral',
+     'sistema', False, False, 'cierre', 15, 'equipamiento', 40,
+     'Mantenimientos del período, programados y ejecutados, con la medición del programa crítico anual de '
+     'equipos e infraestructura (80 % de lo programado en equipos críticos), y la disponibilidad y '
+     'funcionalidad de cada equipo: estado, días fuera de servicio, pruebas funcionales e incidencias. No '
+     'repite el inventario, que va en su propio anexo. Respalda la meta de mantenimiento; la disponibilidad '
+     'es registro del período, sin meta propia.', 'INFORME-SEMESTRAL'),
+    # Periodicidad anual en el catálogo: el perfil la vuelve semestral donde hay insumos (todas las unidades
+    # menos los observatorios), que conservan su corte anual con el informe B.
+    ('INVENTARIO-CORTE', 'Inventario de equipos, software, espacios e insumos al corte', 'evaluacion', 'anual',
      'sistema', False, False, 'cierre', 15, 'recursos', 30,
-     'Inventario integral de la unidad al generarlo: equipos, software, espacios y, donde aplica, insumos, '
-     'con custodio, ubicación y condición. Respalda la meta de revisión física del inventario, que se '
-     'acredita con el acta verificada.', 'INFORME-SEMESTRAL'),
+     'Inventario integral de la unidad al corte: equipos, software y espacios con custodio, ubicación y '
+     'condición, el acta de revisión física y, donde hay insumos, sus existencias, lotes y vencimientos y '
+     'los movimientos del período (entradas, consumos y ajustes). Se presenta cada semestre; en los '
+     'observatorios, una vez al año con el informe B. Respalda la meta de revisión física del inventario, '
+     'que se acredita con el acta verificada; los movimientos de insumos son registro del período, sin meta '
+     'propia.', 'INFORME-SEMESTRAL'),
     ('INVESTIGACION', 'Resultados de investigación aplicada y desarrollo tecnológico', 'evaluacion', 'semestral',
      'sistema', False, False, 'cierre', 15, 'investigacion', 60,
      'Productos de investigación aplicada y desarrollo tecnológico obtenidos en el período, con su '
@@ -122,8 +111,8 @@ CATALOGO = (
     ('ACCIONES-MEJORA', 'Seguimiento de acciones de mejora', 'mejora', 'semestral', 'sistema', False, False, 'cierre',
      15, 'mejora', 10,
      'Acciones de mejora consolidadas desde los informes: hallazgo, acción, responsable, plazo, estado y '
-     'evidencia de cierre; su vista previa es el mismo documento que se archiva. Respalda la meta opcional '
-     'de seguimiento de acciones de mejora: cuenta en la nota solo si la planificación la incluyó.', 'INFORME-SEMESTRAL'),
+     'evidencia de cierre; su vista previa es el mismo documento que se archiva. Es registro del período: '
+     'el seguimiento de las acciones no tiene meta propia ni cuenta en la nota.', 'INFORME-SEMESTRAL'),
 )
 
 # Evidencias propias de las otras implementaciones. Conservan fuentes y
@@ -158,10 +147,18 @@ TIPOS_CATALOGO_PERFILES = {'PP-PRODUCCION': ['plantas_piloto'], 'PP-CALIDAD': ['
                          'CE-ENSAYOS': ['centro_experimental'], 'OBS-DATOS': ['observatorios'],
                          'OBS-BOLETINES': ['observatorios'], 'OBS-EVENTOS': ['observatorios']}
 
-# Lo que dejó de exigirse aparte y no debe volver a sembrarse: las listas de
-# chequeo eran una carga semestral a mano; su lugar lo ocupan el protocolo de
-# seguridad y condiciones de operación (permanente) y el registro de controles.
-RETIRADOS = ('CHEQUEO-SEGURIDAD',)
+# Lo que dejó de exigirse aparte y no debe volver a sembrarse. Las migraciones
+# los desactivan (activo=False) sin borrar sus filas ni sus archivos:
+# - CHEQUEO-SEGURIDAD: las listas de chequeo eran una carga semestral a mano; su
+#   lugar lo ocupan el protocolo (permanente) y el registro de controles.
+# - INDICADORES-PLAN: repetía columnas del FT02 y no tenía meta; la planificación
+#   ya trae la carga programada por asignatura (documentos.0024).
+# - PLAN-MANTENIMIENTO: repetía los mantenimientos previstos de la planificación;
+#   la ejecución y la meta del 80 % van en EQUIPAMIENTO (documentos.0024).
+# - PRESTAMOS-EQUIPOS: registro sin meta; queda como consulta de gestión (documentos.0024).
+# - INSUMOS-CORTE: repetía existencias y lotes del inventario; sus movimientos
+#   van en INVENTARIO-CORTE (documentos.0024).
+RETIRADOS = ('CHEQUEO-SEGURIDAD', 'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE')
 
 # Se reconocen sólo los nombres anteriores del catálogo distribuido. Permite
 # presentar su denominación actual sin reescribir catálogos editados ni archivos.
@@ -170,6 +167,8 @@ NOMBRES_ESTANDAR_ANTERIORES = {
     'PLANIFICACION': frozenset(('Planificación semestral de la unidad (firmada)',)),
     'INFORME-SEMESTRAL': frozenset(('Informe semestral de actividades (firmado)',)),
     'INDUCCION-SEGURIDAD': frozenset(('Seguridad y condiciones de operación: protocolo, inducciones y controles',)),
+    'EQUIPAMIENTO': frozenset(('Equipamiento: disponibilidad y funcionalidad del período',)),
+    'INVENTARIO-CORTE': frozenset(('Inventario anual de equipos, software y espacios',)),
 }
 
 # Ventanas fijas en el calendario (plazo «entre dos meses»): de qué mes a qué mes.
@@ -177,7 +176,11 @@ VENTANAS = {'PLAN-COMPRAS-ANUAL': (5, 5)}
 
 
 def asegurar_catalogo():
-    """Siembra el catálogo vigente solo si la tabla está vacía; nunca pisa lo editado."""
+    """Siembra el catálogo vigente solo si la tabla está vacía; nunca pisa lo editado.
+
+    No toca una tabla con filas: lo retirado sigue inactivo y lo editado por la
+    institución se conserva. Los cambios del catálogo distribuido llegan por migración.
+    """
     if DocumentoExigido.objects.exists():
         return 0
     creados = 0

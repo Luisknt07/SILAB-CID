@@ -15,14 +15,15 @@ from apps.documentos.presentation.expediente_operaciones import comando
 VERSION = 'metas-cierre-4'
 VERSION_LABORATORIOS = 'metas-laboratorios-1'
 VERSIONES = ('metas-cierre-1', 'metas-cierre-2', 'metas-cierre-3', VERSION, VERSION_LABORATORIOS)
+# Qué metas presenta cada anexo del informe. La primera es la que respalda; las de
+# ANEXOS_AUTOMATICOS (disponibilidad, insumos, mejora) son registro del período y nunca cuentan en la nota.
 ANEXOS_METAS = {
     'REGISTRO-USO': ('USO',), 'PRACTICAS-FT02': ('PRACTICAS-PLAN',),
     'PRACTICAS-FT03': ('PRACTICAS',), 'GUIAS': ('GUIAS',),
     'INDUCCION-SEGURIDAD': ('SEGURIDAD', 'INSPECCIONES'), 'DESECHOS': ('DESECHOS',),
-    'INVENTARIO-CORTE': ('INVENTARIO',), 'INVESTIGACION': ('INVESTIGACION',),
+    'INVENTARIO-CORTE': ('INVENTARIO', 'INSUMOS'), 'INVESTIGACION': ('INVESTIGACION',),
     'TRANSFERENCIA': ('TRANSFERENCIA', 'SERVICIOS'),
-    'PRESTAMOS-EQUIPOS': ('PRESTAMOS',), 'EQUIPAMIENTO': ('EQUIPAMIENTO',),
-    'INSUMOS-CORTE': ('INSUMOS',), 'ACCIONES-MEJORA': ('MEJORA',),
+    'EQUIPAMIENTO': ('MANTENIMIENTO', 'EQUIPAMIENTO'), 'ACCIONES-MEJORA': ('MEJORA',),
     'PP-PRODUCCION': ('PRODUCCION',), 'PP-CALIDAD': ('CONTROL-CALIDAD',),
     'CE-ENSAYOS': ('ENSAYOS',), 'OBS-DATOS': ('DATOS-ACTUALIZADOS',),
     'OBS-BOLETINES': ('BOLETINES',), 'OBS-EVENTOS': ('EVENTOS',),
@@ -90,8 +91,11 @@ def detalle_anexo(codigo, cierre, codigos=None):
     claves = list(codigos if codigos is not None else ANEXOS_METAS.get(codigo, ()))
     if codigo == 'REGISTRO-USO' and 'USO-EFECTIVO' in catalogo and 'USO-EFECTIVO' not in claves:
         claves.append('USO-EFECTIVO')
+    from apps.documentos.presentation.metas_plan import ANEXOS_AUTOMATICOS
     for clave in claves:
         if cierre.get('politica_metas', 0) >= 3 and clave not in catalogo:
+            if clave in ANEXOS_AUTOMATICOS:
+                continue  # Un registro sin meta que el plan de este tipo de unidad no lleva (insumos del observatorio).
             actividad = actividades.get(clave)
             indicadores.append(dict(codigo=clave,
                 indicador=actividad.indicador if actividad else clave,

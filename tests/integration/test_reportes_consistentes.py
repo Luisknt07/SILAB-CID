@@ -100,6 +100,11 @@ class AlcanceEstadisticasTests(BaseDeReportes):
             self.assertEqual(pagina.status_code, 200)
             enlaces = [unescape(url) for url in re.findall(r'href="([^"]+)"', pagina.content.decode())
                        if url.startswith(destino + '?')]
+            if pagina.redirect_chain and pagina.redirect_chain[-1][0].startswith(destino):
+                # Este acceso anterior lleva al propio tablero, cuyos vínculos a la unidad son relativos.
+                # Los vínculos absolutos venían de los soportes de la planificación, que ya no hay (documentos.0024).
+                self.assertIn(self.unidad.slug, [f['unidad'].slug for f in pagina.context['filas']])
+                continue
             self.assertTrue(enlaces, nombre)
             for enlace in enlaces:
                 with self.subTest(origen=nombre, enlace=enlace):

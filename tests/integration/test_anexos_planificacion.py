@@ -56,7 +56,12 @@ class PlanificaExigenciasTests(BaseDeRedaccion):
         self.assertTrue(filas['PRESTAMOS']['solo_anexo'])
         self.assertEqual(filas['PRESTAMOS']['meta'], '')
         self.assertFalse(filas['INSUMOS']['aplica'])
-        self.assertTrue(filas['PRESTAMOS']['anexos'])
+        # Los préstamos son consulta de gestión, no anexo; los insumos viajan en el inventario.
+        self.assertEqual(filas['PRESTAMOS']['anexos'], [])
+        self.assertEqual(filas['INSUMOS']['anexos'], ['Inventario de equipos, software, espacios e insumos al corte'])
+        self.assertEqual(filas['INSUMOS']['nombre_reporte'], filas['INSUMOS']['nombre'])
+        self.assertEqual(filas['MANTENIMIENTO']['anexos'],
+                         ['Mantenimiento, disponibilidad y funcionalidad del equipamiento'])
 
     def test_no_se_acepta_una_exigencia_inventada(self):
         post = QueryDict('act__GUIAS__exigencia=aprobar_sin_revisar')
@@ -86,3 +91,8 @@ class PlanificaExigenciasTests(BaseDeRedaccion):
         tabla = next(s for s in compuesto['secciones'] if s['codigo'] == 'plan')['bloques'][0]
         self.assertIn('Exigencia', tabla['cabecera'])
         self.assertTrue(any(f[1] == 'No aplica' for f in tabla['filas']))
+        # Un registro sin meta no se presenta como actividad que no aplica, y los préstamos ya no figuran.
+        self.assertTrue(any(f[1] == 'Registro del período, sin meta' for f in tabla['filas']))
+        self.assertFalse(any('préstamo' in f[0].lower() for f in tabla['filas']))
+        self.assertContains(respuesta, 'Disponibilidad del equipamiento')
+        self.assertNotContains(respuesta, 'Préstamos de equipos')

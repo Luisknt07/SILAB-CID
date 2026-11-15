@@ -273,7 +273,12 @@ def _analizar(documento, contexto, anterior=None):
             from apps.documentos.presentation.expediente import anexos_del
             anexos = anexos_del(documento)
             congelados = {a['documento']: a for a in cierre.get('anexos', [])}
-            if not anexos or set(congelados) != {a.pk for a in anexos}:
+            # Un anexo congelado cuyo tipo se retiró del catálogo sigue en el cálculo archivado,
+            # pero ya no figura entre los anexos vigentes: no se cuenta como faltante.
+            from apps.documentos.models.expediente import DocumentoExpediente
+            retirados = set(DocumentoExpediente.objects.filter(
+                pk__in=list(congelados), exigido__activo=False).values_list('pk', flat=True)) if congelados else set()
+            if not anexos or set(congelados) - retirados != {a.pk for a in anexos}:
                 hallazgos.append(_hallazgo('anexos_incompletos', 'El cierre no conserva todos sus anexos originales.', 'bloqueo'))
             for anexo in anexos:
                 fuente = congelados.get(anexo.pk, {})

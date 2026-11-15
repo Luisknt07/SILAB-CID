@@ -39,6 +39,8 @@ def meta_con_minimo(actividad, texto):
     return f'{valor.normalize():f}' + (' %' if regla['porcentaje'] else '')
 
 
+# Registros del período sin meta propia: nunca cuentan en la nota. La disponibilidad viaja en el anexo del
+# equipamiento, los insumos en el inventario y la mejora en su anexo; los préstamos son consulta de gestión.
 ANEXOS_AUTOMATICOS = frozenset(('PRESTAMOS', 'EQUIPAMIENTO', 'INSUMOS', 'MEJORA'))
 
 

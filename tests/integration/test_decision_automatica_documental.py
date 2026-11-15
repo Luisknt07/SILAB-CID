@@ -95,12 +95,12 @@ class DecisionAutomaticaDocumentalTests(SimpleTestCase):
                 self.assertEqual(lectura['destino'], 'automatico')
 
     def test_anexo_con_integridad_alterada_no_se_esconde_por_no_tener_nota(self):
-        lectura = self.decision('PRESTAMOS-EQUIPOS', estado='bloqueado', nota=None, aplicado=False,
+        lectura = self.decision('ACCIONES-MEJORA', estado='bloqueado', nota=None, aplicado=False,
             hallazgos=[dict(regla='procedencia_no_comprobada', mensaje='Cambió el archivo.', severidad='bloqueo')])
         self.assertEqual(lectura['destino'], 'direccion')
 
     def test_ausencia_simple_del_anexo_la_completa_la_unidad(self):
-        lectura = self.decision('PRESTAMOS-EQUIPOS', estado='sin_archivo', nota=None,
+        lectura = self.decision('ACCIONES-MEJORA', estado='sin_archivo', nota=None,
             aplicado=False, enviado=False, hallazgos=[dict(regla='archivo_ausente',
                 mensaje='Genera el anexo.', severidad='revision')])
         self.assertEqual(lectura['destino'], 'unidad')

@@ -38,18 +38,17 @@ from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
 VERSION_REGLAS = 3
 # Código, fuente y padre son deliberadamente explícitos. Un catálogo personalizado
 # no recibe una aprobación implícita por compartir una categoría de reporte.
+# El equipamiento reúne mantenimiento y funcionalidad, y el inventario sus insumos
+# (documentos.0024). La versión no cambia: así las huellas de los demás anexos ya
+# generados siguen vigentes; solo el equipamiento lee fuentes nuevas.
 FUENTES_STOCK = {
-    'INDICADORES-PLAN': ('asignaturas', 'PLANIFICACION'),
-    'PLAN-MANTENIMIENTO': ('mantenimiento', 'PLANIFICACION'),
     'REGISTRO-USO': ('reservas', 'INFORME-SEMESTRAL'),
     'PRACTICAS-FT02': ('planificaciones', 'INFORME-SEMESTRAL'),
     'PRACTICAS-FT03': ('ejecuciones', 'INFORME-SEMESTRAL'),
     'GUIAS': ('guias', 'INFORME-SEMESTRAL'),
-    'PRESTAMOS-EQUIPOS': ('prestamos', 'INFORME-SEMESTRAL'),
     'INDUCCION-SEGURIDAD': ('seguridad', 'INFORME-SEMESTRAL'),
     'DESECHOS': ('desechos', 'INFORME-SEMESTRAL'),
     'EQUIPAMIENTO': ('equipamiento', 'INFORME-SEMESTRAL'),
-    'INSUMOS-CORTE': ('inventario', 'INFORME-SEMESTRAL'),
     'INVENTARIO-CORTE': ('recursos', 'INFORME-SEMESTRAL'),
     'INVESTIGACION': ('investigacion', 'INFORME-SEMESTRAL'),
     'TRANSFERENCIA': ('transferencia', 'INFORME-SEMESTRAL'),
@@ -278,7 +277,7 @@ class ContextoCalidad:
             if not fila['cumple']:
                 self._hallazgo(hallazgos, 'RESPALDO_PRACTICA_INCOMPLETO', '; '.join(fila['faltantes']),
                                grupo, fila['id'], 'bloqueo')
-        if codigo in ('INDICADORES-PLAN', 'PRACTICAS-FT02'):
+        if codigo == 'PRACTICAS-FT02':
             for fila in datos.get('fuentes_practicas', {}).get('planificaciones', []):
                 if fila['estado'] == 'aprobada' and not (fila.get('revisado_por') and fila.get('revisado_en')):
                     self._hallazgo(hallazgos, 'FT02_APROBACION_SIN_RESPONSABLE',
@@ -300,7 +299,7 @@ class ContextoCalidad:
                 elif codigo == 'PRACTICAS-FT03' and reserva.fecha <= self.corte and reserva.es_efectiva and plan['pk'] not in ejecutados:
                     self._hallazgo(hallazgos, 'SESION_ATENDIDA_SIN_FT03', 'La sesión atendida no conserva registro FT03.',
                                    reserva._meta.label, reserva.pk, 'bloqueo')
-            for e in ejecuciones if codigo != 'INDICADORES-PLAN' else []:
+            for e in ejecuciones:
                 if e['fecha_ejecucion'] > self.corte:
                     self._hallazgo(hallazgos, 'EJECUCION_FUTURA', 'Se registró una ejecución con fecha futura.',
                                    'formacion.EjecucionPractica', e['pk'], 'bloqueo')
@@ -312,19 +311,6 @@ class ContextoCalidad:
                 self._hallazgo(hallazgos, 'ANEXO_VACIO_CON_ACTIVIDAD',
                     'El anexo está vacío, pero existe actividad que requiere comprobar su aplicabilidad.')
         porcentaje = _porcentaje(sum(f['cumple'] for f in diagnosticos), len(diagnosticos))
-        if codigo == 'INDICADORES-PLAN':
-            # El anexo inicial acredita la programación aprobada. Ejecutarla
-            # cambia legítimamente la reserva y crea FT03, sin modificar lo
-            # que se planificó. Sus aprobaciones técnicas siguen protegiendo
-            # fechas, responsables, escenarios, syllabus y guía exacta.
-            fuentes = datos.get('fuentes_practicas', {})
-            guias = {p.get('guia') for p in fuentes.get('planificaciones', [])}
-            return porcentaje, dict(diagnosticos=diagnosticos,
-                fuentes=dict(planificaciones=fuentes.get('planificaciones', []),
-                    guias=[g for g in fuentes.get('guias', []) if g['id'] in guias]),
-                universo_uso=universo_uso, aprobaciones=aprobaciones, planes=planes,
-                sesiones=[dict(id=r.pk, fecha=r.fecha, proposito=r.proposito_codigo,
-                               subtipo=r.subtipo_actividad) for r in reservas])
         return porcentaje, dict(
             diagnosticos=diagnosticos, fuentes=datos.get('fuentes_practicas', {}), universo_uso=universo_uso,
             aprobaciones=aprobaciones,
@@ -513,52 +499,15 @@ class ContextoCalidad:
             fuentes['universo_vacio'] = self._inventario('INVENTARIO-CORTE', hallazgos)[1]
         return None, fuentes  # La comprobación funcional no es un porcentaje global de cumplimiento.
 
-    def _prestamos(self, hallazgos):
-        def cargar():
-            from apps.recursos.models.prestamos import PrestamoEquipo
-            return list(PrestamoEquipo.objects.filter(Q(unidad=self.unidad) |
-                Q(unidad__isnull=True, equipo__laboratorio=self.unidad), fecha_salida__date__lte=self.corte)
-                .filter(Q(fecha_salida__date__gte=self.inicio) | Q(fecha_retorno_real__date__gte=self.inicio) |
-                        Q(estado__in=('entregado', 'no_devuelto'))).exclude(estado='cancelado')
-                .select_related('solicitante', 'entregado_por', 'recibido_por', 'equipo__equipo').order_by('pk'))
-        filas = self._una_vez('prestamos', cargar)
-        fuentes = []
-        for p in filas:
-            archivo = self._archivo(p.acta, legible=True)
-            if not p.solicitante_id and not (p.nombre_solicitante or '').strip():
-                self._hallazgo(hallazgos, 'PRESTAMO_SIN_RECEPTOR', 'Falta identificar a la persona que retira el equipo.',
-                    p._meta.label, p.pk, 'bloqueo')
-            if not (p.proposito or '').strip():
-                self._hallazgo(hallazgos, 'PRESTAMO_SIN_PROPOSITO', 'Falta la finalidad documentada del préstamo.',
-                    p._meta.label, p.pk)
-            if p.condicion_salida not in dict(p.CONDICIONES):
-                self._hallazgo(hallazgos, 'PRESTAMO_SIN_CONDICION_SALIDA', 'Falta la condición del equipo al salir.',
-                    p._meta.label, p.pk)
-            if p.estado != 'solicitado' and not p.entregado_por_id:
-                self._hallazgo(hallazgos, 'PRESTAMO_SIN_RESPONSABLE', 'Falta el responsable que entregó el equipo.',
-                    p._meta.label, p.pk)
-            if p.tipo == 'externo' and p.estado in ('entregado', 'devuelto', 'no_devuelto'):
-                if not archivo['disponible']:
-                    self._hallazgo(hallazgos, 'PRESTAMO_EXTERNO_SIN_ACTA', 'La salida externa no conserva su acta de respaldo.',
-                                   p._meta.label, p.pk, 'bloqueo')
-                if not p.autorizado_por or not p.institucion or not p.entregado_por_id:
-                    self._hallazgo(hallazgos, 'PRESTAMO_SIN_RESPONSABLE', 'Falta autorización, institución receptora o responsable de entrega.',
-                                   p._meta.label, p.pk)
-            devuelto_al_corte = p.fecha_retorno_real and _dia(p.fecha_retorno_real) <= self.corte
-            if p.estado != 'solicitado' and not devuelto_al_corte and _dia(p.fecha_retorno_previsto) < self.corte:
-                self._hallazgo(hallazgos, 'PRESTAMO_VENCIDO', 'El equipo no tiene devolución registrada al corte del plazo.',
-                               p._meta.label, p.pk)
-            if p.estado == 'devuelto' and (not p.fecha_retorno_real or not p.recibido_por_id or not p.condicion_retorno):
-                self._hallazgo(hallazgos, 'DEVOLUCION_INCOMPLETA', 'Faltan fecha, receptor o condición de devolución.', p._meta.label, p.pk)
-            fuentes.append(dict(id=p.pk, equipo=p.equipo_id, tipo=p.tipo, estado=p.estado,
-                salida=p.fecha_salida, previsto=p.fecha_retorno_previsto, retorno=p.fecha_retorno_real,
-                institucion=p.institucion, autorizacion=p.autorizado_por, entrega=p.entregado_por_id,
-                recibido=p.recibido_por_id, condicion=p.condicion_retorno, acta=archivo,
-                datos=self._concretos(p), equipo_datos=self._concretos(p.equipo), catalogo=self._concretos(p.equipo.equipo),
-                identidades=dict(retira=self._identidad(p.solicitante), entrega=self._identidad(p.entregado_por),
-                                 recibe=self._identidad(p.recibido_por))))
-        # Una consulta completa del registro nativo puede producir un anexo vacío de préstamos.
-        return None, dict(prestamos=fuentes, universo_conocido=True)
+    def _equipamiento(self, hallazgos):
+        """Un solo anexo del equipamiento: el mantenimiento con su medición crítica y la funcionalidad comprobada.
+
+        Su cumplimiento es el del programa crítico de mantenimiento, la meta que respalda; la funcionalidad
+        aporta sus hallazgos pero no un porcentaje.
+        """
+        cumplimiento, mantenimiento = self._mantenimiento(hallazgos)
+        _sin_porcentaje, funcionalidad = self._funcionalidad(hallazgos)
+        return cumplimiento, dict(funcionalidad, mantenimiento=mantenimiento)
 
     def _seguridad(self, hallazgos):
         datos = self._gestion()
@@ -694,20 +643,16 @@ class ContextoCalidad:
                 self._hallazgo(hallazgos, 'MODO_DEMO', 'El contexto está en modo demostración.', severidad='bloqueo')
             if not getattr(settings, 'MEDICION_METAS_HABILITADA', False):
                 self._hallazgo(hallazgos, 'MEDICION_DESACTIVADA', 'La verificación de fuentes reales está desactivada.')
-            if codigo in ('INDICADORES-PLAN', 'PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS'):
+            if codigo in ('PRACTICAS-FT02', 'PRACTICAS-FT03', 'GUIAS'):
                 cumplimiento, fuentes = self._practicas(codigo, hallazgos)
             elif codigo == 'REGISTRO-USO':
                 medida = self._conciliacion('USO', hallazgos)
                 fuentes = dict(conciliacion=medida, evidencias=self._control_evidencias({'USO'}, hallazgos))
                 cumplimiento = _porcentaje(medida.get('numerador', 0), medida.get('denominador', 0))
-            elif codigo in ('INVENTARIO-CORTE', 'INSUMOS-CORTE'):
+            elif codigo == 'INVENTARIO-CORTE':
                 cumplimiento, fuentes = self._inventario(codigo, hallazgos)
-            elif codigo == 'PLAN-MANTENIMIENTO':
-                cumplimiento, fuentes = self._mantenimiento(hallazgos)
             elif codigo == 'EQUIPAMIENTO':
-                cumplimiento, fuentes = self._funcionalidad(hallazgos)
-            elif codigo == 'PRESTAMOS-EQUIPOS':
-                cumplimiento, fuentes = self._prestamos(hallazgos)
+                cumplimiento, fuentes = self._equipamiento(hallazgos)
             elif codigo == 'INDUCCION-SEGURIDAD':
                 cumplimiento, fuentes = self._seguridad(hallazgos)
             elif codigo == 'DESECHOS':
@@ -717,7 +662,7 @@ class ContextoCalidad:
             elif codigo == 'ACCIONES-MEJORA':
                 cumplimiento, fuentes = self._mejoras(hallazgos)
         fuentes = _json_seguro(dict(unidad=self.unidad.pk, codigo=codigo, inicio=self.inicio,
-            fin=self.fin, corte=self.fin if codigo == 'INDICADORES-PLAN' else self.corte,
+            fin=self.fin, corte=self.corte,
             version_reglas=VERSION_REGLAS,
             catalogo=dict(id=exigido.pk, origen=exigido.origen, fuente=exigido.fuente_reporte,
                           padre=exigido.anexo_de_id, tipos=exigido.tipos_unidad, activo=exigido.activo)

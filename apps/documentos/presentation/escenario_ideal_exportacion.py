@@ -52,11 +52,10 @@ def _marcar_copia(datos):
 
 def exportar_escenario(unidad, referencia, documentos, actores):
     exigir_entorno_ideal()
-    from apps.documentos.models.expediente import DocumentoExpediente
-    from apps.documentos.presentation.automatizacion_documental import completar_controles, procesar_documento
+    from apps.documentos.presentation.automatizacion_documental import completar_controles
     from apps.documentos.presentation.calidad_automatica_laboratorios import ContextoCalidad
     from apps.documentos.presentation.evaluacion_cierre import lectura_cierre
-    from apps.documentos.presentation.expediente import _generar, cortes_del_anio, leer_expediente, del_periodo
+    from apps.documentos.presentation.expediente import cortes_del_anio, leer_expediente, del_periodo
     from apps.documentos.presentation.progreso_general import progreso_general
     anio, corte = referencia['anio'], referencia['corte']
     inicio, fin = date.fromisoformat(referencia['inicio']), date.fromisoformat(referencia['fin'])
@@ -78,14 +77,8 @@ def exportar_escenario(unidad, referencia, documentos, actores):
         raise CommandError('El motor no confirmó el escenario completo. Metas: ' +
             ', '.join(f['codigo'] for f in pendientes) + '; reglas: ' + ', '.join(reglas) +
             f'; nota cierre={informe.nota}; general={progreso["porcentaje"]}. Consulta diagnostico.json.')
-    # El plan de mantenimiento es anual y acompaña al período A. También se
-    # incluye en la consulta integral, sin duplicar el peso de las cinco entregas.
-    mantenimiento = DocumentoExpediente.objects.select_related('unidad', 'exigido', 'recurso').get(
-        unidad=unidad, anio=anio, exigido__codigo='PLAN-MANTENIMIENTO')
-    if not mantenimiento.recurso_id:
-        _generar(mantenimiento, actores['coordinacion'])
-        procesar_documento(mantenimiento, usuario=actores['coordinacion'])
-    documentos = [*documentos, mantenimiento]
+    # El mantenimiento del período viaja en el anexo del equipamiento de este mismo
+    # informe; la planificación conserva lo previsto en su propia sección.
     completar_controles(documentos)
     incidencias = [d.exigido.codigo for d in documentos if d.exigido.es_anexo and
                    d.automatizacion.get('hallazgos')]
@@ -93,7 +86,7 @@ def exportar_escenario(unidad, referencia, documentos, actores):
         raise CommandError('El ensayo conserva incidencias en anexos: ' + ', '.join(incidencias))
     orden = {codigo: numero for numero, codigo in enumerate((
         'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD', 'PLANIFICACION',
-        'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PLAN-COMPRAS-ANUAL', 'INFORME-SEMESTRAL'))}
+        'PLAN-COMPRAS-ANUAL', 'INFORME-SEMESTRAL'))}
     documentos.sort(key=lambda d: (orden.get(d.exigido.codigo, len(orden)), d.exigido.orden, d.pk))
     destino = directorio_escenario(referencia['unidad']['slug'], anio, corte)
     generacion = uuid4().hex

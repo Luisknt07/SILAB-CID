@@ -193,7 +193,9 @@ class OtrasCategoriasAcotadasTests(BaseDeReportes):
 
     def test_recursos_cuentan_colecciones_que_ya_no_caben_en_el_detalle(self):
         reporte = self.categoria('recursos')
-        self.assertEqual([c[1] for c in reporte['cards']], [553, 0, 550, 1, 2])
+        # La última tarjeta son los movimientos de insumos del período, que el inventario reúne desde documentos.0024.
+        self.assertEqual([c[1] for c in reporte['cards']][:5], [553, 0, 550, 1, 2])
+        self.assertEqual(reporte['cards'][5][0], 'Movimientos de insumos del período')
         self.assertEqual(len(reporte['rows']), 500)
         self.assertTrue(reporte['truncated'])
         self.assertEqual([f[2] for f in reporte['rows']], list(EspacioReservable.objects.values_list('nombre', flat=True)[:500]))

@@ -54,11 +54,11 @@ REPORT_FAMILIES = (
     )),
     ("2 · Mantenimiento, disponibilidad y funcionalidad del equipamiento", (
         ("mantenimiento", "Plan y ejecución del mantenimiento de equipos"),
-        ("equipamiento", "Equipamiento: disponibilidad y funcionalidad en el período"),
+        ("equipamiento", "Mantenimiento, disponibilidad y funcionalidad del equipamiento"),
         ("retiros", "Bajas y sustituciones de equipos: justificación, respaldo e historial"),
     )),
     ("3 · Inventario de equipamiento, reactivos e insumos", (
-        ("recursos", "Ficha técnica e inventario de equipos, software, simuladores y espacios"),
+        ("recursos", "Ficha técnica e inventario de equipos, software, simuladores, espacios e insumos"),
         ("inventario", "Reactivos e insumos: existencias y movimientos"),
         ("prestamos", "Préstamos de equipos: quién retira, con qué plazo y en qué estado vuelve"),
     )),
@@ -785,6 +785,13 @@ def _generic_report(
                  ("Espacios reservables", spaces.filter(activo=True, reservable=True).count()),
                  ("Software activo", software.filter(activo=True).count()),
                   ("Insumos y materiales", cantidad_insumos)]
+        from apps.gestion_unidades.presentation.reportes_condiciones import con_insumos, movimientos_insumos
+        if con_insumos(unit):
+            # El inventario lleva los movimientos de insumos del período: no hay otro anexo que los repita.
+            from apps.documentos.models.respaldo_medicion import corte_efectivo
+            cards.append(("Movimientos de insumos del período",
+                          movimientos_insumos(unit, start_date, corte_efectivo(unit, end_date), search).count(),
+                          "entradas, consumos y ajustes"))
     elif category == "calidad":
         state_choices = ControlCalidad.RESULTADOS
         queryset = ControlCalidad.objects.reales().filter(
@@ -913,7 +920,7 @@ def _generic_report(
     if category in ('seguridad', 'desechos', 'recursos', 'equipamiento', 'mantenimiento', 'inventario'):
         from apps.gestion_unidades.presentation.reportes_condiciones import tablas_condiciones, notas_condiciones, documentos_condiciones
         tablas.extend(tablas_condiciones(category, unit, start_date, end_date, state, search))
-        notas = notas_condiciones(category) or notas
+        notas = notas_condiciones(category, unit) or notas
         documentos = documentos_condiciones(category, unit, start_date, end_date)
     if category in ('investigacion', 'transferencia'):
         tablas.extend(resultados['tablas'])

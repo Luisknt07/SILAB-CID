@@ -28,7 +28,8 @@ sola vez. El cumplimiento se mide sobre eso: `2/2` por período.
 
 ## Los anexos
 
-Los quince documentos que el sistema produce con lo ya registrado siguen
+Los documentos que el sistema produce con lo ya registrado (quince en
+septiembre de 2026, once desde la depuración de noviembre) siguen
 existiendo, pero como **anexos** del documento firmado que los presenta
 (`DocumentoExigido.anexo_de`). No son obligaciones aparte:
 
@@ -39,13 +40,20 @@ existiendo, pero como **anexos** del documento firmado que los presenta
   generan sueltos.
 - No son «condicionales»: si no hubo datos, el anexo sale vacío y lo dice.
 
+> **Actualizado el 15 de noviembre de 2026 (expediente depurado, `documentos.0024`):** la planificación
+> viaja sin anexos y el informe lleva once anexos comunes. Ver
+> [calificacion-y-anexos-del-expediente.md](calificacion-y-anexos-del-expediente.md#expediente-depurado).
+
 | Documento firmado | Anexos |
 | --- | --- |
-| Planificación (A y B) | Plan semestral de prácticas por asignatura · en A, el plan anual de mantenimiento |
-| Informe de cierre (A y B) | Registro de uso · FT02 · FT03 · guías · préstamos · inducción de seguridad · desechos · equipamiento · insumos · investigación · transferencia · acciones de mejora · en B, el inventario anual |
+| Planificación (A y B) | Ninguno: la carga programada por asignatura y los mantenimientos previstos son secciones de su PDF |
+| Informe de cierre (A y B) | Registro de uso · FT02 · FT03 · guías · inducción de seguridad · desechos · mantenimiento, disponibilidad y funcionalidad del equipamiento · inventario con sus insumos · investigación · transferencia · acciones de mejora |
 
-Lo anual viaja con un solo período: con la planificación de A lo que abre el
-año, con el informe de B lo que lo cierra (`corte_del_anexo_anual`).
+El inventario se presenta cada semestre en laboratorios, plantas piloto y
+centros experimentales, porque reúne los movimientos de insumos del período.
+Los observatorios lo presentan una vez al año, con el informe de B
+(`corte_del_anexo_anual`). Los observatorios tampoco llevan el registro de uso
+ni los formatos de prácticas, seguridad y desechos.
 
 ## El explorador
 

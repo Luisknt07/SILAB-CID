@@ -62,6 +62,12 @@ class DocumentosYRectificacionTests(BaseDelExpediente):
         self.assertEqual(resumen_de_entrega(observado)['fecha_envio'], envio)
 
     def test_retirar_revision_actualizar_y_reenviar_conserva_archivo(self):
+        from apps.documentos.models.expediente import DocumentoExigido
+        # El catálogo distribuido no da anexos al plan (documentos.0024); se rectifica uno institucional.
+        DocumentoExigido.objects.create(codigo='SOPORTE-PLAN-PROPIO', nombre='Respaldo propio de la planificación',
+            carpeta='planeacion', periodicidad='semestral', origen='sistema', fuente_reporte='asignaturas',
+            plazo_regla='inicio', plazo_dias=15, orden=30,
+            anexo_de=DocumentoExigido.objects.get(codigo='PLANIFICACION'))
         d = self.documento(self.laboratorio, codigo='PLANIFICACION')
         self.abrir_plazo(d)
         cargar_documento_revisado(d, SimpleUploadedFile('plan.pdf', PDF_FIRMADO), self.coordinador)

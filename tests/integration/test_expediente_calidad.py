@@ -68,24 +68,26 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         plan = self.exigido('PLANIFICACION')
         self.assertEqual((plan.plazo_regla, plan.plazo_dias, plan.periodicidad), ('inicio', 15, 'semestral'))
         self.assertTrue(plan.redactable and plan.generable and plan.cargable)
-        # Todo lo demás es anexo de uno de los dos firmados y ya no es «condicional».
+        # Todo lo demás es anexo del informe y ya no es «condicional»; la planificación viaja sin anexos.
         anexos = DocumentoExigido.objects.filter(activo=True, anexo_de__isnull=False)
-        self.assertEqual(anexos.count(), 21)
+        self.assertEqual(anexos.count(), 17)
+        self.assertFalse(anexos.exclude(anexo_de__codigo='INFORME-SEMESTRAL').exists())
         # Los seis formatos nativos de otras tipologías no añaden obligaciones
         # a un laboratorio ni desaparecen del catálogo de sus propias unidades.
         aplicables = [e for e in anexos if e.aplica_a(self.unidad.dependencia,
                                                     base=self.unidad.codigo_base)]
-        self.assertEqual(len(aplicables), 15)
+        self.assertEqual(len(aplicables), 11)
         self.assertFalse(any(e.codigo.startswith(('PP-', 'CE-', 'OBS-')) for e in aplicables))
         self.assertFalse(anexos.filter(condicional=True).exists())
         self.assertEqual(self.exigido('GUIAS').anexo_de.codigo, 'INFORME-SEMESTRAL')
-        self.assertEqual(self.exigido('INDICADORES-PLAN').anexo_de.codigo, 'PLANIFICACION')
-        # Lo anual viaja con un período: el plan de mantenimiento abre el año, el inventario lo cierra.
-        self.assertEqual(self.exigido('PLAN-MANTENIMIENTO').corte_del_anexo_anual, 'A')
+        # El inventario es anual en el catálogo y viaja con el informe B; el perfil lo vuelve semestral.
         self.assertEqual(self.exigido('INVENTARIO-CORTE').corte_del_anexo_anual, 'B')
         self.assertEqual(self.exigido('INVENTARIO-CORTE').periodicidad, 'anual')
-        # Las listas de chequeo dejaron de pedirse aparte.
-        self.assertFalse(DocumentoExigido.objects.filter(codigo='CHEQUEO-SEGURIDAD', activo=True).exists())
+        self.assertEqual(self.exigido('INVENTARIO-CORTE').periodicidad_para(self.unidad), 'semestral')
+        # Las listas de chequeo y los anexos depurados dejaron de pedirse aparte.
+        for codigo in ('CHEQUEO-SEGURIDAD', 'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS',
+                       'INSUMOS-CORTE'):
+            self.assertFalse(DocumentoExigido.objects.filter(codigo=codigo, activo=True).exists(), codigo)
     def test_los_cortes_de_gestion_son_naturales_y_el_calendario_solo_es_referencia(self):
         cortes = cortes_del_anio(2026)
         self.assertEqual(cortes['A'], (date(2026, 1, 1), date(2026, 6, 30)))
@@ -112,8 +114,11 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         # Un anexo semestral tiene fila en los dos períodos; el anual, solo en el suyo.
         guias = [d for d in documentos if d.exigido.codigo == 'GUIAS']
         self.assertEqual(sorted(d.corte for d in guias), ['A', 'B'])
-        self.assertEqual([d.corte for d in documentos if d.exigido.codigo == 'PLAN-MANTENIMIENTO'], ['A'])
-        self.assertEqual([d.corte for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE'], ['A', 'B'])
+        # El mantenimiento y el inventario viajan con el informe de cada período.
+        self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO'), ['A', 'B'])
+        self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE'), ['A', 'B'])
+        self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE'}
+                         & {d.exigido.codigo for d in documentos})
         self.assertNotIn('ORGANIGRAMA', {d.exigido.codigo for d in documentos})
         # Construir otra vez no duplica.
         self.assertEqual(len(construir_expediente(self.unidad, 2026, hoy=date(2026, 9, 22))), len(documentos))
@@ -298,7 +303,8 @@ class ConsolaYAdminTests(BaseDelExpediente):
         for etapa in ('1. Documentos base', '2. Planificación', '3. Anexos y seguimiento',
                       '4. Mejora y seguimiento'):
             self.assertContains(pagina, etapa)
-        self.assertContains(pagina, 'data-soporte-planificacion="INDICADORES-PLAN"', count=1)
+        # La planificación viaja sin anexos: no hay soportes aparte que revisar.
+        self.assertNotContains(pagina, 'data-soporte-planificacion=')
         self.assertContains(pagina, 'Planificación semestral de actividades de la unidad')
         self.assertContains(pagina, 'Vencido')
         self.assertContains(pagina, 'Habilitar expediente del año')
@@ -333,14 +339,14 @@ class ConsolaYAdminTests(BaseDelExpediente):
                                 'archivo': SimpleUploadedFile('resolucion.pdf', pdf_legible_prueba('%PDF-1.4 res'))})
         organigrama.refresh_from_db()
         self.assertEqual(organigrama.estado, 'cargado')
-        prestamos = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='PRESTAMOS-EQUIPOS',
-                                                    anio=2026, corte='A')
-        # Un anexo no se declara «no aplica»: si no hubo préstamos, el registro sale vacío y lo dice.
-        self.client.post(ruta, {'anio': 2026, 'documento': prestamos.pk, 'accion': 'no_aplica',
-                                'justificacion': 'Los equipos no salen de la unidad.'})
-        prestamos.refresh_from_db()
-        self.assertEqual(prestamos.estado, 'generado')
-        self.assertIsNone(prestamos.validado_por_id)
+        desechos = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='DESECHOS',
+                                                   anio=2026, corte='A')
+        # Un anexo no se declara «no aplica»: si no hubo desechos, el registro sale vacío y lo dice.
+        self.client.post(ruta, {'anio': 2026, 'documento': desechos.pk, 'accion': 'no_aplica',
+                                'justificacion': 'La unidad no generó desechos.'})
+        desechos.refresh_from_db()
+        self.assertEqual(desechos.estado, 'generado')
+        self.assertIsNone(desechos.validado_por_id)
         # El archivo se abre por la ruta de recursos de la unidad, solo para quien la gestiona.
         self.assertEqual(self.client.get(reverse('recurso_unidad', args=[organigrama.recurso_id])).status_code, 200)
 

@@ -323,9 +323,9 @@ class AutomatizacionDocumentalInterfazTests(SimpleTestCase):
         self.assertIn('Revisión:', contenido)
 
     def test_respaldo_integrado_conserva_estado_y_no_inventa_revision_humana(self):
-        anexo = SimpleNamespace(pk=7, nombre_documental='Planificación por asignatura',
-            exigido=SimpleNamespace(codigo='INDICADORES-PLAN'), recurso_id=7,
-            soporte_planificacion=dict(url='/expediente/?gestionar=2', descripcion='Origen de prácticas'),
+        anexo = SimpleNamespace(pk=7, nombre_documental='Respaldo propio de la planificación',
+            exigido=SimpleNamespace(codigo='SOPORTE-PLAN-PROPIO'), recurso_id=7,
+            soporte_planificacion=dict(url='/expediente/?gestionar=2', descripcion='Respaldo del plan'),
             url_informe='', generado_en=None, avance_documental={},
             estado='generado', automatizacion={})
         contexto = dict(soporte=anexo, periodo=SimpleNamespace(etiqueta='2026-B'))

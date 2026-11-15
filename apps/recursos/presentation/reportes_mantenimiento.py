@@ -1,9 +1,12 @@
 """El reporte de mantenimiento: lo que hay que sustentar ante la auditoría.
 
-Es el documento «Plan anual de mantenimiento preventivo y correctivo» del
-expediente. Va equipo por equipo con su criticidad, su plan y frecuencia, lo
-ejecutado frente a lo programado, los repuestos y el costo, la vida útil y, al
-final, las bajas del período con su motivo y su reemplazo.
+Es una consulta de gestión del Centro de reportes. El expediente presenta la
+ejecución del período y la meta del 80 % en el anexo «Mantenimiento,
+disponibilidad y funcionalidad del equipamiento», y lo previsto en la sección
+de mantenimientos de la planificación. Va equipo por equipo con su
+criticidad, su plan y frecuencia, lo ejecutado frente a lo programado, los
+repuestos y el costo, la vida útil y, al final, las bajas del período con su
+motivo y su reemplazo.
 """
 
 from datetime import datetime, time, timedelta

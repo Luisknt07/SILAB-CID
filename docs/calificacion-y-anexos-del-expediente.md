@@ -29,8 +29,8 @@ metas exigibles de la planificación conforme del período, es decir, las que ap
 y son obligatorias para el tipo de unidad o las que la unidad incluyó:
 
 - Cada meta se mide con su fuente: reservas, FT02, FT03, guías, inducciones,
-  desechos, inventario verificado, resultados, préstamos y demás. Se acredita en
-  proporción a lo logrado frente a lo comprometido.
+  desechos, mantenimiento crítico, inventario verificado, resultados y demás. Se
+  acredita en proporción a lo logrado frente a lo comprometido.
 - Una meta que no se puede medir cuenta 0 y queda pendiente. No se supone cumplida.
 - La nota es el promedio de las metas exigibles. Sin metas exigibles, la nota es 0.
 - Si la planificación del período no tiene conformidad, o el editor del informe
@@ -76,26 +76,29 @@ Desde ahora esos documentos se leen por su aprobación o conformidad.
 
 ## Lo que contiene cada anexo y la meta que respalda
 
-Cada anexo dice en su descripción lo que trae y la meta que respalda. Un anexo no
-suma puntos por existir: la meta se mide con los registros, y el anexo es el
-documento que los presenta. Una meta **opcional** solo cuenta en la nota si la
-planificación la incluyó.
+Cada anexo dice en su descripción lo que trae y la meta que respalda, o que es
+un registro sin meta. Un anexo no suma puntos por existir: la meta se mide con
+los registros, y el anexo es el documento que los presenta.
 
-| Anexo | Contiene | Meta que respalda |
+Solo cuentan en la nota las metas **exigibles**: las obligatorias para el tipo de
+unidad y las que la planificación marcó como obligatorias del período. Una meta
+opcional no cuenta. Los registros sin meta (disponibilidad del equipamiento,
+movimientos de insumos, seguimiento de acciones de mejora y préstamos;
+`ANEXOS_AUTOMATICOS`) nunca cuentan, aunque la planificación los mencione.
+
+| Anexo del informe | Contiene | Meta que respalda |
 | --- | --- | --- |
-| Registro de uso | Sesiones registradas en la plataforma, por propósito, con fecha, horario, solicitante y estado | Registro de todas las sesiones de uso |
+| Registro de uso (no en observatorios) | Sesiones registradas en la plataforma, por propósito, con fecha, horario, solicitante y estado | Registro de todas las sesiones de uso |
 | FT02 | Cada práctica planificada con asignatura, fecha, escenario, docente, responsable y guía | Prácticas planificadas |
 | FT03 | Ejecución de cada práctica con asistencia, bitácora, resultados y evidencias | Prácticas ejecutadas |
 | Guías | Guías vigentes usadas en las prácticas del período, con código, versión, aprobación y syllabus | Guías |
 | Inducción y seguridad | Requisitos de acceso, inducciones, habilitaciones, inspecciones, incidentes y protocolo vigente | Inducción de seguridad e inspecciones |
 | Desechos | Tipo, origen, cantidad, almacenamiento, responsable, gestor y manifiesto | Gestión de desechos |
-| Inventario al corte | Equipos, software, espacios e insumos con custodio, ubicación y condición | Revisión física del inventario, con el acta verificada |
+| Mantenimiento, disponibilidad y funcionalidad del equipamiento | Órdenes de mantenimiento programadas y ejecutadas del período, programa crítico anual de equipos e infraestructura con su medición del 80 %, disponibilidad por equipo (días fuera de servicio, incidencias) y pruebas funcionales. No repite el inventario | Mantenimiento (80 % de lo programado en equipos críticos). La disponibilidad es registro sin meta |
+| Inventario al corte | Equipos, software y espacios con custodio, ubicación y condición; actas de revisión física; donde hay insumos, existencias, lotes, vencimientos y movimientos del período | Revisión física del inventario, con el acta verificada. Los movimientos de insumos son registro sin meta |
 | Investigación | Productos de investigación aplicada y desarrollo con proyecto, responsable y respaldo | Resultados de investigación |
 | Transferencia | Entregables de transferencia y servicios con destinatario y aceptación | Transferencia y servicios |
-| Préstamos | Quién retira, cuándo, para qué y cuándo devuelve, con el estado del equipo | Préstamos de equipos (opcional) |
-| Equipamiento | Disponibilidad y funcionalidad: estado al corte, días fuera de servicio, verificaciones e incidencias | Disponibilidad del equipamiento (opcional) |
-| Insumos al corte | Movimientos, existencias, lotes y vencimientos | Movimientos de insumos (opcional) |
-| Acciones de mejora | Hallazgo, acción, responsable, plazo, estado y evidencia de cierre | Seguimiento de acciones de mejora (opcional) |
+| Acciones de mejora | Hallazgo, acción, responsable, plazo, estado y evidencia de cierre | Registro sin meta |
 | Producción (plantas piloto) | Producción frente al plan, cantidades, estados y trazabilidad de lotes | Lotes o procesos ejecutados |
 | Control de calidad (plantas piloto) | Parámetros, mediciones, liberación y rechazo por lote | Control de calidad de lotes finalizados |
 | Ensayos (centro experimental) | Objetivo, escenario, manejo, mediciones y resultados | Ensayos y parcelas con seguimiento |
@@ -103,22 +106,99 @@ planificación la incluyó.
 | Boletines (observatorios) | Publicaciones previstas y efectivas con respaldo consultable | Boletines, informes o bases publicados |
 | Socialización (observatorios) | Actividades, destinatarios y productos difundidos | Eventos de socialización |
 
-Dos anexos acompañan a la planificación:
+La planificación no lleva anexos. Su PDF ya trae la carga programada por
+asignatura y la sección de mantenimientos previstos.
 
-- **Plan semestral de prácticas por asignatura.** No tiene meta propia: las
-  prácticas aprobadas se miden en el FT02.
-- **Plan de mantenimiento.** Respalda la meta de mantenimiento, que el informe
-  mide con las intervenciones registradas: 80 % de lo programado en equipos críticos.
+Dos metas del informe no tienen anexo: **capacitación** y **difusión**. Se miden
+con evidencias verificadas y figuran en el cierre como metas sin anexo.
 
-Tres metas del informe no tienen anexo dentro del informe:
+## Expediente depurado
 
-- **Mantenimiento**, cuyo respaldo es el plan de mantenimiento.
-- **Capacitación** y **difusión**, que se miden con evidencias verificadas.
+Fecha: 15 de noviembre de 2026. Migración `documentos.0024_expediente_depurado`.
+
+El expediente se redujo a lo mínimo para cumplir. Se quitaron los anexos que
+repetían a otros o que no respaldaban ninguna meta. No se perdió ninguna
+medición de metas.
+
+| Antes | Ahora | Por qué |
+| --- | --- | --- |
+| Plan semestral de prácticas por asignatura, anexo de la planificación | Retirado. Queda como consulta de gestión «asignaturas» | No tenía meta y repetía columnas del FT02; la planificación trae la tabla «Carga programada por asignatura» |
+| Plan anual de mantenimiento, anexo de la planificación en A | Retirado | Repetía la sección «Mantenimientos previstos» de la planificación y mezclaba plan con ejecución; en B la meta de mantenimiento quedaba sin anexo |
+| Equipamiento: disponibilidad y funcionalidad | **Mantenimiento, disponibilidad y funcionalidad del equipamiento**, semestral | Reúne la ejecución del mantenimiento, la medición del 80 % y la funcionalidad. La meta de mantenimiento tiene anexo en A y en B |
+| Préstamos de equipos, anexo del informe | Retirado. Queda como consulta de gestión «préstamos» | Registro sin meta; nunca contó en la nota |
+| Insumos al corte, anexo del informe | Retirado. Sus movimientos van en el inventario | Repetía las tablas de existencias y lotes del inventario |
+| Inventario: semestral en laboratorios, anual en los demás | Semestral en laboratorios, plantas piloto y centros experimentales; anual en observatorios | Ahora trae los movimientos de insumos del período, que antes eran semestrales |
+| Registro de uso en observatorios | Retirado para observatorios | El observatorio no tiene meta de uso de sesiones |
+
+### Documentos por semestre
+
+Se cuentan la planificación, el informe y sus anexos de cada período. Además, en
+el año van la resolución, el protocolo y el plan de compras, que no cambian.
+
+| Tipo de unidad | Antes A | Antes B | Ahora A | Ahora B |
+| --- | --- | --- | --- | --- |
+| Laboratorios | 17 | 16 | 13 | 13 |
+| Plantas piloto | 18 | 18 | 15 | 15 |
+| Centro experimental | 17 | 17 | 14 | 14 |
+| Observatorios | 12 | 12 | 9 | 10 |
+
+Los anexos comunes del informe pasan de 13 a 11. La planificación pasa de dos
+anexos (uno en B) a ninguno.
+
+### Consultas de gestión
+
+Las categorías del Centro de reportes que no son anexos se ofrecen en el
+expediente solo si la unidad tiene registros de ese módulo: aula, visitas,
+cursos, finanzas, retiros y bajas, préstamos, mantenimiento, insumos, programación
+por asignatura, procesos y calidad de producción. Cada una se comprueba con una
+consulta `exists()` sobre la unidad (`reportes_existencia.tiene_registros`).
+La auditoría y la capacidad de uso se ofrecen siempre que el tipo de unidad las
+tenga.
+
+### Lo que conserva la historia
+
+- Los cuatro tipos retirados quedan con `activo=False`. No se borra ninguna fila
+  del expediente ni ningún archivo. El expediente deja de mostrarlos, como antes
+  pasó con las listas de chequeo.
+- Un informe ya enviado conserva su cálculo congelado con sus anexos de entonces.
+  El control automático no cuenta como faltante un anexo congelado cuyo tipo se
+  retiró.
+- `asegurar_catalogo` solo siembra una tabla vacía. Los códigos retirados están en
+  `RETIRADOS` y fuera de `CATALOGO`, así que no vuelven.
+- La migración solo reemplaza nombres y descripciones que son textos anteriores
+  del catálogo distribuido. De un texto que la institución editó aparte, solo
+  quita la frase falsa de la «meta opcional que cuenta en la nota». Se puede
+  repetir sin efecto. La reversa reactiva lo retirado y devuelve los nombres,
+  pero no vuelve a escribir la frase falsa.
+
+### Lo que cambia en los PDF
+
+Cambian los datos, no el dibujo:
+
+- El anexo del equipamiento suma las tablas y las tarjetas del mantenimiento.
+- El inventario de plantas piloto y centros experimentales suma las existencias,
+  los lotes y los movimientos de insumos. El de laboratorios suma los movimientos.
+- En la tabla de actividades de la planificación, los registros sin meta dicen
+  «Registro del período, sin meta» en vez de «No aplica», y los préstamos ya no
+  figuran.
+
+### Aplicar la migración
+
+Queda **sin aplicar** en las bases reales. Hay que aplicarla junto con el código,
+con el mismo procedimiento de `documentos.0023`:
+
+```
+docker compose -f docker-compose.local.yml --profile mantenimiento run --rm migrar
+```
+
+Los informes 2026-B que ya se generaron con los anexos anteriores se tienen que
+volver a generar antes de firmarlos. El envío lo exige: los anexos cambiaron.
 
 ### Lo que se corrigió en los anexos
 
 - **Equipamiento** repetía el inventario completo. Ahora solo trae disponibilidad y
-  funcionalidad; el inventario va en su propio anexo.
+  funcionalidad; el inventario va en su propio anexo. Desde la depuración también
+  trae el mantenimiento del período.
 - **Acciones de mejora:** la vista previa era otro documento. Ahora es el mismo PDF
   que se archiva, en borrador.
 - **Guías** se medía con las guías del período. Ahora, con la política de metas
@@ -268,3 +348,13 @@ recién cuando la Dirección aprueba el cierre calculado.
 - Un plan conforme leído suelto de la base cumple.
 
 Las pruebas que fijaban la calificación anterior se ajustaron a la regla.
+
+`tests/integration/test_expediente_depurado.py` fija el expediente depurado:
+
+- los documentos por semestre de cada tipo de unidad;
+- la meta de mantenimiento con anexo en A y en B;
+- el inventario semestral con sus movimientos de insumos, y anual en el observatorio;
+- el equipamiento con mantenimiento y funcionalidad, sin repetir el inventario;
+- que una consulta sin registros no se muestre;
+- que ningún anexo prometa una meta que no cuenta;
+- la migración: retira sin borrar historia, se repite sin efecto y tiene reversa.

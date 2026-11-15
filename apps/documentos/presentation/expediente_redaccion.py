@@ -1416,7 +1416,8 @@ def filas_del_plan(unidad, contenido, inicio, fin):
         origenes = origenes if isinstance(origenes, dict) else {}
         filas.append({
             'codigo': actividad.codigo, 'nombre': actividad.nombre, 'indicador': actividad.indicador,
-            'nombre_reporte': reportes[0] if reportes else actividad.nombre,
+            # Un registro sin meta conserva su propio nombre: el anexo que lo trae ya nombra a la meta que respalda.
+            'nombre_reporte': reportes[0] if reportes and not solo_anexo else actividad.nombre,
             'meta_origen': origenes.get(actividad.codigo, ''),
             'minimo': actividad.minimo, 'contador': actividad.contador, 'propia': False,
             'obligatoria': obligatoria, 'institucional': actividad.obligatoria, 'por_tipo': por_tipo,
@@ -1718,7 +1719,8 @@ def _bloques_del_campo(campo, valor, documento, contenido, inicio, fin, registro
         nuevo_plan = (getattr(documento.exigido, 'fuente_reporte', '') == 'planificacion'
                       and isinstance(cronograma, dict) and cronograma.get('version') == 1)
         cabecera = ['Actividad', 'Exigencia', 'Indicador', 'Mínimo institucional', 'Meta del período']
-        cuerpo = [[f['nombre'], ('No aplica' if not f['aplica'] else
+        cuerpo = [[f['nombre'], ('Registro del período, sin meta' if f.get('solo_anexo') else
+                              'No aplica' if not f['aplica'] else
                               'Obligatoria institucional' if f.get('institucional') else
                               'Obligatoria según tipo de unidad' if f.get('por_tipo') else
                               'Obligatoria del período' if f.get('obligatoria') else 'Opcional'),

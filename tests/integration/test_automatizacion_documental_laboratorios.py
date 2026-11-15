@@ -32,7 +32,8 @@ class AutomatizacionDocumentalLaboratoriosTests(TestCase):
         cls.unidad = Unidad.objects.create(nombre='Laboratorio automático QA', slug='auto-lab-qa',
             dependencia='laboratorios', administrador=cls.actor, fecha_inicio=date(2025, 1, 1))
         documentos = construir_expediente(cls.unidad, 2025)
-        cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'PRESTAMOS-EQUIPOS' and d.corte == 'B')
+        # El anexo de acciones de mejora es registro sin meta: sin acciones sale vacío y lo dice.
+        cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'ACCIONES-MEJORA' and d.corte == 'B')
         cls.informe_id = next(d.pk for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL' and d.corte == 'B')
 
     def setUp(self):

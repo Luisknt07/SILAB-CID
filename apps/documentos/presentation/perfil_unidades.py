@@ -6,40 +6,51 @@ no reescriben el catálogo ni eliminan documentos que ya fueron enviados.
 """
 BASES_AUDITABLES = frozenset(('laboratorios', 'plantas_piloto', 'centro_experimental', 'observatorios'))
 
+# El observatorio no tiene meta de uso de sesiones (politica_metas_unidades): sus
+# atenciones se consultan en el Centro de reportes, sin un anexo que respalde nada.
 EXCLUIDOS_POR_BASE = {
-    'observatorios': frozenset(('INDICADORES-PLAN', 'PRACTICAS-FT02',
-                               'PRACTICAS-FT03', 'GUIAS', 'INDUCCION-SEGURIDAD', 'DESECHOS', 'INSUMOS-CORTE')),
+    'observatorios': frozenset(('REGISTRO-USO', 'PRACTICAS-FT02',
+                               'PRACTICAS-FT03', 'GUIAS', 'INDUCCION-SEGURIDAD', 'DESECHOS')),
 }
 
 NOMBRES_POR_BASE = {
     'plantas_piloto': {
         'PLANIFICACION': 'Planificación semestral de producción, prácticas y servicios de la planta piloto',
         'INFORME-SEMESTRAL': 'Informe semestral de producción, prácticas y cumplimiento de la planta piloto',
-        'INDICADORES-PLAN': 'Planificación semestral de prácticas y procesos de la planta piloto',
         'REGISTRO-USO': 'Registro de uso de la planta piloto: sesiones, horas y participantes',
         'INVENTARIO-CORTE': 'Inventario de equipos, software, espacios e insumos de la planta piloto',
-        'INSUMOS-CORTE': 'Inventario de materias primas e insumos: lotes, existencias y movimientos',
         'TRANSFERENCIA': 'Informe de entregas, servicios y transferencia de la planta piloto',
     },
     'centro_experimental': {
         'PLANIFICACION': 'Planificación semestral de actividades de campo y ensayos del centro experimental',
         'INFORME-SEMESTRAL': 'Informe semestral de actividades de campo, ensayos y cumplimiento',
-        'INDICADORES-PLAN': 'Planificación semestral de prácticas en escenarios experimentales',
         'REGISTRO-USO': 'Registro de uso de escenarios experimentales: sesiones, horas y participantes',
         'INVENTARIO-CORTE': 'Inventario de equipos, software, espacios e insumos del centro experimental',
-        'INSUMOS-CORTE': 'Inventario de insumos de campo: lotes, existencias y movimientos',
         'INVESTIGACION': 'Informe de resultados de investigación y experimentación de campo',
         'TRANSFERENCIA': 'Informe de vinculación, entregas y transferencia del centro experimental',
     },
     'observatorios': {
         'PLANIFICACION': 'Planificación semestral de indicadores, publicaciones y servicios del observatorio',
         'INFORME-SEMESTRAL': 'Informe semestral de datos, publicaciones y cumplimiento del observatorio',
-        'PLAN-MANTENIMIENTO': 'Plan anual de mantenimiento de equipos informáticos e infraestructura',
+        # Nombre de su consulta de atenciones; no es anexo del observatorio.
         'REGISTRO-USO': 'Registro de atenciones y uso de espacios del observatorio',
         'INVENTARIO-CORTE': 'Inventario de equipos informáticos, software y espacios del observatorio',
-        'EQUIPAMIENTO': 'Informe de disponibilidad y funcionalidad de equipos y software del observatorio',
+        'EQUIPAMIENTO': 'Mantenimiento, disponibilidad y funcionalidad de equipos y software del observatorio',
         'INVESTIGACION': 'Informe de resultados de investigación y análisis del observatorio',
         'TRANSFERENCIA': 'Informe de entrega de información, servicios y vinculación del observatorio',
+    },
+}
+
+# Consultas de gestión con nombre propio del perfil: ya no son anexos del
+# expediente, pero conservan la denominación de la unidad en el Centro de reportes.
+NOMBRES_CONSULTAS_POR_BASE = {
+    'plantas_piloto': {
+        'asignaturas': 'Planificación semestral de prácticas y procesos de la planta piloto',
+        'inventario': 'Materias primas e insumos: lotes, existencias y movimientos',
+    },
+    'centro_experimental': {
+        'asignaturas': 'Planificación semestral de prácticas en escenarios experimentales',
+        'inventario': 'Insumos de campo: lotes, existencias y movimientos',
     },
 }
 
@@ -51,10 +62,6 @@ REQUISITOS_COMUNES = {
                               'Acceso, operación, emergencias y actualización; medidas específicas sólo cuando apliquen.'),
     'PLAN-COMPRAS-ANUAL': ('Necesidades del año siguiente, cantidades, costos estimados, prioridad y financiamiento.',
                           'Justificación frente a recursos, capacidad y actividades; revisión, emisión y aprobación en la plataforma.'),
-    'INDICADORES-PLAN': ('Programación consolidada de prácticas: asignatura, fecha, escenario y responsable.',
-                         'Vínculos con planificaciones individuales y guías; identificar pendientes sin repetir la meta de FT02.'),
-    'PLAN-MANTENIMIENTO': ('Equipos e infraestructura incluidos, criticidad, intervenciones, frecuencia y responsables.',
-                           'Calendario y respaldo de órdenes e intervenciones; distinguir lo previsto de lo ejecutado.'),
     'REGISTRO-USO': ('Atenciones efectivamente realizadas, fecha, duración, participantes y finalidad.',
                      'Reservas pendientes o canceladas separadas de las atenciones; fuente de conciliación identificada.'),
     'PRACTICAS-FT02': ('Asignatura, escenario, fecha, docente y responsable de la práctica.',
@@ -63,18 +70,17 @@ REQUISITOS_COMUNES = {
                        'Evidencias de la sesión identificadas y evaluación; diferenciar registros pendientes y prácticas validadas.'),
     'GUIAS': ('Guía vigente, responsables de elaboración, revisión y aprobación.',
               'Asignatura, tema y resultado de aprendizaje vinculados con el syllabus; el listado no sustituye cada guía.'),
-    'PRESTAMOS-EQUIPOS': ('Equipo, receptor, finalidad, autorización, fecha de salida y plazo de devolución.',
-                          'Condiciones de entrega y recepción, responsable y acta cuando corresponda.'),
     'INDUCCION-SEGURIDAD': ('Protocolo aplicable, inducciones y controles realizados durante el período.',
                             'Hallazgos, responsables, acciones, plazos y evidencias; distinguir controles previstos y ejecutados.'),
     'DESECHOS': ('Desechos realmente generados: tipo, origen, cantidad, fecha, responsable y almacenamiento.',
                  'Entrega y respaldo de recepción cuando corresponda; una ausencia de registros no demuestra que no hubo generación.'),
-    'EQUIPAMIENTO': ('Equipo, ubicación, condición y períodos de indisponibilidad al corte.',
-                      'Verificaciones funcionales, incidencias e informes técnicos; separar disponibilidad y funcionalidad comprobada.'),
-    'INSUMOS-CORTE': ('Existencias al corte, unidad de medida, ubicación, lotes y vencimientos cuando apliquen.',
-                      'Entradas, consumos y ajustes del período, con sus referencias y diferencias identificadas.'),
+    'EQUIPAMIENTO': ('Mantenimientos programados y ejecutados del período, con responsable, resultado e informe; '
+                     'medición del programa crítico de equipos e infraestructura.',
+                     'Estado, días fuera de servicio, verificaciones funcionales e incidencias; separar disponibilidad '
+                     'y funcionalidad comprobada, sin repetir el inventario.'),
     'INVENTARIO-CORTE': ('Equipos, software, espacios e insumos aplicables, con custodio, ubicación y condición.',
-                         'Fecha del corte, revisión física y diferencias respaldadas; distinguir inventario consultado y revisión verificada.'),
+                         'Fecha del corte, revisión física y diferencias respaldadas; existencias, lotes y movimientos '
+                         'de insumos del período cuando apliquen.'),
     'INVESTIGACION': ('Proyecto o trabajo, responsable y producto de investigación obtenido.',
                        'Resultado y evidencia consultable; solicitudes o reservas no sustituyen un producto terminado.'),
     'TRANSFERENCIA': ('Producto o servicio entregado, responsable, destinatario y fecha.',
@@ -117,8 +123,6 @@ REQUISITOS_POR_BASE = {
                        'Productos difundidos, participantes o destinatarios y respaldo de realización; una actividad programada no acredita ejecución.'),
         'INVENTARIO-CORTE': ('Equipos informáticos, software, licencias y espacios, con custodio, ubicación y condición.',
                              'Revisión y diferencias al corte; el inventario no sustituye el catálogo de fuentes y fichas metodológicas.'),
-        'REGISTRO-USO': ('Atenciones o sesiones efectivamente realizadas, fecha, duración, participantes y finalidad.',
-                         'Distinguir solicitudes, reservas y atenciones; este registro no sustituye las publicaciones ni la actualización de indicadores.'),
     },
 }
 
@@ -135,10 +139,12 @@ FAMILIAS_PROPIAS = {
         ('eventos', 'Socialización de resultados y vinculación'))),),
 }
 
-CODIGOS_POR_FUENTE = {'reservas': 'REGISTRO-USO', 'asignaturas': 'INDICADORES-PLAN',
-                     'recursos': 'INVENTARIO-CORTE', 'inventario': 'INSUMOS-CORTE',
+CODIGOS_POR_FUENTE = {'reservas': 'REGISTRO-USO', 'recursos': 'INVENTARIO-CORTE',
                      'equipamiento': 'EQUIPAMIENTO', 'investigacion': 'INVESTIGACION',
                      'transferencia': 'TRANSFERENCIA'}
+
+# Donde hay insumos el inventario lleva sus movimientos del período y se presenta cada semestre.
+BASES_INVENTARIO_ANUAL = frozenset(('observatorios',))
 
 
 def base_de(unidad, *, base=None):
@@ -208,7 +214,9 @@ def nombre_para(exigido, unidad):
 
 
 def periodicidad_para(exigido, unidad):
-    if base_de(unidad) == 'laboratorios' and exigido.codigo == 'INVENTARIO-CORTE' and exigido.periodicidad == 'anual':
+    """El inventario integral es semestral donde reúne los movimientos de insumos; anual en los observatorios."""
+    if (exigido.codigo == 'INVENTARIO-CORTE' and exigido.periodicidad == 'anual'
+            and base_de(unidad) not in BASES_INVENTARIO_ANUAL):
         return 'semestral'
     return exigido.periodicidad
 
@@ -249,8 +257,8 @@ def familias_de_perfil(unidad, familias, *, catalogo=()):
     excluidas.difference_update(personalizados)
     resultado = []
     for familia, opciones in familias:
-        seleccion = tuple((codigo, personalizados.get(codigo,
-            NOMBRES_POR_BASE.get(base, {}).get(CODIGOS_POR_FUENTE.get(codigo), nombre)))
+        seleccion = tuple((codigo, personalizados.get(codigo, NOMBRES_CONSULTAS_POR_BASE.get(base, {}).get(codigo)
+            or NOMBRES_POR_BASE.get(base, {}).get(CODIGOS_POR_FUENTE.get(codigo), nombre)))
                           for codigo, nombre in opciones if codigo not in excluidas)
         if not seleccion:
             continue

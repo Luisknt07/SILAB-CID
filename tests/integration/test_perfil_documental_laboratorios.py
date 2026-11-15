@@ -22,8 +22,9 @@ from tests.integration.test_expediente_redaccion import BaseDeRedaccion, PLAN_CO
 
 
 class AlcanceDocumentalTests(SimpleTestCase):
-    def test_veinte_documentos_con_nombre_y_requisitos(self):
-        self.assertEqual(len(NOMBRES), 20)
+    def test_dieciseis_documentos_con_nombre_y_requisitos(self):
+        # Veinte antes de depurar el expediente (documentos.0024): se retiraron cuatro anexos.
+        self.assertEqual(len(NOMBRES), 16)
         self.assertEqual(set(NOMBRES), set(REQUISITOS))
         self.assertTrue(all(REQUISITOS.values()))
 

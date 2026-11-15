@@ -86,6 +86,12 @@ class CargarYEnviarTests(BaseDelExpediente):
         self.assertIsNone(d.evaluacion)
 
     def test_falta_de_anexos_revierte_la_carga_y_los_archivos_nuevos(self):
+        from apps.documentos.models.expediente import DocumentoExigido
+        # El catálogo distribuido no da anexos al plan (documentos.0024); uno institucional sin revisar lo detiene.
+        DocumentoExigido.objects.create(codigo='SOPORTE-PLAN-PROPIO', nombre='Respaldo propio de la planificación',
+            carpeta='planeacion', periodicidad='semestral', origen='sistema', fuente_reporte='asignaturas',
+            plazo_regla='inicio', plazo_dias=15, orden=30,
+            anexo_de=DocumentoExigido.objects.get(codigo='PLANIFICACION'))
         d = self.documento(self.laboratorio, 'PLANIFICACION')
         self.abrir_plazo(d)
         recursos = Recurso.objects.count()

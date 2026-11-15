@@ -211,8 +211,14 @@ class RangoEnElVisorTests(BaseDeCumplimiento):
         self.assertEqual(contenido.count('Revisado, validar'), 0)
 
     def test_cada_anexo_dice_si_falta_validarlo_o_ya_esta_validado(self):
+        from apps.documentos.models.expediente import DocumentoExigido
         from apps.documentos.presentation.expediente import anexos_del, generar_anexos, validar_anexo
 
+        # El catálogo distribuido no da anexos al plan (documentos.0024); uno institucional sí se presenta con él.
+        DocumentoExigido.objects.create(codigo='SOPORTE-PLAN-PROPIO', nombre='Respaldo propio de la planificación',
+            carpeta='planeacion', periodicidad='semestral', origen='sistema', fuente_reporte='asignaturas',
+            plazo_regla='inicio', plazo_dias=15, orden=30,
+            anexo_de=DocumentoExigido.objects.get(codigo='PLANIFICACION'))
         self.client.force_login(self.coordinador)
         url = reverse('gestion_expediente_unidad', args=[self.laboratorio.slug])
         informe = next(

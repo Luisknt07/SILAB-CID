@@ -30,7 +30,6 @@ from apps.gestion_unidades.models.espacios import EspacioReservable, Responsable
 from apps.recursos.models.consumibles import Consumible, LoteConsumible, EntradaInventario
 from apps.recursos.models.desechos import RegistroDesecho
 from apps.recursos.models.equipos import EquiposServicios
-from apps.recursos.models.prestamos import PrestamoEquipo
 from apps.recursos.models.software import SoftwareDisponible
 from apps.recursos.models.unidades import UnidadEquipo
 from apps.reservas.models.reservas import CatalogoActividadReserva, GuiaActividadReserva, Reserva
@@ -166,41 +165,29 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
         self.sellar(plan)
         return guia
 
-    def test_plan_inicial_conserva_huella_al_ejecutar_sin_cambiar_programacion(self):
-        reserva = self.reserva(estado='confirmada', resultado_cierre='', detalle_ejecucion={})
-        plan = self.plan(reserva)
-        self.guia(plan)
-        inicial = self.contexto().analizar('INDICADORES-PLAN')
-        self.assertTrue(inicial['automatico'], inicial['hallazgos'])
-        reserva.estado = 'completada'
-        reserva.resultado_cierre = 'atendida'
-        reserva.detalle_ejecucion = {'registrada_en': '2026-10-18T10:00:00-05:00'}
-        reserva.save(update_fields=['estado', 'resultado_cierre', 'detalle_ejecucion'])
-        EjecucionPractica.objects.create(planificacion=plan, fecha_ejecucion=reserva.fecha,
-            hora_inicio_real=time(8), hora_fin_real=time(10), estado='borrador', resultado='ejecutada',
-            responsable_tecnico=self.responsable, estudiantes_asistentes=1, creado_por=self.actor)
-        with patch('django.utils.timezone.localdate', return_value=date(2026, 10, 18)):
-            posterior = self.contexto().analizar('INDICADORES-PLAN')
-        self.assertTrue(posterior['automatico'], posterior['hallazgos'])
-        self.assertEqual(inicial['fuentes'], posterior['fuentes'])
+    def test_los_anexos_retirados_no_se_automatizan(self):
+        # El plan por asignatura, el plan de mantenimiento, los préstamos y los insumos al corte salieron
+        # del expediente (documentos.0024): su código ya no tiene reglas propias.
+        for codigo in ('INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE'):
+            with self.subTest(codigo=codigo):
+                self.assertNotIn(codigo, FUENTES_STOCK)
+                lectura = self.contexto().analizar(codigo)
+                self.assertEqual(self.reglas(lectura), {'DOCUMENTO_NO_AUTOMATIZABLE'})
+                self.assertFalse(lectura['automatico'])
 
-    def test_plan_inicial_detecta_cambio_de_programacion_o_guia_aprobada(self):
+    def test_ft02_detecta_cambio_de_programacion_aprobada(self):
         plan = self.plan()
-        guia = self.guia(plan)
-        inicial = self.contexto().analizar('INDICADORES-PLAN')
+        self.guia(plan)
+        inicial = self.contexto().analizar('PRACTICAS-FT02')
         plan.tema = 'Tema modificado después de la aprobación'
         plan.save(update_fields=['tema'])
-        modificado = self.contexto().analizar('INDICADORES-PLAN')
+        modificado = self.contexto().analizar('PRACTICAS-FT02')
         self.assertFalse(modificado['automatico'])
         self.assertNotEqual(inicial['fuentes'], modificado['fuentes'])
+        self.assertIn('APROBACION_TECNICA_NO_VERIFICABLE', self.reglas(modificado))
         self.sellar(plan)
-        revisado = self.contexto().analizar('INDICADORES-PLAN')
+        revisado = self.contexto().analizar('PRACTICAS-FT02')
         self.assertTrue(revisado['automatico'], revisado['hallazgos'])
-        guia.contenido['procedimiento'] = 'Procedimiento modificado sin nueva revisión'
-        guia.save(update_fields=['contenido'])
-        lectura = self.contexto().analizar('INDICADORES-PLAN')
-        self.assertFalse(lectura['automatico'])
-        self.assertIn('APROBACION_TECNICA_NO_VERIFICABLE', self.reglas(lectura))
 
     def test_huella_ignora_indicador_visual_de_plazo_pero_conserva_datos_del_control(self):
         inicial = dict(mes='2026-12', dentro_plazo=True, verificada=True, fuente=dict(id=21, sha256='a'))
@@ -224,8 +211,8 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
                 lectura = self.contexto().analizar(codigo)
                 self.assertEqual(self.reglas(lectura), {'DOCUMENTO_NO_AUTOMATIZABLE'})
                 self.assertFalse(lectura['automatico'])
-        DocumentoExigido.objects.filter(codigo='PRESTAMOS-EQUIPOS').update(fuente_reporte='cursos')
-        self.assertIn('DOCUMENTO_NO_AUTOMATIZABLE', self.reglas(self.contexto().analizar('PRESTAMOS-EQUIPOS')))
+        DocumentoExigido.objects.filter(codigo='ACCIONES-MEJORA').update(fuente_reporte='cursos')
+        self.assertIn('DOCUMENTO_NO_AUTOMATIZABLE', self.reglas(self.contexto().analizar('ACCIONES-MEJORA')))
 
     def test_origen_padre_y_aplicabilidad_se_comprueban_adicionalmente_al_codigo(self):
         for cambios in (dict(origen='unidad'), dict(anexo_de=None), dict(tipos_unidad=['observatorios']), dict(activo=False)):
@@ -246,21 +233,21 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
         return contexto()
 
     def test_periodo_futuro_no_pasa_como_universo_vacio(self):
-        lectura = self.contexto(inicio=date(2027, 1, 1), fin=date(2027, 6, 30)).analizar('PRESTAMOS-EQUIPOS')
+        lectura = self.contexto(inicio=date(2027, 1, 1), fin=date(2027, 6, 30)).analizar('ACCIONES-MEJORA')
         self.assertIn('PERIODO_NO_MEDIBLE', self.reglas(lectura))
 
-    def test_prestamos_vacio_es_informativo_sin_inventar_cien_por_ciento(self):
-        lectura = self.contexto().analizar('PRESTAMOS-EQUIPOS')
-        self.assertTrue(lectura['automatico'])
+    def test_mejora_vacia_es_informativa_sin_inventar_cien_por_ciento(self):
+        lectura = self.contexto().analizar('ACCIONES-MEJORA')
+        self.assertTrue(lectura['automatico'], lectura['hallazgos'])
         self.assertIsNone(lectura['cumplimiento'])
         self.assertTrue(lectura['fuentes']['datos']['universo_conocido'])
 
-    def test_datos_demo_o_motor_desactivado_impiden_auto_aunque_no_haya_prestamos(self):
+    def test_datos_demo_o_motor_desactivado_impiden_auto_aunque_no_haya_acciones(self):
         for configuracion in (dict(MEDICION_SOLO_DEMO=True), dict(MEDICION_METAS_HABILITADA=False)):
             with self.subTest(configuracion=configuracion), override_settings(**configuracion):
-                self.assertFalse(self.contexto().analizar('PRESTAMOS-EQUIPOS')['automatico'])
+                self.assertFalse(self.contexto().analizar('ACCIONES-MEJORA')['automatico'])
         self.unidad.nombre = '[DEMO REPORTES] Laboratorio QA'
-        self.assertIn('MODO_DEMO', self.reglas(self.contexto().analizar('PRESTAMOS-EQUIPOS')))
+        self.assertIn('MODO_DEMO', self.reglas(self.contexto().analizar('ACCIONES-MEJORA')))
 
     def test_fuente_revisada_de_investigacion_y_transferencia_no_duplica_revision_director(self):
         for tipo in ('INVESTIGACION', 'TRANSFERENCIA'):
@@ -309,10 +296,9 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
 
     def test_ft02_completo_y_aprobacion_atribuida_permiten_consolidado_nativo(self):
         self.plan()
-        for codigo in ('PRACTICAS-FT02', 'INDICADORES-PLAN'):
-            lectura = self.contexto().analizar(codigo)
-            self.assertTrue(lectura['automatico'], lectura['hallazgos'])
-            self.assertEqual(lectura['cumplimiento'], 100)
+        lectura = self.contexto().analizar('PRACTICAS-FT02')
+        self.assertTrue(lectura['automatico'], lectura['hallazgos'])
+        self.assertEqual(lectura['cumplimiento'], 100)
 
     def test_estado_aprobado_sin_quien_y_cuando_no_autoacredita_ft02(self):
         self.plan(revisado_por=None, revisado_en=None)
@@ -399,9 +385,12 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
             pendiente=False, equipos={}, programadas_futuras=0)})
         infra = dict(planes=[], ejecuciones=[], pendientes=[], espacios_sin_cobertura=[dict(pk=self.espacio.pk)])
         with patch(MODULO + 'registros_de_gestion', return_value=medicion), patch(MODULO + 'infraestructura_documentada', return_value=infra):
-            lectura = self.contexto().analizar('PLAN-MANTENIMIENTO')
+            lectura = self.contexto().analizar('EQUIPAMIENTO')
+        # El anexo del equipamiento respalda la meta de mantenimiento: su cumplimiento es el del programa crítico.
         self.assertEqual(lectura['cumplimiento'], 100)
         self.assertIn('INFRA_SIN_COBERTURA', self.reglas(lectura))
+        self.assertIn('mantenimiento', lectura['fuentes']['datos'])
+        self.assertIn('funcionalidad', lectura['fuentes']['datos'])
 
     def test_programacion_futura_completa_no_equivale_a_mora_ni_cien_por_ciento(self):
         medida = dict(numerador=0, denominador=0, pendiente=True, programadas_futuras=1,
@@ -409,11 +398,23 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
                 equipos_sin_programacion=0))
         infra = dict(alcance_declarado=True, alcance_contradictorio=False, espacios_sin_cobertura=[],
             planes=[], ejecuciones=[], pendientes=[])
+        # La funcionalidad se aísla: un equipo con prueba operativa vigente no deja hallazgos propios.
+        funcionalidad = dict(universo_equipos=1, filas=[], ultimas=[dict(equipo_id=self.equipo.pk, pendiente=False,
+            resultado_funcional='operativo', no_apto=False)])
         with patch(MODULO + 'registros_de_gestion', return_value=dict(mediciones_porcentuales={'MANTENIMIENTO': medida})), patch(
-                MODULO + 'infraestructura_documentada', return_value=infra):
-            lectura = self.contexto().analizar('PLAN-MANTENIMIENTO')
+                MODULO + 'infraestructura_documentada', return_value=infra), patch(
+                MODULO + 'funcionalidad_documentada', return_value=funcionalidad):
+            lectura = self.contexto().analizar('EQUIPAMIENTO')
         self.assertTrue(lectura['automatico'], lectura['hallazgos'])
         self.assertIsNone(lectura['cumplimiento'])
+
+    def test_equipamiento_sin_programacion_critica_pide_revision_en_los_dos_periodos(self):
+        # Sin el plan de mantenimiento aparte, la meta de mantenimiento tiene anexo en A y en B.
+        for inicio, fin in ((date(2026, 1, 1), date(2026, 6, 30)), (self.inicio, self.fin)):
+            with self.subTest(inicio=inicio):
+                lectura = self.contexto(inicio=inicio, fin=fin).analizar('EQUIPAMIENTO')
+                self.assertIn('MANTENIMIENTO_SIN_UNIVERSO', self.reglas(lectura))
+                self.assertFalse(lectura['automatico'])
 
     def test_prueba_no_operativa_en_equipo_disponible_es_bloqueo_sin_cambiar_estado(self):
         self.evidencia('FUNCIONALIDAD', 'CALIDAD-FUNC-QA', detalle=dict(equipo_id=self.equipo.pk,
@@ -425,53 +426,18 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
         self.assertEqual(UnidadEquipo.objects.filter(pk=self.equipo.pk).values().get(), anterior)
         self.assertIsNone(lectura['cumplimiento'])
 
-    def test_prestamo_legacy_externo_sin_acta_o_vencido_sigue_visible(self):
-        prestamo = PrestamoEquipo.objects.create(equipo=self.equipo, unidad=self.unidad, tipo='interno',
-            nombre_solicitante='Receptor QA', proposito='Préstamo de prueba', bloquea_agenda=False,
-            fecha_salida=timezone.make_aware(datetime(2026, 10, 1, 8)),
-            fecha_retorno_previsto=timezone.make_aware(datetime(2026, 10, 10, 8)))
-        PrestamoEquipo.objects.filter(pk=prestamo.pk).update(tipo='externo', estado='entregado')
-        lectura = self.contexto().analizar('PRESTAMOS-EQUIPOS')
-        self.assertTrue({'PRESTAMO_EXTERNO_SIN_ACTA', 'PRESTAMO_VENCIDO', 'PRESTAMO_SIN_RESPONSABLE'} <= self.reglas(lectura))
-
-    def prestamo_interno(self):
-        prestamo = PrestamoEquipo.objects.create(equipo=self.equipo, unidad=self.unidad,
-            nombre_solicitante='Receptor del equipo QA', documento_solicitante='IDENTIDAD-QA',
-            proposito='Actividad prevista de prueba', bloquea_agenda=False,
-            fecha_salida=timezone.make_aware(datetime(2026, 10, 10, 8)),
-            fecha_retorno_previsto=timezone.make_aware(datetime(2026, 10, 20, 8)))
-        PrestamoEquipo.objects.filter(pk=prestamo.pk).update(estado='entregado', entregado_por=self.actor)
-        return prestamo
-
-    def test_prestamo_legacy_sin_receptor_proposito_o_condicion_no_es_conforme(self):
-        prestamo = self.prestamo_interno()
-        self.assertTrue(self.contexto().analizar('PRESTAMOS-EQUIPOS')['automatico'])
-        PrestamoEquipo.objects.filter(pk=prestamo.pk).update(nombre_solicitante='', proposito='', condicion_salida='')
-        lectura = self.contexto().analizar('PRESTAMOS-EQUIPOS')
-        self.assertTrue({'PRESTAMO_SIN_RECEPTOR', 'PRESTAMO_SIN_PROPOSITO',
-                         'PRESTAMO_SIN_CONDICION_SALIDA'} <= self.reglas(lectura))
-        self.assertFalse(lectura['automatico'])
-
-    def test_cambiar_datos_impresos_del_prestamo_cambia_fuente_sin_cambiar_cantidad(self):
-        prestamo = self.prestamo_interno()
-        fuente = self.contexto().analizar('PRESTAMOS-EQUIPOS')['fuentes']
-        for campo, nuevo in (('nombre_solicitante', 'Otra persona receptora'), ('documento_solicitante', 'OTRO-ID'),
-                             ('solicitante_id', self.actor.pk), ('proposito', 'Finalidad distinta'),
-                             ('condicion_salida', 'observado'), ('observaciones_salida', 'Otra observación física')):
-            with self.subTest(campo=campo), self.atomic_subtest():
-                PrestamoEquipo.objects.filter(pk=prestamo.pk).update(**{campo: nuevo})
-                lectura = self.contexto().analizar('PRESTAMOS-EQUIPOS')
-                self.assertEqual(len(lectura['fuentes']['datos']['prestamos']), 1)
-                self.assertNotEqual(lectura['fuentes'], fuente)
-
-    def test_cambiar_nombre_de_cuenta_impreso_en_prestamo_cambia_fuente_sin_exponer_credenciales(self):
-        prestamo = self.prestamo_interno()
-        PrestamoEquipo.objects.filter(pk=prestamo.pk).update(solicitante=self.actor)
-        fuente = self.contexto().analizar('PRESTAMOS-EQUIPOS')['fuentes']
+    def test_cambiar_nombre_de_cuenta_impreso_en_movimiento_cambia_fuente_sin_exponer_credenciales(self):
+        # Los préstamos ya no son anexo; la identidad impresa se comprueba en los movimientos del inventario.
+        self.acta_inventario()
+        insumo = Consumible.objects.create(unidad=self.unidad, codigo='INSUMO-IDENTIDAD-QA', nombre='Material QA',
+            unidad_medida='kg', ubicacion='Bodega QA')
+        EntradaInventario.objects.create(unidad=self.unidad, consumible=insumo, tipo='ingreso',
+            cantidad=Decimal('1'), usuario=self.actor, nota='Recepción QA', referencia='ACTA-ID-QA')
+        fuente = self.contexto().analizar('INVENTARIO-CORTE')['fuentes']
         get_user_model().objects.filter(pk=self.actor.pk).update(first_name='Nombre actualizado')
-        otra = self.contexto().analizar('PRESTAMOS-EQUIPOS')['fuentes']
+        otra = self.contexto().analizar('INVENTARIO-CORTE')['fuentes']
         self.assertNotEqual(fuente, otra)
-        identidad = otra['datos']['prestamos'][0]['identidades']['retira']
+        identidad = otra['datos']['movimientos'][0]['usuario']
         self.assertEqual(set(identidad), {'id', 'username', 'nombre'})
         self.assertNotIn('password', json.dumps(otra))
 
@@ -504,9 +470,10 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
             cantidad_inicial=Decimal('5'), cantidad_actual=0, bodega='Bodega QA', documento_recepcion='Recepción QA')
         movimiento = EntradaInventario.objects.create(unidad=self.unidad, consumible=insumo, lote_inventario=lote,
             tipo='ingreso', cantidad=Decimal('5'), usuario=self.actor, nota='Recepción comprobada', referencia='ACTA-QA')
-        fuente = self.contexto().analizar('INSUMOS-CORTE')['fuentes']
+        # Los movimientos de insumos viajan en el inventario: su respaldo cambia la fuente del mismo anexo.
+        fuente = self.contexto().analizar('INVENTARIO-CORTE')['fuentes']
         EntradaInventario.objects.filter(pk=movimiento.pk).update(nota='Referencia corregida sin alterar el saldo')
-        otra = self.contexto().analizar('INSUMOS-CORTE')['fuentes']
+        otra = self.contexto().analizar('INVENTARIO-CORTE')['fuentes']
         self.assertNotEqual(fuente, otra)
         self.assertEqual(fuente['datos']['insumos'][0]['saldo'], otra['datos']['insumos'][0]['saldo'])
         self.assertEqual(len(otra['datos']['movimientos']), 1)
@@ -558,7 +525,7 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
                 MODULO + 'capturas_tecnicas', wraps=capturas_tecnicas) as capturas, CaptureQueriesContext(connection) as consultas:
             contexto = self.contexto()
             contexto.analizar('PRACTICAS-FT02')
-            contexto.analizar('INDICADORES-PLAN')
+            contexto.analizar('GUIAS')
             contexto.analizar('PRACTICAS-FT03')
             self.assertEqual(fuente.call_count, 1)
             self.assertEqual(capturas.call_count, 1)

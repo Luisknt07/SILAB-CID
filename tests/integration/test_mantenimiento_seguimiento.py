@@ -246,9 +246,8 @@ class PanelYReporteTests(BaseDeMantenimiento):
         self.assertEqual(tarjetas['Repuestos utilizados'], 1)
         self.assertEqual(tarjetas['Costo del período (USD)'], '100.00')
         self.assertEqual(tarjetas['Cobertura del plan'], '0 %')  # ningún equipo tiene plan en este caso
-        # El reporte es el documento del expediente: el centro lo dice y enlaza allí.
-        self.assertEqual(reporte['expediente']['nombre'],
-                         'Plan anual de mantenimiento preventivo y correctivo')
+        # Es una consulta de gestión: el expediente presenta el mantenimiento en el anexo del equipamiento.
+        self.assertIsNone(reporte['expediente'])
 
     def test_el_reporte_se_filtra_por_estado_del_semaforo(self):
         peticion = RequestFactory().get('/', {'categoria_reporte': 'mantenimiento', 'estado': 'critico'})

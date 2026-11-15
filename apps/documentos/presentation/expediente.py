@@ -599,8 +599,12 @@ def _preparar(documento, hoy, cortes, categorias):
 
 
 def consultas_de_la_unidad(unidad, inicio, fin):
-    """Los informes que no son evidencia: gestión, en PDF del período, para verlos desde el expediente."""
+    """Los informes que no son evidencia: gestión, en PDF del período, para verlos desde el expediente.
+
+    Solo se ofrecen los módulos que la unidad usa: una consulta sin un solo registro no aporta.
+    """
     from apps.gestion_unidades.presentation.gestion_reportes import categorias_para, documentos_del_expediente
+    from apps.gestion_unidades.presentation.reportes_existencia import tiene_registros
 
     evidencia = set(documentos_del_expediente(unidad))
     base = reverse('gestion_reporte_unidad_pdf', args=[unidad.slug])
@@ -610,7 +614,7 @@ def consultas_de_la_unidad(unidad, inicio, fin):
          'base': f'{base}?categoria_reporte={codigo}',
          'desde': inicio.isoformat(), 'hasta': fin.isoformat()}
         for codigo, nombre in categorias_para(unidad)
-        if codigo not in evidencia
+        if codigo not in evidencia and tiene_registros(codigo, unidad)
     ]
 
 
@@ -695,19 +699,6 @@ def arbol_del_expediente(unidad, anio, hoy=None, cortes=None):
                 'metas': metas,
                 'cierre': cierre,
             })
-        # El anexo inicial de prácticas representa la misma meta de FT02 que
-        # acompaña al cierre. Mostrar su avance evita que quede como tarjeta
-        # aislada, sin inventar una obligación o un 100 % por tener un PDF.
-        informe = next((e for e in entregas if e['cierre']), None)
-        if informe:
-            documento_informe = informe['documento']
-            for entrega in entregas:
-                for anexo in entrega['anexos']:
-                    if (anexo.exigido.codigo == 'INDICADORES-PLAN'
-                            and tramo_del_documento(anexo, cortes) == tramo_del_documento(documento_informe, cortes)
-                            and anexo.marco_periodo == documento_informe.marco_periodo):
-                        anexo.indicadores_cierre = detalle_anexo('PRACTICAS-FT02', informe['cierre'])
-                        anexo._avance_archivado = bool(informe['cierre'].get('congelado'))
         completar_avances([d for e in entregas for d in [e['documento'], *e['anexos']]], redacciones=redacciones)
         propios = [d for d in del_periodo(documentos, corte, cortes) if d.corte == corte]
         periodos.append({

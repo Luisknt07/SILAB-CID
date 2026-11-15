@@ -27,7 +27,7 @@ from apps.gestion_unidades.presentation.reportes_evidencias import (
     reporte_prestamos as _reporte_prestamos,
 )
 from apps.recursos.models.desechos import RegistroDesecho
-from apps.recursos.models.consumibles import Consumible, LoteConsumible
+from apps.recursos.models.consumibles import Consumible, EntradaInventario, LoteConsumible
 from apps.recursos.models.mantenimiento import IncidenciaEquipo, MantenimientoEquipo
 from apps.recursos.models.unidades import UnidadEquipo
 from apps.recursos.models.prestamos import PrestamoEquipo
@@ -154,7 +154,7 @@ def reporte_seguridad(unit, start_date, end_date, state='', search=''):
 
 
 def reporte_equipamiento(unit, start_date, end_date, state='', search=''):
-    """Disponibilidad observada hasta hoy, sin extender estados a días futuros."""
+    """Disponibilidad observada hasta hoy, sin extender estados a días futuros, y el mantenimiento del período."""
     corte = corte_efectivo(unit, end_date)
     if es_unidad_auditable(unit) and corte < start_date:
         from apps.recursos.models.unidades import UnidadEquipo
@@ -178,7 +178,39 @@ def reporte_equipamiento(unit, start_date, end_date, state='', search=''):
              f'{funcionalidad["no_operativos"]} no operativos',
              'según el procedimiento y la fecha documentados; no autoriza por sí solo la operación'),
         ])
+    cards.extend(_tarjetas_mantenimiento(unit, start_date, end_date, search))
     return headers, rows, cards, choices
+
+
+def _ordenes_mantenimiento(unidad, desde, hasta):
+    """Órdenes programadas en el período: las de la unidad y las de sus equipos sin unidad capturada."""
+    equipos = UnidadEquipo.objects.filter(Q(laboratorio=unidad) | Q(laboratorios=unidad)).values('pk')
+    return MantenimientoEquipo.objects.filter(
+        Q(unidad=unidad) | Q(unidad__isnull=True, equipo_id__in=equipos),
+        fecha_programada__date__range=(desde, hasta)).distinct()
+
+
+def _tarjetas_mantenimiento(unidad, desde, hasta, buscar=''):
+    """Lo programado frente a lo ejecutado y la meta crítica del 80 %, con las mismas fuentes que sus tablas."""
+    corte = corte_efectivo(unidad, hasta)
+    ordenes = _ordenes_mantenimiento(unidad, desde, hasta)
+    if buscar:
+        ordenes = ordenes.filter(Q(equipo__codigo_unidad__icontains=buscar)
+                                 | Q(equipo__equipo__nombre__icontains=buscar) | Q(plan__nombre__icontains=buscar))
+    programadas = ordenes.count()
+    completadas = ordenes.filter(estado='completado', fecha_fin__date__lte=corte).count()
+    tarjetas = [('Mantenimientos del período', f'{completadas}/{programadas}',
+                 'órdenes completadas al corte sobre programadas' if programadas else
+                 'sin órdenes programadas; no se presume cumplimiento')]
+    if es_unidad_auditable(unidad):
+        from apps.documentos.presentation.medicion_metas import medir_mantenimiento_integral
+        integral = medir_mantenimiento_integral(unidad, desde, hasta)
+        tarjetas.append(('Meta de mantenimiento crítico (80 %)',
+                         'No aplica: alcance verificado' if integral['no_aplica_verificado'] else
+                         f'{integral["numerador"]}/{integral["denominador"]}',
+                         integral['motivo'] or
+                         f'{integral["programadas_futuras"]} intervenciones futuras dentro de plazo'))
+    return tarjetas
 
 
 def _funcionalidad(unidad, desde, hasta, estado='', buscar=''):
@@ -520,9 +552,43 @@ def _tablas_inventario(unidad, desde, hasta, buscar, estado=''):
                ['Código', 'Fecha', 'Acta', 'Estado', 'Alcance', 'Responsable', 'Respaldo', 'Carácter del registro'],
                actas_rows, 'Sin actas de revisión de inventario registradas en el período.'),
     ]
-    if es_laboratorio(unidad):
+    if con_insumos(unidad):
+        # El inventario reúne lo que antes era un anexo aparte de insumos: existencias,
+        # lotes y los movimientos del período, sin repetir ninguna tabla.
         tablas.extend(_tablas_insumos(unidad, buscar))
+        tablas.append(_tabla_movimientos_insumos(unidad, desde, hasta, buscar))
     return tablas
+
+
+def con_insumos(unidad):
+    """Las unidades con reactivos, materias primas o insumos; los observatorios conservan su inventario anual."""
+    from apps.documentos.presentation.perfil_unidades import BASES_INVENTARIO_ANUAL, base_de
+    return base_de(unidad) not in BASES_INVENTARIO_ANUAL
+
+
+def movimientos_insumos(unidad, desde, hasta, buscar=''):
+    movimientos = EntradaInventario.objects.filter(
+        Q(unidad=unidad) | Q(consumible__unidad=unidad), fecha__date__range=(desde, hasta),
+    ).select_related('consumible', 'usuario').distinct()
+    if buscar:
+        movimientos = movimientos.filter(Q(consumible__codigo__icontains=buscar) | Q(consumible__nombre__icontains=buscar)
+                                         | Q(referencia__icontains=buscar) | Q(nota__icontains=buscar))
+    return movimientos
+
+
+def _tabla_movimientos_insumos(unidad, desde, hasta, buscar=''):
+    """Entradas, consumos y ajustes del período, con el saldo que dejó cada uno."""
+    rows = [[timezone.localtime(m.fecha).strftime('%d/%m/%Y %H:%M'), m.consumible.get_clasificacion_display(),
+             m.consumible.codigo, m.consumible.nombre, m.get_tipo_display(),
+             f'{_numero(m.cantidad)} {m.consumible.unidad_medida or ""}'.strip(),
+             f'{_numero(m.saldo_resultante)} {m.consumible.unidad_medida or ""}'.strip()
+             if m.saldo_resultante is not None else 'Sin registrar',
+             m.referencia or '—', _nombre(m.usuario) if m.usuario_id else 'Sistema']
+            for m in movimientos_insumos(unidad, desde, hasta, buscar).order_by('fecha', 'pk')[:200]]
+    return _tabla('Movimientos de reactivos e insumos del período',
+                  ['Fecha', 'Clasificación', 'Código', 'Insumo', 'Movimiento', 'Cantidad', 'Saldo',
+                   'Referencia', 'Usuario'], rows,
+                  'Sin entradas, consumos ni ajustes de insumos registrados en el período.')
 
 
 def _tablas_insumos(unidad, buscar):
@@ -729,8 +795,13 @@ def tablas_condiciones(category, unit, start_date, end_date, state='', search=''
     if category == 'recursos':
         return _tablas_inventario(unit, start_date, end_date, search, state)
     if category == 'equipamiento':
-        # Disponibilidad y funcionalidad del período; el inventario integral es el anexo de recursos y no se repite.
-        return _tablas_funcionalidad(unit, start_date, end_date, state, search) if es_unidad_auditable(unit) else []
+        # Un solo anexo del equipamiento: los mantenimientos del período con la medición del programa
+        # crítico (80 %) y, después, la funcionalidad comprobada. El inventario integral es el anexo de
+        # recursos y no se repite. El estado del filtro es de disponibilidad, no del semáforo de mantenimiento.
+        tablas = _tablas_mantenimiento(unit, start_date, end_date, '', search)
+        if es_unidad_auditable(unit):
+            tablas.extend(_tablas_funcionalidad(unit, start_date, end_date, state, search))
+        return tablas
     if category == 'inventario':
         return _tablas_insumos(unit, search)
     if category == 'mantenimiento':
@@ -747,10 +818,13 @@ def documentos_condiciones(category, unit, start_date, end_date):
                 if f['estado'] != 'anulado' and (f.get('recurso') or f.get('enlace'))][:200]
     if category == 'equipamiento' and es_unidad_auditable(unit):
         from apps.documentos.presentation.funcionalidad_laboratorios import funcionalidad_documentada
+        # El anexo único del equipamiento enlaza los planes e informes de mantenimiento y las pruebas funcionales.
+        mantenimiento = documentos_condiciones('mantenimiento', unit, start_date, end_date)
         datos = funcionalidad_documentada(unit, start_date, end_date)
         fuentes = {f['pk']: f for f in datos['filas'] + datos['ultimas']
                    if f['pk'] and f['estado'] != 'anulado' and f['recurso']}
-        return list(fuentes.values())[:200]
+        vistos = {f.get('pk') for f in mantenimiento}
+        return (mantenimiento + [f for pk, f in fuentes.items() if pk not in vistos])[:200]
     if category != 'seguridad':
         return []
     return [fila for fila in _inspecciones(unit, start_date, end_date)
@@ -764,7 +838,8 @@ def acciones_condiciones(category, unit, start_date, end_date):
         return acciones_infraestructura(unit, start_date, end_date)
     if category == 'equipamiento' and es_unidad_auditable(unit):
         from apps.documentos.presentation.funcionalidad_laboratorios import acciones_funcionalidad
-        return acciones_funcionalidad(unit, start_date, end_date)
+        from apps.documentos.presentation.infraestructura_laboratorios import acciones_infraestructura
+        return [*acciones_infraestructura(unit, start_date, end_date), *acciones_funcionalidad(unit, start_date, end_date)]
     tipo = {'seguridad': 'INSPECCION', 'recursos': 'INVENTARIO', 'equipamiento': 'INVENTARIO',
             'desechos': 'DESECHOS'}.get(category)
     if not tipo:
@@ -775,8 +850,18 @@ def acciones_condiciones(category, unit, start_date, end_date):
              'url': reverse('fuentes_metas_unidad', args=[unit.slug]) + '?' + consulta}]
 
 
-def notas_condiciones(category):
-    return {
+def notas_condiciones(category, unit=None):
+    notas = _notas_de(category)
+    if category == 'equipamiento':
+        # El anexo del equipamiento explica también la medición de su mantenimiento.
+        notas = notas + _notas_de('mantenimiento')
+    if category == 'recursos' and unit is not None and con_insumos(unit):
+        notas = notas + _notas_de('inventario')
+    return notas
+
+
+def _notas_de(category):
+    return list({
         'seguridad': [
             'Los ingresos acreditan controles de acceso registrados. El protocolo, las inducciones y las '
             'inspecciones son evidencias diferentes; ninguna se presume a partir de las otras.',
@@ -833,4 +918,4 @@ def notas_condiciones(category):
             'respaldada. El alcance de infraestructura se documenta con su plan o una declaración anual '
             'justificada de no aplicación. La ausencia de órdenes o de planes no concede cumplimiento.',
         ],
-    }.get(category, [])
+    }.get(category, []))

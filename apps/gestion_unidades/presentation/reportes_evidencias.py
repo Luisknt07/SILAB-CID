@@ -455,9 +455,8 @@ def reporte_investigacion(unit, start_date, end_date, state='', search=''):
 def reporte_prestamos(unit, start_date, end_date, state='', search=''):
     """Cada salida del equipo con su responsable, su plazo y su retorno.
 
-    Es el «Registro de préstamos de equipos» del expediente. Antes se cargaba
-    a mano porque el préstamo solo existía como la marca «prestado» en el
-    activo; ahora sale de lo que la unidad registra al entregar y al recibir.
+    Es una consulta de gestión: el préstamo no tiene meta y ya no viaja como
+    anexo del informe. Sale de lo que la unidad registra al entregar y al recibir.
     """
     state_choices = PrestamoEquipo.ESTADOS
     queryset = (

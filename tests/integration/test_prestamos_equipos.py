@@ -215,7 +215,9 @@ class ReporteDePrestamosTests(BaseDePrestamos):
         tarjetas = {tarjeta[0]: tarjeta[1] for tarjeta in datos['cards']}
         self.assertEqual(tarjetas['Equipos fuera ahora'], 1)
         self.assertEqual(tarjetas['Externos sin acta'], 1)
-        self.assertEqual(reporte['expediente']['nombre'], 'Registro de préstamos y devoluciones de equipos')
+        # Los préstamos no tienen meta: es una consulta de gestión, no un anexo del expediente.
+        self.assertIsNone(reporte['expediente'])
+        self.assertEqual(reporte['category_label'], 'Registro de préstamos y devoluciones de equipos')
 
     def test_la_consola_ofrece_registrar_el_prestamo(self):
         self.client.force_login(self.coordinador)

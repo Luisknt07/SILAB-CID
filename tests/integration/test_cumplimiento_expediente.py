@@ -18,7 +18,7 @@ from django.urls import reverse
 from apps.documentos.presentation.cumplimiento import DEPENDENCIAS_AUDITADAS, cumplimiento_de_unidad, cumplimiento_por_periodo, incumplimientos, pdf_de_cumplimiento, unidades_auditadas
 from apps.documentos.presentation.expediente import construir_expediente, cortes_del_anio, del_periodo, periodo_vigente, resumen, validar_documento
 from apps.documentos.presentation.expediente_catalogo import asegurar_catalogo
-from apps.documentos.models.expediente import DocumentoExpediente
+from apps.documentos.models.expediente import DocumentoExigido, DocumentoExpediente
 from apps.directorio_unidades.models.core import Unidad
 from tests.integration.utiles import abrir_entrega, identificar
 from tests.integration.utiles import (pdf_legible_prueba, datos_correspondencia_revisada, cargar_documento_revisado, evaluar_documento_revisado)
@@ -81,22 +81,18 @@ class BaseDeCumplimiento(TestCase):
 class TableroDeLaDireccionTests(BaseDeCumplimiento):
     """Una fila por unidad, las que incumplen primero."""
 
-    def test_plan_por_asignatura_se_consulta_con_los_anexos_y_no_como_entrega_principal(self):
+    def test_la_planificacion_viaja_sin_anexos_y_el_mantenimiento_va_con_el_informe(self):
         documentos = construir_expediente(self.laboratorio, 2026)
-        anexo = next(d for d in documentos if d.exigido.codigo == 'INDICADORES-PLAN' and d.corte == 'B')
-        plan = next(d for d in documentos if d.exigido.codigo == 'PLANIFICACION' and d.corte == 'B')
+        self.assertFalse([d for d in documentos if d.exigido.anexo_de_id and d.exigido.anexo_de.codigo == 'PLANIFICACION'])
+        anexo = next(d for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO' and d.corte == 'B')
         self.client.force_login(self.direccion)
         respuesta = self.client.get(reverse('admin:reportes-cumplimiento-expediente'),
             {'anio': 2026, 'corte': 'B', 'unidad': self.laboratorio.slug})
         self.assertEqual(respuesta.status_code, 200)
         html = respuesta.content.decode()
-        principales = html.split('aria-label="Cumplimiento y entregas principales"', 1)[1].split('</section>', 1)[0]
         anexos = html.split('aria-label="Anexos y seguimiento"', 1)[1].split('</section>', 1)[0]
-        self.assertNotIn('data-soporte-planificacion=', principales)
-        self.assertIn('data-soporte-planificacion="INDICADORES-PLAN"', anexos)
+        self.assertNotIn('data-soporte-planificacion=', html)
         self.assertIn(f'data-avance-documento="{anexo.pk}"', anexos)
-        self.assertIn(f'revisar={plan.pk}', anexos)
-        self.assertEqual(html.count('data-soporte-planificacion="INDICADORES-PLAN"'), 1)
         self.assertNotIn('<form', anexos)
 
     def test_audita_las_cuatro_tipologias_y_deja_fuera_los_centros(self):
@@ -544,28 +540,21 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
             'Informe semestral de actividades y cumplimiento de la planificación'])
         codigos = {a.exigido.codigo for a in periodo['entregas'][1]['anexos']}
         self.assertIn('GUIAS', codigos)
-        self.assertIn('PLAN-MANTENIMIENTO', {a.exigido.codigo for a in periodo['entregas'][0]['anexos']})
-        self.assertIn('INVENTARIO-CORTE', codigos)
+        # El mantenimiento y el inventario viajan con el informe; la planificación, sin anexos.
+        self.assertTrue({'EQUIPAMIENTO', 'INVENTARIO-CORTE'} <= codigos)
+        self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE'} & codigos)
         plan = periodo['entregas'][0]
-        self.assertEqual({a.exigido.codigo for a in plan['anexos_integrados']},
-                         {'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO'})
-        self.assertTrue(all(a.soporte_planificacion['documento'] is plan['documento']
-                            for a in plan['anexos_integrados']))
+        self.assertEqual(plan['anexos'], [])
+        self.assertEqual(plan['anexos_integrados'], [])
         self.assertEqual({d.exigido.codigo for d in pagina.context['de_la_unidad']},
                          {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD'})
         self.assertContains(pagina, '1. Documentos base de la unidad')
         self.assertContains(pagina, '2. Planificación y respaldo de actividades')
         self.assertContains(pagina, '3. Anexos y seguimiento')
-        self.assertContains(pagina, 'data-soporte-planificacion="INDICADORES-PLAN"', count=1)
-        self.assertContains(pagina, 'data-soporte-planificacion="PLAN-MANTENIMIENTO"', count=1)
+        self.assertNotContains(pagina, 'data-soporte-planificacion=')
         self.assertContains(pagina, 'data-anexos-periodo="A"', count=1)
         self.assertContains(pagina, 'data-cierre-evidencias', count=1)
         self.assertNotContains(pagina, 'class="explorador__anexos"')
-        html = pagina.content.decode()
-        principales = html.split('aria-label="Documentos obligatorios"', 1)[1].split('</table>', 1)[0]
-        self.assertNotIn('data-soporte-planificacion=', principales)
-        self.assertGreater(html.index('data-soporte-planificacion="INDICADORES-PLAN"'),
-                           html.index('id="reportes-anexos"'))
         self.assertContains(pagina, 'Validar y enviar', count=0)
 
     def test_abrir_un_documento_del_expediente_queda_en_la_auditoria(self):
@@ -724,6 +713,11 @@ class RevisionDeAnexosTests(BaseDeCumplimiento):
     def test_planificacion_no_se_envia_con_anexos_sin_revisar(self):
         from django.core.exceptions import ValidationError
 
+        # El catálogo distribuido no da anexos al plan; uno institucional también se revisa antes de enviar.
+        DocumentoExigido.objects.create(codigo='SOPORTE-PLAN-PROPIO', nombre='Respaldo propio de la planificación',
+            carpeta='planeacion', periodicidad='semestral', origen='sistema', fuente_reporte='asignaturas',
+            plazo_regla='inicio', plazo_dias=15, orden=30,
+            anexo_de=DocumentoExigido.objects.get(codigo='PLANIFICACION'))
         documento, _url = self.informe_firmado(codigo='PLANIFICACION')
 
         with self.assertRaises(ValidationError) as contexto:
@@ -967,7 +961,10 @@ class GeneracionExplicitaDeAnexosTests(BaseDeCumplimiento):
         pdf = reverse('gestion_reporte_unidad_pdf', args=[self.laboratorio.slug])
         self.assertContains(pagina, 'anexo=GUIAS&amp;borrador=1')
         self.assertContains(pagina, 'Informes de gestión')
-        self.assertContains(pagina, f'{pdf}?categoria_reporte=aula')
+        # Solo se ofrecen las consultas con registros de la unidad; la auditoría, siempre.
+        consultas = pagina.content.decode().split('id="informes-gestion"', 1)[1].split('</section>', 1)[0]
+        self.assertIn(f'{pdf}?categoria_reporte=auditoria', consultas)
+        self.assertNotIn(f'{pdf}?categoria_reporte=aula', consultas)
         enlaces = [a for a in enlaces_de(pagina.content.decode())
             if a.get('href', '').startswith(pdf)]
         self.assertTrue(enlaces)
@@ -977,7 +974,8 @@ class GeneracionExplicitaDeAnexosTests(BaseDeCumplimiento):
             self.assertNotIn('data-pdf-directo', enlace)
         # Lo que es evidencia no se repite como consulta.
         self.assertNotIn('reservas', {c['codigo'] for c in pagina.context['consultas']})
-        self.assertIn('finanzas', {c['codigo'] for c in pagina.context['consultas']})
+        # Finanzas no se ofrece sin movimientos de la unidad.
+        self.assertNotIn('finanzas', {c['codigo'] for c in pagina.context['consultas']})
 
     def test_actualizar_anexos_vuelve_a_producirlos_con_lo_registrado(self):
         self.client.force_login(self.coordinador)
