@@ -84,7 +84,7 @@ class PresentacionPreparadosAnterioresTests(BaseDeRedaccion):
         pdf = PdfReader(BytesIO(copia))
         texto = '\n'.join(p.extract_text() or '' for p in pdf.pages)
         self.assertTrue(pdf.outline)
-        self.assertIn('CONTENIDO', texto)
+        self.assertIn('FORMATO INFORME SEMESTRAL', texto)
         self.assertIn('Unidad archivada', texto)
         self.assertIn('Ana Archivada', texto)
         self.assertIn('17', texto)

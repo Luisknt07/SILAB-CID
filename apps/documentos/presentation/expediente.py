@@ -898,6 +898,12 @@ def _generar(documento, usuario):
     reporte = build_unit_report(peticion, documento.unidad)
     if reporte['category'] != exigido.fuente_reporte:
         raise ValidationError('La categoría de reporte configurada no está disponible para esta unidad.')
+    from apps.documentos.presentation.perfil_laboratorios import referencia_interna
+    from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
+    # El encabezado del anexo dice qué documento es: código, período y la versión que se archiva.
+    reporte['expediente'] = dict(
+        codigo=referencia_interna(documento) if es_unidad_auditable(documento.unidad) else exigido.codigo,
+        periodo=documento.etiqueta_corte, version=documento.version + 1)
     contenido = render_unit_report_pdf(reporte)
     with transaction.atomic():
         _archivar(

@@ -11,6 +11,7 @@ from xml.sax.saxutils import escape
 from django.utils import timezone
 
 from apps.formacion.presentation.practicas_integracion import estado_documental_reserva
+from apps.core.presentation.pdf_institucional import fuentes_documento, hoja_de_estilos
 
 
 def _texto(valor, predeterminado="No registrado"):
@@ -527,7 +528,7 @@ def render_comprobante_reserva_pdf(comprobante):
     """Genera el comprobante institucional desde la misma fuente de la vista HTML."""
     from reportlab.lib import colors
     from reportlab.lib.enums import TA_CENTER, TA_RIGHT
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import (
         LongTable,
@@ -542,13 +543,13 @@ def render_comprobante_reserva_pdf(comprobante):
     verde, verde_oscuro = tinta['primario'], tinta['oscuro']
     verde_claro = tinta['suave']
     gris, borde, fondo = tinta['tenue'], tinta['linea'], tinta['suave']
-    estilos = getSampleStyleSheet()
-    normal = ParagraphStyle("ReceiptNormal", parent=estilos["Normal"], fontName="Helvetica", fontSize=8.2, leading=11, textColor=verde_oscuro)
+    estilos = hoja_de_estilos()
+    normal = ParagraphStyle("ReceiptNormal", parent=estilos["Normal"], fontName=fuentes_documento()[0], fontSize=8.2, leading=11, textColor=verde_oscuro)
     pequeno = ParagraphStyle("ReceiptSmall", parent=normal, fontSize=7, leading=9, textColor=gris)
-    etiqueta = ParagraphStyle("ReceiptLabel", parent=pequeno, fontName="Helvetica-Bold", fontSize=6.6, leading=8, textColor=verde)
-    titulo = ParagraphStyle("ReceiptTitle", parent=normal, fontName="Helvetica-Bold", fontSize=15, leading=18, alignment=TA_CENTER)
-    seccion = ParagraphStyle("ReceiptSection", parent=normal, fontName="Helvetica-Bold", fontSize=9.2, leading=11, textColor=colors.white)
-    dinero = ParagraphStyle("ReceiptMoney", parent=normal, fontName="Helvetica-Bold", alignment=TA_RIGHT)
+    etiqueta = ParagraphStyle("ReceiptLabel", parent=pequeno, fontName=fuentes_documento()[1], fontSize=6.6, leading=8, textColor=verde)
+    titulo = ParagraphStyle("ReceiptTitle", parent=normal, fontName=fuentes_documento()[1], fontSize=15, leading=18, alignment=TA_CENTER)
+    seccion = ParagraphStyle("ReceiptSection", parent=normal, fontName=fuentes_documento()[1], fontSize=9.2, leading=11, textColor=colors.white)
+    dinero = ParagraphStyle("ReceiptMoney", parent=normal, fontName=fuentes_documento()[1], alignment=TA_RIGHT)
 
     def p(valor, estilo=normal, *, markup=False):
         contenido = str(valor or "—")

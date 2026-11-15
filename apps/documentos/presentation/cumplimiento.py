@@ -23,6 +23,7 @@ from apps.documentos.presentation.expediente import NOMBRES_SEMAFORO, leer_exped
 from apps.documentos.presentation.progreso_general import (
     acreditacion_actual, completar_acreditacion_actual, progreso_general,
 )
+from apps.core.presentation.pdf_institucional import fuentes_documento, hoja_de_estilos
 
 # Tipos de unidad que el expediente audita. Los centros de investigación y
 # desarrollo llevan otro ciclo y tendrán su propio centro de reportes.
@@ -698,7 +699,7 @@ def pdf_de_cumplimiento(filas, totales, anio, corte, *, titulo='Cumplimiento del
     from io import BytesIO
     from xml.sax.saxutils import escape
 
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
@@ -726,18 +727,18 @@ def pdf_de_cumplimiento(filas, totales, anio, corte, *, titulo='Cumplimiento del
         apaisado=True,
     )
     tinta, ancho = medidas['colores'], medidas['ancho_util']
-    base = getSampleStyleSheet()
+    base = hoja_de_estilos()
     estilos = {
-        'titulo': ParagraphStyle('t', parent=base['Title'], fontName='Helvetica-Bold', fontSize=13,
+        'titulo': ParagraphStyle('t', parent=base['Title'], fontName=fuentes_documento()[1], fontSize=13,
                                  leading=16, textColor=tinta['primario'], alignment=1, spaceAfter=2),
         'sub': ParagraphStyle('s', parent=base['BodyText'], fontSize=8, leading=11,
                               textColor=tinta['tenue'], alignment=1),
         'celda': ParagraphStyle('c', parent=base['BodyText'], fontSize=7.4, leading=9.4),
-        'celda_b': ParagraphStyle('cb', parent=base['BodyText'], fontName='Helvetica-Bold',
+        'celda_b': ParagraphStyle('cb', parent=base['BodyText'], fontName=fuentes_documento()[1],
                                   fontSize=7.4, leading=9.4, textColor=tinta['oscuro']),
-        'seccion': ParagraphStyle('h', parent=base['Heading2'], fontName='Helvetica-Bold', fontSize=10,
+        'seccion': ParagraphStyle('h', parent=base['Heading2'], fontName=fuentes_documento()[1], fontSize=10,
                                   leading=13, textColor='white', spaceBefore=0, spaceAfter=0),
-        'vacio': ParagraphStyle('v', parent=base['BodyText'], fontName='Helvetica-Oblique',
+        'vacio': ParagraphStyle('v', parent=base['BodyText'], fontName=fuentes_documento()[0],
                                 fontSize=8.2, leading=11, textColor=tinta['tenue']),
     }
 

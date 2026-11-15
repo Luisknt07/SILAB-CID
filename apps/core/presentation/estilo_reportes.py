@@ -14,32 +14,38 @@ def estilos_informe(tinta):
     base = dict(fontName=regular, textColor=tinta['oscuro'], splitLongWords=False)
     def estilo(nombre, **kw):
         return ParagraphStyle(nombre, **(base | kw))
+    # Una sola escala para vertical y apaisado: cuerpo 9,5; tablas 8,5; bandas 10,5; notas 7,5.
     return {
-        'texto': estilo('InformeCuerpo', fontSize=10, leading=15, alignment=TA_JUSTIFY,
-                        leftIndent=4*mm, rightIndent=2*mm, spaceAfter=7),
-        'lista': estilo('InformeLista', fontSize=10, leading=15, leftIndent=8*mm, rightIndent=2*mm,
-                        bulletIndent=4*mm, bulletFontName=regular, bulletFontSize=10, spaceAfter=5),
+        'texto': estilo('InformeCuerpo', fontSize=9.5, leading=13.5, alignment=TA_JUSTIFY,
+                        leftIndent=2*mm, rightIndent=1*mm, spaceAfter=6),
+        'lista': estilo('InformeLista', fontSize=9.5, leading=13.5, leftIndent=7*mm, rightIndent=1*mm,
+                        bulletIndent=3*mm, bulletFontName=regular, bulletFontSize=9.5, spaceAfter=4),
         'seccion': estilo('InformeSeccion', fontName=negrita, fontSize=12, leading=16, textColor=tinta['primario']),
-        'bloque': estilo('InformeSubtitulo', fontName=negrita, fontSize=10.5, leading=14, spaceBefore=10, spaceAfter=5, keepWithNext=True),
-        'subapartado': estilo('InformeSubapartado', fontName=negrita, fontSize=10, leading=14, spaceBefore=7, spaceAfter=4, keepWithNext=True),
-        'celda': estilo('InformeCelda', fontSize=9, leading=12, splitLongWords=True),
-        'celda_b': estilo('InformeCeldaNegrita', fontName=negrita, fontSize=9, leading=12, splitLongWords=True),
-        'cabecera': estilo('InformeCabecera', fontName=negrita, fontSize=9, leading=12, textColor=colors.white, splitLongWords=True),
+        'banda': estilo('InformeBanda', fontName=negrita, fontSize=10.5, leading=13, textColor=colors.white),
+        'bloque': estilo('InformeSubtitulo', fontName=negrita, fontSize=10, leading=13, spaceBefore=9, spaceAfter=4,
+                         keepWithNext=True, textColor=tinta['primario']),
+        'subapartado': estilo('InformeSubapartado', fontName=negrita, fontSize=9.5, leading=13, spaceBefore=6, spaceAfter=3, keepWithNext=True),
+        'celda': estilo('InformeCelda', fontSize=8.5, leading=11, splitLongWords=True),
+        'celda_b': estilo('InformeCeldaNegrita', fontName=negrita, fontSize=8.5, leading=11, splitLongWords=True),
+        'cabecera': estilo('InformeCabecera', fontName=negrita, fontSize=8.5, leading=11, textColor=colors.white, splitLongWords=True),
         'meta': estilo('InformeNota', fontSize=7.5, leading=10, textColor=tinta['tenue']),
-        'vacio': estilo('InformeVacio', fontSize=10, leading=15, leftIndent=4*mm,
-                        rightIndent=2*mm, textColor=tinta['tenue']),
+        'vacio': estilo('InformeVacio', fontSize=9.5, leading=13.5, leftIndent=2*mm,
+                        rightIndent=1*mm, textColor=tinta['tenue']),
         'firma': estilo('InformeFirma', fontSize=9, leading=12, alignment=1),
     }
 
 
 def titulo_seccion(texto, ancho, tinta, *, numero=None):
-    estilo = estilos_informe(tinta)['seccion']
+    """Banda verde con el título en mayúsculas y línea dorada, igual en todos los documentos."""
+    estilo = estilos_informe(tinta)['banda']
     valor = f'{numero}. {texto}' if numero is not None else texto
-    tabla = Table([[Paragraph(escape(valor), estilo)]], colWidths=[ancho])
+    tabla = Table([[Paragraph(escape(str(valor).upper()), estilo)]], colWidths=[ancho],
+                  spaceBefore=6, spaceAfter=5)
     tabla.setStyle(TableStyle([
-        ('LINEBELOW', (0, 0), (-1, -1), .8, tinta['acento']),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0), ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 6), ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+        ('BACKGROUND', (0, 0), (-1, -1), tinta['primario']),
+        ('LINEBELOW', (0, 0), (-1, -1), 1.6, tinta['acento']),
+        ('LEFTPADDING', (0, 0), (-1, -1), 7), ('RIGHTPADDING', (0, 0), (-1, -1), 7),
+        ('TOPPADDING', (0, 0), (-1, -1), 5), ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]))
     tabla.keepWithNext = True
     if numero is not None:

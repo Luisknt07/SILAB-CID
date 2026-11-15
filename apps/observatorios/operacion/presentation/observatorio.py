@@ -19,6 +19,7 @@ from apps.directorio_unidades.models.core import Unidad
 
 from apps.directorio_unidades.presentation.catalogos_publicos import _contexto
 from apps.gestion_unidades.presentation.permisos import puede_gestionar_unidad
+from apps.core.presentation.pdf_institucional import fuentes_documento
 
 LICENCIA = ('CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/deed.es')
 # Las publicaciones por sección del mapa: 4.1 boletines y 4.2 informes, perfiles y notas de política pública.
@@ -518,10 +519,10 @@ def pdf_de_indicadores(unidad, formato, titulo, introduccion, filas, archivo, co
                                                    metadatos=[f'Generado: {hoy:%d/%m/%Y}', f'{len(filas)} indicadores'],
                                                    pie=unidad.nombre)
     tinta = medidas['colores']
-    estilo_titulo = ParagraphStyle('t', fontName='Helvetica-Bold', fontSize=15, leading=19, textColor=tinta['primario'],
+    estilo_titulo = ParagraphStyle('t', fontName=fuentes_documento()[1], fontSize=15, leading=19, textColor=tinta['primario'],
                                    spaceAfter=4)
-    cuerpo = ParagraphStyle('c', fontName='Helvetica', fontSize=9, leading=12.5, textColor=tinta['oscuro'], spaceAfter=4)
-    celda = ParagraphStyle('d', fontName='Helvetica', fontSize=8, leading=10, textColor=tinta['oscuro'])
+    cuerpo = ParagraphStyle('c', fontName=fuentes_documento()[0], fontSize=9, leading=12.5, textColor=tinta['oscuro'], spaceAfter=4)
+    celda = ParagraphStyle('d', fontName=fuentes_documento()[0], fontSize=8, leading=10, textColor=tinta['oscuro'])
     flujo = [Paragraph(escape(titulo), estilo_titulo)]
     flujo += [Paragraph(escape(parrafo), cuerpo) for parrafo in introduccion if parrafo]
     flujo += [Paragraph(escape(f'Indicadores con su último valor publicado al {hoy:%d/%m/%Y}. Las cifras marcadas como '

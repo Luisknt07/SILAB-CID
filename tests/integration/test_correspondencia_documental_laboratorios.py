@@ -177,7 +177,8 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         pdf = PdfReader(BytesIO(datos))
         self.assertTrue(pdf.metadata.subject.startswith('SLCID-DOC-1:'))
         texto = '\n'.join(pagina.extract_text() or '' for pagina in pdf.pages)
-        self.assertIn('Código de referencia: INTERNO-QA', texto)
+        self.assertIn('Código: INTERNO-QA', texto)
+        self.assertIn('Revisión: 01', texto)
         self.assertIn('la versión firmada electrónicamente es', texto)
         self.assertNotIn('Documento aprobado', texto)
 

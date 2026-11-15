@@ -1408,6 +1408,13 @@ def render_unit_report_pdf(report):
     from apps.gestion_unidades.presentation.exportaciones_reportes import marco_pdf_unidad
     dibujar_encabezado, CanvasNumerado, medidas = marco_pdf_unidad(report)
     tinta = medidas['colores']
+    # Las tablas ocupan el mismo ancho que el encabezado y el pie.
+    ANCHO_UTIL = medidas['ancho_util']
+
+    def a_lo_ancho(*pesos):
+        """Reparte el ancho útil conservando las proporciones de cada columna."""
+        return [ANCHO_UTIL * peso / sum(pesos) for peso in pesos]
+
     green, dark_green, gold = tinta['primario'], tinta['oscuro'], tinta['acento']
     pale_green, line, muted = tinta['suave'], tinta['linea'], tinta['tenue']
 
@@ -1431,7 +1438,7 @@ def render_unit_report_pdf(report):
         ParagraphStyle(
             name="ReportTitle",
             parent=styles["Title"],
-            fontName='Helvetica-Bold' if dataset.get('matrix') else negrita,
+            fontName=negrita,
             fontSize=16,
             leading=19,
             textColor=dark_green,
@@ -1443,7 +1450,7 @@ def render_unit_report_pdf(report):
         ParagraphStyle(
             name="ReportText",
             parent=styles["BodyText"],
-            fontName='Helvetica' if dataset.get('matrix') else fuente,
+            fontName=fuente,
             fontSize=7.5 if dataset.get('matrix') else 9,
             leading=10 if dataset.get('matrix') else 12.5,
             alignment=TA_JUSTIFY,
@@ -1454,7 +1461,7 @@ def render_unit_report_pdf(report):
         ParagraphStyle(
             name="ReportSmall",
             parent=styles["BodyText"],
-            fontName='Helvetica' if dataset.get('matrix') else fuente,
+            fontName=fuente,
             fontSize=6.5 if dataset.get('matrix') else 7.8,
             leading=8 if dataset.get('matrix') else 10.5,
             textColor=muted,
@@ -1464,7 +1471,7 @@ def render_unit_report_pdf(report):
         ParagraphStyle(
             name="ReportDocTitle",
             parent=styles["Title"],
-            fontName='Helvetica-Bold' if dataset.get('matrix') else negrita,
+            fontName=negrita,
             fontSize=12.5,
             leading=15,
             textColor=green,
@@ -1476,7 +1483,7 @@ def render_unit_report_pdf(report):
         ParagraphStyle(
             name="ReportDocSubtitle",
             parent=styles["BodyText"],
-            fontName='Helvetica' if dataset.get('matrix') else fuente,
+            fontName=fuente,
             fontSize=7.5,
             leading=10,
             textColor=muted,
@@ -1487,7 +1494,7 @@ def render_unit_report_pdf(report):
         ParagraphStyle(
             name="ReportMatrix",
             parent=styles["BodyText"],
-            fontName="Helvetica",
+            fontName=fuente,
             fontSize=5.1,
             leading=6.2,
             textColor=colors.HexColor("#172F28"),
@@ -1495,10 +1502,10 @@ def render_unit_report_pdf(report):
     )
 
     banda_estilo = ParagraphStyle('BandaAjustada', parent=styles['ReportText'],
-                                   fontName='Helvetica-Bold' if dataset.get('matrix') else negrita,
+                                   fontName=negrita,
                                    fontSize=8 if dataset.get('matrix') else 10.5,
                                    leading=10 if dataset.get('matrix') else 14, textColor=colors.white,alignment=TA_LEFT)
-    cabecera_compacta = ParagraphStyle('CabeceraCompacta',parent=styles['ReportSmall'],fontName='Helvetica-Bold',textColor=colors.white)
+    cabecera_compacta = ParagraphStyle('CabeceraCompacta',parent=styles['ReportSmall'],fontName=negrita,textColor=colors.white)
 
     def espacio_para_inicio(titulo, filas, anchos, estilo):
         # Reservar sólo la banda, los encabezados y la primera fila permite
@@ -1506,7 +1513,7 @@ def render_unit_report_pdf(report):
         # keepWithNext sobre la tabla completa dejaba media página en blanco.
         muestra = Table(filas[:2], splitInRow=1, colWidths=anchos)
         muestra.setStyle(estilo)
-        ancho = 264 * mm
+        ancho = ANCHO_UTIL
         alto = titulo.wrap(ancho, 10000)[1] + muestra.wrap(ancho, 10000)[1]
         alto_pagina = medidas['pagesize'][1] - medidas['margen_superior'] - medidas['margen_inferior'] - 12
         return CondPageBreak(min(alto, alto_pagina))
@@ -1539,7 +1546,7 @@ def render_unit_report_pdf(report):
         ]
         criteria = Table(
             criteria_rows,
-            splitInRow=1, colWidths=[(264 / criteria_columns) * mm] * criteria_columns,
+            splitInRow=1, colWidths=[(ANCHO_UTIL / criteria_columns)] * criteria_columns,
         )
         criteria.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FAFCFB")),
@@ -1577,7 +1584,7 @@ def render_unit_report_pdf(report):
             metric_data = [metric_cells[i:i + metric_columns] for i in range(0, len(metric_cells), metric_columns)]
             metrics = Table(
                 metric_data,
-                splitInRow=1, colWidths=[(264 / metric_columns) * mm] * metric_columns,
+                splitInRow=1, colWidths=[(ANCHO_UTIL / metric_columns)] * metric_columns,
             )
             metrics.setStyle(TableStyle([
                 ("BACKGROUND", (0, 0), (-1, -1), pale_green),
@@ -1602,12 +1609,12 @@ def render_unit_report_pdf(report):
             section_code = f"{document_meta['code']} · Revisión {document_meta.get('revision', '01')}"
         section = Table(
             [[Paragraph(escape(section_label), banda_estilo), Paragraph(escape(section_code), banda_estilo)]],
-            splitInRow=1, colWidths=[204 * mm, 60 * mm],
+            splitInRow=1, colWidths=[ANCHO_UTIL - 60 * mm, 60 * mm],
         )
         section.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, -1), green),
             ("TEXTCOLOR", (0, 0), (-1, -1), colors.white),
-            ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+            ("FONTNAME", (0, 0), (-1, -1), negrita),
             ("FONTSIZE", (0, 0), (-1, -1), 8),
             ("ALIGN", (1, 0), (1, 0), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 8),
@@ -1646,7 +1653,7 @@ def render_unit_report_pdf(report):
             cabecera += [''] * (column_count - len(cabecera))
             column_widths = _anchos_por_contenido(
                 cabecera, report['dataset']['rows'])
-        anchos_detalle = [width * 264 * mm / sum(column_widths) for width in column_widths]
+        anchos_detalle = [width * ANCHO_UTIL / sum(column_widths) for width in column_widths]
         detail = Table(
             generic_rows,
             # Los formatos anchos conservan sus proporciones dentro del mismo
@@ -1657,7 +1664,7 @@ def render_unit_report_pdf(report):
         detail_style = [
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D9DDDB") if is_official_matrix else green),
             ("TEXTCOLOR", (0, 0), (-1, 0), dark_green),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 0), (-1, 0), negrita),
             ("FONTSIZE", (0, 0), (-1, -1), 5.1 if is_official_matrix else 6.5),
             ("GRID", (0, 0), (-1, -1), .45 if is_official_matrix else .3, colors.HexColor("#6F7D75") if is_official_matrix else line),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE" if is_official_matrix else "TOP"),
@@ -1684,7 +1691,7 @@ def render_unit_report_pdf(report):
             if not records:
                 empty = Table(
                     [[Paragraph("No existen registros para los filtros seleccionados.", styles["ReportText"])]],
-                    splitInRow=1, colWidths=[264 * mm],
+                    splitInRow=1, colWidths=[ANCHO_UTIL],
                 )
                 empty.setStyle(TableStyle([
                     ("BOX", (0, 0), (-1, -1), .5, line),
@@ -1705,7 +1712,7 @@ def render_unit_report_pdf(report):
                         ),
                         Paragraph(f"<b>{escape(str(record['status']))}</b>", styles["ReportSmall"]),
                     ]],
-                    splitInRow=1, colWidths=[222 * mm, 42 * mm],
+                    splitInRow=1, colWidths=a_lo_ancho(222, 42),
                 )
                 record_head.setStyle(TableStyle([
                     ("BACKGROUND", (0, 0), (-1, -1), pale_green),
@@ -1722,12 +1729,12 @@ def render_unit_report_pdf(report):
                 for record_section in record.get("sections", []):
                     section_title = Table(
                         [[Paragraph(escape(str(record_section["title"])),tema['bloque'])]],
-                        splitInRow=1, colWidths=[264 * mm],
+                        splitInRow=1, colWidths=[ANCHO_UTIL],
                     )
                     section_title.setStyle(TableStyle([
                         ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAF9")),
                         ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#8A681B")),
-                        ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                        ("FONTNAME", (0, 0), (-1, -1), negrita),
                         ("FONTSIZE", (0, 0), (-1, -1), 6.5),
                         ("LEFTPADDING", (0, 0), (-1, -1), 7),
                         ("TOPPADDING", (0, 0), (-1, -1), 4),
@@ -1758,13 +1765,13 @@ def render_unit_report_pdf(report):
                         field_rows.append(pending + ["", ""])
                     fields_table = Table(
                         field_rows,
-                        splitInRow=1, colWidths=[32 * mm, 100 * mm, 32 * mm, 100 * mm],
+                        splitInRow=1, colWidths=a_lo_ancho(32, 100, 32, 100),
                     )
                     field_style = [
                         ("BACKGROUND", (0, 0), (0, -1), pale_green),
                         ("BACKGROUND", (2, 0), (2, -1), pale_green),
-                        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-                        ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+                        ("FONTNAME", (0, 0), (0, -1), negrita),
+                        ("FONTNAME", (2, 0), (2, -1), negrita),
                         ("GRID", (0, 0), (-1, -1), .3, line),
                         ("VALIGN", (0, 0), (-1, -1), "TOP"),
                         ("LEFTPADDING", (0, 0), (-1, -1), 5),
@@ -1778,7 +1785,7 @@ def render_unit_report_pdf(report):
         else:
             if not is_official_matrix and column_count>9:
                 titulos=('Programación de actividades','Responsables y respaldo docente','Trazabilidad y resultados','Situación y seguimiento') if report.get('category')=='asignaturas' else ()
-                story.extend(tablas_por_bloques(report['dataset']['headers'],report['dataset']['rows'],264*mm,tinta,titulos))
+                story.extend(tablas_por_bloques(report['dataset']['headers'],report['dataset']['rows'],ANCHO_UTIL,tinta,titulos))
             else:
                 story.append(detail)
 
@@ -1786,18 +1793,18 @@ def render_unit_report_pdf(report):
         # los largos se parten entre etapas para caber en cada hoja.
         for titulo_dibujo, lienzo in dataset.get("dibujos", ()):
             banda = Table([[Paragraph(escape(str(titulo_dibujo).upper()), banda_estilo), ""]], splitInRow=1,
-                          colWidths=[204 * mm, 60 * mm])
+                          colWidths=[ANCHO_UTIL - 60 * mm, 60 * mm])
             banda.setStyle(TableStyle([
                 ("BACKGROUND", (0, 0), (-1, -1), green),
                 ("TEXTCOLOR", (0, 0), (-1, -1), colors.white),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                ("FONTNAME", (0, 0), (-1, -1), negrita),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, -1), 6),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
                 ("LINEBELOW", (0, 0), (-1, -1), 2, gold),
             ]))
-            partes = lienzo.dibujos(264 * mm, 140 * mm)
+            partes = lienzo.dibujos(ANCHO_UTIL, 140 * mm)
             story.extend([Spacer(1, 4 * mm), KeepTogether([banda, Spacer(1, 2 * mm), partes[0]])])
             for parte in partes[1:]:
                 story.extend([Spacer(1, 2 * mm), parte])
@@ -1809,13 +1816,13 @@ def render_unit_report_pdf(report):
         from apps.gestion_unidades.presentation.exportaciones_reportes import tablas_complementarias
         for extra in tablas_complementarias(report):
             if not is_official_matrix and len(extra['headers'])>9:
-                story.extend(tablas_por_bloques(extra['headers'],extra['rows'],264*mm,tinta))
+                story.extend(tablas_por_bloques(extra['headers'],extra['rows'],ANCHO_UTIL,tinta))
                 continue
-            titulo = Table([[Paragraph(escape(str(extra["titulo"]).upper()), banda_estilo), ""]], splitInRow=1, colWidths=[204 * mm, 60 * mm])
+            titulo = Table([[Paragraph(escape(str(extra["titulo"]).upper()), banda_estilo), ""]], splitInRow=1, colWidths=[ANCHO_UTIL - 60 * mm, 60 * mm])
             titulo.setStyle(TableStyle([
                 ("BACKGROUND", (0, 0), (-1, -1), green),
                 ("TEXTCOLOR", (0, 0), (-1, -1), colors.white),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                ("FONTNAME", (0, 0), (-1, -1), negrita),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, -1), 6),
@@ -1839,8 +1846,8 @@ def render_unit_report_pdf(report):
             pesos = _anchos_por_contenido(extra['headers'], extra['rows'], minimo=12, maximo=80,
                 estilo_cabecera=cabecera_compacta if is_official_matrix else tema['cabecera'])
             control_practica = matrix_kind in ('planificaciones', 'ejecuciones')
-            anchos_extra = ([peso * 264 * mm / sum(pesos) for peso in pesos]
-                            if pesos else [(264 / columnas) * mm] * columnas)
+            anchos_extra = ([peso * ANCHO_UTIL / sum(pesos) for peso in pesos]
+                            if pesos else [(ANCHO_UTIL / columnas)] * columnas)
             tabla_extra = Table(
                 filas_extra, splitInRow=1,
                 colWidths=anchos_extra,
@@ -1852,7 +1859,7 @@ def render_unit_report_pdf(report):
             estilo_extra = TableStyle([
                 ("BACKGROUND", (0, 0), (-1, 0), green),
                 ("TEXTCOLOR", (0, 0), (-1, 0), dark_green),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 0), (-1, 0), negrita),
                 ("FONTSIZE", (0, 0), (-1, -1), 6.5),
                 ("GRID", (0, 0), (-1, -1), .3, line),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -1900,7 +1907,7 @@ def render_unit_report_pdf(report):
 
     section = Table(
         [[f"RESUMEN POR {report['group_label'].upper()}"]],
-        splitInRow=1, colWidths=[264 * mm],
+        splitInRow=1, colWidths=[ANCHO_UTIL],
     )
     section_style = TableStyle(
         [
@@ -1920,15 +1927,16 @@ def render_unit_report_pdf(report):
     )
     if len(group_rows) == 1:
         group_rows.append(["Sin registros para los filtros seleccionados", "0", "0", "0", "0%"])
-    group_rows = [[Paragraph(escape(str(valor)), styles['ReportSmall']) for valor in fila]
-                  for fila in group_rows]
-    grouped_table = Table(group_rows, splitInRow=1, colWidths=[142 * mm, 30 * mm, 28 * mm, 32 * mm, 32 * mm], repeatRows=1)
+    group_rows = [[Paragraph(escape(str(valor)), tema['cabecera'] if numero == 0 else styles['ReportSmall'])
+                   for valor in fila] for numero, fila in enumerate(group_rows)]
+    grouped_table = Table(group_rows, splitInRow=1, colWidths=a_lo_ancho(142, 30, 28, 32, 32), repeatRows=1)
     grouped_table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), pale_green),
-                ("TEXTCOLOR", (0, 0), (-1, 0), dark_green),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("BACKGROUND", (0, 0), (-1, 0), green),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("LINEBELOW", (0, 0), (-1, 0), .8, gold),
+                ("FONTNAME", (0, 0), (-1, 0), negrita),
                 ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("GRID", (0, 0), (-1, -1), .35, line),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -1944,7 +1952,7 @@ def render_unit_report_pdf(report):
 
     detail_section = Table(
         [["DETALLE DE SOLICITUDES"]],
-        splitInRow=1, colWidths=[264 * mm],
+        splitInRow=1, colWidths=[ANCHO_UTIL],
     )
     detail_section.setStyle(section_style)
     detail_rows = [["Código", "Fecha", "Horario", "Solicitud", "Solicitante", "Responsable", "Tipo", "Estado", "Part."]]
@@ -1980,15 +1988,16 @@ def render_unit_report_pdf(report):
         detail_rows.append(["—", "—", "—", "Sin registros", "—", "—", "—", "—", "0"])
     detail = Table(
         detail_rows,
-        splitInRow=1, colWidths=[22 * mm, 18 * mm, 20 * mm, 62 * mm, 38 * mm, 35 * mm, 28 * mm, 31 * mm, 10 * mm],
+        splitInRow=1, colWidths=a_lo_ancho(22, 18, 20, 62, 38, 35, 28, 31, 10),
         repeatRows=1,
     )
     detail.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), pale_green),
-                ("TEXTCOLOR", (0, 0), (-1, 0), dark_green),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("BACKGROUND", (0, 0), (-1, 0), green),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("LINEBELOW", (0, 0), (-1, 0), .8, gold),
+                ("FONTNAME", (0, 0), (-1, 0), negrita),
                 ("FONTSIZE", (0, 0), (-1, -1), 6.5),
                 ("GRID", (0, 0), (-1, -1), .3, line),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),

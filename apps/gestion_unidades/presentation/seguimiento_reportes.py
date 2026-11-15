@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.http import content_disposition_header
 from django.utils.text import slugify
+from apps.core.presentation.pdf_institucional import fuentes_documento
 
 
 def _nota(valor):
@@ -79,14 +80,14 @@ def pdf_del_seguimiento(curso, seguimiento):
         leftMargin=medidas['margen'], rightMargin=medidas['margen'],
         topMargin=medidas['margen_superior'], bottomMargin=medidas['margen_inferior'],
         title=f'Seguimiento - {curso.nombre}', author=curso.unidad.nombre)
-    cuerpo = ParagraphStyle('SeguimientoCuerpo', fontName='Helvetica', fontSize=9, leading=12,
+    cuerpo = ParagraphStyle('SeguimientoCuerpo', fontName=fuentes_documento()[0], fontSize=9, leading=12,
                             textColor=tinta['oscuro'], spaceAfter=5)
-    titulo = ParagraphStyle('SeguimientoTitulo', parent=cuerpo, fontName='Helvetica-Bold', fontSize=15, leading=18,
+    titulo = ParagraphStyle('SeguimientoTitulo', parent=cuerpo, fontName=fuentes_documento()[1], fontSize=15, leading=18,
                             spaceAfter=10, textColor=tinta['primario'])
-    subtitulo = ParagraphStyle('SeguimientoSubtitulo', parent=cuerpo, fontName='Helvetica-Bold', fontSize=11, leading=14,
+    subtitulo = ParagraphStyle('SeguimientoSubtitulo', parent=cuerpo, fontName=fuentes_documento()[1], fontSize=11, leading=14,
                                spaceBefore=10, spaceAfter=6, keepWithNext=True)
     pequeno = ParagraphStyle('SeguimientoPequeno', parent=cuerpo, fontSize=7.5, leading=10, spaceAfter=0)
-    blanco = ParagraphStyle('SeguimientoCabecera', parent=pequeno, fontName='Helvetica-Bold', textColor=colors.white)
+    blanco = ParagraphStyle('SeguimientoCabecera', parent=pequeno, fontName=fuentes_documento()[1], textColor=colors.white)
 
     def p(texto, estilo=cuerpo):
         return Paragraph(escape(str(texto)).replace('\n', '<br/>'), estilo)

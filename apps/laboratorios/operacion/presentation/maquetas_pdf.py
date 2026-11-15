@@ -6,8 +6,8 @@ el contenido al dataset del reporte genérico ni ejecuta HTML, CSS o recursos
 remotos. Los textos y su orden proceden de las plantillas institucionales.
 """
 
-from apps.core.presentation.identidad import identidad_actual, logo_institucional
-from apps.core.presentation.pdf_institucional import colores_institucionales, pie_institucional
+from apps.core.presentation.identidad import identidad_actual
+from apps.core.presentation.pdf_institucional import colores_institucionales, fuentes_documento, marco_institucional
 
 from dataclasses import dataclass, field
 from html import escape
@@ -23,7 +23,6 @@ from reportlab.platypus import (
     BaseDocTemplate,
     Flowable,
     Frame,
-    Image,
     KeepTogether,
     LongTable,
     PageTemplate,
@@ -235,11 +234,15 @@ class MaquetaPDF:
     def __init__(self, nombre):
         self.nombre = nombre
         self.tinta = colores_institucionales()
-        self.ancho = landscape(A4)[0] - 20 * mm
+        # El mismo ancho útil que el marco institucional apaisado (13 mm por lado).
+        self.ancho = landscape(A4)[0] - 26 * mm
         self.indice_tabla = 0
+        self.regular, self.negrita = fuentes_documento()
+        self.formato = ''
+        self.metadatos = []
         self.base = ParagraphStyle(
             "Maqueta",
-            fontName="Helvetica",
+            fontName=self.regular,
             fontSize=8,
             leading=10.5,
             textColor=self.tinta['oscuro'],
@@ -253,70 +256,31 @@ class MaquetaPDF:
         )
 
     def cabecera(self, nodo):
+        """El encabezado institucional se dibuja en cada página; aquí quedan el título y sus datos.
+
+        El ``h1`` es el nombre del formato y los pares ``dt``/``dd`` van a la caja derecha del
+        encabezado. En el cuerpo se repiten el título, en verde, y su referencia.
+        """
         divisiones = [h for h in nodo.hijos if isinstance(h, Nodo) and h.tag == "div"]
-        centro = []
-        for hijo in divisiones[1].hijos:
-            if isinstance(hijo, Nodo):
-                estilo = (
-                    {
-                        "fontSize": 18,
-                        "leading": 20,
-                        "spaceAfter": 5,
-                        "fontName": "Helvetica-Bold",
-                    }
-                    if hijo.tag == "h1"
-                    else {}
-                )
-                if hijo.tag == "span":
-                    estilo = {
-                        "fontSize": 7,
-                        "leading": 9,
-                        "textColor": self.tinta['primario'],
-                    }
-                centro.append(self.parrafo(hijo, **estilo))
-        metadatos = []
+        flujo = []
+        for hijo in (divisiones[1].hijos if len(divisiones) > 1 else []):
+            if not isinstance(hijo, Nodo) or hijo.tag == "span":
+                continue
+            if hijo.tag == "h1":
+                self.formato = re.sub("<[^>]+>", "", _texto(hijo)).strip()
+                flujo.append(self.parrafo(hijo, fontName=self.negrita, fontSize=14, leading=18,
+                                          textColor=self.tinta['primario'], alignment=1, spaceAfter=3))
+            else:
+                flujo.append(self.parrafo(hijo, fontSize=8, leading=11, alignment=1,
+                                          textColor=colors.HexColor(MUTED), spaceAfter=1))
         for dl in nodo.buscar(tag="dl"):
             for hijo in dl.hijos:
                 if isinstance(hijo, Nodo):
-                    etiqueta = next(hijo.buscar(tag="dt"), Nodo("span"))
-                    valor = next(hijo.buscar(tag="dd"), Nodo("span"))
-                    metadatos.extend(
-                        [
-                            self.parrafo(
-                                etiqueta,
-                                fontSize=6.5,
-                                leading=8,
-                                textColor=colors.HexColor(MUTED),
-                            ),
-                            self.parrafo(valor, fontName="Helvetica-Bold"),
-                        ]
-                    )
-        logo = Image(
-            str(logo_institucional()),
-            width=40 * mm,
-            height=15 * mm,
-            kind="proportional",
-        ) if logo_institucional() else Paragraph(escape(identidad_actual()[1].siglas), ParagraphStyle("Identidad", parent=self.base, fontSize=14, textColor=colors.white))
-        tabla = Table(
-            [[logo, centro, metadatos]],
-            colWidths=[48 * mm, self.ancho - 111 * mm, 63 * mm],
-        )
-        tabla.setStyle(
-            TableStyle(
-                [
-                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    # El mismo bloque del resto de la documentación: logo sobre el color institucional.
-                    ("BACKGROUND", (0, 0), (0, 0), self.tinta['primario']),
-                    ("BOX", (0, 0), (-1, -1), .7, self.tinta['linea']),
-                    ("LINEBEFORE", (2, 0), (2, 0), .7, self.tinta['linea']),
-                    ("LEFTPADDING", (1, 0), (-1, -1), 12),
-                    ("TOPPADDING", (0, 0), (-1, -1), 8),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-                    ("LINEBELOW", (0, 0), (-1, -1), 2, self.tinta['acento']),
-                ]
-            )
-        )
-        return [tabla, Spacer(1, 12)]
+                    etiqueta = re.sub("<[^>]+>", "", _texto(next(hijo.buscar(tag="dt"), Nodo("span")))).strip()
+                    valor = re.sub("<[^>]+>", "", _texto(next(hijo.buscar(tag="dd"), Nodo("span")))).strip()
+                    if etiqueta or valor:
+                        self.metadatos.append(f"{etiqueta}: {valor}" if etiqueta else valor)
+        return [*flujo, Spacer(1, 8)]
 
     def banda(self, nodo):
         titulo = next(nodo.buscar(tag="span"), Nodo("span"))
@@ -382,9 +346,9 @@ class MaquetaPDF:
                 contenido = [
                     self.parrafo(
                         celda,
-                        fontName="Helvetica-Bold"
+                        fontName=self.negrita
                         if es_cabecera or fila.tiene("inst-total")
-                        else "Helvetica",
+                        else self.regular,
                         fontSize=7.5 if n > 8 else 8,
                     )
                 ]
@@ -482,7 +446,7 @@ class MaquetaPDF:
                 self.parrafo(
                     h,
                     **(
-                        {"fontSize": 12, "leading": 15, "fontName": "Helvetica-Bold"}
+                        {"fontSize": 12, "leading": 15, "fontName": self.negrita}
                         if h.tag == "h2"
                         else {}
                     ),
@@ -514,7 +478,7 @@ class MaquetaPDF:
                                 {
                                     "fontSize": 13,
                                     "leading": 15,
-                                    "fontName": "Helvetica-Bold",
+                                    "fontName": self.negrita,
                                 }
                                 if h.tag == "strong"
                                 else {}
@@ -602,47 +566,39 @@ def render_maqueta_pdf(html, nombre):
     titulo = next(arbol.buscar(tag="title"))
     presentador = MaquetaPDF(nombre)
     historia = presentador.componer(main)
+    # La referencia del pie de la maqueta cierra el documento; el pie de cada página es el común.
+    texto_pie = _texto(pie).replace("</b>", "</b><br/>").strip()
+    if texto_pie:
+        historia.extend([Spacer(1, 6), Paragraph(texto_pie, ParagraphStyle(
+            "Pie", parent=presentador.base, fontSize=7, leading=9, textColor=colors.HexColor(MUTED)))])
+    titulo_documento = re.sub("<[^>]+>", "", _texto(titulo))
+    dibujar, CanvasNumerado, medidas = marco_institucional(
+        formato=presentador.formato or titulo_documento, metadatos=presentador.metadatos,
+        pie='Documentos de gestión', apaisado=True)
     salida = BytesIO()
     documento = BaseDocTemplate(
         salida,
-        pagesize=landscape(A4),
-        leftMargin=10 * mm,
-        rightMargin=10 * mm,
-        topMargin=10 * mm,
-        bottomMargin=19 * mm,
-        title=re.sub("<[^>]+>", "", _texto(titulo)),
+        pagesize=medidas['pagesize'],
+        leftMargin=medidas['margen'],
+        rightMargin=medidas['margen'],
+        topMargin=medidas['margen_superior'],
+        bottomMargin=medidas['margen_inferior'],
+        title=titulo_documento,
         author=identidad_actual()[1].nombre,
         invariant=1,
     )
-
-    _pie_comun, CanvasNumerado, _medidas_comun = pie_institucional(apaisado=True, margen=10 * mm)
-
-    def pie_de_pagina(canvas, doc):
-        canvas.saveState()
-        canvas.setStrokeColor(presentador.tinta['acento'])
-        canvas.setLineWidth(1.5)
-        canvas.line(10 * mm, 15 * mm, landscape(A4)[0] - 10 * mm, 15 * mm)
-        texto_pie = _texto(pie).replace("</b>", "</b><br/>")
-        contenido = Paragraph(
-            texto_pie,
-            ParagraphStyle("Pie", parent=presentador.base, fontSize=6, leading=7),
-        )
-        _, alto = contenido.wrap(presentador.ancho - 60, 40)
-        contenido.drawOn(canvas, 10 * mm, 13 * mm - alto)
-        canvas.restoreState()
-
     marco = Frame(
-        10 * mm,
-        19 * mm,
-        presentador.ancho,
-        landscape(A4)[1] - 29 * mm,
+        medidas['margen'],
+        medidas['margen_inferior'],
+        medidas['ancho_util'],
+        medidas['pagesize'][1] - medidas['margen_superior'] - medidas['margen_inferior'],
         leftPadding=0,
         rightPadding=0,
         topPadding=0,
         bottomPadding=0,
     )
     documento.addPageTemplates(
-        PageTemplate(id="Maqueta oficial", frames=[marco], onPage=pie_de_pagina)
+        PageTemplate(id="Maqueta oficial", frames=[marco], onPage=dibujar)
     )
     documento.build(historia, canvasmaker=CanvasNumerado)
     return salida.getvalue()

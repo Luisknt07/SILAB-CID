@@ -13,6 +13,7 @@ from django.utils import timezone
 from apps.core.presentation.identidad import identidad_actual
 
 from apps.core.presentation.pdf_institucional import marco_institucional
+from apps.core.presentation.pdf_institucional import fuentes_documento, hoja_de_estilos
 
 # La tabla necesita una palabra, no la definición completa de la clase.
 CLASES_CORTAS = {
@@ -24,7 +25,7 @@ CLASES_CORTAS = {
 
 
 def render_ficha_equipo_pdf(unidad, ficha, *, solo_retiro=False):
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
@@ -42,19 +43,19 @@ def render_ficha_equipo_pdf(unidad, ficha, *, solo_retiro=False):
     )
     tinta = medidas['colores']
     ancho = medidas['ancho_util']
-    base = getSampleStyleSheet()
+    base = hoja_de_estilos()
     estilos = {
-        'titulo': ParagraphStyle('t', parent=base['Title'], fontName='Helvetica-Bold', fontSize=12.5,
+        'titulo': ParagraphStyle('t', parent=base['Title'], fontName=fuentes_documento()[1], fontSize=12.5,
                                  leading=15, textColor=tinta['primario'], alignment=1, spaceAfter=2),
         'sub': ParagraphStyle('s', parent=base['BodyText'], fontSize=7.5, leading=10,
                               textColor=tinta['tenue'], alignment=1),
-        'seccion': ParagraphStyle('h', parent=base['Heading2'], fontName='Helvetica-Bold', fontSize=10.5,
+        'seccion': ParagraphStyle('h', parent=base['Heading2'], fontName=fuentes_documento()[1], fontSize=10.5,
                                   leading=13, textColor='white', spaceBefore=0, spaceAfter=0),
         'texto': ParagraphStyle('x', parent=base['BodyText'], fontSize=8.5, leading=11.5),
         'celda': ParagraphStyle('c', parent=base['BodyText'], fontSize=7.4, leading=9.4),
-        'celda_b': ParagraphStyle('cb', parent=base['BodyText'], fontName='Helvetica-Bold', fontSize=7.4,
+        'celda_b': ParagraphStyle('cb', parent=base['BodyText'], fontName=fuentes_documento()[1], fontSize=7.4,
                                   leading=9.4, textColor=tinta['oscuro']),
-        'vacio': ParagraphStyle('v', parent=base['BodyText'], fontName='Helvetica-Oblique', fontSize=8.2,
+        'vacio': ParagraphStyle('v', parent=base['BodyText'], fontName=fuentes_documento()[0], fontSize=8.2,
                                 leading=11, textColor=tinta['tenue']),
     }
 

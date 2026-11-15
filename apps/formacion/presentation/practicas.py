@@ -36,6 +36,7 @@ from apps.formacion.presentation.practicas_evidencias import registrar_evidencia
 from apps.formacion.presentation.practicas_forms import EjecucionPracticaForm, PlanificacionPracticaForm
 from apps.formacion.presentation.practicas_excel import render_practices_xlsx
 from apps.formacion.presentation.practicas_integracion import asegurar_participantes_reserva, construir_detalle_operativo, datos_planificacion_desde_reserva, estado_documental_reserva, resumen_recursos, DocumentacionReservaPendiente, validar_compuerta_documental
+from apps.core.presentation.pdf_institucional import fuentes_documento, hoja_de_estilos
 
 
 PLAN_FIELDS_AUDIT = (
@@ -633,7 +634,7 @@ def detalle_planificacion_view(request, slug, plan_id):
 
 def _render_practice_pdf(plan, ejecucion):
     from reportlab.lib import colors
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
@@ -648,7 +649,7 @@ def _render_practice_pdf(plan, ejecucion):
         buffer, pagesize=medidas["pagesize"], leftMargin=medidas["margen"], rightMargin=medidas["margen"],
         topMargin=12 * mm, bottomMargin=medidas["margen_inferior"], title=f"Expediente {plan.codigo}",
     )
-    styles = getSampleStyleSheet()
+    styles = hoja_de_estilos()
     body = ParagraphStyle("PracticeBody", parent=styles["BodyText"], fontSize=8, textColor=dark, leading=11)
     small = ParagraphStyle("PracticeSmall", parent=body, fontSize=6.7, leading=9)
     story = []
@@ -673,13 +674,13 @@ def _render_practice_pdf(plan, ejecucion):
 
     def section(label):
         table = Table([[label]], splitInRow=1, colWidths=[ancho_util])
-        table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),green),("TEXTCOLOR",(0,0),(-1,-1),colors.white),("FONTNAME",(0,0),(-1,-1),"Helvetica-Bold"),("FONTSIZE",(0,0),(-1,-1),8),("LEFTPADDING",(0,0),(-1,-1),8),("TOPPADDING",(0,0),(-1,-1),6),("BOTTOMPADDING",(0,0),(-1,-1),6),("LINEBELOW",(0,0),(-1,-1),2,gold)]))
+        table.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),green),("TEXTCOLOR",(0,0),(-1,-1),colors.white),("FONTNAME",(0,0),(-1,-1),fuentes_documento()[1]),("FONTSIZE",(0,0),(-1,-1),8),("LEFTPADDING",(0,0),(-1,-1),8),("TOPPADDING",(0,0),(-1,-1),6),("BOTTOMPADDING",(0,0),(-1,-1),6),("LINEBELOW",(0,0),(-1,-1),2,gold)]))
         return table
 
     def data_table(rows, widths):
         normalized = [[Paragraph(escape(str(a)), small), Paragraph(escape(str(b or "—")), body)] for a,b in rows]
         table = Table(normalized, splitInRow=1, colWidths=widths)
-        table.setStyle(TableStyle([("BACKGROUND",(0,0),(0,-1),pale),("FONTNAME",(0,0),(0,-1),"Helvetica-Bold"),("GRID",(0,0),(-1,-1),.35,line),("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),6),("RIGHTPADDING",(0,0),(-1,-1),6),("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5)]))
+        table.setStyle(TableStyle([("BACKGROUND",(0,0),(0,-1),pale),("FONTNAME",(0,0),(0,-1),fuentes_documento()[1]),("GRID",(0,0),(-1,-1),.35,line),("VALIGN",(0,0),(-1,-1),"TOP"),("LEFTPADDING",(0,0),(-1,-1),6),("RIGHTPADDING",(0,0),(-1,-1),6),("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5)]))
         return table
 
     story.extend([

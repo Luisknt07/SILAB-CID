@@ -31,6 +31,7 @@ from apps.formacion.presentation.aula_cursos import ICONOS_DE_LECCION
 from apps.formacion.presentation.cursos import _numero_pagina, puede_crear_cursos
 from apps.formacion.presentation.seguimiento_cursos import seguimiento_de
 from apps.gestion_unidades.presentation.seguimiento_reportes import _nota, _respuesta_privada, celda_csv_segura
+from apps.core.presentation.pdf_institucional import fuentes_documento
 
 ESTADOS = (
     ('', 'Todos los estados'),
@@ -349,13 +350,13 @@ def pdf_control_cursos(unidad, resumen, filas, filtros):
         topMargin=medidas['margen_superior'], bottomMargin=medidas['margen_inferior'],
         title=f'Control de cursos - {unidad.nombre}', author=unidad.nombre)
     tinta = medidas['colores']
-    cuerpo = ParagraphStyle('ControlCursos', fontName='Helvetica', fontSize=9, leading=12,
+    cuerpo = ParagraphStyle('ControlCursos', fontName=fuentes_documento()[0], fontSize=9, leading=12,
                             textColor=tinta['oscuro'], spaceAfter=5)
-    titulo = ParagraphStyle('ControlCursosTitulo', parent=cuerpo, fontName='Helvetica-Bold',
+    titulo = ParagraphStyle('ControlCursosTitulo', parent=cuerpo, fontName=fuentes_documento()[1],
                             fontSize=14, leading=17, spaceAfter=9)
     pequeno = ParagraphStyle('ControlCursosCelda', parent=cuerpo, fontSize=7.2, leading=9, spaceAfter=0)
     cabecera = ParagraphStyle('ControlCursosCabecera', parent=pequeno,
-                             fontName='Helvetica-Bold', textColor=colors.white)
+                             fontName=fuentes_documento()[1], textColor=colors.white)
 
     def p(texto, estilo=cuerpo):
         return Paragraph(escape(str(texto)), estilo)

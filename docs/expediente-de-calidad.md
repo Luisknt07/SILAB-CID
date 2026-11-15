@@ -257,14 +257,59 @@ generar, así el PDF siempre refleja la plataforma.
 ## Un solo formato para toda la documentación
 
 Todos los PDF del sistema salen del marco de
-`webcitt/domains/unidades/pdf_institucional.py`: caja con el logo sobre el
-color institucional, nombre del formato y la institución al centro,
-código/revisión/período/versión a la derecha, y al pie la línea de acento con
-`SLCID · UPEC · <documento>` y «Página: n de N». El encabezado se dibuja en
-todas las páginas, en vertical (guía de práctica, documentos del expediente,
-comprobante de reserva) y en apaisado (formatos FT02/FT03, reportes del Centro
-y maquetas de gestión). Quien genera un PDF solo declara su formato y sus
-metadatos.
+`apps/core/presentation/pdf_institucional.py`. El 15 de noviembre de 2026 se
+retiró la variante de encabezado «informe», que usaban la planificación, el
+informe, los anexos y el Centro de reportes. Desde entonces todos llevan el
+mismo encabezado.
+
+**Encabezado.** Es una tabla de tres columnas en todas las páginas:
+
+- a la izquierda, el logo sobre el color institucional;
+- al centro, el nombre del formato en mayúsculas y la institución;
+- a la derecha, los datos del documento.
+
+La columna de datos mide 45 mm en vertical y 62 mm en apaisado, para que el código
+se lea en una línea. Los datos van siempre en el mismo orden (`metadatos_documento`):
+
+- **documentos del expediente y anexos:** Código, Revisión, Período y Versión;
+- **consultas:** el período y la fecha de generación;
+- **actas y formatos de gestión:** sus propios datos, por ejemplo cliente, entrega
+  y emisión.
+
+**Pie.** Línea dorada, `SLCID · UPEC · <documento>` y «Página: n de N».
+
+**Primera página.** No hay portada ni índice. La primera página ya es el documento:
+encabezado, título en verde («Planificación semestral: <unidad>») y la línea del
+período con su fecha de elaboración. Las secciones van en una banda verde con el
+título en mayúsculas y línea dorada (`titulo_seccion`). Las tablas tienen cabecera
+verde con texto blanco.
+
+**Letra.** LiberationSans en todos los generadores. La hoja común es
+`hoja_de_estilos()` y Helvetica solo queda como respaldo si falta la fuente. La
+escala es la misma en vertical y en apaisado (`estilos_informe`):
+
+| Elemento | Tamaño |
+| --- | --- |
+| Cuerpo | 9,5 pt |
+| Tablas | 8,5 pt |
+| Bandas | 10,5 pt |
+| Notas | 7,5 pt |
+| Matrices oficiales FT02/FT03 | 5,1 pt, para que quepan sus 16 columnas |
+
+**Orientación.**
+
+- **Vertical**, A4 con márgenes de 14 mm: documentos redactados (planificación,
+  informe, plan de compras, protocolo, acciones de mejora), guía de práctica,
+  comprobante y ficha de equipo.
+- **Apaisado**, A4 con márgenes de 13 mm: anexos y consultas del Centro de
+  reportes, FT02/FT03, cumplimiento de la Dirección y actas de gestión.
+
+Todas las tablas ocupan el ancho útil de la página: 182 mm en vertical y 271 mm
+en apaisado. Quien genera un PDF solo declara su formato y sus datos.
+
+No llevan este marco, por diseño, los certificados de curso, las etiquetas de
+equipo y los reportes científicos de los Centros I+D, que tienen su propio
+diseño.
 
 Un archivo que reúne dos formatos —FT02 y FT03 en el mismo expediente de
 práctica— abre cada uno con `encabezado_en_flujo`, la misma caja como bloque

@@ -69,19 +69,20 @@ def contrato_unidad(reporte):
 
 def marco_pdf_unidad(reporte):
     """La vista previa y la descarga comparten identidad, márgenes y paginación."""
-    from apps.core.presentation.pdf_institucional import marco_institucional
+    from apps.core.presentation.pdf_institucional import marco_institucional, metadatos_documento
 
     datos = (reporte.get('dataset') or {}).get('document_meta') or {}
-    metadatos = []
-    if datos.get('code'):
-        metadatos.extend([f"Código: {datos['code']}", f"Revisión: {datos.get('revision', '01')}"])
-    if reporte.get('periodo', True):
-        metadatos.append(f"Período: {reporte['start_date']:%d/%m/%Y} – {reporte['end_date']:%d/%m/%Y}")
-    metadatos.append(f"Generado: {reporte['generated_at']:%d/%m/%Y %H:%M}")
+    # Un anexo generado para el expediente lleva código, revisión, período y versión;
+    # una consulta muestra su período y cuándo se generó.
+    expediente = reporte.get('expediente') or {}
+    periodo = expediente.get('periodo') or (
+        f"{reporte['start_date']:%d/%m/%Y} – {reporte['end_date']:%d/%m/%Y}" if reporte.get('periodo', True) else None)
+    metadatos = metadatos_documento(
+        datos.get('code') or expediente.get('codigo'), revision=datos.get('revision', '01'), periodo=periodo,
+        version=expediente.get('version'), generado=None if expediente else reporte['generated_at'])
     dibujar, lienzo, medidas = marco_institucional(
         formato=datos.get('title') or reporte['category_label'], metadatos=metadatos,
         pie='Centro de reportes', apaisado=True,
-        estilo='informe',
     )
     if reporte.get('borrador'):
         from apps.documentos.presentation.documentos_entrega import con_marca_borrador

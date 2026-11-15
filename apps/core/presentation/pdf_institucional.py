@@ -32,6 +32,12 @@ MARGEN_SUPERIOR_PAGINA = 10 * mm
 SEPARACION_CONTENIDO = 3 * mm
 ANCHO_LOGO = 45 * mm
 ANCHO_METADATOS = 45 * mm
+ANCHO_METADATOS_APAISADO = 62 * mm
+
+
+def ancho_metadatos(ancho):
+    """La columna derecha del encabezado: 45 mm en vertical y 62 mm en apaisado."""
+    return ANCHO_METADATOS_APAISADO if ancho > 200 * mm else ANCHO_METADATOS
 MAXIMO_METADATOS = 4
 
 
@@ -65,6 +71,51 @@ def _lineas(metadatos):
     return [str(linea) for linea in metadatos if str(linea).strip()][:MAXIMO_METADATOS]
 
 
+def fuentes_documento():
+    """La letra de todos los documentos: LiberationSans y, si no está instalada, Helvetica."""
+    from apps.core.reportes import _fuentes_pdf
+    return _fuentes_pdf()
+
+
+def hoja_de_estilos():
+    """La hoja de estilos de ReportLab con la letra de los documentos institucionales.
+
+    Los estilos de muestra de ReportLab usan Helvetica; aquí pasan a LiberationSans para que
+    todo documento, vertical o apaisado, se lea con la misma letra.
+    """
+    from reportlab.lib.styles import getSampleStyleSheet
+    regular, negrita = fuentes_documento()
+    hoja = getSampleStyleSheet()
+    for estilo in hoja.byName.values():
+        nombre = str(getattr(estilo, 'fontName', ''))
+        if nombre.startswith(('Helvetica', 'Times', 'Courier')):
+            estilo.fontName = negrita if 'Bold' in nombre else regular
+        if hasattr(estilo, 'bulletFontName') and str(estilo.bulletFontName).startswith(('Helvetica', 'Times')):
+            estilo.bulletFontName = regular
+    return hoja
+
+
+def metadatos_documento(codigo=None, *, revision='01', periodo=None, version=None, generado=None):
+    """Las líneas de la caja derecha, siempre en el mismo orden: código, revisión, período y versión.
+
+    Un documento del expediente lleva las cuatro; una consulta sin código muestra su período y
+    cuándo se generó.
+    """
+    periodo = str(periodo or '').strip()
+    if periodo.casefold().startswith('período '):
+        periodo = periodo[len('período '):]
+    lineas = []
+    if codigo:
+        lineas.extend([f'Código: {codigo}', f'Revisión: {revision}'])
+    if periodo:
+        lineas.append(f'Período: {periodo}')
+    if version:
+        lineas.append(f'Versión: {version}')
+    if generado and len(lineas) < MAXIMO_METADATOS:
+        lineas.append(f'Generado: {generado:%d/%m/%Y %H:%M}')
+    return lineas
+
+
 def pie_institucional(*, pie='', apaisado=False, margen=None, encabezado=None, fuentes=None):
     """Pie común y numeración «Página: n de N».
 
@@ -76,7 +127,7 @@ def pie_institucional(*, pie='', apaisado=False, margen=None, encabezado=None, f
     margen = medidas['margen']
     tinta = medidas['colores']
     producto, institucion = identidad_actual()
-    regular, _ = fuentes or ('Helvetica', 'Helvetica-Bold')
+    regular, _ = fuentes or fuentes_documento()
     pie_izquierdo = f'{producto.codigo} · {institucion.siglas}' + (f' · {pie}' if pie else '')
 
     def dibujar(lienzo, _documento):
@@ -129,6 +180,9 @@ def marco_institucional(*, formato, metadatos=(), pie='', apaisado=False, margen
     encabezado; ``metadatos`` son las líneas de la derecha (``"Código: …"``);
     ``pie`` es lo que acompaña a las siglas al pie de cada página.
 
+    Todos los documentos llevan el mismo encabezado de tres columnas; ``estilo`` se
+    conserva solo para no romper a quien todavía lo pase.
+
     Devuelve ``(dibujar_encabezado, CanvasNumerado, medidas)``: el primero se
     pasa a ``onFirstPage``/``onLaterPages``, el segundo a ``canvasmaker`` y el
     tercero trae márgenes y ancho útil para el documento.
@@ -137,10 +191,7 @@ def marco_institucional(*, formato, metadatos=(), pie='', apaisado=False, margen
     institucion = identidad_actual()[1]
     nombre_institucion = institucion.nombre.upper()
     lineas = _lineas(metadatos)
-    fuentes = None
-    if estilo == 'informe':
-        from apps.core.reportes import _fuentes_pdf
-        fuentes = _fuentes_pdf()
+    fuentes = fuentes_documento()
 
     def encabezado(lienzo, medidas):
         margen_pagina = medidas['margen']
@@ -160,68 +211,42 @@ def marco_institucional(*, formato, metadatos=(), pie='', apaisado=False, margen
         else:
             # Una institución sin logo cargado se identifica por sus siglas.
             lienzo.setFillColor(colors.white)
-            lienzo.setFont('Helvetica-Bold', 14)
+            lienzo.setFont(fuentes[1], 14)
             lienzo.drawCentredString(margen_pagina + ANCHO_LOGO / 2, y_caja + ALTO_ENCABEZADO / 2 - 2 * mm,
                                      institucion.siglas)
         lienzo.setStrokeColor(tinta['linea'])
         lienzo.line(margen_pagina + ANCHO_LOGO, y_caja, margen_pagina + ANCHO_LOGO, y_caja + ALTO_ENCABEZADO)
-        x_metadatos = margen_pagina + ancho - ANCHO_METADATOS
+        columna = ancho_metadatos(ancho)
+        x_metadatos = margen_pagina + ancho - columna
         lienzo.line(x_metadatos, y_caja, x_metadatos, y_caja + ALTO_ENCABEZADO)
         centro, derecha = _bloques_encabezado(formato, nombre_institucion, lineas, ancho, tinta)
         for bloque, x, anchura in (
-            (centro, margen_pagina + ANCHO_LOGO, ancho - ANCHO_LOGO - ANCHO_METADATOS),
-            (derecha, x_metadatos, ANCHO_METADATOS),
+            (centro, margen_pagina + ANCHO_LOGO, ancho - ANCHO_LOGO - columna),
+            (derecha, x_metadatos, columna),
         ):
             _, alto = bloque.wrapOn(lienzo, anchura - 6 * mm, ALTO_ENCABEZADO - 4 * mm)
             bloque.drawOn(lienzo, x + 3 * mm, y_caja + (ALTO_ENCABEZADO - alto) / 2)
 
-    def encabezado_informe(lienzo, medidas):
-        regular, negrita = fuentes
-        x, ancho = medidas['margen'], medidas['ancho_util']
-        alto = medidas['pagesize'][1]
-        tinta = medidas['colores']
-        lienzo.setFillColor(tinta['acento'])
-        lienzo.rect(x-3*mm, alto-30*mm, 1.2*mm, 20*mm, fill=1, stroke=0)
-        lienzo.setFillColor(tinta['primario'])
-        lienzo.roundRect(x, alto-28*mm, 53*mm, 17*mm, 2*mm, fill=1, stroke=0)
-        if logo:
-            lienzo.drawImage(str(logo), x+3*mm, alto-26*mm, width=47*mm, height=13*mm,
-                             preserveAspectRatio=True, anchor='c', mask='auto')
-        else:
-            lienzo.setFillColor(colors.white)
-            lienzo.setFont(negrita,14)
-            lienzo.drawString(x+5*mm,alto-21*mm,institucion.siglas)
-        estilo_titulo = ParagraphStyle('EncabezadoInforme',fontName=negrita,fontSize=9,leading=11,
-            textColor=tinta['oscuro'],alignment=2)
-        nombre = Paragraph(escape(institucion.nombre.upper()),ParagraphStyle('InstitucionInforme',fontName=regular,fontSize=6.5,
-            leading=8,textColor=tinta['tenue'],alignment=2))
-        _, hn = nombre.wrap(ancho-61*mm,10*mm)
-        nombre.drawOn(lienzo,x+61*mm,alto-9*mm-hn)
-        p = Paragraph(escape(str(formato)),estilo_titulo)
-        _, h = p.wrap(ancho-61*mm,20*mm)
-        p.drawOn(lienzo,x+61*mm,alto-14*mm-h)
-        meta = Paragraph(' · '.join(escape(v) for v in lineas),ParagraphStyle('ReferenciaInforme',fontName=regular,fontSize=6.5,
-            leading=9,textColor=tinta['tenue'],alignment=2))
-        _, hmeta = meta.wrap(ancho-61*mm,12*mm)
-        meta.drawOn(lienzo,x+61*mm,alto-18*mm-h-hmeta)
-    return pie_institucional(pie=pie, apaisado=apaisado, margen=margen,
-                            encabezado=encabezado_informe if estilo == 'informe' else encabezado, fuentes=fuentes)
+    return pie_institucional(pie=pie, apaisado=apaisado, margen=margen, encabezado=encabezado, fuentes=fuentes)
 
 
 def _bloques_encabezado(formato, subtitulo, metadatos, ancho, tinta):
     """Ajusta cada texto a su columna, incluso con códigos y títulos largos."""
-    formato_estilo = ParagraphStyle('FormatoAjustado', fontName='Helvetica-Bold',
+    regular, negrita = fuentes_documento()
+    formato_estilo = ParagraphStyle('FormatoAjustado', fontName=negrita,
                                    fontSize=10.2, leading=12, textColor=tinta['oscuro'], alignment=1)
-    sub_estilo = ParagraphStyle('InstitucionAjustada', fontSize=6.8, leading=8.5,
+    sub_estilo = ParagraphStyle('InstitucionAjustada', fontName=regular, fontSize=6.8, leading=8.5,
                                textColor=tinta['oscuro'], alignment=1)
-    meta_estilo = ParagraphStyle('MetadatosAjustados', fontName='Helvetica-Bold',
+    meta_estilo = ParagraphStyle('MetadatosAjustados', fontName=negrita,
                                 fontSize=6.8, leading=9, textColor=tinta['oscuro'])
     alto = ALTO_ENCABEZADO - 4 * mm
-    centro = KeepInFrame(ancho - ANCHO_LOGO - ANCHO_METADATOS - 6 * mm, alto, [
-        Paragraph(escape(str(formato)), formato_estilo),
+    columna = ancho_metadatos(ancho)
+    centro = KeepInFrame(ancho - ANCHO_LOGO - columna - 6 * mm, alto, [
+        # El nombre del formato se lee en mayúsculas, como en el formato institucional.
+        Paragraph(escape(str(formato).upper()), formato_estilo),
         Paragraph(escape(str(subtitulo)), sub_estilo),
     ], mode='shrink')
-    derecha = KeepInFrame(ANCHO_METADATOS - 6 * mm, alto, [
+    derecha = KeepInFrame(columna - 6 * mm, alto, [
         Paragraph(escape(linea), meta_estilo) for linea in _lineas(metadatos)
     ], mode='shrink')
     return centro, derecha
@@ -235,7 +260,7 @@ def encabezado_en_flujo(*, formato, metadatos=(), ancho, subtitulo=''):
     """
     tinta = colores_institucionales()
     base = getSampleStyleSheet()
-    estilo_formato = ParagraphStyle('MarcoFormato', parent=base['BodyText'], fontName='Helvetica-Bold',
+    estilo_formato = ParagraphStyle('MarcoFormato', parent=base['BodyText'], fontName=fuentes_documento()[1],
                                     fontSize=10.2, leading=13, textColor=tinta['oscuro'], alignment=1)
     logo = logo_institucional()
     celda_logo = (Image(str(logo), width=ANCHO_LOGO - 6 * mm, height=14.2 * mm, kind='proportional') if logo
@@ -243,7 +268,7 @@ def encabezado_en_flujo(*, formato, metadatos=(), ancho, subtitulo=''):
     centro, derecha = _bloques_encabezado(
         formato, subtitulo or identidad_actual()[1].nombre.upper(), metadatos, ancho, tinta)
     tabla = Table([[celda_logo, centro, derecha]],
-                  colWidths=[ANCHO_LOGO, ancho - ANCHO_LOGO - ANCHO_METADATOS, ANCHO_METADATOS],
+                  colWidths=[ANCHO_LOGO, ancho - ANCHO_LOGO - ancho_metadatos(ancho), ancho_metadatos(ancho)],
                   rowHeights=[ALTO_ENCABEZADO])
     tabla.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),

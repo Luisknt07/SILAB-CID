@@ -47,8 +47,8 @@ def render_documento_pdf(compuesto):
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import mm
     from reportlab.platypus import CondPageBreak, KeepTogether, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-    from reportlab.platypus.tableofcontents import TableOfContents
-    from apps.core.presentation.estilo_reportes import estilos_informe, titulo_seccion as encabezado_seccion, dibujar_portada
+    from apps.core.presentation.estilo_reportes import estilos_informe, titulo_seccion as encabezado_seccion
+    from apps.core.presentation.pdf_institucional import metadatos_documento
 
     institucion = identidad_actual()[1]
     from .validacion_pdf import datos_de_emision, BloqueValidacion
@@ -59,24 +59,19 @@ def render_documento_pdf(compuesto):
     responsables_al_inicio = bool(sello or compuesto.get('_presentacion_archivada') or
         (documento_origen is not None and admite_aprobacion_en_linea(documento_origen)))
     inicio, fin = compuesto['tramo']
-    metadatos = (
-        f"{compuesto.get('codigo_etiqueta', 'Código')}: {compuesto['codigo_formato']}",
-        f"Cobertura: {compuesto['periodo']}",
-    )
-    if compuesto.get('codigo_etiqueta') == 'Referencia interna':
-        metadatos = ('Código de referencia:', compuesto['codigo_formato'],
-                     f"Cobertura: {compuesto['periodo']}")
+    # Las cuatro líneas del formato institucional: código, revisión, período y versión.
+    metadatos = metadatos_documento(compuesto['codigo_formato'], periodo=compuesto['periodo'],
+                                    version=compuesto.get('version'))
     dibujar_encabezado, CanvasNumerado, medidas = marco_institucional(
-        formato=compuesto['titulo'],
+        formato=f"Formato {compuesto['titulo']}",
         metadatos=metadatos,
         pie='Expediente de calidad',
-        estilo='informe',
     )
     tinta = medidas['colores']
     if compuesto.get('borrador'):
         from apps.documentos.presentation.documentos_entrega import con_marca_borrador
         dibujar_encabezado = con_marca_borrador(dibujar_encabezado)
-    verde, oscuro, dorado = tinta['primario'], tinta['oscuro'], tinta['acento']
+    verde, dorado = tinta['primario'], tinta['acento']
     linea, suave, gris = tinta['linea'], tinta['suave'], tinta['tenue']
 
     buffer = BytesIO()
@@ -104,9 +99,9 @@ def render_documento_pdf(compuesto):
     fecha = compuesto.get('_fecha_elaboracion') or timezone.now()
 
     titulo_documento = Paragraph(
-        escape(compuesto['unidad'].nombre),
+        escape(f"{compuesto['titulo']}: {compuesto['unidad'].nombre}"),
         ParagraphStyle('doc', parent=base['Title'], fontName=estilos['bloque'].fontName, fontSize=14, leading=18,
-                       textColor=oscuro, alignment=1, spaceBefore=2, spaceAfter=5),
+                       textColor=verde, alignment=1, spaceBefore=2, spaceAfter=4),
     )
     cobertura = (compuesto['periodo'] if compuesto['tipo'] == 'protocolo' or pac_por_areas else
                  f"{compuesto['periodo']} · {inicio:%d/%m/%Y} - {fin:%d/%m/%Y}")
@@ -115,13 +110,13 @@ def render_documento_pdf(compuesto):
         ParagraphStyle('docs', parent=base['BodyText'], fontName=estilos['texto'].fontName,
                        fontSize=8, leading=11, textColor=gris, alignment=1),
     )
-    indice = TableOfContents()
-    indice.levelStyles = [ParagraphStyle('ContenidoIndice',fontName=estilos['texto'].fontName,
-        fontSize=10,leading=16,textColor=oscuro,spaceBefore=7)]
-    historia = [PageBreak()]
+    # Sin portada ni índice: la primera página ya es el documento, con su encabezado.
+    historia = [titulo_documento, subtitulo_documento, Spacer(1, 4 * mm)]
     if sello:
+        # El cuadro de aprobación es un formulario que se reemplaza en la copia aprobada; va solo en
+        # la primera página para que su texto no se confunda con las tablas al recuperar el contenido.
         historia.extend([encabezado_seccion('RESPONSABILIDAD Y APROBACIÓN',ancho_util,tinta),
-            Spacer(1,3*mm),BloqueValidacion(sello),Spacer(1,6*mm)])
+            Spacer(1,3*mm),BloqueValidacion(sello),PageBreak()])
     elif responsables_al_inicio and any(f[1] for f in compuesto.get('firmas', [])):
         responsables = Table([
             [_p(v, estilos['cabecera']) for v in ('Responsable', 'Cargo', 'Fecha de elaboración')],
@@ -137,8 +132,6 @@ def render_documento_pdf(compuesto):
             Spacer(1,3*mm),responsables,Spacer(1,6*mm)])
         if compuesto.get('borrador'):
             historia.extend([_p('Borrador. Pendiente de envío a Dirección.', estilos['meta']), Spacer(1,3*mm)])
-    historia.extend([encabezado_seccion('CONTENIDO',ancho_util,tinta),Spacer(1,5*mm),indice,
-        PageBreak(),titulo_documento,subtitulo_documento,Spacer(1,3*mm)])
 
     def tabla(cabecera, filas, anchos=None, resaltar_ultima=False, conservar_total=False):
         con_cabecera=any(cabecera)
@@ -399,13 +392,6 @@ def render_documento_pdf(compuesto):
     if not responsables_al_inicio and not (firmas and trazabilidad):
         historia.extend([Spacer(1, 4 * mm), nota_cierre])
 
-    def portada(canvas, doc):
-        dibujar_portada(canvas,doc,titulo=compuesto['titulo'],unidad=compuesto['unidad'].nombre,
-            periodo=compuesto['periodo'],codigo=compuesto['codigo_formato'],
-            fecha=f'{timezone.localtime(fecha):%d/%m/%Y}',medidas=medidas)
-    if compuesto.get('borrador'):
-        from apps.documentos.presentation.documentos_entrega import con_marca_borrador
-        portada=con_marca_borrador(portada)
     def crear_lienzo(*args, **kwargs):
         lienzo = CanvasNumerado(*args, **kwargs)
         if compuesto.get('_presentacion_archivada'):
@@ -413,5 +399,6 @@ def render_documento_pdf(compuesto):
             huso = local.strftime('%z')
             lienzo.setDateFormatter(lambda *_: f"D:{local:%Y%m%d%H%M%S}{huso[:3]}'{huso[3:]}'")
         return lienzo
-    documento.multiBuild(historia, onFirstPage=portada, onLaterPages=dibujar_encabezado,canvasmaker=crear_lienzo)
+    documento.multiBuild(historia, onFirstPage=dibujar_encabezado, onLaterPages=dibujar_encabezado,
+                         canvasmaker=crear_lienzo)
     return buffer.getvalue()

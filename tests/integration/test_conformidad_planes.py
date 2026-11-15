@@ -439,9 +439,8 @@ class ConformidadPlanesTests(TestCase):
         self.assertEqual(constancia.sha256, d.recurso.hash_sha256)
         with d.recurso.archivo.open('rb') as archivo:
             pdf = PdfReader(BytesIO(archivo.read()))
+        # Sin página de índice: la navegación queda en los marcadores del PDF.
         self.assertTrue(pdf.outline)
-        self.assertTrue(any(a.get_object().get('/Dest') for pagina in pdf.pages
-                            for a in pagina.get('/Annots', [])))
         registrar_antecedente_evaluacion(d, self.actor, 90, 'Evaluación histórica conservada.')
         d.entregado_tarde = True
         d.save(update_fields=['entregado_tarde'])

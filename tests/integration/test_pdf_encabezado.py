@@ -45,7 +45,8 @@ class EncabezadoPdfTests(SimpleTestCase):
                 if etiqueta in texto:
                     posiciones[etiqueta] = cm[0]*tm[4]+cm[2]*tm[5]+cm[4]
         texto = '\n'.join(p.extract_text(visitor_text=recoger) or '' for p in pdf.pages)
-        self.assertNotIn('Versión:', texto)
+        # La versión va en el encabezado, con código, revisión y período; nunca en el cuerpo.
+        self.assertIn('Versión: 7', texto)
         self.assertNotIn('Versión del documento:', texto)
         self.assertEqual(fuentes, {'LiberationSans', 'LiberationSans-Bold'})
         self.assertGreater(posiciones['Párrafo breve de prueba.'], posiciones['Criterio de prueba'])
@@ -289,9 +290,9 @@ class EncabezadoPdfTests(SimpleTestCase):
             contenido = render_documento_pdf(compuesto)
         self.assertTrue(contenido.startswith(b'%PDF'))
         self.assertGreater(contenido.count(b'/Type /Page\n'), 1)
-        self.assertEqual(marco.call_args.kwargs['formato'], 'Informe de prueba')
-        self.assertIn('Cobertura: 2026-B', marco.call_args.kwargs['metadatos'])
-        self.assertNotIn('Revisión: 01', marco.call_args.kwargs['metadatos'])
+        self.assertEqual(marco.call_args.kwargs['formato'], 'Formato Informe de prueba')
+        self.assertIn('Período: 2026-B', marco.call_args.kwargs['metadatos'])
+        self.assertIn('Revisión: 01', marco.call_args.kwargs['metadatos'])
 
     def test_titulo_y_codigo_largos_quedan_dentro_de_sus_columnas(self):
         ancho = 182 * mm

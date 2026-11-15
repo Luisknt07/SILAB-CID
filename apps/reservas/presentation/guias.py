@@ -41,6 +41,7 @@ from apps.reservas.presentation.guia_contrato import GUIA_INTEGRADA_CAMPOS
 from apps.reservas.presentation.guia_html import CAMPOS_RICOS, FORMATO_HTML, POLITICA_POR_CAMPO, DocumentoHtml, html_desde_legado, sanear
 from apps.reservas.presentation.guia_firmas import ROLES_FIRMA, firmar_contenido_guia, firmas_desde_post, firmas_predeterminadas, normalizar_firmas, verificar_firma_elaborador
 from apps.reservas.presentation.guia_referencias import normalizar_bibliografia, normalizar_materiales_complementarios
+from apps.core.presentation.pdf_institucional import fuentes_documento, hoja_de_estilos
 
 
 GUIA_FIELDS_AUDIT = (
@@ -1212,7 +1213,7 @@ def construir_pdf_guia(guia, *, figuras=None):
     """Genera el FT04 desde los mismos datos normalizados de la vista HTML."""
     from reportlab.lib import colors
     from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.lib.utils import ImageReader
     from reportlab.platypus import (
@@ -1244,15 +1245,15 @@ def construir_pdf_guia(guia, *, figuras=None):
         author=identidad_actual()[1].nombre,
         subject='UPEC-P10-S01-FT04 · Formato guía de práctica',
     )
-    styles = getSampleStyleSheet()
+    styles = hoja_de_estilos()
     body = ParagraphStyle(
-        'GuideBody', parent=styles['BodyText'], fontName='Helvetica',
+        'GuideBody', parent=styles['BodyText'], fontName=fuentes_documento()[0],
         fontSize=8.2, leading=11.2, textColor=dark, spaceAfter=3,
         alignment=TA_JUSTIFY,
     )
     small = ParagraphStyle('GuideSmall', parent=body, fontSize=7.1, leading=9.2)
     label = ParagraphStyle(
-        'GuideLabel', parent=small, fontName='Helvetica-Bold',
+        'GuideLabel', parent=small, fontName=fuentes_documento()[1],
         fontSize=6.7, leading=8.2, textColor=green,
     )
     label_firma = ParagraphStyle(
@@ -1277,14 +1278,14 @@ def construir_pdf_guia(guia, *, figuras=None):
         textColor=gray,
     )
     title = ParagraphStyle(
-        'GuideTitle', parent=body, fontName='Helvetica-Bold', fontSize=12.5,
+        'GuideTitle', parent=body, fontName=fuentes_documento()[1], fontSize=12.5,
         leading=15, textColor=green, alignment=TA_CENTER, spaceAfter=4,
     )
     caption = ParagraphStyle(
         'GuideCaption', parent=small, alignment=TA_CENTER, textColor=gray, spaceBefore=2,
     )
     section_text = ParagraphStyle(
-        'GuideSection', parent=body, fontName='Helvetica-Bold', fontSize=8.4,
+        'GuideSection', parent=body, fontName=fuentes_documento()[1], fontSize=8.4,
         leading=10.5, textColor=colors.white, alignment=TA_LEFT,
     )
     c = _contenido_para_vista(guia, figuras)
@@ -1550,7 +1551,7 @@ def construir_pdf_guia(guia, *, figuras=None):
         story.append(Paragraph(
             f'ESTADO DOCUMENTAL: {escape(guia.get_estado_publicacion_display().upper())}',
             ParagraphStyle(
-                'GuideDraft', parent=small, fontName='Helvetica-Bold',
+                'GuideDraft', parent=small, fontName=fuentes_documento()[1],
                 textColor=colors.HexColor('#896A14'), alignment=TA_CENTER, spaceAfter=4,
             ),
         ))

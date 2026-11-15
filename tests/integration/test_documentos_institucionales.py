@@ -141,9 +141,10 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
         self.assertEqual(pdf.status_code, 200)
         self.assertTrue(pdf.content.startswith(b'%PDF'))
         argumentos = marco.call_args.kwargs
-        self.assertEqual(argumentos['formato'], 'Planificación semestral de actividades de la unidad')
+        self.assertEqual(argumentos['formato'], 'Formato Planificación semestral de actividades de la unidad')
         self.assertEqual(argumentos['pie'], 'Expediente de calidad')
-        self.assertIn('Cobertura: Período 2026-A', argumentos['metadatos'])
+        self.assertIn('Período: 2026-A', argumentos['metadatos'])
+        self.assertIn('Revisión: 01', argumentos['metadatos'])
 
     def test_el_reporte_del_centro_usa_el_mismo_marco_apaisado(self):
         peticion = RequestFactory().get('/', {'categoria_reporte': 'planificaciones'})
