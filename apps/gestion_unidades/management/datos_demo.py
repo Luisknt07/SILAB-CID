@@ -4,6 +4,14 @@ from django.conf import settings
 from django.core.management.base import CommandError
 
 
+def exigir_entorno_datos_demo():
+    """Barrera mínima para comandos con otra forma de acotar su alcance."""
+    if not getattr(settings, "ALLOW_DEMO_DATA_COMMANDS", False):
+        raise CommandError(
+            "Los cargadores demostrativos están deshabilitados en este entorno."
+        )
+
+
 class ComandoDatosDemostrativosMixin:
     """Exige entorno, alcance y confirmación antes de crear datos ficticios."""
 
@@ -24,10 +32,7 @@ class ComandoDatosDemostrativosMixin:
         )
 
     def validar_opciones_datos_demo(self, options):
-        if not getattr(settings, "ALLOW_DEMO_DATA_COMMANDS", False):
-            raise CommandError(
-                "Los cargadores demostrativos están deshabilitados en este entorno."
-            )
+        exigir_entorno_datos_demo()
         slug = (options.get("unidad") or "").strip()
         if not slug:
             raise CommandError("Indica --unidad para acotar los datos demostrativos.")

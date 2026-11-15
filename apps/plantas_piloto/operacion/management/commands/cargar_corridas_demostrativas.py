@@ -24,6 +24,7 @@ from apps.plantas_piloto.operacion.models.calidad import ControlCalidad, NoConfo
 from apps.plantas_piloto.operacion.models.produccion import LoteProducto, MovimientoProducto, OrdenProduccion, Receta
 from apps.plantas_piloto.operacion.models.erp import SesionERP
 from apps.directorio_unidades.models.core import Unidad
+from apps.gestion_unidades.management.datos_demo import exigir_entorno_datos_demo
 from apps.recursos.models.unidades import UnidadEquipo
 
 AMBITOS = ('practica', 'investigacion', 'propia')
@@ -64,6 +65,7 @@ class Command(BaseCommand):
         parser.add_argument('--limpiar', action='store_true', help='Borra lo demostrativo antes de crearlo.')
 
     def handle(self, *args, **options):
+        exigir_entorno_datos_demo()
         plantas = Unidad.objects.filter(dependencia='plantas_piloto').order_by('slug')
         if options['planta']:
             plantas = plantas.filter(slug=options['planta'])

@@ -238,12 +238,6 @@ def _dibujar_certificado_v1(certificado, mostrar_documento=True, vista_previa=Fa
 DISENOS_CERTIFICADO = ('clasico', 'sobrio', 'tecnologico', 'geometrico', 'elegante', 'congreso')
 
 
-def _fecha_texto(valor):
-    if not valor:
-        return ''
-    return valor.strftime('%d/%m/%Y') if hasattr(valor, 'strftime') else str(valor)
-
-
 def _horas_texto(valor):
     from decimal import Decimal, InvalidOperation
     try:

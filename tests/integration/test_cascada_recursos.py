@@ -255,11 +255,20 @@ class CascadaRecursosTests(TestCase):
 
         self.assertEqual(pagina.status_code, 200)
         self.assertContains(pagina, 'Elige dónde trabajarás')
-        # Orientación en diálogos amplios; los iframes cargan al abrirlos.
+        # Sin medios propios no se ofrece orientación: nunca se muestran los de otra unidad.
+        self.assertNotContains(pagina, 'data-space-orientation')
+        self.assertNotContains(pagina, 'plano-fablab-demostrativo')
+        self.assertNotContains(pagina, 'img/360/lacteos1')
+        # Con los medios de la unidad, la orientación abre diálogos amplios; los iframes cargan al abrirlos.
+        self.unidad.recorrido_espacios_youtube_url = 'https://www.youtube.com/watch?v=Vcxz9ss2MAs'
+        self.unidad.recorrido_360_ruta = 'https://recorridos.example.edu/unidad/index.html'
+        self.unidad.save(update_fields=['recorrido_espacios_youtube_url', 'recorrido_360_ruta'])
+        pagina = self.client.get(self.unidad.get_absolute_url())
         self.assertContains(pagina, '¿No conoces el laboratorio?')
-        for destino in ('orientacionPlano', 'orientacionVideo', 'orientacion360'):
+        for destino in ('orientacionVideo', 'orientacion360'):
             self.assertContains(pagina, f'data-orientation-open="{destino}"')
             self.assertContains(pagina, f'<template id="{destino}">')
+        self.assertNotContains(pagina, 'orientacionPlano')
         self.assertContains(pagina, '<iframe data-src="', count=2)
         self.assertNotContains(pagina, 'reservation-space-tour')
         # Equipos en tarjetas agrupadas por categoria; no disponibles en un plegable aparte.

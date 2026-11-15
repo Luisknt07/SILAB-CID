@@ -20,8 +20,15 @@ Antes de iniciar el servicio:
    `DB_SSLMODE=verify-full` junto con `DB_SSLROOTCERT` para una base externa.
 6. Configurar `BACKUP_HOST_DIR` fuera del volumen de PostgreSQL (predeterminado
    `./var/backups`).
-7. Ejecutar `python manage.py migrate` y `python manage.py collectstatic --noinput`.
-8. Ejecutar `python manage.py check --deploy --settings=config.settings_production`.
+7. Declarar como `true` o `false` las dos decisiones de publicación,
+   `SLCID_EXIGIR_EQUIPOS_VERIFICADOS` y `SLCID_MEDICION_METAS_HABILITADA`; sin
+   ellas `check --deploy` falla con `slcid.E014`.
+8. Opcional: `SLCID_ADMIN_REDES_PERMITIDAS` con las redes desde las que se
+   administra. El segundo factor del administrador es obligatorio y no requiere
+   configuración: cada persona lo da de alta en su primer ingreso
+   ([detalle](autenticacion.md#segundo-factor-para-administrar)).
+9. Ejecutar `python manage.py migrate` y `python manage.py collectstatic --noinput`.
+10. Ejecutar `python manage.py check --deploy --settings=config.settings_production`.
 
 ## Dependencias reproducibles
 

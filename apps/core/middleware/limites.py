@@ -11,6 +11,28 @@ from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 
 
+def contar_peticion(categoria, identidad, ahora=None):
+    """Suma una petición al minuto en curso y devuelve cuántas van.
+
+    La identidad no se guarda: solo su huella con la clave del sistema. Propaga
+    ``DatabaseError`` para que quien llama cierre el acceso si el control falla.
+    """
+    ahora = ahora or timezone.now()
+    tramo = math.floor(ahora.timestamp() / 60)
+    clave = hmac.new(settings.SECRET_KEY.encode(), f'{categoria}:{identidad}:{tramo}'.encode(), hashlib.sha256).hexdigest()
+    with connection.cursor() as cursor:
+        cursor.execute(
+            'INSERT INTO webcitt_contadorpeticion (clave, total, vence) VALUES (%s, 1, %s) '
+            'ON CONFLICT (clave) DO UPDATE SET total = webcitt_contadorpeticion.total + 1 RETURNING total',
+            [clave, ahora + timedelta(minutes=2)],
+        )
+        return cursor.fetchone()[0]
+
+
+def segundos_hasta_el_minuto(ahora):
+    return 60 - int(ahora.timestamp()) % 60
+
+
 class LimitePeticionesMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -21,13 +43,19 @@ class LimitePeticionesMiddleware:
         name = getattr(getattr(request, 'resolver_match', None), 'url_name', '')
         # El middleware corre antes de resolver la vista: resolver es lectura del URLconf.
         from django.urls import Resolver404, resolve
+        propio = False
         try:
-            name = resolve(request.path_info).url_name or ''
+            encontrado = resolve(request.path_info)
+            name = encontrado.url_name or ''
+            # Una entrada para máquinas cuenta por credencial dentro de su vista:
+            # el límite por dirección castigaría a todos los equipos de una misma red.
+            propio = getattr(encontrado.func, 'limite_propio', False)
         except Resolver404:
             pass
-        auth = name in {'login', 'register', 'account_login', 'account_signup', 'account_reset_password'} or request.path_info.rstrip('/').endswith('/admin/login')
+        auth = name in {'login', 'register', 'account_login', 'account_signup', 'account_reset_password',
+                        'segundo_factor'} or request.path_info.rstrip('/').endswith('/admin/login')
         write = request.method not in {'GET', 'HEAD', 'OPTIONS'}
-        if not write and not auth:
+        if propio or (not write and not auth):
             return self.get_response(request)
         user = getattr(request, 'user', None)
         user_id = user.pk if user and user.is_authenticated else None
@@ -36,16 +64,8 @@ class LimitePeticionesMiddleware:
         category = 'auth' if auth else 'write'
         limit = settings.RATE_LIMIT_AUTH_PER_MINUTE if auth else settings.RATE_LIMIT_WRITE_PER_MINUTE
         now = timezone.now()
-        bucket = math.floor(now.timestamp() / 60)
-        key = hmac.new(settings.SECRET_KEY.encode(), f'{category}:{identity}:{bucket}'.encode(), hashlib.sha256).hexdigest()
         try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    'INSERT INTO webcitt_contadorpeticion (clave, total, vence) VALUES (%s, 1, %s) '
-                    'ON CONFLICT (clave) DO UPDATE SET total = webcitt_contadorpeticion.total + 1 RETURNING total',
-                    [key, now + timedelta(minutes=2)],
-                )
-                total = cursor.fetchone()[0]
+            total = contar_peticion(category, identity, now)
         except DatabaseError:
             # No se abre el acceso silenciosamente si falla el control compartido.
             response = JsonResponse({'error': 'Servicio temporalmente no disponible.'}, status=503)
@@ -53,7 +73,7 @@ class LimitePeticionesMiddleware:
             return response
         if total > limit:
             response = JsonResponse({'error': 'Demasiadas peticiones. Inténtalo en un minuto.'}, status=429)
-            response['Retry-After'] = str(60 - int(now.timestamp()) % 60)
+            response['Retry-After'] = str(segundos_hasta_el_minuto(now))
             response['Cache-Control'] = 'no-store'
             patch_vary_headers(response, ['Cookie'])
             return response

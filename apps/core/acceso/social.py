@@ -1,9 +1,16 @@
+import logging
+
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.core.exceptions import ImmediateHttpResponse
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.conf import settings
+
+# Nunca print(): una consola de Windows sin UTF-8 falla al escribir símbolos y
+# ese error interrumpía el inicio de sesión.
+registro = logging.getLogger(__name__)
+
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def _provider_name(self, sociallogin):
@@ -72,7 +79,52 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 profile.institucion = 'Gmail'
             profile.save(update_fields=['institucion'])
         except Exception as e:
-            print(f"⚠️ Error segmentando perfil: {str(e)}")
+            registro.warning('No se pudo segmentar el perfil del usuario %s: %s', user.pk, e)
+
+    def _correo_acreditado(self, sociallogin):
+        """Indica si el proveedor responde por el correo con el que se identifica la persona."""
+        if sociallogin.account.provider == 'google':
+            datos = sociallogin.account.extra_data or {}
+            return bool(datos.get('email_verified') or datos.get('verified_email'))
+        # Microsoft se identifica por el nombre principal de la cuenta, cuyo
+        # dominio pertenece al directorio que la emite y figura entre los permitidos.
+        return True
+
+    def _asegurar_cuenta_existente(self, request, usuario, email):
+        """Evita que quien registró antes un correo ajeno conserve acceso a la cuenta.
+
+        Cualquiera puede crear una cuenta con contraseña usando el correo de
+        otra persona. Si ese correo nunca se confirmó, la contraseña pudo
+        ponerla un tercero: se anula al vincular al titular que acredita el
+        proveedor. Las cuentas de personal las crea la administración.
+        """
+        from allauth.account.models import EmailAddress
+        from django.db import IntegrityError, transaction
+
+        confirmado = EmailAddress.objects.filter(user=usuario, email__iexact=email, verified=True).exists()
+        if confirmado:
+            return
+        if usuario.has_usable_password() and not (usuario.is_staff or usuario.is_superuser):
+            usuario.set_unusable_password()
+            usuario.save(update_fields=['password'])
+            messages.info(
+                request,
+                'Por seguridad se desactivó la contraseña anterior de esta cuenta, porque su correo no '
+                'se había confirmado. Puedes definir una nueva con «¿Olvidaste tu contraseña?».'
+            )
+        try:
+            with transaction.atomic():
+                direccion = EmailAddress.objects.filter(user=usuario, email__iexact=email).first()
+                if direccion is None:
+                    EmailAddress.objects.create(
+                        user=usuario, email=email, verified=True,
+                        primary=not EmailAddress.objects.filter(user=usuario, primary=True).exists())
+                else:
+                    direccion.verified = True
+                    direccion.save(update_fields=['verified'])
+        except IntegrityError:
+            # Otra cuenta ya confirmó este correo; no se altera su registro.
+            pass
 
     def pre_social_login(self, request, sociallogin):
         """
@@ -92,14 +144,22 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 f'Solo se permiten cuentas @gmail.com o @upec.edu.ec para iniciar sesión con {provider_name}.'
             )
             raise ImmediateHttpResponse(redirect('account_login'))
-        
+
+        if email and not self._correo_acreditado(sociallogin):
+            messages.error(
+                request,
+                f'{provider_name} no confirma que ese correo te pertenezca. Verifícalo en tu cuenta de '
+                f'{provider_name} e intenta de nuevo.'
+            )
+            raise ImmediateHttpResponse(redirect('account_login'))
+
         if email:
             # Buscar usuarios existentes con este email
             existing_users = User.objects.filter(email=email)
             
             if existing_users.count() > 1:
                 # Si hay múltiples usuarios, usar el más reciente
-                print(f"⚠️ Múltiples usuarios encontrados para {email}, usando el más reciente")
+                registro.warning('Varias cuentas comparten el correo del acceso social; se usa la más reciente.')
                 existing_user = existing_users.order_by('-date_joined').first()
             elif existing_users.count() == 1:
                 existing_user = existing_users.first()
@@ -109,15 +169,16 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             
             # Conectar la cuenta social al usuario existente
             try:
+                self._asegurar_cuenta_existente(request, existing_user, email)
                 sociallogin.connect(request, existing_user)
                 self._assign_user_segment(existing_user, email)
-                print(f"✅ Cuenta social conectada a usuario existente: {existing_user.username}")
+                registro.info('Acceso social vinculado a la cuenta existente %s.', existing_user.pk)
                 messages.success(
                     request, 
                     f'Tu cuenta de {provider_name} ha sido conectada a tu usuario existente: {existing_user.email}'
                 )
-            except Exception as e:
-                print(f"❌ Error conectando cuenta social: {str(e)}")
+            except Exception:
+                registro.exception('No se pudo vincular el acceso social a la cuenta %s.', existing_user.pk)
                 messages.error(request, f'Error conectando tu cuenta de {provider_name}. Intenta de nuevo.')
 
     def save_user(self, request, sociallogin, form=None):
@@ -139,7 +200,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             existing_user = User.objects.filter(email=email).first()
             if existing_user:
                 self._assign_user_segment(existing_user, email)
-                print(f"⚠️ Usuario ya existe durante save_user: {existing_user.username}")
+                registro.warning('La cuenta %s ya existía al guardar el acceso social.', existing_user.pk)
                 return existing_user
         
         # Crear nuevo usuario
@@ -168,7 +229,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 counter += 1
             
             user.username = username
-            print(f"✅ Username generado: {username}")
+            registro.info('Nombre de usuario generado para el acceso social.')
         
         user.save()
         if email:
@@ -179,9 +240,9 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             from apps.core.models.usuarios_base import UserProfile
             profile, created = UserProfile.objects.get_or_create(user=user)
             if created:
-                print(f"✅ Perfil creado para usuario: {user.username}")
+                registro.info('Perfil creado para la cuenta %s.', user.pk)
         except Exception as e:
-            print(f"⚠️ Error creando perfil: {str(e)}")
+            registro.warning('No se pudo crear el perfil de la cuenta %s: %s', user.pk, e)
         
         return user
     
@@ -222,11 +283,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 counter += 1
             
             user.username = username
-            print(f"✅ Username poblado: {username}")
+            registro.info('Nombre de usuario asignado para el acceso social.')
     
     def authentication_error(self, request, provider_id, error=None, exception=None, extra_context=None):
         """Manejo de errores de autenticación"""
-        print(f"❌ Error de autenticación: {error}")
+        registro.warning('Error de autenticación con el proveedor %s: %s', provider_id, error)
         provider_name = provider_id.capitalize() if provider_id else 'el proveedor'
         messages.error(request, f'Error al autenticar con {provider_name}. Por favor, intenta de nuevo.')
         return redirect('account_login')

@@ -117,8 +117,12 @@ La restauracion de un incidente sigue este orden:
 - Las claves se rotan al cambiar personal, ante una sospecha de exposicion y en
   el calendario institucional. `SECRET_KEY_FALLBACKS` solo se usa durante una
   rotacion corta.
-- Los accesos administrativos usan MFA en el proveedor de identidad y dejan
-  registro auditable. Las cuentas compartidas no son aceptables.
+- Los accesos administrativos exigen un segundo factor propio del sistema
+  (aplicación autenticadora), obligatorio en producción y aplicado a toda
+  entrada al administrador, y pueden limitarse a las redes institucionales
+  ([detalle](autenticacion.md#segundo-factor-para-administrar)). El MFA del
+  proveedor de identidad se suma, no lo sustituye. Las cuentas compartidas no
+  son aceptables.
 
 ## Contencion de fallos y modularidad
 

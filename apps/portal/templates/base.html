@@ -7,7 +7,7 @@
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     {{ regional_institucion|json_script:"configuracion-regional-institucion" }}
     <script src="{% static 'portal/js/components/regional_institucion.js' %}?v=20260916-regional-v1"></script>
-    <script src="{% url 'javascript_catalog' %}?language={{ idioma_actual }}"></script>
+    <script src="{% catalogo_javascript_url idioma_actual %}"></script>
     <script src="{% static 'portal/js/components/idiomas.js' %}?v=20260916-i18n-v1"></script>
     <!-- Archivos CSS -->
     <link rel="stylesheet" href="{% static 'font/iconsmind-s/css/iconsminds.css' %}" />

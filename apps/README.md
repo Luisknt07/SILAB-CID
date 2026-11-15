@@ -23,6 +23,7 @@ de sus modelos.
 | `centros_id` | Centros I+D, investigadores, capacidades, proyectos, resultados y servicios científicos. |
 | `integraciones` | Composición explícita de capacidades por tipo de unidad y auditorías entre aplicaciones. |
 | `historial_modelos` | Migraciones históricas exclusivamente; no define modelos ni funciones operativas. |
+| `conexiones` | Opcional (`SLCID_MODULO_CONEXIONES`): dispositivos conectados de las unidades, canales y series de medición. |
 
 Las raíces de `laboratorios`, `plantas_piloto`, `centros_experimentales` y
 `observatorios` contienen las entradas públicas y los paneles por tipología.
@@ -36,6 +37,15 @@ para reglas, `presentation/` para HTTP, `admin/` para administración,
 Las pruebas integradas están en `tests/integration/`, los contratos de
 arquitectura en `tests/architecture/` y las pruebas específicas existentes en
 cada aplicación. No crear otro contenedor general de funciones.
+
+Un módulo opcional se instala por despliegue con su variable de entorno;
+apagado no tiene tablas, rutas ni administración, y ninguna otra aplicación lo
+importa. `conexiones` es el primero: su [guía](conexiones/README.md) describe
+el patrón (`config/settings.py`, `config/modulos.py`, `config/rutas_aplicaciones.py`).
+
+Los estáticos se recopilan con huella de contenido, compresión y derivados
+WebP de las imágenes pesadas (`core/estaticos.py`); los originales conservan
+su nombre y su ruta.
 
 Las URL de estáticos y las rutas públicas conservan sus nombres. Django busca
 los recursos en la aplicación propietaria. Los datos de ejecución van a

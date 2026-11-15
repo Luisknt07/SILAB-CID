@@ -18,6 +18,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from apps.gestion_unidades.models.secciones_propias import ElementoSeccionPropia, SeccionPropia
 from apps.recursos.models.recursos import ModuloUnidad
 from apps.directorio_unidades.models.core import Unidad
+from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
 
 from apps.gestion_unidades.presentation.permisos import puede_administrar_personal_unidad, puede_operar_modulo_unidad
 
@@ -172,18 +173,27 @@ def editar_seccion_view(request, slug, pk):
                     if clave == 'nuevo' else get_object_or_404(ElementoSeccionPropia, seccion=seccion, pk=clave))
         formulario = ElementoForm(datos, archivos, instance=elemento, prefix='elemento')
         if request.method == 'POST' and formulario.is_valid():
-            if formulario.cleaned_data.get('eliminar') and elemento.pk:
+            identificador = elemento.pk
+            if formulario.cleaned_data.get('eliminar') and identificador:
                 elemento.delete()
+                elemento.pk = identificador  # delete() lo vacía; el registro conserva a qué objeto se refiere
+                hecho = 'eliminar'
             else:
                 elemento = formulario.save(commit=False)
                 elemento.es_ejemplo = False  # editado, deja de ser muestra
                 elemento.save()
+                hecho = 'actualizar' if identificador else 'crear'
+            registrar_auditoria(request, unidad=unidad, accion=hecho, objeto=elemento,
+                                descripcion=f'Elemento de la sección «{seccion.titulo}»: {hecho} desde su página')
             return _responder(request, pagina)
     else:
         elemento = None
         formulario = DatosDeSeccionForm(datos, archivos, instance=seccion, prefix='seccion')
         if request.method == 'POST' and formulario.is_valid():
             formulario.save()
+            registrar_auditoria(request, unidad=unidad, accion='actualizar', objeto=seccion,
+                                descripcion='Sección propia editada desde su página',
+                                nuevos={'campos': sorted(formulario.changed_data)})
             return _responder(request, pagina)
     nuevo = clave == 'nuevo'
     return render(request, 'portal/pages/unidades/detalle/editor_formulario.html', {
@@ -210,6 +220,8 @@ def nueva_seccion_view(request, slug):
         with transaction.atomic():
             seccion = crear_seccion(unidad, formulario.cleaned_data['modulo'], formulario.cleaned_data['titulo'],
                                     formulario.cleaned_data['plantilla'])
+            registrar_auditoria(request, unidad=unidad, accion='crear', objeto=seccion,
+                                descripcion='Sección propia creada desde la página de la unidad')
         return _responder(request, reverse('seccion_propia', args=[unidad.slug, seccion.pk]))
     return render(request, 'portal/pages/unidades/detalle/editor_formulario.html', {
         'antetitulo': 'Nueva sección', 'titulo': unidad.nombre, 'formulario': formulario,

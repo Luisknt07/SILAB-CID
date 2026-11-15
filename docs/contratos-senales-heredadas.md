@@ -190,3 +190,18 @@ en `webcitt/tests/test_cursos_externos.py`: conserva ambas invitaciones,
 omite ofertas externas e inactivas y vincula solamente la nativa reactivada.
 El cierre debe ejecutar esta regresión y el auditor estricto junto con la
 suite general; esta actualización documental no sustituye esos resultados.
+
+## Revisión del 14 de noviembre de 2026: tope al descomprimir un ZIP
+
+`Recurso.save()` rechaza un ZIP que declare más de 512 MB o 20 000 archivos al
+descomprimirse, en el mismo punto y con el mismo efecto que el rechazo de rutas
+no permitidas que ya existía: la excepción sale del bloque atómico y revierte
+el guardado completo. Se añadieron dos constantes de módulo.
+
+Los receptores de `apps/recursos/models/recursos.py` atienden el `post_save` de
+`Unidad` (`initialize_project_modules`, `initialize_project_public_content`) y
+no leen ni escriben `Recurso`; tampoco cambian sus ayudantes ni sus constantes.
+Los contratos no se modifican. Solo se actualizó la huella de ese archivo, con
+saltos LF/CRLF normalizados:
+`274d73cdea14eea9282c130cc735c0780e82ce112e4f4bf21804c8008d071364`.
+Las otras nueve referencias permanecen intactas.

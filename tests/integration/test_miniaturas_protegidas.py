@@ -45,8 +45,13 @@ class MiniaturasProtegidasTests(TestCase):
             respuesta, contenido = self.pedir(url)
             self.assertEqual(respuesta.status_code, 200)
             self.assertEqual(respuesta['Content-Type'], 'image/jpeg')
-            self.assertEqual(respuesta['Cache-Control'], 'private, no-store')
+            # Publicada para cualquier visitante: el navegador conserva la copia y
+            # revalida en cada uso, de modo que el permiso se vuelve a evaluar.
+            self.assertEqual(respuesta['Cache-Control'], 'private, no-cache')
             self.assertEqual(respuesta['X-Content-Type-Options'], 'nosniff')
+            vigente, cuerpo = self.pedir(url, HTTP_IF_NONE_MATCH=respuesta['ETag'])
+            self.assertEqual((vigente.status_code, cuerpo), (304, b''))
+            self.assertEqual(vigente['Cache-Control'], 'private, no-cache')
             with Image.open(BytesIO(contenido)) as imagen:
                 self.assertEqual(imagen.size, (lado, lado))
         self.assertEqual(len(list(Path(settings.MEDIA_ROOT, 'miniaturas/interior').glob('*.jpg'))), 2)

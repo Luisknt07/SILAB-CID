@@ -111,6 +111,15 @@ def hardened_production_configuration(app_configs, **kwargs):
                 id="webcitt.E009",
             )
         )
+    sin_decidir = sorted(nombre for nombre, valor in getattr(settings, "DECISIONES_DE_PUBLICACION", {}).items()
+                         if valor is None)
+    if sin_decidir:
+        errors.append(
+            Error(
+                "Declare como true o false antes de publicar: " + ", ".join(sin_decidir) + ".",
+                id="slcid.E014",
+            )
+        )
     if "'unsafe-eval'" in getattr(settings, "CONTENT_SECURITY_POLICY", ""):
         errors.append(
             Error(

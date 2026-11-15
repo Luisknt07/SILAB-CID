@@ -35,11 +35,6 @@ def reservas_habilitadas():
     return control_actual(MODULO_RESERVAS, CAPACIDAD_RESERVAS).autoriza(True)
 
 
-def exigir_reservas_habilitadas():
-    if not reservas_habilitadas():
-        raise CapacidadReservasSuspendida(mensaje_capacidad_suspendida())
-
-
 @contextmanager
 def bloquear_operacion_reservas():
     """Bloquea la autoridad sin confundir denegaciones del caso de uso."""

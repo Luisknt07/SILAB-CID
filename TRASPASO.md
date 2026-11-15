@@ -9,6 +9,41 @@ validado de CITT, commit `6f6b9a56`; el historial anterior permanece en la carpe
 original. El traslado partió de un único commit, con los dos vídeos LFS
 completos. Consultar Git para comprobar el estado de la publicación.
 
+**Auditoría integral del 14 de noviembre.** Revisión completa previa a
+producción en [docs/auditoria-integral-2026-11-14.md](docs/auditoria-integral-2026-11-14.md):
+qué se midió, qué se corrigió y los pendientes con su ubicación. Resumen:
+
+- **Carga.** Estáticos con huella, derivados WebP y catálogo de traducciones
+  publicado (`apps/core/estaticos.py`); la portada pasa de 60,4 MB a 5,4 MB.
+- **Seguridad.** Corregidos tres fallos altos (datos personales en la búsqueda
+  de participantes, adjuntos ejecutables, vinculación de cuentas sociales).
+  El administrador exige segundo factor con aplicación autenticadora:
+  obligatorio en producción, optativo en desarrollo con
+  `SLCID_ADMIN_SEGUNDO_FACTOR=true`; `SLCID_ADMIN_REDES_PERMITIDAS` lo limita
+  por red ([detalle](docs/autenticacion.md#segundo-factor-para-administrar)).
+- **Decisiones de publicación.** `SLCID_EXIGIR_EQUIPOS_VERIFICADOS` y
+  `SLCID_MEDICION_METAS_HABILITADA` pueden faltar en desarrollo; producción no
+  arranca sin declararlas. La primera sigue en falso: de 2 234 equipos
+  públicos solo 1 tiene la existencia verificada.
+- **Conexiones físico-digitales.** Módulo opcional
+  [apps/conexiones](apps/conexiones/README.md) para dispositivos y series de
+  medición, activo en el perfil de desarrollo.
+- **Gestión.** Las ediciones desde la página de la unidad registran auditoría;
+  un área nueva nace no reservable; el asistente de reservas solo ofrece los
+  medios propios de la unidad.
+- **Limpieza.** 11 funciones y 80 estáticos sin uso retirados.
+
+**Base local.** Se aplicaron `conexiones.0001` y `core.0002` (cuatro tablas
+nuevas en `citt_db`; ninguna tabla cambió en `citt_centros_id`, donde solo se
+completó el registro de migraciones). Respaldo previo de ambas bases y roles
+en `var/backups/pre-migracion-20261114-auditoria/`.
+
+**Abierto para publicar.** Correo SMTP, dominio HTTPS y credenciales
+institucionales de Google y Microsoft (aplazados hasta tenerlos); programar
+los recordatorios documentales cuando Dirección revise los plazos; depurar los
+datos demostrativos en el corte; y los nueve pendientes de seguridad del
+informe.
+
 **Arranque de desarrollo.** Usar `docker-compose.local.yml` o
 `scripts/iniciar_docker_desarrollo.ps1`, con Docker Desktop iniciado. El perfil
 usa PostgreSQL existente en `citt_default`; no recrea bases, volúmenes ni

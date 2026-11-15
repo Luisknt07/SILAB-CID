@@ -118,6 +118,29 @@ class BusquedaResponsablesTests(TestCase):
         self.assertIn("limit 10", consultas_usuarios[0])
         self.assertNotIn('"password"', consultas_usuarios[0])
 
+    def test_cedula_y_telefono_ajenos_solo_los_ve_quien_gestiona_una_unidad(self):
+        perfil = self.tecnico.profile
+        perfil.cedula, perfil.telefono = "0401234567", "0991234567"
+        perfil.save(update_fields=["cedula", "telefono"])
+        solicitante = get_user_model().objects.create_user(username="solicitante-sin-unidad")
+        identificar(solicitante, tipo_usuario="estudiante")
+
+        def fila(contexto):
+            respuesta = self.client.get(self.url, {"contexto": contexto, "q": "tecnico-personal"})
+            self.assertEqual(respuesta.status_code, 200, respuesta.content)
+            return respuesta.json()["usuarios"][0]
+
+        self.client.force_login(solicitante)
+        self.assertEqual(fila("participantes")["documento"], "•••••••567")
+        self.assertEqual(fila("participantes")["telefono"], "•••••••567")
+        visita = fila("visitas_internas")
+        self.assertEqual((visita["documento"], visita["telefono"]), ("", ""))
+        self.assertNotIn("0401234567", str(visita) + str(fila("participantes")))
+        for gestor in (self.admin, self.coordinador, self.ajeno):
+            self.client.force_login(gestor)
+            self.assertEqual(fila("participantes")["documento"], "0401234567", gestor.username)
+            self.assertEqual(fila("visitas_internas")["telefono"], "0991234567", gestor.username)
+
     def test_termino_corto_no_busca_cuentas_y_contexto_desconocido_se_rechaza(self):
         self.client.force_login(self.admin)
         with CaptureQueriesContext(connection) as consultas:

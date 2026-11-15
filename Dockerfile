@@ -30,6 +30,12 @@ RUN groupadd --system slcid \
 
 USER slcid
 
+# Estáticos con huella de contenido, comprimidos y con derivados WebP dentro
+# de la imagen: el contenedor arranca sin recopilarlos. La configuración base
+# no abre la base de datos y la clave solo existe durante este paso.
+RUN DJANGO_SETTINGS_MODULE=config.settings SECRET_KEY=solo-recopilacion-de-estaticos \
+    python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
 ENTRYPOINT ["sh", "/app/scripts/docker_web.sh"]

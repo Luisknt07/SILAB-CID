@@ -29,6 +29,13 @@ def validar_bases_pruebas(aliases):
             raise ImproperlyConfigured(f'El alias {alias} debe apuntar al servidor QA en loopback.')
 
 
+def almacenes_de_pruebas():
+    # Un manifiesto de estáticos recopilado en este equipo (var/static) no debe
+    # cambiar las direcciones que comprueban las pruebas: se usan sin huella.
+    return {**settings.STORAGES,
+            'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'}}
+
+
 def aislar_worker(media_root, password_hashers):
     # spawn no hereda override_settings del proceso principal. Cada worker
     # escribe en su carpeta y el contexto del padre las elimina al terminar.
@@ -36,6 +43,7 @@ def aislar_worker(media_root, password_hashers):
     carpeta.mkdir(parents=True, exist_ok=True)
     settings.MEDIA_ROOT = str(carpeta)
     settings.PASSWORD_HASHERS = password_hashers
+    settings.STORAGES = almacenes_de_pruebas()
 
 
 class SuiteParalelaAislada(ParallelTestSuite):
@@ -54,7 +62,7 @@ class PruebasAisladas(DiscoverRunner):
             anteriores = self.parallel_test_suite.process_setup_args
             self.parallel_test_suite.process_setup_args = (media, settings.PASSWORD_HASHERS)
             try:
-                with override_settings(MEDIA_ROOT=media):
+                with override_settings(MEDIA_ROOT=media, STORAGES=almacenes_de_pruebas()):
                     return super().run_tests(test_labels, **kwargs)
             finally:
                 self.parallel_test_suite.process_setup_args = anteriores

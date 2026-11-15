@@ -1,7 +1,9 @@
 """Registro explícito de medios: una ruta existente no concede acceso."""
 from functools import lru_cache
+from types import SimpleNamespace
 
 from django.apps import apps
+from django.contrib.auth.models import AnonymousUser
 from django.http import Http404
 
 from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad
@@ -140,7 +142,11 @@ def _publico_permitido(request, objeto):
 
 
 def autorizar_archivo(request, relativa):
-    """Requiere registro y aplica su política antes de abrir el archivo."""
+    """Requiere registro y aplica su política antes de abrir el archivo.
+
+    Devuelve si el archivo está publicado para cualquier visitante. Lo que se
+    entrega por un permiso (titular, gestor, operador) nunca lo está.
+    """
     for modelo, campo, prefijo, privado in _registro():
         if prefijo and '%' not in prefijo and not relativa.startswith(prefijo):
             continue
@@ -150,5 +156,8 @@ def autorizar_archivo(request, relativa):
         permitido = _privado_permitido(request, objeto) if privado else _publico_permitido(request, objeto)
         if not permitido:
             raise Http404()
-        return
+        if privado:
+            return False
+        return bool(request.user.is_anonymous
+                    or _publico_permitido(SimpleNamespace(user=AnonymousUser()), objeto))
     raise Http404()

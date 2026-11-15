@@ -1755,6 +1755,16 @@ def _aplicar_rol_de_equipo(request, unidad, catalogo):
     rol = (request.POST.get("rol_equipo") or "principal").strip()
     if rol not in dict(EquiposServicios.ROLES):
         raise ValidationError("Indica si el equipo es principal o auxiliar.")
+    # El modelo técnico es común a las unidades que lo tienen: su rol lo cambia
+    # quien gestiona los recursos de todas ellas, no cualquiera que lo use.
+    from apps.recursos.presentation.edicion_equipo import puede_editar_modelo
+
+    if not puede_editar_modelo(request.user, catalogo):
+        if rol != catalogo.rol:
+            raise ValidationError(
+                "Este modelo lo comparten otras unidades: su rol lo cambia quien gestiona los recursos de todas."
+            )
+        return
     catalogo.rol = rol
     catalogo.save(update_fields=["rol", "fecha_actualizacion"])
     if rol != "auxiliar":

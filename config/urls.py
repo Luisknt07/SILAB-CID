@@ -12,6 +12,7 @@ urlpatterns = [
     path('salud/', include('apps.core.presentation.salud_urls')),
     path('', include('apps.configuracion_institucional.urls')),
     path('i18n/', include('apps.core.presentation.urls')),
+    path('acceso/', include('apps.core.acceso.urls')),
     path('grappelli/', include('grappelli.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),

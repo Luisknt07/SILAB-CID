@@ -6,7 +6,8 @@ inventario, genera ingresos, bloquea la agenda ni entra en los indicadores. Se
 repite sin duplicar y ``--limpiar`` la rehace.
 """
 from django.core.management import call_command
-from django.test import TestCase
+from django.core.management.base import CommandError
+from django.test import TestCase, override_settings
 
 from apps.gestion_unidades.models.operaciones import BloqueoAgendaUnidad
 from apps.plantas_piloto.operacion.models.calidad import ControlCalidad, NoConformidad
@@ -16,6 +17,15 @@ from apps.finanzas.models.finanzas import MovimientoFinancieroUnidad
 from apps.directorio_unidades.models.core import Unidad
 
 
+class CorridasDemostrativasCerradasTests(TestCase):
+    def test_sin_habilitacion_del_entorno_no_se_instalan_datos_ficticios(self):
+        with self.assertRaises(CommandError):
+            call_command('cargar_corridas_demostrativas')
+        with self.assertRaises(CommandError):
+            call_command('crear_usuarios_prueba_gestion', unidad='no-importa', password='PruebaLocal2026!')
+
+
+@override_settings(ALLOW_DEMO_DATA_COMMANDS=True)
 class CorridasDemostrativasDeLaPlantaTests(TestCase):
     @classmethod
     def setUpTestData(cls):

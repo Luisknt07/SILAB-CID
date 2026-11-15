@@ -160,6 +160,15 @@ jobs:
           uv run --no-sync --with PyMuPDF==1.28.2 python manage.py test config.tests_multibase
           apps.centros_id.tests --noinput --verbosity 1
 
+      - name: Módulo opcional de conexiones físico-digitales
+        # Apagado por defecto: sus modelos, migraciones y pruebas solo existen
+        # cuando la instalación lo activa, y así se comprueban aquí.
+        env:
+          SLCID_MODULO_CONEXIONES: "true"
+        run: |
+          uv run --no-sync python manage.py makemigrations --check --dry-run
+          uv run --no-sync python manage.py test apps.conexiones --noinput --verbosity 1
+
   dependencias:
     name: Vulnerabilidades de dependencias Python
     runs-on: ubuntu-24.04

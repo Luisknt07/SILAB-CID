@@ -4,6 +4,7 @@ Las definiciones operativas pertenecen a cada aplicación. La composición
 conserva nombres, precedencia y direcciones publicadas.
 """
 
+from django.conf import settings
 from django.urls import include, path
 
 urlpatterns = [
@@ -16,3 +17,7 @@ urlpatterns = [
     path("", include("apps.directorio_unidades.presentation.urls")),
     path("", include("config.rutas_operativas")),
 ]
+
+# Módulos opcionales: sus rutas solo existen en las instalaciones que los activan.
+if getattr(settings, 'MODULO_CONEXIONES', False):
+    urlpatterns.insert(0, path("", include("apps.conexiones.presentation.urls")))

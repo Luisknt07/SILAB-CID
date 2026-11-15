@@ -125,6 +125,8 @@ class SecurityHeadersTests(SimpleTestCase):
         DB_NETWORK_ISOLATED=False,
         SOCIALACCOUNT_LOGIN_ON_GET=True,
         CONTENT_SECURITY_POLICY="script-src 'self' 'unsafe-eval'",
+        # Una decisión de publicación sin declarar también impide publicar.
+        DECISIONES_DE_PUBLICACION={"SLCID_EXIGIR_EQUIPOS_VERIFICADOS": None, "SLCID_MEDICION_METAS_HABILITADA": True},
     )
     def test_despliegue_rechaza_base_y_csp_inseguros(self):
         database = {
@@ -144,6 +146,7 @@ class SecurityHeadersTests(SimpleTestCase):
                 "webcitt.E007",
                 "webcitt.E009",
                 "webcitt.E010",
+                "slcid.E014",
             },
         )
 
@@ -152,6 +155,7 @@ class SecurityHeadersTests(SimpleTestCase):
         DB_NETWORK_ISOLATED=False,
         SOCIALACCOUNT_LOGIN_ON_GET=False,
         CONTENT_SECURITY_POLICY="script-src 'self'",
+        DECISIONES_DE_PUBLICACION={"SLCID_EXIGIR_EQUIPOS_VERIFICADOS": False, "SLCID_MEDICION_METAS_HABILITADA": True},
     )
     def test_despliegue_admite_base_con_tls_verificado(self):
         database = {

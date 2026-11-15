@@ -44,13 +44,6 @@ def sigla_de_area(espacio):
     return ''.join(propias)[:max(4, 16 - len(prefijo[:5]))] or SIN_AREA
 
 
-def area_principal(equipo, unidad=None):
-    """El área que manda en el código: la primera (por orden) de la unidad dueña entre las asociadas."""
-    unidad = unidad or equipo.laboratorio
-    return (equipo.espacios_asociados.filter(unidad=unidad).order_by('orden', 'nombre').first()
-            if equipo.pk else None)
-
-
 def _numeros_en_uso(prefijo):
     """Los números ya tomados con ese prefijo, en códigos vigentes y anteriores (un alias no se reutiliza)."""
     from apps.recursos.models.equipos import AliasCodigoEquipoServicio, EquiposServicios
@@ -94,12 +87,6 @@ def siguiente_codigo_unidad(unidad, espacio, tipo):
             return _siguiente(f'{base}{coincidencia.group(1)}-')
     modelo = tipo.codigo if re.fullmatch(rf'{re.escape(base)}\d{{2,}}', tipo.codigo or '') else siguiente_codigo_modelo(unidad, espacio)
     return _siguiente(f'{modelo}-')
-
-
-def es_estandar(codigo, unidad, espacio, unidad_fisica=True):
-    base = f'{sigla_de_unidad(unidad)}-{sigla_de_area(espacio)}-'
-    patron = rf'{re.escape(base)}\d{{2,}}-\d{{2,}}' if unidad_fisica else rf'{re.escape(base)}\d{{2,}}'
-    return bool(re.fullmatch(patron, codigo or ''))
 
 
 def unidad_vigente(codigo):

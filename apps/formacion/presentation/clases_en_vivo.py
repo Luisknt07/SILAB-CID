@@ -449,9 +449,6 @@ def _destino_firmado(firma):
     return leccion, None
 
 
-def _leccion_firmada(firma):
-    return _destino_firmado(firma)[0]
-
 @csrf_exempt
 @require_POST
 def asistencia_clase_en_vivo_view(request, firma):

@@ -214,6 +214,7 @@ class DatosPruebaFablabEspaciosTests(TestCase):
         self.assertEqual(configuracion.tutorial_servicios_url, '')
 
 
+@override_settings(ALLOW_DEMO_DATA_COMMANDS=True)
 class UsuariosPruebaGestionLaboratorioTests(TestCase):
     @classmethod
     def setUpTestData(cls):

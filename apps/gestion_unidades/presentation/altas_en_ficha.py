@@ -23,6 +23,7 @@ from apps.directorio_unidades.models.core import Unidad
 from apps.recursos.models.unidades import UnidadEquipo
 
 from apps.core.presentation.codigos_sistema import sigla_de_unidad, siguiente_codigo_modelo, siguiente_codigo_unidad
+from apps.gestion_unidades.presentation.auditoria import instantanea, registrar_auditoria
 from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad
 
 GUIA_DE_AREA = {
@@ -77,9 +78,11 @@ def codigo_de_area_nueva(unidad, nombre):
 
 def crear_area(unidad, nombre, tipo, capacidad):
     orden = (EspacioReservable.objects.filter(unidad=unidad).order_by('-orden').values_list('orden', flat=True).first() or 0) + 1
+    # Nace como plantilla: no se ofrece para reservas hasta que la unidad la
+    # complete y la habilite desde el panel de gestión.
     espacio = EspacioReservable.objects.create(
         unidad=unidad, codigo=codigo_de_area_nueva(unidad, nombre), nombre=nombre, tipo=tipo, capacidad=capacidad,
-        orden=orden, descripcion_publica='Una frase que presente el área en su portada.')
+        orden=orden, reservable=False, descripcion_publica='Una frase que presente el área en su portada.')
     FichaArea.objects.create(espacio=espacio, publicada=False, fuente='Plantilla para completar por la unidad',
                              **GUIA_DE_AREA)
     return espacio
@@ -129,6 +132,9 @@ def nueva_area_view(request, slug):
     if request.method == 'POST' and formulario.is_valid():
         with transaction.atomic():
             espacio = crear_area(unidad, **formulario.cleaned_data)
+            registrar_auditoria(request, unidad=unidad, accion='crear', objeto=espacio,
+                                descripcion='Área creada desde la página de la unidad',
+                                nuevos=instantanea(espacio, ('codigo', 'nombre', 'tipo', 'capacidad', 'reservable')))
         return _responder(request, reverse('area_unidad', args=[unidad.slug, espacio.codigo]))
     return _pantalla(request, unidad, formulario, 'Nueva área',
                      'Nace con la misma página que las demás áreas y con texto guía en cada parte; queda en borrador '
@@ -144,6 +150,10 @@ def nuevo_equipo_view(request, slug):
         with transaction.atomic():
             unidades = crear_equipo(unidad, datos['area'], datos['nombre'], datos['marca'], datos['modelo'],
                                     datos['cantidad'])
+            registrar_auditoria(request, unidad=unidad, accion='crear', objeto=unidades[0].equipo,
+                                descripcion=f'Equipo creado desde la página de la unidad: {len(unidades)} unidad(es) física(s)',
+                                nuevos={'nombre': datos['nombre'], 'area': datos['area'].codigo,
+                                        'unidades': [fisica.codigo_unidad for fisica in unidades]})
         return _responder(request, reverse('ficha_equipo_publica', args=[unidad.slug, unidades[0].codigo_unidad]))
     return _pantalla(request, unidad, formulario, 'Nuevo equipo',
                      'Nace con la misma ficha técnica que los demás equipos y con texto guía; queda como no disponible '

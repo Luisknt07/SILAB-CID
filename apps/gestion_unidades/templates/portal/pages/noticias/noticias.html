@@ -39,15 +39,15 @@
       </article>{% endfor %}
       {% else %}
       <article class="news-card">
-        <img src="{% static 'img/CULTIVO.jpg' %}" alt="{% translate "Cultivos de investigación" %}">
+        <img src="{% static 'img/CULTIVO.jpg' %}" alt="{% translate "Cultivos de investigación" %}" loading="lazy" decoding="async">
         <div class="news-body"><span class="tag">{% translate "Investigación" %}</span><h3>{% translate "Innovación para una agricultura más sostenible" %}</h3><p>{% translate "Equipos multidisciplinarios estudian alternativas para mejorar productividad y resiliencia." %}</p><a href="{% url 'centros_id' %}">{% translate "Conocer Centros I+D →" %}</a></div>
       </article>
       <article class="news-card">
-        <img src="{% static 'img/innovacion.png' %}" alt="{% translate "Innovación tecnológica" %}">
+        <img src="{% static 'img/innovacion.png' %}" alt="{% translate "Innovación tecnológica" %}" loading="lazy" decoding="async">
         <div class="news-body"><span class="tag">{% translate "Innovación" %}</span><h3>{% translate "Prototipos que conectan universidad y territorio" %}</h3><p>{% translate "Estudiantes e investigadores transforman retos locales en soluciones con potencial." %}</p><a href="{% url 'centros_id' %}">{% translate "Explorar innovación →" %}</a></div>
       </article>
       <article class="news-card">
-        <img src="{% static 'img/aulas_abiertas.png' %}" alt="{% translate "Formación abierta" %}">
+        <img src="{% static 'img/aulas_abiertas.png' %}" alt="{% translate "Formación abierta" %}" loading="lazy" decoding="async">
         <div class="news-body"><span class="tag">{% translate "Formación" %}</span><h3>{% translate "Nuevos espacios para aprender haciendo" %}</h3><p>{% translate "La infraestructura experimental fortalece la formación práctica y la colaboración." %}</p><a href="{% url 'laboratorios_unidades' %}">{% translate "Ver unidades →" %}</a></div>
       </article>
       {% endif %}

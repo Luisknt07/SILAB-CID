@@ -117,7 +117,11 @@ assert not apps.ready
         self.assertIn('reservation_notifications_unread', contexto)
 
     def test_backend_estatico_vigente_para_django_52(self):
-        self.assertEqual(settings.STORAGES['staticfiles']['BACKEND'], 'whitenoise.storage.CompressedStaticFilesStorage')
+        # El ejecutor de pruebas sustituye el almacén; se comprueba el declarado.
+        from config import settings as declarados
+        self.assertEqual(declarados.STORAGES['staticfiles']['BACKEND'], 'apps.core.estaticos.AlmacenEstaticos')
+        self.assertIn('apps.core.middleware.estaticos.EstaticosNegociadosMiddleware', settings.MIDDLEWARE)
+        self.assertNotIn('whitenoise.middleware.WhiteNoiseMiddleware', settings.MIDDLEWARE)
 
     def test_cabecera_no_importa_controladores_del_aula(self):
         import ast

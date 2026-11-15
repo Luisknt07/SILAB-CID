@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from apps.recursos.entrega.media import es_contenido_activo
 from apps.recursos.models.recursos import CarpetaRecurso, Recurso
 from apps.documentos.models.expediente import DocumentoExpediente
 
@@ -335,7 +336,7 @@ def recurso_unidad_view(request, recurso_id, ruta='', *, original=False, nombre_
     # Una evidencia cargada por la unidad no ejecuta HTML/SVG/JS en el origen
     # de la plataforma cuando la Dirección la abre para revisarla.
     evidencia = recurso.documentos_expediente.exists()
-    contenido_activo = archivo.suffix.lower() in {'.html', '.htm', '.svg', '.xml', '.js', '.mjs', '.xhtml'}
+    contenido_activo = es_contenido_activo(archivo.name)
     adjunto = descargar or (evidencia and contenido_activo)
     tipo, _ = mimetypes.guess_type(archivo.name)
     if descargar_dataset:

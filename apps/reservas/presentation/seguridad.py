@@ -598,16 +598,3 @@ def contexto_seguridad(unidad, permisos_operativos):
         'consumibles_proteccion': Consumible.objects.filter(unidad=unidad, activo=True).order_by('clasificacion', 'nombre'),
         'hoy_seguridad': hoy,
     }
-
-
-def seccion_seguridad(contexto):
-    metricas = contexto['seguridad_metricas']
-    return {
-        'clave': 'seguridad',
-        'titulo': 'Seguridad y acceso',
-        'descripcion': 'Requisitos de ingreso por persona, habilitaciones vigentes y registro de ingreso por sesión.',
-        'icono': 'iconsminds-id-card',
-        'dato': f"{metricas['requisitos_activos']} requisitos",
-        'etiqueta': f"{metricas['sesiones_por_registrar']} sesiones por registrar",
-        'habilitada': contexto['seguridad_habilitada'],
-    }

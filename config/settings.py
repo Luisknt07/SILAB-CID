@@ -21,6 +21,7 @@ from config.regional import configuracion_regional_entorno
 from config.roles import configuracion_roles
 from config.capacidades import configuracion_capacidades
 from config.bases_datos import configurar_centros
+from config.opcionales import conexiones_activo, decision, redes_permitidas
 
 # Desarrollo puede leer .env. En producción el gestor de servicios entrega
 # solo las variables de cada proceso; no se recargan credenciales elevadas.
@@ -183,6 +184,14 @@ INSTALLED_APPS = [
     'guardian',  # Añadido django-guardian
 ]
 
+# Módulos opcionales: se instalan por despliegue y, apagados, no dejan tablas,
+# rutas ni administración. Conexiones físico-digitales: apps/conexiones/README.md.
+MODULO_CONEXIONES = conexiones_activo()
+if MODULO_CONEXIONES:
+    INSTALLED_APPS.append('apps.conexiones.apps.ConexionesConfig')
+# Envíos por minuto que admite cada dispositivo; uno por minuto con todas sus lecturas es lo habitual.
+CONEXIONES_ENVIOS_POR_MINUTO = int(os.getenv('SLCID_CONEXIONES_ENVIOS_POR_MINUTO', '60'))
+
 SITE_ID = 1
 
 LOGIN_REDIRECT_URL = '/'  # ruta a la que va después de loguearse
@@ -193,7 +202,7 @@ MIDDLEWARE = [
     'apps.core.middleware.security.SecurityHeadersMiddleware',
     'apps.core.presentation.salud.SaludInternaMiddleware',
     'apps.core.middleware.origenes.OrigenesPermitidosMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'apps.core.middleware.estaticos.EstaticosNegociadosMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'apps.core.presentation.presentacion_institucional.PresentacionInstitucionalMiddleware',
@@ -201,6 +210,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'apps.core.middleware.administracion.AccesoAdministracionMiddleware',
     'apps.core.middleware.filas.ContextoFilasMiddleware',
     'apps.core.middleware.limites.LimitePeticionesMiddleware',
     'apps.core.middleware.entradas.ValidacionEntradaMiddleware',
@@ -259,6 +269,13 @@ ALLOWED_SOCIAL_EMAIL_DOMAINS = [
 ]
 SOCIAL_UPEC_GROUP_NAME = os.getenv('SOCIAL_UPEC_GROUP_NAME', 'UsuariosUPEC')
 SOCIAL_GMAIL_GROUP_NAME = os.getenv('SOCIAL_GMAIL_GROUP_NAME', 'UsuariosGmail')
+
+# Entrada al administrador. El segundo factor (aplicación autenticadora) es
+# optativo en desarrollo y obligatorio en producción. Las redes limitan desde
+# dónde responde el administrador; vacío, desde cualquier dirección.
+ADMIN_SEGUNDO_FACTOR = bool(decision('SLCID_ADMIN_SEGUNDO_FACTOR'))
+ADMIN_SEGUNDO_FACTOR_HORAS = int(os.getenv('SLCID_ADMIN_SEGUNDO_FACTOR_HORAS', '12'))
+ADMIN_REDES_PERMITIDAS = redes_permitidas(os.getenv('SLCID_ADMIN_REDES_PERMITIDAS', ''))
 
 ROOT_URLCONF = 'config.urls'
 AUTHENTICATION_BACKENDS = (
@@ -396,14 +413,32 @@ STATIC_URL = '/static/'
 # AppDirectoriesFinder. No se registra la misma carpeta en STATICFILES_DIRS
 # para evitar duplicados durante collectstatic.
 STATIC_ROOT = os.path.join(VAR_DIR, 'static')
+# Huella de contenido (caché de un año), compresión y derivados WebP de las
+# imágenes pesadas. Los originales conservan su nombre: apps/core/estaticos.py.
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
-    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+    'staticfiles': {'BACKEND': 'apps.core.estaticos.AlmacenEstaticos'},
 }
+# Un estático citado sin huella (rutas armadas en JavaScript o guardadas en
+# datos) se revalida cada diez minutos; los que llevan huella son inmutables.
+WHITENOISE_MAX_AGE = 0 if DEBUG else int(os.getenv('SLCID_STATIC_MAX_AGE', '600'))
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(VAR_DIR, 'media')
-# Activar después de aplicar documentos.0002 en la base del expediente.
-MEDICION_METAS_HABILITADA = os.getenv('SLCID_MEDICION_METAS_HABILITADA', 'false').lower() == 'true'
+# Dos decisiones de publicación que cada instalación declara en su entorno.
+# Sin declarar valen falso; producción exige que se escriban (slcid.E014).
+#   medicion_metas: medición automática de metas del expediente. Activar
+#     después de aplicar documentos.0002 en la base del expediente.
+#   equipos_verificados: mientras se cargan los datos los equipos se toman
+#     como existentes; al exigirlo, el público solo ve y reserva aquellos cuya
+#     existencia confirmó la unidad.
+DECISIONES_DE_PUBLICACION = {
+    'SLCID_MEDICION_METAS_HABILITADA': decision('SLCID_MEDICION_METAS_HABILITADA'),
+    'SLCID_EXIGIR_EQUIPOS_VERIFICADOS': decision(
+        'SLCID_EXIGIR_EQUIPOS_VERIFICADOS', heredada='CITT_EXIGIR_EQUIPOS_VERIFICADOS'),
+}
+MEDICION_METAS_HABILITADA = bool(DECISIONES_DE_PUBLICACION['SLCID_MEDICION_METAS_HABILITADA'])
+# El nombre interno se conserva: lo usan el código y las pruebas existentes.
+CITT_EXIGIR_EQUIPOS_VERIFICADOS = bool(DECISIONES_DE_PUBLICACION['SLCID_EXIGIR_EQUIPOS_VERIFICADOS'])
 
 # El editor de una unidad envía en un solo formulario todos sus archivos, bloques y responsables: con muchos
 # recursos pasa de los 1000 campos que Django admite por omisión y el guardado fallaba con TooManyFieldsSent.
@@ -454,6 +489,3 @@ MICROSOFT_CLIENT_ID = MICROSOFT_CLIENT_ID or os.getenv('MICROSOFT_APPLICATION_ID
 MICROSOFT_CLIENT_SECRET = MICROSOFT_CLIENT_SECRET or os.getenv('MICROSOFT_SECRET_VALUE', '')
 MICROSOFT_TENANT_ID = MICROSOFT_TENANT_ID if MICROSOFT_TENANT_ID != 'organizations' else os.getenv('MICROSOFT_DIRECTORY_ID', 'organizations')
 
-# Mientras se cargan los datos, los equipos se toman como existentes. Al activar esta exigencia (1/true/sí), el
-# público solo ve los equipos cuya existencia confirmó la unidad.
-CITT_EXIGIR_EQUIPOS_VERIFICADOS = os.getenv('CITT_EXIGIR_EQUIPOS_VERIFICADOS', '').strip().lower() in ('1', 'true', 'si', 'sí')

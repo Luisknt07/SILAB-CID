@@ -166,6 +166,8 @@ if ("'nonce-{nonce}'" not in _directivas_csp.get('script-src', [])
 
 RATE_LIMIT_ENABLED = True
 RLS_ENABLED = True
+# Nadie administra una instalación publicada sin presentar su segundo factor.
+ADMIN_SEGUNDO_FACTOR = True
 
 # Los adjuntos subidos no son ejecutables ni legibles por otros usuarios del
 # sistema; los directorios creados por Django siguen la misma politica.

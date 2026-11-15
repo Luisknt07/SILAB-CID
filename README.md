@@ -171,6 +171,11 @@ servidor universitario seguir [producción Linux](docs/produccion-linux.md), con
 roles separados de base de datos. La [auditoría integral del 10 de octubre](docs/auditoria-integral-produccion-2026-10-10.md)
 recoge optimizaciones, evidencia, límites y condiciones pendientes de producción.
 
+La [auditoría integral del 14 de noviembre](docs/auditoria-integral-2026-11-14.md)
+es la revisión vigente: velocidad de carga, seguridad, independencia de Centros
+I+D y Laboratorios, código sin uso, base para laboratorios conectados y las
+condiciones abiertas para publicar.
+
 La [auditoría de reservas y gestión del 10 de noviembre](docs/auditoria-reservas-gestion-2026-11-10.md)
 detalla las correcciones de integridad, las pruebas de permisos e inventario y
 las condiciones de datos e infraestructura que deben resolverse antes de publicar.

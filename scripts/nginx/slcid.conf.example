@@ -9,6 +9,8 @@ map $request_method $slcid_write_key {
 limit_req_zone $binary_remote_addr zone=slcid_read:10m rate=300r/m;
 limit_req_zone $slcid_write_key zone=slcid_write:10m rate=120r/m;
 limit_req_zone $binary_remote_addr zone=slcid_auth:10m rate=10r/m;
+# Dispositivos conectados: cada credencial tiene su propio cupo, también detrás de una misma salida a Internet.
+limit_req_zone $http_authorization zone=slcid_dispositivos:10m rate=60r/m;
 
 server {
     listen 80;
@@ -28,6 +30,15 @@ server {
     send_timeout 30s;
     keepalive_timeout 30s;
     limit_req_status 429;
+
+    # Las páginas y respuestas JSON viajan comprimidas. Los estáticos ya salen
+    # comprimidos de la aplicación y las imágenes no se vuelven a comprimir.
+    gzip on;
+    gzip_proxied any;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 5;
+    gzip_types application/json application/javascript text/css text/plain text/csv image/svg+xml;
     proxy_connect_timeout 5s;
     proxy_read_timeout 60s;
 
@@ -41,8 +52,24 @@ server {
     location = /salud { return 404; }
     location ^~ /salud/ { return 404; }
 
-    location ~ ^/(?:es/|en/)?(accounts/|login/|register/|admin/login/) {
+    location ~ ^/(?:es/|en/)?(accounts/|login/|register/|admin/login/|acceso/) {
         limit_req zone=slcid_auth burst=10 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+    }
+    # Administrador: además del segundo factor que exige la aplicación, conviene
+    # atenderlo solo desde la red institucional o la VPN. Sustituir las redes y
+    # declarar las mismas en SLCID_ADMIN_REDES_PERMITIDAS.
+    location ~ ^/(admin|grappelli)/ {
+        # allow 10.20.0.0/16;
+        # deny all;
+        limit_req zone=slcid_read burst=60 nodelay;
+        limit_req zone=slcid_write burst=30 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+    }
+    # Solo con SLCID_MODULO_CONEXIONES=true. Las lecturas llegan por lotes pequeños.
+    location = /conexiones/ingesta/ {
+        client_max_body_size 256k;
+        limit_req zone=slcid_dispositivos burst=20 nodelay;
         proxy_pass http://127.0.0.1:8000;
     }
     location / {

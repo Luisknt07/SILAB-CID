@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "Dispositivos conectados" %} · {{ unidad.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <p class="text-muted mb-1"><a href="{{ unidad.get_absolute_url }}">{{ unidad.nombre }}</a></p>
+  <h1 class="h3 mb-3">{% translate "Dispositivos conectados" %}</h1>
+  {% if not dispositivos %}
+    <p>{% translate "Esta unidad todavía no tiene dispositivos registrados. Los da de alta la administración general." %}</p>
+  {% endif %}
+  {% for fila in dispositivos %}
+    <section class="card mb-3" data-dispositivo="{{ fila.dispositivo.codigo }}">
+      <div class="card-body">
+        <h2 class="h5 mb-1">{{ fila.dispositivo.nombre }} <small class="text-muted">{{ fila.dispositivo.codigo }}</small></h2>
+        <p class="mb-2">
+          {% if not fila.dispositivo.activo %}<span class="badge badge-secondary">{% translate "Inactivo" %}</span>
+          {% elif fila.en_linea %}<span class="badge badge-success">{% translate "En línea" %}</span>
+          {% else %}<span class="badge badge-warning">{% translate "Sin señal" %}</span>{% endif %}
+          {{ fila.dispositivo.get_tipo_display }}{% if fila.dispositivo.ubicacion %} · {{ fila.dispositivo.ubicacion }}{% endif %}
+          · {% translate "Última señal:" %}
+          {% if fila.dispositivo.ultima_senal %}{{ fila.dispositivo.ultima_senal|date:"SHORT_DATETIME_FORMAT" }}{% else %}{% translate "nunca" %}{% endif %}
+        </p>
+        {% if fila.canales %}
+        <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Canal" %}</th>
+                <th scope="col">{% translate "Última lectura" %}</th>
+                <th scope="col">{% translate "Rango esperado" %}</th>
+                <th scope="col">{% translate "Medida el" %}</th>
+                <th scope="col"><span class="sr-only">{% translate "Serie" %}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for canal in fila.canales %}
+              <tr>
+                <th scope="row">{{ canal.canal.nombre }}{% if not canal.canal.activo %} <span class="badge badge-secondary">{% translate "Inactivo" %}</span>{% endif %}</th>
+                <td>
+                  {% if canal.instante %}{{ canal.valor|floatformat:"-2" }} {{ canal.canal.unidad_medida }}
+                    {% if canal.fuera_de_rango %}<span class="badge badge-danger">{% translate "Fuera de rango" %}</span>{% endif %}
+                  {% else %}{% translate "Sin lecturas" %}{% endif %}
+                </td>
+                <td>
+                  {% if canal.canal.minimo_esperado is not None or canal.canal.maximo_esperado is not None %}
+                    {% if canal.canal.minimo_esperado is not None %}{{ canal.canal.minimo_esperado|floatformat:"-2" }}{% else %}…{% endif %} – {% if canal.canal.maximo_esperado is not None %}{{ canal.canal.maximo_esperado|floatformat:"-2" }}{% else %}…{% endif %} {{ canal.canal.unidad_medida }}
+                  {% else %}—{% endif %}
+                </td>
+                <td>{% if canal.instante %}{{ canal.instante|date:"SHORT_DATETIME_FORMAT" }}{% else %}—{% endif %}</td>
+                <td><a href="{% url 'conexiones_lecturas_canal' canal.canal.pk %}">{% translate "Serie de 24 horas" %}</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+          <p class="mb-0">{% translate "Este dispositivo no tiene canales declarados." %}</p>
+        {% endif %}
+      </div>
+    </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,5 +1,10 @@
 # Índice documental
 
+## Auditoría vigente
+
+- [Auditoría integral del 14 de noviembre de 2026: carga, seguridad, modularidad y pendientes para producción](auditoria-integral-2026-11-14.md)
+- [Conexiones físico-digitales: módulo opcional de dispositivos y series de medición](../apps/conexiones/README.md)
+
 ## Reservas, recursos y operación institucional
 
 - [Mantenimiento de validación: roles, respaldos y conciliación](mantenimiento-validacion-2026-11-11.md)

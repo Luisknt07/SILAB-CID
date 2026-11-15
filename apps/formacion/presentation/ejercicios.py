@@ -377,18 +377,6 @@ def contexto_ejercicios(unidad, permisos_operativos):
     }
 
 
-def seccion_ejercicios(contexto):
-    return {
-        'clave': 'ejercicios',
-        'titulo': 'Aula y ejercicios',
-        'descripcion': 'Ejercicios sobre los simuladores, uno por estudiante, corregidos contra el motor de la planta.',
-        'icono': 'iconsminds-student-male',
-        'dato': f"{len(contexto.get('ejercicios_abiertos', []))} abiertos",
-        'etiqueta': f"{contexto.get('intentos_pendientes', 0)} entregas pendientes",
-        'habilitada': contexto['ejercicios_habilitados'],
-    }
-
-
 def operar_ejercicio(request, unidad):
     registro_id = _texto_post(request, 'registro_id')
     creado = not registro_id

@@ -28,5 +28,9 @@ while true; do
   python manage.py automatizar_documentos_laboratorios --aplicar --limite 25 || echo "No se completó un lote de controles documentales." >&2
   # Los indicadores de los observatorios con API pública: cada conexión solo consulta cuando le toca.
   python manage.py sincronizar_observatorios || echo "No se pudo sincronizar los observatorios." >&2
+  # Módulo opcional: las lecturas de dispositivos se conservan los días que fija cada canal.
+  case "$(printf '%s' "${SLCID_MODULO_CONEXIONES:-false}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')" in
+    1|true|yes|on|si|sí) python manage.py depurar_lecturas || echo "No se completó la depuración de lecturas." >&2 ;;
+  esac
   sleep "$((interval * 60))"
 done

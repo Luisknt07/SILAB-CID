@@ -478,19 +478,6 @@ def contexto_visitas(unidad, permisos_operativos):
     }
 
 
-def seccion_visitas(contexto):
-    metricas = contexto['visitas_metricas']
-    return {
-        'clave': 'visitas',
-        'titulo': 'Visitas',
-        'descripcion': 'Grupos que recorren la unidad: aforo por área, guías, protección y lista de asistencia.',
-        'icono': 'iconsminds-conference',
-        'dato': f"{metricas['proximas']} próximas",
-        'etiqueta': f"{metricas['pendientes']} por aprobar",
-        'habilitada': contexto['visitas_habilitadas'],
-    }
-
-
 def operar_visita(request, unidad):
     registro_id = _texto(request, 'registro_id')
     if not registro_id:

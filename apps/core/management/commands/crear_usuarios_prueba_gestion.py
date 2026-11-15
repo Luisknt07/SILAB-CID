@@ -74,6 +74,10 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        # Crea cuentas con permisos operativos: nunca en una instalación real.
+        from apps.gestion_unidades.management.datos_demo import exigir_entorno_datos_demo
+
+        exigir_entorno_datos_demo()
         try:
             unidad = Unidad.objects.select_related("administrador").get(
                 slug=options["unidad"]

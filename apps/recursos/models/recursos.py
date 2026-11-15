@@ -46,6 +46,9 @@ FORMATOS_ADJUNTO_PERMITIDOS = {
     '.stp', '.iges', '.igs', '.obj', '.stl', '.glb', '.gltf', '.ipynb', '.py',
 }
 LIMITE_ORDINARIO_ADJUNTO = 200 * 1024 * 1024
+# Contenido máximo de un ZIP al extraerlo; el mismo tope que los microproyectos.
+ZIP_MAX_DESCOMPRIMIDO = 512 * 1024 * 1024
+ZIP_MAX_ARCHIVOS = 20000
 
 
 def _resumen_archivo(archivo):
@@ -660,7 +663,13 @@ class Recurso(models.Model):
                 destino = self.directorio_extraido.resolve()
                 destino.mkdir(parents=True, exist_ok=True)
                 with zipfile.ZipFile(self.archivo.path, 'r') as zip_ref:
-                    for miembro in zip_ref.infolist():
+                    miembros = zip_ref.infolist()
+                    # Un archivo pequeño puede declarar gigabytes al descomprimirse y llenar el volumen de adjuntos.
+                    if (len(miembros) > ZIP_MAX_ARCHIVOS
+                            or sum(miembro.file_size for miembro in miembros) > ZIP_MAX_DESCOMPRIMIDO):
+                        raise ValidationError({'archivo': 'El ZIP supera el contenido permitido al descomprimirse '
+                                                          '(512 MB o 20 000 archivos).'})
+                    for miembro in miembros:
                         ruta = (destino / miembro.filename).resolve()
                         if ruta != destino and destino not in ruta.parents:
                             raise ValidationError({'archivo': 'El ZIP contiene una ruta no permitida.'})

@@ -40,6 +40,7 @@ from apps.recursos.presentation.referencia_editor import ReferenciaComercialForm
 from apps.observatorios.operacion.models.observatorios import AliadoObservatorio, EncuestaObservatorio, IndicadorObservatorio, LineaObservatorio, PoliticaDatosObservatorio, PublicacionObservatorio, SolicitudDatos, TableroObservatorio, ValorIndicador, VisorExterno
 from apps.centros_experimentales.operacion.models.centros import CicloProductivo, EjeProductivo
 
+from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
 from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad
 from apps.plantas_piloto.operacion.presentation.secciones_plantas import mapa_de
 from apps.gestion_unidades.presentation.secciones_propias import puede_editar_secciones
@@ -640,6 +641,7 @@ def editar_registro_view(request, slug, clave, pk):
         volver = unidad.get_absolute_url()
     if request.method == 'POST' and formulario.is_valid() and _valida(edicion, formulario, instancia, unidad):
         eliminado = bool(formulario.cleaned_data.get('eliminar'))
+        identificador = instancia.pk
         try:
             if eliminado:
                 instancia.delete()
@@ -653,6 +655,16 @@ def editar_registro_view(request, slug, clave, pk):
             # el formulario, sin convertir la concurrencia en un error 500.
             formulario.add_error(None, error.messages)
         else:
+            # La edición directa deja el mismo rastro que el panel de gestión.
+            hecho = 'eliminar' if eliminado else 'actualizar' if identificador else 'crear'
+            if eliminado:
+                instancia.pk = identificador  # delete() lo vacía; el registro conserva a qué objeto se refiere
+            # El formulario de referencia comercial ya anota su propio registro, con el detalle del cambio.
+            if not getattr(formulario, '_referencia_auditada', False):
+                registrar_auditoria(
+                    request, unidad=unidad, accion=hecho, objeto=instancia,
+                    descripcion=f'{edicion.nombre}: {hecho} desde la página de la unidad',
+                    nuevos={} if eliminado else {'campos': sorted(formulario.changed_data)})
             if request.headers.get('X-Requested-With') == 'fetch':
                 # Lo creado desde el menú se abre en el visualizador después de recargar.
                 abrir = edicion.pagina(unidad, instancia) if nuevo and edicion.pagina else ''

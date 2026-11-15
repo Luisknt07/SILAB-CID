@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% translate "Segundo factor · Administración" %}{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'portal/css/components/autenticacion.css' %}?v=20261009-ojo-v2">{% endblock %}
+
+{% block content %}
+
+<div class="container auth-layout">
+    <div class="row h-100">
+        <div class="col-12 col-md-10 mx-auto my-auto">
+            <div class="card auth-card auth-card--institutional">
+                <div class="position-relative image-side">
+                    <span class="auth-side__eyebrow">{{ identidad_producto.nombre_corto }}</span>
+                    <p class="text-white h2">{% translate "Administración del sistema" %}</p>
+                    <p class="white mb-0">
+                        {% translate "Para administrar hace falta, además de tu sesión, el código de tu aplicación autenticadora." %}
+                    </p>
+                </div>
+                <div class="form-side">
+                {% if codigos_respaldo %}
+                    <h6 class="auth-title mb-1">{% translate "Segundo factor activado" %}</h6>
+                    <p class="auth-subtitle">{% translate "Guarda estos códigos de respaldo en un lugar seguro. Cada uno sirve una sola vez si no tienes tu teléfono, y no se vuelven a mostrar." %}</p>
+                    <ul class="list-unstyled mb-4" data-codigos-respaldo>
+                        {% for codigo in codigos_respaldo %}<li><code>{{ codigo }}</code></li>{% endfor %}
+                    </ul>
+                    <div class="auth-actions">
+                        <a class="btn btn-primary btn-lg btn-shadow" href="{{ next }}">{% translate "Continuar al administrador" %}</a>
+                    </div>
+                {% else %}
+                    <h6 class="auth-title mb-1">{% if alta %}{% translate "Activa tu segundo factor" %}{% else %}{% translate "Código de verificación" %}{% endif %}</h6>
+                    {% if alta %}
+                        <p class="auth-subtitle">{% translate "Escanea el código con una aplicación autenticadora (Microsoft Authenticator, Google Authenticator u otra compatible) y escribe los seis dígitos que muestre." %}</p>
+                        <p class="text-center mb-2"><img src="{{ qr }}" width="220" height="220" alt="{% translate "Código QR para la aplicación autenticadora" %}"></p>
+                        <p class="auth-subtitle">{% translate "Si no puedes escanearlo, escribe esta clave en la aplicación:" %} <code>{{ clave }}</code></p>
+                    {% else %}
+                        <p class="auth-subtitle">{% translate "Escribe los seis dígitos de tu aplicación autenticadora, o un código de respaldo." %}</p>
+                    {% endif %}
+                    <form method="post" action="{% url 'segundo_factor' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
+                        {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+                        <label class="form-group has-float-label mb-4">
+                            <input class="form-control" name="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="20" autofocus required>
+                            <span>{% translate "Código" %}</span>
+                        </label>
+                        <div class="auth-actions">
+                            <a href="{% url 'logout' %}">{% translate "Salir" %}</a>
+                            <button class="btn btn-primary btn-lg btn-shadow" type="submit">{% if alta %}{% translate "Activar" %}{% else %}{% translate "Verificar" %}{% endif %}</button>
+                        </div>
+                    </form>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

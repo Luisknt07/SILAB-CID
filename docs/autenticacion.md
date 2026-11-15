@@ -53,3 +53,38 @@ pendiente de decisión institucional (ver `docs/unidades-y-centros-id.md`).
 panel de la unidad y el módulo de guías quedan fuera de la compuerta a
 propósito: atender el trabajo de otros no puede detenerse por un dato del
 perfil personal. El superusuario nunca queda fuera.
+
+## Segundo factor para administrar
+
+Entrar al administrador (`/admin/` y las búsquedas de su interfaz) exige,
+además de la sesión, el código de una aplicación autenticadora. En producción
+es siempre obligatorio; en desarrollo se activa con
+`SLCID_ADMIN_SEGUNDO_FACTOR=true`.
+
+- **Primera vez.** Al abrir el administrador se muestra un código QR (y la
+  clave escrita, por si no puede escanearse). La persona lo carga en Microsoft
+  Authenticator, Google Authenticator u otra aplicación compatible y escribe
+  los seis dígitos. Recibe ocho códigos de respaldo que se muestran una sola
+  vez.
+- **Ingresos siguientes.** Escribe el código de la aplicación o un código de
+  respaldo. Vale 12 horas (`SLCID_ADMIN_SEGUNDO_FACTOR_HORAS`) dentro de esa
+  sesión.
+- **Protecciones.** Un código no se acepta dos veces; cinco fallos seguidos
+  bloquean el segundo factor de la cuenta durante 15 minutos; el secreto se
+  guarda cifrado y los códigos de respaldo solo como huella. La pantalla
+  comparte el límite de intentos del inicio de sesión.
+- **Teléfono perdido.** La administración general ejecuta
+  `python manage.py restablecer_segundo_factor <usuario o correo>` y la persona
+  registra de nuevo su aplicación en el siguiente ingreso.
+- **Cambio de `SECRET_KEY`.** Conservar la anterior en `SECRET_KEY_FALLBACKS`
+  durante la rotación; sin ella las altas dejan de ser legibles y hay que
+  restablecerlas.
+
+`SLCID_ADMIN_REDES_PERMITIDAS` limita además las redes desde las que el
+administrador responde (lista en notación CIDR). Fuera de ellas devuelve 404,
+también a quien tenga sesión. La dirección es la que entrega el proxy de
+confianza; en Nginx conviene repetir la restricción
+(`scripts/nginx/slcid.conf.example`).
+
+El segundo factor cubre el administrador. El panel de gestión de cada unidad
+sigue protegido por la sesión y los permisos operativos.

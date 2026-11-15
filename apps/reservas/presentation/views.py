@@ -38,7 +38,9 @@ from apps.reservas.presentation.creacion_servicio import parametros_trabajo_serv
 from apps.reservas.presentation.creacion_transaccion import ComandoCreacionReserva, crear_expediente_reserva
 from apps.reservas.presentation.cronograma import fechas_de_programacion, normalizar_cronograma, recursos_de_sesion
 from apps.reservas.presentation.solicitudes_propias import cancelar_reserva_propia
-from apps.gestion_unidades.presentation.permisos import puede_administrar_personal_unidad, puede_operar_modulo_unidad
+from apps.gestion_unidades.presentation.permisos import (
+    puede_administrar_personal_unidad, puede_operar_modulo_unidad, unidades_gestionables,
+)
 from apps.reservas.presentation.seguridad import pendientes_al_reservar
 from apps.reservas.presentation.horarios import jornadas_habilitadas as _jornadas_habilitadas, validar_horario_operativo as _validar_horario_operativo
 from apps.formacion.presentation.practicas_integracion import estado_documental_reserva, guias_vencidas_sin_enviar
@@ -594,6 +596,12 @@ def _generar_descripcion(
     return texto
 
 
+def _solo_final(valor):
+    """Deja reconocer un dato personal sin revelarlo: conserva sus tres últimos caracteres."""
+    valor = (valor or "").strip()
+    return "•" * max(len(valor) - 3, 0) + valor[-3:] if valor else ""
+
+
 @require_http_methods(["GET"])
 @never_cache
 def buscar_usuarios_reserva(request):
@@ -651,10 +659,20 @@ def buscar_usuarios_reserva(request):
     usuarios = usuarios.select_related("profile").order_by(
         "first_name", "last_name", "username"
     )[:10]
+    # La cédula y el teléfono de otra persona solo los ve el personal que
+    # gestiona una unidad. El servidor toma esos datos del perfil al guardar la
+    # reserva o la visita; aquí son únicamente una ayuda para reconocerla.
+    ve_datos_personales = request.user.is_staff or unidades_gestionables(request.user).exists()
     resultados = []
     for usuario in usuarios:
         perfil = getattr(usuario, "profile", None)
         faltantes = perfil.campos_faltantes_reserva() if perfil else ["perfil institucional"]
+        documento = (perfil.cedula or "") if perfil else ""
+        telefono = (perfil.telefono or "") if perfil else ""
+        if not ve_datos_personales:
+            # La tabla de visitas compara documentos para evitar repetidos: se deja vacío.
+            reservar = _solo_final if contexto == "participantes" else (lambda _valor: "")
+            documento, telefono = reservar(documento), reservar(telefono)
         resultados.append({
             "id": usuario.pk,
             "nombre": usuario.get_full_name() or usuario.username,
@@ -662,8 +680,8 @@ def buscar_usuarios_reserva(request):
             "correo": usuario.email,
             "tipo": perfil.get_tipo_usuario_display() if perfil and perfil.tipo_usuario else "Tipo no registrado",
             "tipo_codigo": perfil.tipo_usuario if perfil else "",
-            "documento": (perfil.cedula or "") if perfil else "",
-            "telefono": (perfil.telefono or "") if perfil else "",
+            "documento": documento,
+            "telefono": telefono,
             "facultad": perfil.get_facultad_display() if perfil and perfil.facultad else "No especificada",
             "carrera": perfil.get_carrera_display_custom() if perfil else "No especificado",
             "nivel": perfil.get_nivel_academico_display() if perfil and perfil.nivel_academico else "No especificado",

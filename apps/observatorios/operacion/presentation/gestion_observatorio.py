@@ -121,23 +121,6 @@ def contexto_gestion_observatorio(unidad, *, vista=None, pagina=1):
     return contexto
 
 
-def secciones_observatorio(contexto, habilitado):
-    """Las tres secciones propias del panel, con el dato que resume cada una."""
-    totales = contexto['obs_totales']
-    cumplido = contexto['obs_cumplimiento']['porcentaje']
-    return [
-        {'clave': 'obs_indicadores', 'titulo': 'Indicadores y datos', 'icono': 'iconsminds-line-chart-1',
-         'descripcion': 'Indicadores al día, atrasados y sin datos; carga de valores uno a uno o en CSV.',
-         'dato': f"{totales['al_dia']}/{totales['indicadores']}", 'etiqueta': 'al día', 'habilitada': habilitado},
-        {'clave': 'obs_publicaciones', 'titulo': 'Publicaciones y calendario', 'icono': 'iconsminds-newspaper',
-         'descripcion': 'Lo planificado, lo atrasado y lo publicado.',
-         'dato': f'{cumplido} %' if cumplido is not None else '—', 'etiqueta': 'cumplido', 'habilitada': habilitado},
-        {'clave': 'obs_solicitudes', 'titulo': 'Solicitudes de datos', 'icono': 'iconsminds-mail-inbox',
-         'descripcion': 'Pedidos de datos, análisis y asesoría, y su respuesta.',
-         'dato': contexto['obs_solicitudes_abiertas'], 'etiqueta': 'por atender', 'habilitada': habilitado},
-    ]
-
-
 def _fecha_de_periodo(periodo):
     """El primer día de un periodo escrito como «2024», «2025-T4», «2025-S2» o «2026-02»."""
     texto = periodo.strip().upper()

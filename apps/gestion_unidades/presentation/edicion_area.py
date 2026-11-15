@@ -17,6 +17,7 @@ from apps.gestion_unidades.models.interior import MedioInterior
 from apps.directorio_unidades.models.core import Unidad
 from apps.recursos.models.identificadores import youtube_id
 
+from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
 from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad
 
 FILAS_DE_FOTOS_NUEVAS = 4
@@ -165,6 +166,8 @@ def editar_area_view(request, slug, codigo):
                         registro.titulo, registro.descripcion, registro.orden = video['titulo'][:160], video['descripcion'][:255], posicion
                         registro.full_clean()
                         registro.save()
+                registrar_auditoria(request, unidad=unidad, accion='actualizar', objeto=espacio,
+                                    descripcion=f'Área editada desde su página: {solo or "todas las secciones"}')
             if request.headers.get('X-Requested-With') == 'fetch':
                 return JsonResponse({'ok': True})
             destino = reverse('area_unidad', args=[unidad.slug, espacio.codigo])

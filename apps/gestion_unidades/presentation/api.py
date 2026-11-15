@@ -159,28 +159,6 @@ def _parse_id_list(request, parameter):
     return parsed
 
 
-def _reservation_unit_ids(reservation):
-    identifiers = set()
-    for item in reservation.get_unidades_seleccionadas_list():
-        candidate = item.get("id") if isinstance(item, dict) else item
-        try:
-            identifiers.add(int(candidate))
-        except (TypeError, ValueError):
-            continue
-    return identifiers
-
-
-def _reservation_space_ids(reservation):
-    """Lee la futura relación de áreas sin acoplar esta API a una migración."""
-    relation = getattr(reservation, "espacios_solicitados", None)
-    if relation is None:
-        return set()
-    try:
-        return set(relation.values_list("pk", flat=True))
-    except (AttributeError, TypeError, ValueError):
-        return set()
-
-
 def obtener_unidades_equipo(request, equipo_id):
     """Devuelve las unidades físicas disponibles de un equipo."""
     if request.method != "GET":

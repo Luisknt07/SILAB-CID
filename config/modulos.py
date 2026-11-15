@@ -24,6 +24,17 @@ from apps.observatorios.manifiesto import MANIFIESTO as M19
 from apps.historial_modelos.manifiesto import MANIFIESTO as M20
 
 
+def manifiestos_opcionales():
+    """Módulos que cada instalación decide en su entorno; ausentes, el registro no los nombra."""
+    # El registro se carga sin Django: la decisión se lee del entorno, como en la configuración.
+    from config.opcionales import conexiones_activo
+
+    if conexiones_activo():
+        from apps.conexiones.manifiesto import MANIFIESTO
+
+        yield MANIFIESTO
+
+
 def registro_de_despliegue():
     return RegistroModulos(
         (
@@ -48,5 +59,6 @@ def registro_de_despliegue():
             M18,
             M19,
             M20,
+            *manifiestos_opcionales(),
         )
     )

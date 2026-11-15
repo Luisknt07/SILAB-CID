@@ -290,29 +290,37 @@
                 </div>
               </div>
 
-              {# Contenido inerte: el visor solo carga al abrir su modal. #}
+              {# Contenido inerte: el visor solo carga al abrir su modal. Solo se ofrecen los medios que publicó la unidad. #}
+              {% if unidad.plano_espacios or unidad.recorrido_espacios_youtube_embed_url or unidad.recorrido_360_public_url %}
               <div class="reservation-orientation" data-space-orientation>
                 <div class="reservation-orientation__bar" aria-label="{% translate "Orientación visual del laboratorio" %}">
                   <span class="reservation-orientation__label"><i class="fas fa-map-marked-alt" aria-hidden="true"></i> {% translate "¿No conoces el laboratorio?" %}</span>
-                  <button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacionPlano"><i class="fas fa-map" aria-hidden="true"></i> <span>{% translate "Plano de áreas" %}</span></button>
-                  <button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacionVideo"><i class="fab fa-youtube" aria-hidden="true"></i> <span>{% translate "Recorrido en video" %}</span></button>
-                  <button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacion360"><i class="fas fa-street-view" aria-hidden="true"></i> <span>{% translate "Vista 360°" %}</span></button>
+                  {% if unidad.plano_espacios %}<button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacionPlano"><i class="fas fa-map" aria-hidden="true"></i> <span>{% translate "Plano de áreas" %}</span></button>{% endif %}
+                  {% if unidad.recorrido_espacios_youtube_embed_url %}<button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacionVideo"><i class="fab fa-youtube" aria-hidden="true"></i> <span>{% translate "Recorrido en video" %}</span></button>{% endif %}
+                  {% if unidad.recorrido_360_public_url %}<button type="button" aria-haspopup="dialog" aria-controls="fichaRecursoReserva" data-orientation-open="orientacion360"><i class="fas fa-street-view" aria-hidden="true"></i> <span>{% translate "Vista 360°" %}</span></button>{% endif %}
                 </div>
+                {% if unidad.plano_espacios %}
                 <template id="orientacionPlano">
                   <figure class="reservation-orientation__image">
-                    <img src="{% if unidad.plano_espacios %}{{ unidad.plano_espacios.url }}{% else %}{% static 'img/reservas/plano-fablab-demostrativo.svg' %}{% endif %}" alt="Distribución de las áreas de {{ unidad.nombre }}" loading="lazy">
+                    <img src="{{ unidad.plano_espacios.url }}" alt="Distribución de las áreas de {{ unidad.nombre }}" loading="lazy">
                   </figure>
-                  <p>{% if unidad.plano_espacios %}{% translate "Plano publicado por la unidad." %}{% else %}{% translate "Plano demostrativo; el administrador de la unidad puede reemplazarlo." %}{% endif %}</p>
+                  <p>{% translate "Plano publicado por la unidad." %}</p>
                 </template>
+                {% endif %}
+                {% if unidad.recorrido_espacios_youtube_embed_url %}
                 <template id="orientacionVideo">
-                  <div class="reservation-orientation__frame"><iframe data-src="{% firstof unidad.recorrido_espacios_youtube_embed_url 'https://www.youtube-nocookie.com/embed/Vcxz9ss2MAs?rel=0&modestbranding=1' %}" title="Recorrido en video por {{ unidad.nombre }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-                  <p>{% if unidad.recorrido_espacios_youtube_url %}{% translate "Recorrido publicado por la unidad." %}{% else %}{% translate "Video demostrativo temporal; el administrador puede reemplazarlo." %}{% endif %}</p>
+                  <div class="reservation-orientation__frame"><iframe data-src="{{ unidad.recorrido_espacios_youtube_embed_url }}" title="Recorrido en video por {{ unidad.nombre }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+                  <p>{% translate "Recorrido publicado por la unidad." %}</p>
                 </template>
+                {% endif %}
+                {% if unidad.recorrido_360_public_url %}
                 <template id="orientacion360">
-                  <div class="reservation-orientation__frame"><iframe data-src="{% if unidad.recorrido_360_public_url %}{{ unidad.recorrido_360_public_url }}{% else %}{% static 'img/360/lacteos1/index.html' %}{% endif %}" title="Recorrido 360 de {{ unidad.nombre }}" loading="lazy" allowfullscreen></iframe></div>
-                  <p>{% if unidad.recorrido_360_ruta %}{% translate "Vista interactiva publicada por la unidad." %}{% else %}{% translate "Vista 360 de demostración tomada del portal institucional." %}{% endif %}</p>
+                  <div class="reservation-orientation__frame"><iframe data-src="{{ unidad.recorrido_360_public_url }}" title="Recorrido 360 de {{ unidad.nombre }}" loading="lazy" allowfullscreen></iframe></div>
+                  <p>{% translate "Vista interactiva publicada por la unidad." %}</p>
                 </template>
+                {% endif %}
               </div>
+              {% endif %}
 
               {% if espacios_reserva|length > 1 %}
               <fieldset class="reservation-space-scope" id="alcanceEspacioReserva">
