@@ -133,7 +133,13 @@ Tres metas del informe no tienen anexo dentro del informe:
 
 Al cerrar este bloque la migración quedó **sin aplicar** en `citt_db`. En seco, sobre
 la base local, cambia 26 de las 29 descripciones y no conserva ninguna editada
-aparte, porque no las hay. Se puede repetir sin efecto. Antes de aplicarla:
+aparte, porque no las hay. Se puede repetir sin efecto. Las tres que no cambian
+no tienen texto nuevo en el catálogo: `CHEQUEO-SEGURIDAD` está retirado, y
+`MANUAL-FUNCIONES` y `ORGANIGRAMA` no figuran en él.
+
+Se aplicó también sobre una copia restaurada del respaldo, en un PostgreSQL
+desechable, con el mismo resultado: 26 de 29 descripciones, sin errores, en las
+dos bases. Antes de aplicarla:
 
 - se respaldaron las dos bases en `var/backups/pre-calificacion-informe-20261115/`;
 - se guardaron los textos actuales en `descripciones_documentos_exigidos.json`, en
@@ -170,6 +176,81 @@ que se les asigne uno:
 - Planta Piloto de Beneficio y Torrefacción de Café
 - Planta Piloto de Cítricos y Frutales Tropicales
 
+## Validación con datos de prueba: FabLab y Realidad Extendida
+
+El 15 de noviembre de 2026 se recorrió el ciclo completo del semestre 2026-B en el
+Laboratorio de Fabricación Digital y Prototipado y en el Laboratorio de Realidad
+Extendida, Simulación y Gemelos Digitales.
+
+- **Dónde:** sobre una copia restaurada del respaldo, en un PostgreSQL desechable,
+  con el código confirmado. La base real no se tocó.
+- **Datos de prueba:**
+  - dos prácticas FT02 aprobadas por unidad;
+  - una capacitación y una difusión verificadas por el responsable;
+  - una firma de prueba en los PDF.
+
+  Están marcados como prueba y no representan actividad real.
+
+### El ciclo
+
+| Paso | Quién | Resultado en las dos unidades |
+| --- | --- | --- |
+| Redacta, genera, firma y envía la planificación | Responsable | Enviada con sus anexos revisados |
+| Intenta ponerle porcentaje al plan | Dirección | Rechazado: es de cumplimiento obligatorio |
+| Confirma la conformidad del plan | Dirección | Conforme, sin nota, `cumple` verdadero |
+| Calcula el informe sin la actividad de prueba | Sistema | 8,33 %: solo las dos FT02 aprobadas alcanzan su meta, 1 de 12 |
+| Registra una capacitación y una difusión verificadas | Responsable | Esas dos metas pasan a 100 % y la nota sube a 25 %, que es 3 de 12 |
+| Genera, firma y envía el informe | Responsable | El cálculo se congela en 25 %; enviar no da nota |
+| Intenta escribir la nota del informe a mano | Dirección | Rechazado |
+| Revisa y aprueba desde el tablero | Dirección | La nota queda en 25 %, la calculada; no cumple el mínimo de 70 % |
+| Procesa los plazos vencidos | Sistema | Informe 2026-A en 0; planificación y plan de compras vencidos como incumplimiento sin porcentaje |
+
+El Centro de reportes de las dos unidades se recorrió como responsable y como
+Dirección, con todas las categorías en HTML, PDF, DOCX, XLSX y CSV, además del
+expediente de los dos semestres, sus archivos y la revisión de cada documento.
+
+En los laboratorios auditados, el envío de un PDF emitido por el sistema queda
+**recibido técnicamente** sin persona: no es una evaluación. La nota aparece
+recién cuando la Dirección aprueba el cierre calculado.
+
+### Lo que se corrigió con esta validación
+
+- **Un plan conforme leído suelto aparecía como no aceptado.** La aceptación
+  dependía de que un listado hubiera cargado antes el registro de conformidad. Ahora
+  `aceptacion_obligatoria` lo carga cuando falta.
+- **La revisión de la Dirección no mostraba todas las metas.** En la revisión simple
+  del informe faltaban el resumen y las metas que no tienen anexo: capacitación,
+  difusión y mantenimiento. La tabla decía 9 metas cuando la nota promediaba 12.
+  Ahora recibe el cierre y muestra las 12.
+
+### Lo que encontró en los datos reales
+
+- **FabLab: evidencias de demostración validadas.**
+  - Seis evidencias del ensayo operativo del 16 de octubre (uso, desechos,
+    inventario, difusión y dos capacitaciones) siguen validadas y marcadas como
+    demostración.
+  - Mientras existan, el informe 2026-B del FabLab no se puede enviar como entrega
+    oficial.
+  - La coordinación del FabLab debe rectificarlas desde la medición de metas. En la
+    copia, rectificarlas levantó el bloqueo.
+  - El FabLab también conserva responsables de demostración, como
+    `demo.coordinador.fablab`.
+- **Planes 2026-B sin conformidad.**
+  - El del FabLab está observado y el de Realidad Extendida no se ha entregado.
+  - Su plazo venció el 1 de septiembre, así que hace falta la reapertura de la
+    Dirección: primero el ultimátum colectivo, luego la solicitud de la unidad.
+  - Sin plan conforme, el informe del semestre vale 0.
+- **El inventario de Realidad Extendida no acredita su meta.** Los equipos no tienen
+  código del bien, custodio ni serie verificados, y falta el acta de revisión física.
+  No se inventan esos datos: se completan con la verificación real.
+- **Los vencimientos no se procesan en este equipo.**
+  - El plan de compras venció el 31 de agosto y sigue pendiente sin registro de
+    incumplimiento.
+  - La tarea de `procesar_recordatorios_documentales` no está instalada.
+  - La tarea programada «CITT - Recordatorios de reservas» ejecuta, cada 15
+    minutos, el proyecto anterior de la carpeta `GitHub\CITT`, que apunta a la
+    misma base `citt_db`.
+
 ## Pruebas
 
 `tests/integration/test_calificacion_solo_informe.py` fija la regla:
@@ -183,5 +264,7 @@ que se les asigne uno:
 - Cada anexo dice lo que contiene y la meta que respalda.
 - El equipamiento no repite el inventario.
 - La vista previa de acciones de mejora es el documento que se archiva.
+- La revisión simple de la Dirección muestra las metas sin anexo que integran la nota.
+- Un plan conforme leído suelto de la base cumple.
 
 Las pruebas que fijaban la calificación anterior se ajustaron a la regla.

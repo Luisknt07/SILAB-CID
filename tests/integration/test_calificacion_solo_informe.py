@@ -11,6 +11,8 @@ from apps.documentos.presentation.expediente_catalogo import CATALOGO, CATALOGO_
 from apps.documentos.presentation.incumplimiento_documental import evaluar_vencimientos
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
 from tests.integration.test_cumplimiento_expediente import BaseDeCumplimiento
+# Se importa el módulo, no sus clases: el cargador de pruebas no vuelve a ejecutar las de ese archivo.
+from tests.integration import test_direccion_recibe_y_califica as recibe
 from tests.integration.utiles import registrar_antecedente_evaluacion
 
 
@@ -81,6 +83,55 @@ class SoloElInformeSeCalificaTests(BaseDeCumplimiento):
         registros = RegistroAuditoriaUnidad.objects.filter(unidad=self.laboratorio).count()
         evaluar_vencimientos()
         self.assertEqual(RegistroAuditoriaUnidad.objects.filter(unidad=self.laboratorio).count(), registros)
+
+
+class LaDireccionVeTodasLasMetasTests(BaseDeCumplimiento):
+    def test_la_revision_simple_muestra_las_metas_sin_anexo_que_integran_la_nota(self):
+        from types import SimpleNamespace
+        from django.template.loader import render_to_string
+        from django.test import RequestFactory
+
+        meta = dict(aplica=True, exigible=True, exigencia='Obligatorio institucional', pendiente=False)
+        cierre = dict(nota=50, avance_metas=50, plan_aprobado=True, completo=True, congelado=True,
+                      provisional=False, demostracion=False, alertas=[], filas=[
+                          dict(meta, codigo='CAPACITACION', nombre='Capacitación del personal', indicador='Capacitaciones',
+                               estado='Cumple', porcentaje=100, meta='1', registrado=1),
+                          dict(meta, codigo='DIFUSION', nombre='Difusión de servicios', indicador='Difusiones',
+                               estado='No cumple', porcentaje=0, meta='1', registrado=0)])
+        documento = SimpleNamespace(nombre_documental='Informe semestral', etiqueta_corte='2026-B', version=1,
+                                    recurso_id=None, pk=1, unidad=SimpleNamespace(nombre='Unidad', slug='unidad'),
+                                    resumen_interfaz=dict(revision_simple=dict(estado='pendiente', etiqueta='Pendiente')))
+        html = render_to_string('admin/gestion_unidades/reporteoperativounidad/revision_qr.html', dict(
+            revision=dict(documento=documento, cierre=cierre, comprobaciones=[], faltantes=[], modalidad='cierre'),
+            anexos_revision=[], user=SimpleNamespace(is_superuser=False)), request=RequestFactory().get('/'))
+        # Capacitación y difusión no tienen anexo: igual cuentan en la nota y la Dirección las ve.
+        self.assertIn('Capacitación del personal', html)
+        self.assertIn('Difusión de servicios', html)
+        self.assertIn('2 metas obligatorias', html)
+
+
+class UnPlanConformeLeidoSueltoTests(recibe.BaseDelExpediente):
+    # Mismo plan conforme que el indicador del mínimo: archivo firmado, anexos revisados y conformidad.
+    plan_conforme = recibe.IndicadorDelMinimoTests.plan_conforme
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        from apps.core.models.periodos import PeriodoAcademico, VersionCalendarioAcademico
+        inicio, fin = recibe.cortes_del_anio(recibe.ANIO)[cls.corte]
+        periodo = PeriodoAcademico.objects.create(codigo=f'{recibe.ANIO}-{cls.corte}', anio_referencia=recibe.ANIO,
+            ciclo=cls.corte, tipo='ordinario', ambito='carreras_centros', estado='publicado')
+        VersionCalendarioAcademico.objects.create(periodo=periodo, numero=1, vigente=True,
+            fecha_inicio_clases=inicio, fecha_fin_clases=fin, fecha_fin_periodo=fin)
+
+    def test_el_plan_conforme_cumple_aunque_no_venga_de_un_listado(self):
+        from apps.documentos.models.expediente import DocumentoExpediente
+
+        plan = self.plan_conforme()
+        suelto = DocumentoExpediente.objects.get(pk=plan.pk)
+        self.assertFalse(hasattr(suelto, '_conformidad_plan_registro'))
+        self.assertIsNone(suelto.nota)
+        self.assertIs(suelto.cumple, True)
 
 
 class LosAnexosDicenLoQueContienenTests(BaseDeCumplimiento):

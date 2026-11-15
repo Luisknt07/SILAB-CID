@@ -315,7 +315,10 @@ def aceptacion_obligatoria(documento):
     """
     if es_permanente(documento):
         return bool(aprobacion_vigente(documento))
-    from .conformidad_lectura import es_plan, lectura_conformidad
+    from .conformidad_lectura import completar_conformidades, es_plan, lectura_conformidad
     if es_plan(documento):
+        # Los listados cargan la conformidad por lote; un documento leído suelto la trae aquí.
+        if not hasattr(documento, '_conformidad_plan_registro'):
+            completar_conformidades([documento])
         return (lectura_conformidad(documento) or {}).get('estado') == 'conforme'
     return documento.estado == 'validado' and documento.recibido_en is not None
