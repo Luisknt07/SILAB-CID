@@ -1,4 +1,19 @@
-# Estado actual del proyecto — 14 de noviembre de 2026
+# Estado actual del proyecto — 15 de noviembre de 2026
+
+**Laboratorio de Realidad Extendida, listo para atender (15 de noviembre).**
+`manage.py preparar_laboratorio_xr --aplicar` completó su operación y ya está
+aplicado en la base local (respaldo previo en
+`var/backups/pre-laboratorio-xr-20261115/`): 7 servicios sin tarifa, 4 requisitos
+de acceso con inducción anual, 6 guías de práctica, 5 documentos de la sala,
+fichas de las 5 áreas publicadas, recorrido de visitas, plano e ilustraciones
+dibujados por el sistema y el curso `XR-CUR-001` sin publicar. Operación,
+comprobaciones y lo que le queda a la unidad (verificar equipos, facultad,
+cuentas del personal, tarifas, fotos) en
+[docs/laboratorio-realidad-extendida.md](docs/laboratorio-realidad-extendida.md).
+De paso se corrigió para todas las unidades: un visitante ya no recibe enlaces
+a equipos que no puede abrir, la galería de un área no repite imágenes de
+referencia, la portada de un curso sin publicar la ve quien lo prepara y la
+ficha de un equipo inactivo no ofrece descargas que respondían 404.
 
 Bloque vigente: **desarrollo con Docker en SILAB-CID**.
 El usuario identificó expresamente la carpeta

@@ -18,10 +18,10 @@ from django.db import transaction
 
 from apps.gestion_unidades.models.fichas_area import ElementoFichaArea
 from apps.gestion_unidades.models.espacios import EspacioReservable
-from apps.gestion_unidades.models.interior import MedioInterior
+from apps.gestion_unidades.models.interior import MARCA_IMAGEN_REFERENCIAL, MedioInterior
 from apps.directorio_unidades.models.core import Unidad
 
-MARCA_IMAGEN = 'Imagen referencial del área'
+MARCA_IMAGEN = MARCA_IMAGEN_REFERENCIAL
 MARCA_VIDEO = 'Video verificado'
 MARCA_PORTADA = 'Foto de la unidad'
 POR_AREA = 3

@@ -7,6 +7,7 @@
 
 ## Reservas, recursos y operación institucional
 
+- [Laboratorio de Realidad Extendida: puesta a punto, operación y pendientes de la unidad](laboratorio-realidad-extendida.md)
 - [Mantenimiento de validación: roles, respaldos y conciliación](mantenimiento-validacion-2026-11-11.md)
 - [Auditoría de reservas y gestión: integridad y condiciones para publicar](auditoria-reservas-gestion-2026-11-10.md)
 - [Diseño operativo institucional](diseno-operativo-institucional-2026-11-09.md)

@@ -4,6 +4,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 
+# Con esto empieza la descripción de las imágenes que un cargador copió como referencia,
+# para distinguirlas de las fotos que subió la unidad.
+MARCA_IMAGEN_REFERENCIAL = 'Imagen referencial del área'
+
+
 class MedioInterior(models.Model):
     TIPOS = [('foto', 'Foto'), ('video', 'Video de YouTube')]
 
@@ -29,6 +34,10 @@ class MedioInterior(models.Model):
 
     def __str__(self):
         return self.titulo
+
+    @property
+    def es_referencial(self):
+        return self.descripcion.startswith(MARCA_IMAGEN_REFERENCIAL)
 
     @property
     def youtube_id(self):

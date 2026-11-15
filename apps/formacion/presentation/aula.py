@@ -1955,7 +1955,9 @@ def ficha_equipo_publica_view(request, slug, codigo):
         # Solicitar el traslado a otra unidad: abre el traspaso con la unidad, el equipo y la alerta ya puestos.
         'traslado_url': reverse('admin:recursos_traspasoequipo_add') if request.user.has_perm('recursos.add_traspasoequipo') else '',
         'editar_url': pantalla_de_edicion(request.user, unidad, 'unidadequipo', pk=unidad_equipo.pk),
-        'datos_csv_url': reverse('datos_equipo_csv', args=[unidad.slug, unidad_equipo.codigo_unidad]),
+        # Un equipo inactivo no tiene levantamiento ni etiqueta: no se ofrecen descargas que responderían 404.
+        'datos_csv_url': (reverse('datos_equipo_csv', args=[unidad.slug, unidad_equipo.codigo_unidad])
+                          if unidad_equipo.activa else ''),
         'cita': editorial['cita'],
         'fichas_relacionadas': [
             {

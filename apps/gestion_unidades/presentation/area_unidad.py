@@ -161,7 +161,8 @@ def medios_de(espacio, contenido):
     medios = list(espacio.medios_interiores.filter(publicado=True).order_by('orden', 'pk'))
     galeria = [{'url': espacio.imagen_propia_url, 'titulo': espacio.nombre, 'descripcion': '', 'referencial': False}
                ] if espacio.imagen else []
-    galeria += [{'url': medio.imagen.url, 'titulo': medio.titulo, 'descripcion': medio.descripcion, 'referencial': False}
+    galeria += [{'url': medio.imagen.url, 'titulo': medio.titulo, 'descripcion': medio.descripcion,
+                 'referencial': medio.es_referencial}
                 for medio in medios if medio.tipo == 'foto' and medio.imagen]
     videos = [{'id': medio.youtube_id, 'titulo': medio.titulo, 'canal': '', 'descripcion': medio.descripcion, 'propio': True}
               for medio in medios if medio.tipo == 'video' and medio.youtube_id]
@@ -171,6 +172,16 @@ def medios_de(espacio, contenido):
         # Los videos que la unidad guardó reemplazan a los de referencia.
         videos = videos or [{'id': video.youtube_id, 'titulo': video.nombre, 'canal': video.ejemplo,
                              'descripcion': video.para_que, 'propio': False} for video in contenido['videos']]
+    # Una misma imagen de referencia llega por dos caminos (la copia del interior y la ficha) y, tras
+    # fusionar áreas, repetida: se muestra una sola vez. Las fotos propias nunca se descartan.
+    vistas, sin_repetir = set(), []
+    for imagen in galeria:
+        clave = (imagen['url'],) if not imagen['referencial'] else ('referencial', imagen['titulo'].strip().casefold())
+        if clave in vistas:
+            continue
+        vistas.add(clave)
+        sin_repetir.append(imagen)
+    galeria = sin_repetir
     return {'galeria': galeria, 'videos': videos, 'portada': galeria[0] if galeria else None,
             'franja': galeria[1] if len(galeria) > 1 else (galeria[0] if galeria else None)}
 

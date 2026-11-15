@@ -138,6 +138,9 @@ def _publico_permitido(request, objeto):
             return False
     if nombre == 'PublicacionObservatorio':
         return objeto.estado == 'publicada' or _operador(request.user, objeto.unidad, 'recursos')
+    if nombre == 'Curso':
+        # La portada de un curso sin publicar la ve quien lo prepara, igual que el resto de su vista previa.
+        return objeto.activo and (objeto.publicado or _operador(request.user, objeto.unidad, 'practicas'))
     return all(getattr(objeto, campo, True) for campo in ('activo', 'activa', 'publicado', 'publicada', 'vigente'))
 
 

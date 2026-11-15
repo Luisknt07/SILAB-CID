@@ -27,6 +27,7 @@ CURSOS = {
     'aplicaciones-logisticas-ia': ('aplicaciones_logisticas_ia', 'laboratorio-logistica-comercio-internacional'),
     'ordeno-calidad-leche': ('ordeno_calidad_leche', 'centro-experimental-san-francisco'),
     'cafe-cereza-taza': ('cafe_cereza_taza', 'centro-experimental-alonso-tadeo'),
+    'realidad-extendida': ('realidad_extendida', 'laboratorio-realidad-extendida'),
 }
 
 

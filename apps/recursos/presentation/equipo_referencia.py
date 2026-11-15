@@ -195,7 +195,7 @@ def ficha_equipo_referencia(request, slug, elemento_id):
         raise Http404("La ficha no está publicada.")
     if not objeto_visible_para(elemento, unidad, request.user):
         raise Http404("La ficha no está publicada.")
-    if elemento.registrado_id and not elemento.solo_referencia:
+    if elemento.registrado_id and not elemento.solo_referencia and (gestor or elemento.registrado.es_publico):
         return redirect("ficha_equipo_publica", slug, elemento.registrado.codigo_unidad)
     from apps.gestion_unidades.presentation.area_unidad import revisar_ficha
 

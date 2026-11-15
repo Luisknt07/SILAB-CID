@@ -55,7 +55,9 @@ def software_unidad_view(request, slug):
         licencias = {elemento.licencia for elemento in elementos if elemento.licencia}
         programa.licencia = ', '.join(sorted(licencias))
         por_tipo = {}
-        for fisica in sorted((fisica for fisica in programa.equipos_instalados.all() if fisica.activa),
+        # Un equipo que el público no puede abrir (no disponible o sin verificar) no se enlaza a un visitante.
+        for fisica in sorted((fisica for fisica in programa.equipos_instalados.all()
+                              if fisica.activa and (gestor or fisica.es_publico)),
                              key=lambda fisica: fisica.codigo_unidad):
             por_tipo.setdefault(fisica.equipo_id, []).append(fisica)
         programa.equipos = [{'nombre': unidades[0].equipo.nombre, 'cantidad': len(unidades),
