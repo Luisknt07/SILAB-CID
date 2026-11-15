@@ -7,6 +7,7 @@
 
 ## Reservas, recursos y operación institucional
 
+- [Calificación y anexos del expediente: solo el informe semestral se califica, con sus metas](calificacion-y-anexos-del-expediente.md)
 - [Existencias y referencias: lo que no existe no se muestra ni se cuenta](existencias-y-referencias.md)
 - [Laboratorio de Realidad Extendida: puesta a punto, operación y pendientes de la unidad](laboratorio-realidad-extendida.md)
 - [Mantenimiento de validación: roles, respaldos y conciliación](mantenimiento-validacion-2026-11-11.md)

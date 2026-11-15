@@ -7,8 +7,6 @@
       if (otra !== unidad) otra.open = false;
     });
   }, true);
-  const iniciarRubricas = root => window.iniciarRubricasExpediente(root);
-  iniciarRubricas(document);
   function actualizarListado(pagina) {
     const actual = document.querySelector('.citt-cumplimiento');
     const reemplazo = pagina.querySelector('.citt-cumplimiento');
@@ -94,13 +92,12 @@
     modal.className = 'citt-evaluacion-modal';
     modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-label', titulo);
-    modal.innerHTML = '<div class="citt-evaluacion-modal__panel"><header><strong>Evaluar documento</strong><button type="button" data-cerrar-evaluacion>Cerrar</button></header><div class="citt-evaluacion-modal__contenido"></div><p role="status"></p></div>';
+    modal.innerHTML = '<div class="citt-evaluacion-modal__panel"><header><strong>Revisar documento</strong><button type="button" data-cerrar-evaluacion>Cerrar</button></header><div class="citt-evaluacion-modal__contenido"></div><p role="status"></p></div>';
     modal.querySelector('header > strong').textContent = titulo;
     modal.querySelector('.citt-evaluacion-modal__contenido').appendChild(revision);
     document.body.appendChild(modal);
     modal.querySelector('[data-cerrar-evaluacion]').onclick = cerrar;
     revision.querySelector('header > a')?.remove();
-    iniciarRubricas(modal);
     modal.addEventListener('input', () => { modificado = true; });
     modal.addEventListener('change', () => { modificado = true; });
     modal.addEventListener('click', event => {

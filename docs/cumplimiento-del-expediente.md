@@ -1,5 +1,10 @@
 # Cumplimiento del expediente: dos firmas por período
 
+> **Regla vigente desde el 15 de noviembre de 2026:** solo el informe semestral se califica, con el
+> cumplimiento de las metas de su planificación; los demás documentos son de cumplimiento obligatorio y no
+> reciben porcentaje. Lo que aquí se dice sobre porcentajes, rúbricas o calificación a mano quedó
+> reemplazado por [calificacion-y-anexos-del-expediente.md](calificacion-y-anexos-del-expediente.md).
+
 Fecha: 23 de septiembre de 2026. Rama `reestructura-modular`.
 
 Este documento reemplaza la regla anterior de «todo lo que el expediente pide

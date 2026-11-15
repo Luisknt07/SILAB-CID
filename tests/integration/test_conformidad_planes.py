@@ -21,7 +21,7 @@ from apps.documentos.presentation.conformidad_planes import (
 from apps.documentos.presentation.expediente import construir_expediente, tramo_del_documento, evaluar_documento
 from apps.documentos.presentation.expediente_redaccion import plan_inicial, secciones_de
 from apps.documentos.presentation.preparacion_documental import exigir_preparacion, preparacion_del_editor
-from apps.formacion.presentation.evaluacion_rubrica import evaluar_con_rubrica, revisar_documento
+from apps.formacion.presentation.evaluacion_rubrica import revisar_documento
 from apps.recursos.models.recursos import Recurso
 from apps.gestion_unidades.models.operaciones import HorarioOperacionUnidad, CapacidadOperativaUnidad
 from tests.integration.utiles import pdf_legible_prueba
@@ -403,7 +403,8 @@ class ConformidadPlanesTests(TestCase):
             control = procesar_documento(d, usuario=self.actor)
         self.assertEqual((control.estado, control.aplicado, control.nota), ('automatico', True, Decimal(100)))
         self.assertIsNone(d.evaluacion)
-        self.assertEqual(d.nota, 100)
+        self.assertIsNone(d.nota)
+        self.assertIs(d.cumple, True)
 
     def test_redaccion_distinta_del_original_no_recibe_conformidad_automatica(self):
         d, _, _ = self.documento()
@@ -469,7 +470,5 @@ class ConformidadPlanesTests(TestCase):
         d = next(d for d in self.docs if d.exigido.codigo == 'RESOLUCION-CREACION')
         with self.assertRaises(ValidationError):
             evaluar_documento(d, self.actor, 75)
-        with self.assertRaises(ValidationError):
-            evaluar_con_rubrica(d, self.actor, {}, d.version, '', confirmado=True)
         revision = revisar_documento(d)
         self.assertEqual(revision['modalidad'], 'permanente')

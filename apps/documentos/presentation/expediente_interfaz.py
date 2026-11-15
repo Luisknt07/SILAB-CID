@@ -3,6 +3,8 @@
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
+from apps.documentos.models.expediente import es_calificable
+
 
 def completar_fechas_envio(documentos):
     """Recupera en una consulta el envío de versiones devueltas, sin confundirlo con la carga."""
@@ -132,9 +134,13 @@ def siguiente_paso(documento):
     if documento.estado == 'no_aplica':
         return 'Sin entrega requerida'
     if documento.estado == 'validado':
+        if not es_calificable(documento.exigido):
+            if getattr(documento, 'cumple', None):
+                return 'Entrega aceptada'
+            return 'Dirección: revisar y aceptar' if documento.recibido_en else 'Dirección: recibir y aceptar'
         if documento.nota is not None:
             return 'Aplicar acciones de mejora' if documento.cumple is False else 'Entrega finalizada'
-        return 'Dirección: evaluar' if documento.recibido_en else 'Dirección: recibir y evaluar'
+        return 'Dirección: confirmar el cierre' if documento.recibido_en else 'Dirección: recibir y confirmar el cierre'
     if documento.correccion_hasta:
         if documento.correccion_abierta:
             return 'Corregir y volver a enviar'
@@ -188,8 +194,13 @@ def resumen_de_entrega(documento):
     resumen_control = automatizacion.get('resumen') or {}
     recepcion_sistema = bool(resumen_control.get('recepcion_automatica')
         or resumen_control.get('fuente_recepcion') == 'sistema')
-    correspondencia_pendiente = bool(integridad.get('aplica')
-        and not integridad.get('correspondencia_verificada') and (nota or 0) > 0)
+    # Lo que no se califica queda aceptado al recibirse; una recepción anterior al control de correspondencia
+    # sigue pidiendo esa comprobación, igual que una nota registrada sin ella.
+    from .conformidad_lectura import es_plan
+    aceptado_sin_nota = bool(not permanente and not es_plan(documento) and not es_calificable(documento.exigido)
+                             and documento.estado == 'validado' and documento.recibido_en)
+    correspondencia_pendiente = bool(integridad.get('aplica') and not integridad.get('correspondencia_verificada')
+                                     and ((nota or 0) > 0 or aceptado_sin_nota))
     if documento.estado == "no_aplica":
         estado, grupo = "No aplica", "no_aplica"
     elif documento.estado == "observado":
@@ -198,6 +209,8 @@ def resumen_de_entrega(documento):
         estado = (
             "Evaluado"
             if documento.nota is not None
+            else "Aceptado"
+            if not es_calificable(documento.exigido) and getattr(documento, 'cumple', None)
             else "Recibido"
             if documento.recibido_en
             else "Enviado"
@@ -342,7 +355,7 @@ def siguiente_paso_unidad(documento):
                 'Atender las incidencias de conformidad' if conformidad['estado'] == 'corregir' else
                 'Esperar comprobación de conformidad; no requiere calificación')
     if documento.estado == 'validado':
-        if documento.nota is not None:
+        if documento.nota is not None or (not es_calificable(documento.exigido) and getattr(documento, 'cumple', None)):
             return 'Consultar la respuesta de Dirección'
         return 'En revisión de Dirección' if documento.recibido_en else 'Esperar recepción de Dirección'
     paso = siguiente_paso(documento)

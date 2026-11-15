@@ -153,7 +153,8 @@ class IntegridadExpedienteTests(BaseDelExpediente):
         aprobar_permanente(documento, self.direccion, documento.version,
                            documento.recurso.hash_sha256, confirmado=True,
                            declaracion_correspondencia=correspondencia_revisada(documento))
-        self.assertEqual(documento.nota, 100)
+        self.assertIsNone(documento.nota)
+        self.assertIs(documento.cumple, True)
         self.assertIsNone(documento.evaluacion)
         aprobacion = RegistroAuditoriaUnidad.objects.get(
             objeto_id=str(documento.pk), descripcion=APROBAR)

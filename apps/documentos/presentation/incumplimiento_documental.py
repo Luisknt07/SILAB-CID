@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_datetime
 from apps.documentos.models.avisos_documentales import AvisoDocumental, UltimatumDocumental
 from apps.documentos.models.expediente import DocumentoExigido, DocumentoExpediente
 from apps.directorio_unidades.models.core import Unidad
-from apps.documentos.models.expediente import minimo_vigente
+from apps.documentos.models.expediente import es_calificable, minimo_vigente
 from apps.gestion_unidades.presentation.auditoria import instantanea, registrar_auditoria
 
 
@@ -90,9 +90,11 @@ def evaluar_vencimientos(ahora=None):
             documento = DocumentoExpediente.objects.select_for_update(of=('self',)).select_related(
                 'exigido', 'unidad__administrador').get(pk=pk)
             plazo = documento.plazo_entrega
-            if (documento.estado in ('validado', 'no_aplica') or not plazo or plazo >= ahora
-                    or (documento.incumplimiento_procesado_hasta == plazo
-                        and documento.evaluacion_version == documento.version and documento.evaluacion is not None)):
+            calificable = es_calificable(documento.exigido)
+            procesado = documento.incumplimiento_procesado_hasta == plazo and (
+                not calificable or (documento.evaluacion_version == documento.version
+                                    and documento.evaluacion is not None))
+            if documento.estado in ('validado', 'no_aplica') or not plazo or plazo >= ahora or procesado:
                 continue
             # La evaluación humana tiene precedencia sobre el proceso automático.
             if documento.evaluado_por_id and documento.evaluacion_version == documento.version:
@@ -105,17 +107,25 @@ def evaluar_vencimientos(ahora=None):
             motivo = f'No se envió la entrega completa antes del {fecha} ({etapa}).'
             recomendacion = ('Solicitar reapertura justificada a la Dirección y completar la entrega.'
                              if documento.ultimatum_hasta or documento.correccion_hasta else 'Atender el ultimátum colectivo que establezca la Dirección y completar la entrega.')
+            if calificable:
+                resultado = (f'Evaluación automática: 0/100 por no entrega.\nMotivo: {motivo}\nSin informe no se '
+                             'acreditan los resultados del período: el 0 se incorpora al cumplimiento y está por '
+                             f'debajo del mínimo institucional de {minimo_vigente()} %. ')
+            else:
+                resultado = (f'Incumplimiento por no entrega.\nMotivo: {motivo}\nEs un documento de cumplimiento '
+                             'obligatorio: no se califica con porcentaje, pero la no entrega queda registrada como '
+                             'incumplimiento del período. ')
             mensaje = (f'{documento.unidad.nombre}\nDocumento: {documento.nombre_documental}\n'
-                       f'Período: {documento.etiqueta_corte}\nEvaluación automática: 0/100 por no entrega.\n'
-                       f'Motivo: {motivo}\nEl resultado se incorpora al cumplimiento del período; '
-                       f'está por debajo del mínimo institucional de {minimo_vigente()} %. '
+                       f'Período: {documento.etiqueta_corte}\n{resultado}'
                        'La no entrega debe atenderse mediante mejora continua: identificar la causa, '
                        'definir responsables y acciones correctivas, y documentar su seguimiento. '
-                       'La calificación no sustituye la obligación de entregar ni acredita una firma o recepción.\n'
+                       'El registro no sustituye la obligación de entregar ni acredita una firma o recepción.\n'
                        f'Acción requerida: {recomendacion} Si existe un error, solicitar revisión a la Dirección.')
-            documento.evaluacion = 0
-            documento.evaluacion_version = documento.version
-            documento.evaluacion_observacion = 'Evaluación automática por no entrega. ' + motivo
+            documento.evaluacion = 0 if calificable else None
+            documento.evaluacion_version = documento.version if calificable else None
+            documento.evaluacion_observacion = (
+                ('Evaluación automática por no entrega. ' if calificable else 'Incumplimiento por no entrega. ')
+                + motivo)
             documento.evaluacion_debilidades = motivo
             documento.evaluacion_recomendaciones = recomendacion
             documento.evaluacion_fortalezas = ''
@@ -124,9 +134,11 @@ def evaluar_vencimientos(ahora=None):
             documento.incumplimiento_procesado_hasta = plazo
             documento.save()
             registrar_auditoria(unidad=documento.unidad, accion='actualizar', objeto=documento,
-                               descripcion='Evaluación automática por no entrega', anteriores=anteriores,
-                               nuevos={'evaluacion': 0, 'version': documento.version, 'plazo': plazo.isoformat(),
-                                       'motivo': motivo, 'recomendaciones': recomendacion})
+                               descripcion=('Evaluación automática por no entrega' if calificable
+                                            else 'Incumplimiento por no entrega'), anteriores=anteriores,
+                               nuevos={'evaluacion': documento.evaluacion, 'version': documento.version,
+                                       'plazo': plazo.isoformat(), 'motivo': motivo,
+                                       'recomendaciones': recomendacion})
             avisar(documento, plazo, 'evaluacion', mensaje)
             cantidad += 1
     return cantidad

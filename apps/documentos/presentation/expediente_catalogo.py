@@ -18,80 +18,112 @@ from apps.documentos.models.expediente import DocumentoExigido
 CATALOGO = (
     # -- Una sola vez; se actualizan cuando cambian y se heredan cada año -----------------------
     ('RESOLUCION-CREACION', 'Resolución de creación de la unidad', 'planeacion', 'unica', 'unidad', False, False,
-     'ninguno', 0, '', 10, 'Resolución que aprueba la unidad y sus reformas; se hereda cada año.', ''),
+     'ninguno', 0, '', 10, 'Resolución que aprueba la unidad y sus reformas; se hereda cada año. Cumplimiento obligatorio: la '
+     'Dirección la aprueba una vez por versión; no se califica.', ''),
     ('PROTOCOLO-BIOSEGURIDAD', 'Protocolo de seguridad y condiciones de operación', 'planeacion', 'unica',
      'ambos', True, False, 'ninguno', 0, 'protocolo', 15,
-     'Se elabora con el editor de la unidad: alcance, responsables, riesgos, controles, operación y emergencias. '
-     'Se envía y aprueba en la plataforma con QR; se conserva mientras siga vigente. '
-     'La bioseguridad y otras medidas específicas se incluyen cuando correspondan a las actividades.', ''),
+     'Se elabora con el editor de la unidad: alcance, responsables, riesgos, controles, operación y '
+     'emergencias. Se envía y aprueba en la plataforma con QR; se conserva mientras siga vigente. La '
+     'bioseguridad y otras medidas específicas se incluyen cuando correspondan a las actividades. '
+     'Cumplimiento obligatorio: se aprueba una vez y se conserva mientras siga vigente; no se califica.', ''),
 
     # -- Una vez por año: necesidades del año siguiente, convocatoria ordinaria en mayo -----
     ('PLAN-COMPRAS-ANUAL', 'Plan anual de compras y presupuesto para el año siguiente', 'planeacion',
      'anual', 'ambos', True, False, 'meses', 0, 'compras', 40,
-     'Lo que la unidad necesitará comprar el año siguiente, con su justificación frente al inventario, la vida '
-     'útil de los equipos y sus actividades. Se prepara con el editor y se emite en la plataforma para '
-     'revisión y aprobación; la ventana de entrega se consulta en el expediente. Si no requiere compras, lo justifica.', ''),
+     'Lo que la unidad necesitará comprar el año siguiente, con su justificación frente al inventario, la '
+     'vida útil de los equipos y sus actividades. Se prepara con el editor y se emite en la plataforma '
+     'para revisión y aprobación; la ventana de entrega se consulta en el expediente. Si no requiere '
+     'compras, lo justifica. Cumplimiento obligatorio: la Dirección confirma su conformidad documental; no '
+     'se califica ni compromete fondos.', ''),
 
     # -- Apertura del período: la planificación firmada y sus anexos ---------------------------
     ('PLANIFICACION', 'Planificación semestral de actividades de la unidad', 'planeacion', 'semestral', 'ambos', True,
      False, 'inicio', 15, 'planificacion', 20,
-     'Se redacta con el editor guiado: el sistema llena lo que ya sabe (datos de la unidad, espacios, servicios, '
-     'inventario) y la unidad revisa objetivos, diagnóstico, actividades, metas y recursos. Al emitir se registra '
-     'al responsable; la aprobación se consulta mediante el mismo QR.', ''),
+     'Se redacta con el editor guiado: el sistema llena lo que ya sabe (datos de la unidad, espacios, '
+     'servicios, inventario) y la unidad revisa objetivos, diagnóstico, actividades, metas y recursos. Al '
+     'emitir se registra al responsable; la aprobación se consulta mediante el mismo QR. Cumplimiento '
+     'obligatorio: la Dirección confirma su conformidad; no se califica. Sus metas son las que mide el '
+     'informe semestral.', ''),
     ('INDICADORES-PLAN', 'Plan semestral de prácticas por asignatura', 'planeacion', 'semestral', 'sistema',
      False, False, 'inicio', 15, 'asignaturas', 30,
-     'Un documento consolidado del semestre reúne fecha, escenario y responsable de las prácticas por '
-     'asignatura. Respalda la planificación semestral; la cantidad de prácticas aprobadas se mide en FT02, '
-     'sin otra meta ni puntos independientes por este anexo.', 'PLANIFICACION'),
+     'Programación consolidada del semestre: asignatura, fecha, escenario y responsable de cada práctica, '
+     'con su FT02 y su guía vinculados. Respalda la planificación; no tiene meta propia (las prácticas '
+     'aprobadas se miden en el FT02).', 'PLANIFICACION'),
     ('PLAN-MANTENIMIENTO', 'Plan anual de mantenimiento preventivo y correctivo', 'planeacion', 'anual', 'sistema',
      False, False, 'inicio', 15, 'mantenimiento', 50,
-     'Respalda la planificación del período A con equipos, criticidad, intervenciones, responsables y calendario. '
-     'Su ejecución se contrasta con las intervenciones exigibles y las metas aprobadas.', 'PLANIFICACION'),
+     'Equipos e infraestructura, criticidad, intervenciones, frecuencia, responsables y calendario del '
+     'año; viaja con la planificación del período A. Respalda la meta de mantenimiento, que se mide en el '
+     'informe semestral: 80 % de lo programado en equipos críticos.', 'PLANIFICACION'),
 
     # -- Cierre del período: el informe firmado y sus anexos de evidencia ----------------------
     ('INFORME-SEMESTRAL', 'Informe semestral de actividades y cumplimiento de la planificación', 'evaluacion', 'semestral', 'ambos', True,
      False, 'cierre', 15, 'informe', 10,
-     'Se redacta con el editor guiado sobre lo que el sistema registró en el período: cumplimiento del plan, uso, '
-     'logros, dificultades y acciones de mejora. Al emitir registra al responsable y conserva las evidencias '
-     'del período; la aprobación se consulta mediante el mismo QR. Los plazos se consultan en el expediente.', ''),
+     'Se redacta con el editor guiado sobre lo que el sistema registró en el período: cumplimiento del '
+     'plan, uso, logros, dificultades y acciones de mejora. Al emitir registra al responsable y conserva '
+     'las evidencias del período; la aprobación se consulta mediante el mismo QR. Los plazos se consultan '
+     'en el expediente. Es el único documento que se califica: su nota es el cumplimiento de las metas de '
+     'la planificación, medido con los registros y las evidencias del período, y no se obtiene por haberlo '
+     'entregado. Una entrega tardía descuenta los puntos que fija la política de calidad.', ''),
     ('REGISTRO-USO', 'Registro de uso del período: sesiones, horas y usuarios por tipo y finalidad', 'ejecucion',
      'semestral', 'sistema', False, False, 'cierre', 15, 'reservas', 10,
-     'Lo produce el sistema con las reservas registradas; el 100 % de las sesiones debe pasar por la plataforma.',
+     'Sesiones registradas en la plataforma durante el período, agrupadas por propósito, con fecha, '
+     'horario, solicitante y estado. Respalda la meta de registrar todas las sesiones de uso; el uso '
+     'efectivo frente a la capacidad se detalla en los indicadores del informe.',
      'INFORME-SEMESTRAL'),
     ('PRACTICAS-FT02', 'FT02 · Planificación de cada práctica', 'ejecucion', 'semestral', 'sistema', False, False,
-     'cierre', 15, 'planificaciones', 20, '', 'INFORME-SEMESTRAL'),
+     'cierre', 15, 'planificaciones', 20, 'Matriz FT02 del período: cada práctica planificada con asignatura, fecha, escenario, docente, '
+     'responsable y guía, y la comprobación de su aprobación y su respaldo. Respalda la meta de prácticas '
+     'planificadas.', 'INFORME-SEMESTRAL'),
     ('PRACTICAS-FT03', 'FT03 · Registro de ejecución con asistencia, bitácora y evidencias', 'ejecucion',
-     'semestral', 'sistema', False, False, 'cierre', 15, 'ejecuciones', 30, '', 'INFORME-SEMESTRAL'),
+     'semestral', 'sistema', False, False, 'cierre', 15, 'ejecuciones', 30, 'Registro FT03 del período: ejecución de cada práctica con asistencia, bitácora, resultados y '
+     'evidencias, y la comprobación de su respaldo. Respalda la meta de prácticas ejecutadas.', 'INFORME-SEMESTRAL'),
     ('GUIAS', 'Guías de prácticas: aprobación y vínculo con el syllabus', 'ejecucion', 'semestral', 'sistema',
-     False, False, 'cierre', 15, 'guias', 40, 'Guías vigentes utilizadas en las prácticas programadas, con aprobación y vínculo con el syllabus.',
+     False, False, 'cierre', 15, 'guias', 40, 'Guías de práctica vigentes usadas en el período: código, versión, aprobación y vínculo con la '
+     'asignatura y el syllabus. Respalda la meta de guías.',
      'INFORME-SEMESTRAL'),
     ('PRESTAMOS-EQUIPOS', 'Registro de préstamos de equipos', 'ejecucion', 'semestral', 'sistema', False, False,
      'cierre', 15, 'prestamos', 50,
-     'Quién retira, cuándo, para qué actividad y cuándo devuelve, con el estado del equipo. '
-     'Sale de los préstamos registrados en la consola; el externo además exige su acta.', 'INFORME-SEMESTRAL'),
+     'Quién retira, cuándo, para qué actividad y cuándo devuelve, con el estado del equipo. Sale de los '
+     'préstamos registrados en la consola; el externo además exige su acta. Respalda la meta opcional de '
+     'préstamos de equipos: cuenta en la nota solo si la planificación la incluyó.', 'INFORME-SEMESTRAL'),
     ('INDUCCION-SEGURIDAD', 'Registro de inducciones y controles de seguridad', 'ejecucion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'seguridad', 70, '', 'INFORME-SEMESTRAL'),
+     'sistema', False, False, 'cierre', 15, 'seguridad', 70, 'Requisitos de acceso, inducciones y habilitaciones de usuarios nuevos, inspecciones de seguridad del '
+     'período, incidentes y estado del protocolo vigente. Respalda las metas de inducción de seguridad y '
+     'de inspecciones.', 'INFORME-SEMESTRAL'),
     ('DESECHOS', 'Registro de desechos peligrosos y especiales', 'ejecucion', 'semestral', 'sistema', False, False,
-     'cierre', 15, 'desechos', 80, '', 'INFORME-SEMESTRAL'),
+     'cierre', 15, 'desechos', 80, 'Desechos peligrosos y especiales del período: tipo, origen, cantidad, almacenamiento, responsable y, '
+     'cuando se entregan, gestor autorizado y manifiesto. Respalda la meta de gestión de desechos.', 'INFORME-SEMESTRAL'),
     ('EQUIPAMIENTO', 'Equipamiento: disponibilidad y funcionalidad del período', 'evaluacion', 'semestral',
-     'sistema', False, False, 'cierre', 15, 'equipamiento', 40, '', 'INFORME-SEMESTRAL'),
+     'sistema', False, False, 'cierre', 15, 'equipamiento', 40, 'Disponibilidad y funcionalidad del equipamiento en el período: estado al corte, días fuera de '
+     'servicio, verificaciones funcionales e incidencias. El inventario completo va en el anexo de '
+     'recursos. Respalda la meta opcional de disponibilidad del equipamiento: cuenta en la nota solo si la '
+     'planificación la incluyó.', 'INFORME-SEMESTRAL'),
     ('INSUMOS-CORTE', 'Reactivos e insumos: existencias y movimientos del período', 'evaluacion', 'semestral',
      'sistema', False, False, 'cierre', 15, 'inventario', 50,
-     'Existencias al corte, lotes aplicables, entradas y consumos del período; complementa el inventario integral de recursos.', 'INFORME-SEMESTRAL'),
+     'Movimientos de reactivos e insumos del período (entradas, consumos y ajustes) y existencias y lotes '
+     'vigentes con sus vencimientos; complementa el inventario integral. Respalda la meta opcional de '
+     'movimientos de insumos: cuenta en la nota solo si la planificación la incluyó.', 'INFORME-SEMESTRAL'),
     ('INVENTARIO-CORTE', 'Inventario anual de equipos, software y espacios', 'evaluacion', 'anual',
      'sistema', False, False, 'cierre', 15, 'recursos', 30,
-     'Un corte al año, con el informe del período B: altas, bajas y fuera de servicio.', 'INFORME-SEMESTRAL'),
+     'Inventario integral de la unidad al generarlo: equipos, software, espacios y, donde aplica, insumos, '
+     'con custodio, ubicación y condición. Respalda la meta de revisión física del inventario, que se '
+     'acredita con el acta verificada.', 'INFORME-SEMESTRAL'),
     ('INVESTIGACION', 'Resultados de investigación aplicada y desarrollo tecnológico', 'evaluacion', 'semestral',
      'sistema', False, False, 'cierre', 15, 'investigacion', 60,
-     'Productos obtenidos, proyecto, responsable y respaldo verificable. El uso para investigación y titulación se muestra por separado.',
+     'Productos de investigación aplicada y desarrollo tecnológico obtenidos en el período, con su '
+     'proyecto, responsable y respaldo verificable; el uso de la unidad para investigación y titulación se '
+     'muestra aparte. Respalda la meta de resultados de investigación.',
      'INFORME-SEMESTRAL'),
     ('TRANSFERENCIA', 'Transferencia de conocimiento y servicios especializados a la sociedad', 'evaluacion', 'semestral',
      'sistema', False, False, 'cierre', 15, 'transferencia', 70,
-     'Entregable, destinatario y aceptación documentada. Las solicitudes de servicio y reservas se muestran por separado.', 'INFORME-SEMESTRAL'),
+     'Entregables de transferencia de conocimiento y servicios especializados, con su destinatario y su '
+     'aceptación documentada; las solicitudes de servicio y las reservas se muestran aparte. Respalda las '
+     'metas de transferencia y de servicios.', 'INFORME-SEMESTRAL'),
     ('ACCIONES-MEJORA', 'Seguimiento de acciones de mejora', 'mejora', 'semestral', 'sistema', False, False, 'cierre',
      15, 'mejora', 10,
-     'Se consolida desde las acciones registradas en los informes semestrales: hallazgo, acción, responsable, '
-     'plazo y estado.', 'INFORME-SEMESTRAL'),
+     'Acciones de mejora consolidadas desde los informes: hallazgo, acción, responsable, plazo, estado y '
+     'evidencia de cierre; su vista previa es el mismo documento que se archiva. Respalda la meta opcional '
+     'de seguimiento de acciones de mejora: cuenta en la nota solo si la planificación la incluyó.', 'INFORME-SEMESTRAL'),
 )
 
 # Evidencias propias de las otras implementaciones. Conservan fuentes y
@@ -99,22 +131,28 @@ CATALOGO = (
 CATALOGO_PERFILES = (
     ('PP-PRODUCCION', 'Informe de producción de la planta piloto: órdenes, lotes y entregas',
      'ejecucion', 'semestral', 'sistema', False, False, 'cierre', 15, 'produccion', 90,
-     'Producción realizada frente al plan, cantidades, estados y trazabilidad de lotes y entregas.', 'INFORME-SEMESTRAL'),
+     'Producción realizada frente al plan, cantidades, estados y trazabilidad de lotes y entregas. '
+     'Respalda la meta de lotes o procesos de producción ejecutados.', 'INFORME-SEMESTRAL'),
     ('PP-CALIDAD', 'Informe de control de calidad y no conformidades de la planta piloto',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'control-calidad', 95,
-     'Parámetros, mediciones y resultados por lote u orden; liberación, rechazo y seguimiento.', 'INFORME-SEMESTRAL'),
+     'Parámetros, mediciones y resultados por lote u orden; liberación, rechazo y seguimiento. Respalda la '
+     'meta de control de calidad de los lotes finalizados.', 'INFORME-SEMESTRAL'),
     ('CE-ENSAYOS', 'Informe de ensayos y seguimiento de parcelas experimentales',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'ensayos', 90,
-     'Objetivo, escenario, fechas, manejo, mediciones y resultados respaldados de los ensayos.', 'INFORME-SEMESTRAL'),
+     'Objetivo, escenario, fechas, manejo, mediciones y resultados respaldados de los ensayos. Respalda la '
+     'meta de ensayos y parcelas con seguimiento.', 'INFORME-SEMESTRAL'),
     ('OBS-DATOS', 'Registro de fuentes, metodología y actualización de indicadores del observatorio',
      'ejecucion', 'semestral', 'sistema', False, False, 'cierre', 15, 'datos-observatorio', 20,
-     'Fichas metodológicas, fuentes y actualizaciones con período de referencia, territorio y trazabilidad.', 'INFORME-SEMESTRAL'),
+     'Fichas metodológicas, fuentes y actualizaciones con período de referencia, territorio y '
+     'trazabilidad. Respalda la meta de actualización de series y fuentes del observatorio.', 'INFORME-SEMESTRAL'),
     ('OBS-BOLETINES', 'Informe de publicaciones y cumplimiento del calendario del observatorio',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'boletines', 30,
-     'Publicaciones previstas y efectivas, fecha, responsable, indicadores y respaldo consultable.', 'INFORME-SEMESTRAL'),
+     'Publicaciones previstas y efectivas, fecha, responsable, indicadores y respaldo consultable. '
+     'Respalda la meta de boletines, informes o bases de datos publicados.', 'INFORME-SEMESTRAL'),
     ('OBS-EVENTOS', 'Informe de socialización de resultados y vinculación del observatorio',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'eventos', 40,
-     'Actividades realizadas, propósito, destinatarios, productos difundidos y respaldo.', 'INFORME-SEMESTRAL'),
+     'Actividades realizadas, propósito, destinatarios, productos difundidos y respaldo. Respalda la meta '
+     'de eventos de socialización de resultados.', 'INFORME-SEMESTRAL'),
 )
 TIPOS_CATALOGO_PERFILES = {'PP-PRODUCCION': ['plantas_piloto'], 'PP-CALIDAD': ['plantas_piloto'],
                          'CE-ENSAYOS': ['centro_experimental'], 'OBS-DATOS': ['observatorios'],

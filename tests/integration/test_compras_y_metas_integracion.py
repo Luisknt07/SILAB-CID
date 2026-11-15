@@ -16,7 +16,7 @@ from apps.documentos.presentation.expediente_redaccion import (
 )
 from apps.documentos.presentation.expediente_pdf import render_documento_pdf
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
-from apps.formacion.presentation.evaluacion_rubrica import evaluar_con_rubrica
+from apps.documentos.presentation.expediente import evaluar_documento
 from apps.gestion_unidades.models.espacios import EspacioReservable
 from tests.integration.test_auditoria_alcance_reportes_unidades import BaseAlcanceReportes
 
@@ -85,8 +85,8 @@ class ComprasYMetasIntegracionTests(BaseAlcanceReportes):
             documento.refresh_from_db()
             cantidad = RegistroAuditoriaUnidad.objects.count()
             with self.subTest(codigo=documento.exigido.codigo), self.assertRaisesMessage(
-                    ValidationError, 'usan conformidad documental'):
-                evaluar_con_rubrica(documento, self.direccion, {}, documento.version, '', confirmado=True)
+                    ValidationError, 'es de cumplimiento obligatorio'):
+                evaluar_documento(documento, self.direccion, 90, 'Bien.')
             documento.refresh_from_db()
             self.assertEqual(documento.evaluacion, 75)
             self.assertEqual(RegistroAuditoriaUnidad.objects.count(), cantidad)

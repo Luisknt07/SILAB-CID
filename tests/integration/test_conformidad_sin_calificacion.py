@@ -1,4 +1,4 @@
-"""Los planes usan conformidad; los porcentajes antiguos sólo se conservan."""
+"""Los planes son de cumplimiento obligatorio: conformidad sin porcentaje; las notas antiguas sólo se conservan."""
 from datetime import date, timedelta
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -16,7 +16,7 @@ from apps.documentos.presentation.conformidad_planes import confirmar_conformida
 from apps.documentos.presentation.expediente import evaluar_documento
 from apps.documentos.presentation.expediente_catalogo import asegurar_catalogo
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
-from apps.formacion.presentation.evaluacion_rubrica import evaluar_con_rubrica, revisar_documento
+from apps.formacion.presentation.evaluacion_rubrica import revisar_documento
 from apps.recursos.models.recursos import Recurso
 from tests.integration.utiles import (
     correspondencia_revisada, pdf_legible_prueba, registrar_antecedente_evaluacion,
@@ -52,7 +52,7 @@ class ConformidadSinCalificacionTests(TestCase):
             fecha = documento.evaluado_en
             for porcentaje in (0, 50, 100):
                 with self.subTest(codigo=codigo, porcentaje=porcentaje):
-                    with self.assertRaisesMessage(ValidationError, 'no se califican con porcentajes'):
+                    with self.assertRaisesMessage(ValidationError, 'es de cumplimiento obligatorio'):
                         evaluar_documento(documento, self.direccion, porcentaje,
                             observacion='Intento de nota nueva.', recomendaciones='Completar la entrega.')
                     documento.refresh_from_db()
@@ -64,7 +64,7 @@ class ConformidadSinCalificacionTests(TestCase):
         documento = self.documento('PLANIFICACION')
         for valor in (True, '1', '100', object()):
             with self.subTest(valor=type(valor).__name__):
-                with self.assertRaisesMessage(ValidationError, 'no se califican con porcentajes'):
+                with self.assertRaisesMessage(ValidationError, 'es de cumplimiento obligatorio'):
                     evaluar_documento(documento, self.direccion, 100, _registro_conformidad=valor)
         documento.refresh_from_db()
         self.assertIsNone(documento.evaluacion)
@@ -96,12 +96,13 @@ class ConformidadSinCalificacionTests(TestCase):
         documento.refresh_from_db()
         self.assertIsNone(documento.evaluacion)
 
-    def test_rubrica_tambien_rechaza_la_calificacion_de_los_dos_planes(self):
+    def test_la_administracion_tampoco_califica_los_dos_planes(self):
+        self.client.force_login(self.direccion)
         for codigo in ('PLANIFICACION', 'PLAN-COMPRAS-ANUAL'):
             documento = self.documento(codigo)
-            with self.assertRaisesMessage(ValidationError, 'usan conformidad documental'):
-                evaluar_con_rubrica(documento, self.direccion, {}, documento.version,
-                                   documento.recurso.hash_sha256, confirmado=True)
+            self.client.post(reverse('admin:reportes-cumplimiento-expediente'), {
+                'accion': 'evaluar_rubrica', 'documento': documento.pk, 'version': documento.version,
+                'huella': documento.recurso.hash_sha256, 'confirmado': '1', 'query': 'anio=2026'})
             documento.refresh_from_db()
             self.assertIsNone(documento.evaluacion)
 
@@ -116,7 +117,8 @@ class ConformidadSinCalificacionTests(TestCase):
                     documento.recurso.hash_sha256, confirmado=True,
                     declaracion_correspondencia=correspondencia_revisada(documento))
             documento.refresh_from_db()
-            self.assertEqual(documento.evaluacion, 100)
+            self.assertIsNone(documento.evaluacion)
+            self.assertIsNone(documento.nota)
             rastro = RegistroAuditoriaUnidad.objects.get(unidad=self.unidad,
                 objeto_id=str(documento.pk), descripcion='conformidad_documental:confirmar')
             self.assertEqual(rastro.datos_nuevos['sha256'], documento.recurso.hash_sha256)
@@ -137,15 +139,17 @@ class ConformidadSinCalificacionTests(TestCase):
         documento.refresh_from_db()
         self.assertIsNone(documento.evaluacion)
 
-    def test_cero_por_no_entrega_permanece_separado_de_la_conformidad(self):
+    def test_la_no_entrega_de_un_plan_no_se_registra_como_cero(self):
+        # La no entrega de un plan la registra el vencimiento como incumplimiento, sin porcentaje.
         for codigo in ('PLANIFICACION', 'PLAN-COMPRAS-ANUAL'):
             documento = self.documento(codigo)
             documento.estado = 'pendiente'
             documento.save(update_fields=['estado'])
-            evaluar_documento(documento, self.direccion, 0,
-                observacion='No se presentó la entrega.', recomendaciones='Completar y enviar el documento.',
-                registrar_incumplimiento=True)
+            with self.assertRaisesMessage(ValidationError, 'es de cumplimiento obligatorio'):
+                evaluar_documento(documento, self.direccion, 0,
+                    observacion='No se presentó la entrega.', recomendaciones='Completar y enviar el documento.',
+                    registrar_incumplimiento=True)
             documento.refresh_from_db()
-            self.assertEqual(documento.evaluacion, 0)
+            self.assertIsNone(documento.evaluacion)
             self.assertFalse(RegistroAuditoriaUnidad.objects.filter(unidad=self.unidad,
                 objeto_id=str(documento.pk), descripcion='conformidad_documental:confirmar').exists())

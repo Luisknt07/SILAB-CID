@@ -52,7 +52,9 @@ class FechasCorreccionTests(BaseDelExpediente):
         d = self.entrega()
         aprobar_permanente(d, self.direccion, d.version, d.recurso.hash_sha256,
                            confirmado=True, declaracion_correspondencia=correspondencia_revisada(d))
-        self.assertEqual(d.nota, 100)
+        # Aprobado: es de cumplimiento obligatorio, aceptado y sin porcentaje.
+        self.assertIsNone(d.nota)
+        self.assertIs(d.cumple, True)
         self.assertIsNone(d.evaluacion)
         original = d.plazo_original
         hasta = timezone.now() + timedelta(days=2)

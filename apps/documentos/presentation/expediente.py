@@ -30,7 +30,9 @@ from apps.recursos.models.recursos import CarpetaRecurso, Recurso
 from apps.documentos.models.expediente import DocumentoElaborado, DocumentoExigido, DocumentoExpediente
 from apps.core.models.periodos import PeriodoAcademico
 from apps.directorio_unidades.models.core import Unidad
-from apps.documentos.models.expediente import CARPETAS, NOMBRES_CARPETA, NOMBRES_ETAPA, minimo_vigente, politica_consistente
+from apps.documentos.models.expediente import (
+    CARPETAS, NOMBRES_CARPETA, NOMBRES_ETAPA, es_calificable, minimo_vigente, politica_consistente,
+)
 from apps.recursos.models.recursos import FORMATOS_ADJUNTO_PERMITIDOS
 
 from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
@@ -44,6 +46,8 @@ MAXIMO_BYTES_CARGA = 25 * 1024 * 1024
 # Capacidad interna: sólo el comando de conformidad puede registrar su
 # equivalencia documental. No es un indicador ni un permiso enviable por POST.
 _REGISTRO_CONFORMIDAD_PLAN = object()
+# Solo el cierre calculado del informe semestral escribe su nota: ninguna petición ni formulario la fija a mano.
+_REGISTRO_CIERRE = object()
 ORDEN_SEMAFORO = ('vencido', 'observado', 'por_validar', 'por_vencer', 'a_tiempo', 'no_abierto',
                   'sin_plazo', 'validado', 'disponible', 'archivado', 'no_aplica')
 NOMBRES_SEMAFORO = {
@@ -579,7 +583,13 @@ def _preparar(documento, hoy, cortes, categorias):
     # período. El visor arma el resto, para consultar otro rango sin salir de aquí.
     documento.url_informe = documento.desde = documento.hasta = ''
     fuente = documento.exigido.fuente_reporte
-    if fuente in categorias:
+    if fuente == 'mejora' and documento.pk:
+        # Se consolida desde los informes: su vista previa es el mismo PDF que se archiva. Un anexo que todavía
+        # no existe en la base se consulta, como antes, en el Centro de reportes.
+        inicio, fin = tramo_del_documento(documento, cortes)
+        documento.url_informe = reverse('pdf_borrador_documento_expediente', args=[documento.unidad.slug, documento.pk])
+        documento.desde, documento.hasta = inicio.isoformat(), fin.isoformat()
+    elif fuente in categorias:
         inicio, fin = tramo_del_documento(documento, cortes)
         documento.url_informe = (
             reverse('gestion_reporte_unidad_pdf', args=[documento.unidad.slug])
@@ -1257,11 +1267,12 @@ def habilitar_entrega_tardia(documento, usuario, hasta=None):
 @comando
 def evaluar_documento(documento, usuario, porcentaje, observacion='', fortalezas='', debilidades='',
                       recomendaciones='', registrar_incumplimiento=False, *, declaracion_correspondencia=None,
-                      _registro_conformidad=None):
-    """La Dirección califica lo enviado de 0 a 100 y dice dónde está la unidad.
+                      _registro_conformidad=None, _registro_cierre=None):
+    """Registra la nota del informe semestral: la que sale del cumplimiento de sus metas.
 
-    Bajo el mínimo, el documento pasa a mejora continua y las recomendaciones
-    son obligatorias: son lo que la siguiente planificación tiene que responder.
+    Solo el informe se califica, y solo con su cierre calculado (o con 0 si no se entregó). Los demás documentos
+    son de cumplimiento obligatorio y no reciben porcentaje. Bajo el mínimo, el informe pasa a mejora continua y
+    las recomendaciones son obligatorias: son lo que la siguiente planificación tiene que responder.
     """
     _exigir_cierre_concluido(documento)
     from apps.documentos.presentation.conformidad_permanente import es_permanente
@@ -1270,6 +1281,12 @@ def evaluar_documento(documento, usuario, porcentaje, observacion='', fortalezas
     if documento.exigido.es_anexo:
         raise ValidationError(
             f'{documento.nombre_documental} es un anexo: se evalúa «{documento.exigido.anexo_de.nombre}».')
+    if not es_calificable(documento.exigido):
+        if _registro_conformidad is _REGISTRO_CONFORMIDAD_PLAN:
+            return  # La conformidad de un plan queda en su registro de auditoría; un plan no lleva nota.
+        raise ValidationError(
+            f'{documento.nombre_documental} es de cumplimiento obligatorio: la Dirección lo acepta u observa, '
+            'sin porcentaje. Solo el informe semestral se califica, con el cumplimiento de sus metas.')
     if not usuario.is_superuser:
         raise ValidationError('Solo la Dirección evalúa los documentos enviados.')
     if documento.estado != 'validado' and not registrar_incumplimiento:
@@ -1284,12 +1301,10 @@ def evaluar_documento(documento, usuario, porcentaje, observacion='', fortalezas
         raise ValidationError('El cumplimiento se escribe como un porcentaje de 0 a 100.')
     if registrar_incumplimiento and porcentaje != 0:
         raise ValidationError('Una entrega incompleta solo admite 0 por incumplimiento.')
-    if documento.exigido.codigo in ('PLANIFICACION', 'PLAN-COMPRAS-ANUAL'):
-        conformidad_interna = (_registro_conformidad is _REGISTRO_CONFORMIDAD_PLAN
-                              and porcentaje == 100 and not registrar_incumplimiento)
-        if not conformidad_interna and not (registrar_incumplimiento and porcentaje == 0):
-            raise ValidationError('La planificación y el plan de compras no se califican con porcentajes. '
-                                  'Confirma su conformidad documental; los resultados operativos se miden en el cierre.')
+    if not registrar_incumplimiento and _registro_cierre is not _REGISTRO_CIERRE:
+        raise ValidationError(
+            'La nota del informe semestral sale del cumplimiento de las metas de su planificación, medido con los '
+            'registros del período: la Dirección confirma el cierre calculado; no se escribe a mano.')
     if not registrar_incumplimiento:
         from apps.documentos.presentation.expediente_archivos import exigir_integridad_documental
         from apps.documentos.presentation.expediente_operaciones import declaracion_actual

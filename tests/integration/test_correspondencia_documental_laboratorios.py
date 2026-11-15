@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from reportlab.pdfgen.canvas import Canvas
 
@@ -246,7 +247,7 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         self.assertEqual(d.version, 1)
         self.assertFalse(estado_integridad_documental(d)['correspondencia_verificada'])
 
-    def test_nota_legada_se_conserva_sin_acreditar_hasta_revision_explicita(self):
+    def test_nota_legada_de_un_documento_obligatorio_se_conserva_sin_contar(self):
         from apps.documentos.presentation.cumplimiento import _nivel_evaluado, _matriz
         from apps.documentos.presentation.progreso_general import acreditacion_actual, progreso_general
         d = self.documento()
@@ -259,22 +260,23 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         nivel = _nivel_evaluado([d], date(2026, 10, 17))
         self.assertEqual((previo['porcentaje'], previo['calificadas'], previo['total']), (0, 0, 0))
         lectura = acreditacion_actual(d)
-        self.assertEqual((lectura['nota_registrada'], lectura['nota_acreditable']), (90, 0))
+        self.assertEqual((lectura['nota_registrada'], lectura['nota_acreditable']), (None, None))
         self.assertEqual((nivel['total'], nivel['total_registrado'],
                           nivel['pendientes_correspondencia']), (None, None, 0))
         self.assertIsNone(nivel['cumple'])
         self.assertIsNone(_matriz([d], date(2026, 10, 17))[0]['cumple'])
-        self.assertTrue(d.cumple)
+        # Enviado pero no recibido: la nota antigua no lo da por cumplido.
+        self.assertIsNone(d.cumple)
         recibir_documento(d, self.director, declaracion_correspondencia=self.declaracion(d))
         confirmado = progreso_general([d])
         self.assertEqual((confirmado['porcentaje'], confirmado['pendientes_correspondencia']), (0, 0))
-        self.assertEqual(acreditacion_actual(d)['nota_acreditable'], 90)
+        self.assertIsNone(acreditacion_actual(d)['nota_acreditable'])
         self.assertEqual(confirmado['sin_ponderacion'][0]['aporte'], 0)
         self.assertIsNone(_nivel_evaluado([d], date(2026, 10, 17))['cumple'])
         fila = _matriz([d], date(2026, 10, 17))[0]
         self.assertTrue(fila['documento'].resumen_interfaz['integridad']['correspondencia_verificada'])
         d.refresh_from_db()
-        self.assertEqual((d.nota, d.evaluacion, d.cumple), (90, 90, True))
+        self.assertEqual((d.nota, d.evaluacion, d.cumple), (None, 90, True))
 
     def test_nota_historica_de_archivo_ajeno_no_suma_ni_se_borra(self):
         from apps.documentos.presentation.cumplimiento import _nivel_evaluado
@@ -288,13 +290,13 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         d.refresh_from_db()
         estado = progreso_general([d])
         lectura = acreditacion_actual(d)
-        self.assertEqual((estado['porcentaje'], lectura['nota'], lectura['nota_acreditable']), (0, 90, 0))
+        self.assertEqual((estado['porcentaje'], lectura['nota'], lectura['nota_acreditable']), (0, None, None))
         self.assertTrue(lectura['integridad']['bloqueado'])
         self.assertIsNone(_nivel_evaluado([d], date(2026, 10, 17))['cumple'])
         with self.assertRaisesMessage(ValidationError, 'otra unidad'):
             recibir_documento(d, self.director, declaracion_correspondencia=self.declaracion(d))
         d.refresh_from_db()
-        self.assertEqual((d.nota, d.evaluacion, d.cumple), (90, 90, True))
+        self.assertEqual((d.nota, d.evaluacion, d.cumple), (None, 90, None))
 
     def test_aporte_carga_en_lote_y_reutiliza_lectura_sin_abrir_pdfs(self):
         from apps.documentos.presentation.cumplimiento import _nivel_evaluado
@@ -320,7 +322,7 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         leer.assert_not_called()
         self.assertEqual((progreso['total'], progreso['porcentaje'], nivel['total_registrado']), (0, 0, None))
         self.assertEqual(len(progreso['sin_ponderacion']), 2)
-        self.assertTrue(all(a['nota_registrada'] == 90 and a['nota_acreditable'] == 0 for a in acreditaciones))
+        self.assertTrue(all(a['nota_registrada'] is None and a['nota_acreditable'] is None for a in acreditaciones))
 
     def test_tipologia_fuera_de_las_cuatro_conserva_acreditacion_sin_puntuar_el_acto_administrativo(self):
         from apps.documentos.presentation.cumplimiento import _nivel_evaluado
@@ -337,7 +339,7 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
                 nivel = _nivel_evaluado([d], date(2026, 10, 17))
                 acreditacion = acreditacion_actual(d)
         self.assertEqual((progreso['porcentaje'], progreso['pendientes_correspondencia']), (0, 0))
-        self.assertEqual(acreditacion['nota_acreditable'], 90)
+        self.assertIsNone(acreditacion['nota_acreditable'])
         self.assertTrue(acreditacion['acreditable'])
         self.assertIsNone(nivel['cumple'])
 
@@ -356,9 +358,9 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         leer.assert_not_called()
         documento = next(f for f in nivel['filas'] if f['documento'].pk == d.pk)
         self.assertEqual((documento['nota'], documento['nota_acreditable']), (None, None))
-        self.assertEqual(documento['nota_registrada'], 90)
+        self.assertIsNone(documento['nota_registrada'])
         self.assertTrue(documento['correspondencia_pendiente'])
-        self.assertEqual(acreditacion_actual(documento['documento'])['nota_acreditable'], 0)
+        self.assertIsNone(acreditacion_actual(documento['documento'])['nota_acreditable'])
         self.assertIsNone(nivel['total'])
         totales = totales_de([fila])
         self.assertEqual((totales['evaluadas'], totales['cumplen_minimo'],
@@ -367,7 +369,7 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         nivel = cumplimiento_del_periodo(self.unidad, 2026, 'B', hoy=date(2026, 10, 17))
         documento = next(f for f in nivel['filas'] if f['documento'].pk == d.pk)
         self.assertEqual((documento['nota'], documento['nota_acreditable']), (None, None))
-        self.assertEqual(acreditacion_actual(documento['documento'])['nota_acreditable'], 90)
+        self.assertIsNone(acreditacion_actual(documento['documento'])['nota_acreditable'])
         self.assertIsNone(nivel['total'])
         self.assertFalse(nivel['pendientes_correspondencia'])
 
@@ -382,11 +384,11 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         d.save(update_fields=['version', 'evaluacion', 'evaluacion_version'])
         self.assertFalse(estado_integridad_documental(d)['correspondencia_verificada'])
         self.assertEqual(progreso_general([d])['porcentaje'], 0)
-        self.assertEqual(acreditacion_actual(d)['nota_acreditable'], 0)
+        self.assertIsNone(acreditacion_actual(d)['nota_acreditable'])
         d = DocumentoExpediente.objects.select_related('unidad', 'exigido', 'recurso').get(pk=d.pk)
         self.assertFalse(estado_integridad_documental(d)['correspondencia_verificada'])
         self.assertEqual(progreso_general([d])['porcentaje'], 0)
-        self.assertEqual(acreditacion_actual(d)['nota_acreditable'], 0)
+        self.assertIsNone(acreditacion_actual(d)['nota_acreditable'])
 
     def test_cero_por_no_entrega_es_antecedente_sin_inventar_desempeno_de_la_unidad(self):
         from apps.documentos.presentation.cumplimiento import _nivel_evaluado
@@ -398,13 +400,14 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
             nivel = _nivel_evaluado([d], date(2026, 10, 17))
         self.assertEqual((datos['porcentaje'], datos['pendientes_correspondencia']), (0, 0))
         self.assertEqual((nivel['total'], nivel['pendientes_correspondencia']), (None, 0))
-        self.assertEqual(acreditacion_actual(d)['nota_registrada'], 0)
+        self.assertIsNone(acreditacion_actual(d)['nota_registrada'])
         self.assertIsNone(nivel['cumple'])
 
     def test_siguiente_paso_usa_correspondencia_precargada_sin_consultas(self):
         from apps.documentos.presentation.expediente_interfaz import resumen_de_entrega
+        # Recibido antes del control de correspondencia: queda aceptado, pero la comprobación sigue pendiente.
         d = DocumentoExpediente(unidad=self.unidad, exigido=self.exigido, anio=2026,
-            estado='validado', evaluacion=90, evaluacion_version=1, version=1)
+            estado='validado', recibido_en=timezone.now(), version=1)
         d.integridad_documental = dict(aplica=True, correspondencia_verificada=False)
         with self.assertNumQueries(0):
             pendiente = resumen_de_entrega(d)
@@ -416,7 +419,7 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
         fuera_del_alcance = resumen_de_entrega(d)
         self.assertEqual(pendiente['siguiente_paso'], 'Dirección: comprobar correspondencia del documento')
         self.assertEqual(pendiente['paso_unidad'], 'Esperar comprobación de correspondencia por Dirección')
-        self.assertEqual(verificada['siguiente_paso'], 'Entrega finalizada')
+        self.assertEqual(verificada['siguiente_paso'], 'Entrega aceptada')
         self.assertEqual(verificada['paso_unidad'], 'Consultar la respuesta de Dirección')
         self.assertEqual(fuera_del_alcance['siguiente_paso'], verificada['siguiente_paso'])
-        self.assertEqual((pendiente['nota'], verificada['nota'], d.nota), (90, 90, 90))
+        self.assertEqual((pendiente['nota'], verificada['nota'], d.nota), (None, None, None))

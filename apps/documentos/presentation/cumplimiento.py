@@ -17,7 +17,7 @@ from django.utils import timezone
 from apps.directorio_unidades.models.core import Unidad
 from apps.core.presentation.tipologias import tipologias_actuales
 
-from apps.documentos.models.expediente import NOMBRES_ETAPA, minimo_vigente, politica_consistente
+from apps.documentos.models.expediente import NOMBRES_ETAPA, es_calificable, minimo_vigente, politica_consistente
 
 from apps.documentos.presentation.expediente import NOMBRES_SEMAFORO, leer_expediente, leer_expedientes, cortes_del_anio, del_periodo, resumen
 from apps.documentos.presentation.progreso_general import (
@@ -422,7 +422,9 @@ def incumplimientos(documentos, hoy=None):
         estado = documento.semaforo(hoy)
         if documento.cumple is False:
             filas.append({
-                'documento': documento, 'estado': 'evaluado', 'etiqueta': f'Evaluado en {documento.evaluacion} %',
+                'documento': documento, 'estado': 'evaluado' if es_calificable(documento.exigido) else 'vencido',
+                'etiqueta': (f'Evaluado en {documento.evaluacion} %' if es_calificable(documento.exigido)
+                             else 'No entregado dentro del plazo'),
                 'dias': 0,
                 'motivo': ' · '.join(p for p in (
                     documento.evaluacion_observacion, documento.evaluacion_debilidades,
@@ -667,8 +669,10 @@ def _resumen_firmas(documentos):
             texto += ' · ' + conformidad['etiqueta']
             if conformidad['historica']:
                 texto += ' · revisión histórica conservada'
-        elif documento.evaluacion is not None:
+        elif es_calificable(documento.exigido) and documento.evaluacion is not None:
             texto += f' · {documento.nota} %'
+        elif getattr(documento, 'cumple', None):
+            texto += ' · aceptado'
         partes.append(texto)
     return '\n'.join(partes)
 

@@ -208,9 +208,9 @@ class ExperienciaReportesTests(base.BaseDelExpediente):
         d.estado = 'validado'
         self.assertEqual(siguiente_paso(d), 'Aplicar acciones de mejora')
         d.evaluacion = None
-        self.assertEqual(siguiente_paso(d), 'Dirección: recibir y evaluar')
+        self.assertEqual(siguiente_paso(d), 'Dirección: recibir y confirmar el cierre')
         d.recibido_en = timezone.now()
-        self.assertEqual(siguiente_paso(d), 'Dirección: evaluar')
+        self.assertEqual(siguiente_paso(d), 'Dirección: confirmar el cierre')
 
     def test_detalle_sin_javascript_es_solo_lectura_y_no_expone_otra_unidad(self):
         d = self.documento(self.laboratorio)

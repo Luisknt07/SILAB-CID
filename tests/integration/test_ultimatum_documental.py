@@ -74,9 +74,11 @@ class UltimatumDocumentalTests(BaseDelExpediente):
         enviado.save()
         evaluar_vencimientos()
         doc.refresh_from_db()
-        self.assertEqual(doc.nota, 0)
+        # La planificación es de cumplimiento obligatorio: la no entrega es incumplimiento, sin porcentaje.
+        self.assertIsNone(doc.nota)
+        self.assertIs(doc.cumple, False)
         self.assertIsNone(doc.evaluado_por)
-        self.assertIn('automática', doc.evaluacion_observacion)
+        self.assertIn('Incumplimiento por no entrega', doc.evaluacion_observacion)
         self.assertIn('completar', doc.evaluacion_recomendaciones)
         aviso = AvisoDocumental.objects.get(documento=doc, tipo='evaluacion')
         self.assertIn('mejora continua', aviso.mensaje)
@@ -94,7 +96,7 @@ class UltimatumDocumentalTests(BaseDelExpediente):
         self.assertIsNone(doc.evaluacion)
         evaluar_vencimientos(cierre + timedelta(seconds=1))
         doc.refresh_from_db()
-        self.assertEqual(doc.nota, 0)
+        self.assertIs(doc.cumple, False)
         self.assertIn('ultimátum', doc.evaluacion_observacion)
 
     def test_respeta_evaluacion_manual(self):

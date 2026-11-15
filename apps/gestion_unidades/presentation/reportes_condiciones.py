@@ -726,11 +726,11 @@ def tablas_condiciones(category, unit, start_date, end_date, state='', search=''
         return _tablas_seguridad(unit, start_date, end_date)
     if category == 'desechos':
         return _tablas_desechos(unit, start_date, end_date, state, search)
-    if category in ('recursos', 'equipamiento'):
-        tablas = _tablas_inventario(unit, start_date, end_date, search, state)
-        if category == 'equipamiento' and es_unidad_auditable(unit):
-            tablas = _tablas_funcionalidad(unit, start_date, end_date, state, search) + tablas
-        return tablas
+    if category == 'recursos':
+        return _tablas_inventario(unit, start_date, end_date, search, state)
+    if category == 'equipamiento':
+        # Disponibilidad y funcionalidad del período; el inventario integral es el anexo de recursos y no se repite.
+        return _tablas_funcionalidad(unit, start_date, end_date, state, search) if es_unidad_auditable(unit) else []
     if category == 'inventario':
         return _tablas_insumos(unit, search)
     if category == 'mantenimiento':

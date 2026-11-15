@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 
 from apps.core.presentation.tipologias import codigos_por_base, tipologias_actuales
+from apps.documentos.models.expediente import es_calificable
 from apps.gestion_unidades.presentation.tablero_operativo import construir_tablero_operativo
 from apps.gestion_unidades.presentation.reportes_filtros import PeriodoReporte, anio_pedido, entero_pedido
 from apps.gestion_unidades.models.operaciones import ReporteOperativoUnidad
@@ -104,8 +105,10 @@ class ReporteOperativoUnidadAdmin(AdministracionTraducida):
 
         Es la lectura con la que el director del sistema responde cuántas
         unidades cumplen, y donde decide: recibe la entrega que la unidad
-        archivó sin validar, habilita una entrega vencida, califica de 0 a 100 o
-        devuelve el documento. Cada decisión queda en la auditoría de la unidad,
+        archivó sin validar, habilita una entrega vencida, acepta u observa los
+        documentos de cumplimiento obligatorio, confirma el cierre calculado del
+        informe semestral (el único que se califica, con sus metas) o devuelve el
+        documento. Cada decisión queda en la auditoría de la unidad,
         y el PDF sale con el mismo marco institucional.
         """
         from django.contrib import messages
@@ -117,7 +120,7 @@ class ReporteOperativoUnidadAdmin(AdministracionTraducida):
             grupos_por_tipo, nombre_del_tipo, pdf_de_cumplimiento, tipos_auditados,
             unidades_auditadas, ventana_del_periodo,
         )
-        from apps.documentos.presentation.expediente import evaluar_documento, habilitar_entrega_tardia, observar_documento, recibir_documento
+        from apps.documentos.presentation.expediente import habilitar_entrega_tardia, observar_documento, recibir_documento
         from apps.documentos.models.expediente import DocumentoExpediente
 
         if not request.user.has_perm("documentos.view_documentoexpediente"):
@@ -130,10 +133,14 @@ class ReporteOperativoUnidadAdmin(AdministracionTraducida):
                 pk=entero_pedido(request.POST.get("documento"), 'Documento'))
             destino = f'{request.path}?{request.POST.get("query", "")}'
             accion = request.POST.get("accion")
-            if documento.exigido.codigo == 'INFORME-SEMESTRAL' and accion in ('evaluar_rubrica', 'evaluar'):
-                from apps.documentos.presentation.evaluacion_cierre import cierre_archivado
-                if cierre_archivado(documento):
-                    accion = 'confirmar_cierre'
+            if accion in ('evaluar_rubrica', 'evaluar'):
+                # Ninguna nota se escribe a mano: el informe se confirma con el cierre calculado de sus metas y
+                # los demás documentos se aceptan u observan.
+                if not es_calificable(documento.exigido):
+                    messages.error(request, f'{documento.nombre_documental} es de cumplimiento obligatorio: '
+                                            'se acepta u observa, sin porcentaje.')
+                    return redirect(destino)
+                accion = 'confirmar_cierre'
             try:
                 if accion in ('corregir_observacion', 'corregir_justificacion_tardia'):
                     from apps.documentos.presentation.expediente import anotar_observacion
@@ -190,16 +197,12 @@ class ReporteOperativoUnidadAdmin(AdministracionTraducida):
                     from apps.documentos.presentation.plazos_documentales import asignar_plazo_inicial
                     asignar_plazo_inicial(documento, request.user, request.POST.get('hasta'), request=request)
                     mensaje = 'Plazo institucional asignado para todas las unidades de este a?o.'
-                elif accion == 'evaluar_rubrica':
-                    from apps.formacion.presentation.evaluacion_rubrica import evaluar_con_rubrica
-                    evaluar_con_rubrica(documento, request.user, request.POST,
-                        request.POST.get('version'), request.POST.get('huella'),
-                        confirmado=request.POST.get('confirmado') == '1',
-                        comentario=request.POST.get('comentario', ''), request=request)
-                    mensaje = f'Evaluación guardada: {documento.nota} %. Criterios y observaciones registrados.'
                 elif accion == "recibir":
+                    ya_recibido = documento.recibido_en is not None and documento.estado == 'validado'
                     recibir_documento(documento, request.user, request=request)
-                    mensaje = (f"{documento.nombre_documental} de {documento.unidad.nombre}: recibido"
+                    mensaje = (f"{documento.nombre_documental} de {documento.unidad.nombre}: correspondencia "
+                               "confirmada." if ya_recibido else
+                               f"{documento.nombre_documental} de {documento.unidad.nombre}: recibido"
                                + (" fuera de plazo." if documento.entregado_tarde else "."))
                 elif accion == "habilitar_tardia":
                     habilitar_entrega_tardia(documento, request.user, hasta=request.POST.get('hasta'), request=request)
@@ -212,15 +215,6 @@ class ReporteOperativoUnidadAdmin(AdministracionTraducida):
                                        hasta=request.POST.get('hasta_correccion'), request=request)
                     mensaje = (f"{documento.nombre_documental} de {documento.unidad.nombre}: devuelto a la unidad "
                                "para que lo corrija.")
-                elif accion == 'evaluar':
-                    evaluar_documento(
-                        documento, request.user, request.POST.get("evaluacion"),
-                        request.POST.get("evaluacion_observacion", ""),
-                        request.POST.get("evaluacion_fortalezas", ""),
-                        request.POST.get("evaluacion_debilidades", ""),
-                        request.POST.get("evaluacion_recomendaciones", ""), request=request)
-                    mensaje = (f"{documento.nombre_documental} de {documento.unidad.nombre}: "
-                               f"{documento.nota} % de cumplimiento.")
                 else:
                     raise ValidationError('Acción documental no reconocida.')
             except ValidationError as error:

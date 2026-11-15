@@ -1,5 +1,16 @@
 # Estado actual del proyecto — 15 de noviembre de 2026
 
+**Centro de reportes: solo el informe semestral se califica (15 de noviembre, noche).** El informe de
+actividades y cumplimiento de la planificación es el único documento con nota, y esa nota es el
+cumplimiento de las metas del plan medido con los registros del período: la Dirección confirma el cierre
+calculado y ya no se escribe un porcentaje a mano. Resolución, protocolo, planificación, plan de compras y
+demás son de cumplimiento obligatorio (se aceptan u observan; la no entrega queda como incumplimiento, sin
+0). Se retiró la rúbrica manual. Cada anexo dice lo que contiene y la meta que respalda (migración
+`documentos.0023`); el anexo de equipamiento ya no repite el inventario y la vista previa de acciones de
+mejora es el documento que se archiva. La migración quedó sin aplicar en la base local (respaldo y
+pasos en el documento). Las 22 categorías del Centro de reportes responden en las 32 unidades. Regla, anexos y unidades sin administrador en
+[docs/calificacion-y-anexos-del-expediente.md](docs/calificacion-y-anexos-del-expediente.md).
+
 **Existencias y referencias (15 de noviembre, tarde).** Lo que no existe en una
 unidad ya no se muestra ni se cuenta: queda como referencia inactiva o dotación
 propuesta, fuera del visor (también para quien gestiona), de las páginas de área,

@@ -139,8 +139,13 @@ def medir_meta(fila, registros):
     elif fila.get('codigo') in ('GUIAS', 'PRACTICAS', 'PRACTICAS-PLAN'):
         clave = {'GUIAS': 'guias_acreditables', 'PRACTICAS': 'practicas_acreditables',
                  'PRACTICAS-PLAN': 'planificaciones_acreditables'}[fila['codigo']]
-        registrado = (registros.get('guias_periodo_acreditables', registros.get(clave, registrado))
-            if fila['codigo'] == 'GUIAS' and fila.get('politica_metas', 0) < 3 else registros.get(clave, registrado))
+        if fila['codigo'] == 'GUIAS':
+            # Antes de la política 3 cuentan las guías nuevas o actualizadas en el período; desde entonces, las
+            # vigentes que usaron las prácticas del período. Una guía antigua que nadie usó no acredita resultados.
+            registrado = registros.get('guias_periodo_acreditables' if fila.get('politica_metas', 0) < 3
+                                       else 'guias_usadas_acreditables', registros.get(clave, registrado))
+        else:
+            registrado = registros.get(clave, registrado)
     elif fila.get('codigo') == 'TRANSFERENCIA':
         registrado = registros.get('transferencias_verificadas', 0)
     elif uso:
@@ -396,7 +401,7 @@ def congelar_cierre(documento, usuario):
 
 @comando
 def confirmar_cierre(documento, usuario, version, huella, confirmado=False, comentario=''):
-    from apps.documentos.presentation.expediente import evaluar_documento
+    from apps.documentos.presentation.expediente import _REGISTRO_CIERRE, evaluar_documento
     from apps.documentos.presentation.expediente import _exigir_cierre_concluido
     _exigir_cierre_concluido(documento)
 
@@ -419,4 +424,5 @@ def confirmar_cierre(documento, usuario, version, huella, confirmado=False, come
     if comentario:
         observacion += ' ' + str(comentario).strip()[:1200]
     evaluar_documento(documento, usuario, nota, observacion,
-                      recomendaciones='Atender las metas pendientes o incompletas en la siguiente planificación.')
+                      recomendaciones='Atender las metas pendientes o incompletas en la siguiente planificación.',
+                      _registro_cierre=_REGISTRO_CIERRE)

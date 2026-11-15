@@ -305,3 +305,17 @@ def revocar_permanente(documento, usuario, motivo):
         nuevos=dict(datos, motivo=motivo))
     documento.__dict__.pop('_aprobacion_permanente_inspeccion', None)
     return _adjuntar(documento, registro)
+
+
+def aceptacion_obligatoria(documento):
+    """Si la Dirección aceptó un documento de cumplimiento obligatorio, que no recibe porcentaje.
+
+    El permanente se acepta con su aprobación vigente; el plan, con su conformidad documental; los demás, cuando
+    la Dirección recibe la entrega tras comprobar su correspondencia.
+    """
+    if es_permanente(documento):
+        return bool(aprobacion_vigente(documento))
+    from .conformidad_lectura import es_plan, lectura_conformidad
+    if es_plan(documento):
+        return (lectura_conformidad(documento) or {}).get('estado') == 'conforme'
+    return documento.estado == 'validado' and documento.recibido_en is not None

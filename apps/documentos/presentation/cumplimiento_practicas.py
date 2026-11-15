@@ -249,9 +249,13 @@ def conteos_del_periodo(unidad, inicio, fin):
         'guias': [(g, diagnostico_guia(g, cache_archivos=cache)) for g in guias],
         'practicas': [(e, diagnostico_ejecucion(e, cache_archivos=cache)) for e in ejecuciones],
     }
+    usadas = {plan.guia_id for plan in planes if plan.guia_id}
     salida = {'guias_periodo_acreditables': sum(
         diagnostico['cumple'] and inicio <= timezone.localdate(guia.actualizado_en) <= fin
         for guia, diagnostico in grupos['guias']
+    ), 'guias_usadas_acreditables': sum(
+        # Una guía vigente acredita el período cuando alguna práctica del período la usa.
+        diagnostico['cumple'] and guia.pk in usadas for guia, diagnostico in grupos['guias']
     )}
     for nombre, filas in grupos.items():
         salida[nombre + '_acreditables'] = sum(d['cumple'] for _, d in filas)

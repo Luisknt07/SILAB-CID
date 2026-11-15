@@ -2281,10 +2281,22 @@ def pdf_borrador_documento_view(request, slug, documento_id):
 
     from apps.documentos.presentation.expediente import tramo_del_documento
 
-    unidad, documento = _documento_redactable(request, slug, documento_id)
-    redaccion = obtener_redaccion(documento)
-    inicio, fin = tramo_del_documento(documento)
-    contenido = pdf_del_documento(documento, redaccion, inicio, fin, estricto=False)
+    unidad = get_object_or_404(Unidad, slug=slug)
+    mejora = DocumentoExpediente.objects.filter(
+        pk=documento_id, unidad=unidad, exigido__fuente_reporte='mejora').select_related('exigido', 'unidad').first()
+    if mejora is not None:
+        # El anexo de acciones de mejora se consolida desde los informes: la vista previa es el mismo PDF que se
+        # archiva, no la consulta del Centro de reportes.
+        if not puede_operar_modulo_unidad(request.user, unidad, 'reportes'):
+            raise PermissionDenied('No tienes autorización para consultar documentos de esta unidad.')
+        documento = mejora
+        inicio, fin = tramo_del_documento(documento)
+        contenido = pdf_acciones_de_mejora(documento, inicio, fin, borrador=True)
+    else:
+        unidad, documento = _documento_redactable(request, slug, documento_id)
+        redaccion = obtener_redaccion(documento)
+        inicio, fin = tramo_del_documento(documento)
+        contenido = pdf_del_documento(documento, redaccion, inicio, fin, estricto=False)
     respuesta = HttpResponse(contenido, content_type='application/pdf')
     nombre = f'{documento.exigido.codigo}-{documento.anio}{documento.corte}-borrador.pdf'
     respuesta['Content-Disposition'] = f'inline; filename="{nombre}"'

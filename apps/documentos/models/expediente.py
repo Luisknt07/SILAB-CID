@@ -32,6 +32,15 @@ CARPETAS = [
 NOMBRES_CARPETA = dict(CARPETAS)
 
 
+# El único documento que se califica: el informe semestral, con el cumplimiento de las metas de su planificación.
+CODIGO_CALIFICABLE = 'INFORME-SEMESTRAL'
+
+
+def es_calificable(exigido):
+    """Si el documento del catálogo se califica: solo el informe semestral, nunca un anexo."""
+    return getattr(exigido, 'codigo', '') == CODIGO_CALIFICABLE and not getattr(exigido, 'anexo_de_id', None)
+
+
 class DocumentoExigido(models.Model):
     """Un documento que la institución exige a las unidades, tal como lo define el formato anual."""
 
@@ -147,6 +156,15 @@ class DocumentoExigido(models.Model):
     @property
     def es_anexo(self):
         return self.anexo_de_id is not None
+
+    @property
+    def calificable(self):
+        """Solo el informe semestral se califica, con el cumplimiento de las metas de su planificación.
+
+        Los demás documentos son de cumplimiento obligatorio: se entregan a tiempo y la Dirección los acepta
+        u observa, sin porcentaje. Los anexos acompañan al documento que los lleva.
+        """
+        return es_calificable(self)
 
     @property
     def corte_del_anexo_anual(self):
@@ -494,16 +512,14 @@ class DocumentoExpediente(models.Model):
 
     @property
     def nota(self):
-        """La calificación que cuenta: la evaluada, menos lo que cuesta entregar tarde.
+        """La calificación del informe semestral: el cumplimiento de sus metas, menos lo que cuesta entregar tarde.
 
-        Es lo que se promedia para saber si la unidad cumple. La nota de la
-        Dirección mide el documento; la penalización mide la puntualidad, y las
-        dos cosas pesan en el mismo indicador.
+        Solo el informe se califica, y su nota sale del cierre calculado con los resultados registrados frente a
+        las metas de la planificación; nadie la escribe a mano. Los demás documentos no tienen nota: son de
+        cumplimiento obligatorio (ver ``cumplimiento_obligatorio``).
         """
-        from apps.documentos.presentation.conformidad_permanente import es_permanente, aprobacion_vigente
-        if es_permanente(self):
-            # Crédito documental binario, sin transformar la decisión histórica en otra nota.
-            return 100 if aprobacion_vigente(self) else None
+        if not self.exigido.calificable:
+            return None
         if (self.evaluacion is None or (self.estado != 'validado' and self.evaluacion != 0)
                 or self.evaluacion_version != self.version):
             if self.evaluacion is not None and self.evaluacion_version == self.version:
@@ -527,11 +543,32 @@ class DocumentoExpediente(models.Model):
 
     @property
     def cumple(self):
-        """Alcanza el mínimo institucional; None si la Dirección todavía no lo calificó."""
+        """El informe alcanza el mínimo con sus metas; los demás, se entregaron y fueron aceptados.
+
+        None mientras no hay decisión: el informe sin calificar o el documento todavía en curso.
+        """
+        if not self.exigido.calificable:
+            return self.cumplimiento_obligatorio
         nota = self.nota
         if nota is None:
             return None
         return nota >= minimo_vigente()
+
+    @property
+    def cumplimiento_obligatorio(self):
+        """Para lo que no se califica: True si se entregó y la Dirección lo aceptó; False si venció sin entregarse.
+
+        Un documento permanente se acepta con su aprobación vigente; un plan, con su conformidad documental; los
+        demás, cuando la Dirección recibe la entrega. None mientras está en curso.
+        """
+        if self.exigido.calificable or self.estado == 'no_aplica':
+            return None
+        from apps.documentos.presentation.conformidad_permanente import aceptacion_obligatoria
+        if aceptacion_obligatoria(self):
+            return True
+        if self.estado != 'validado' and self.incumplimiento_procesado_hasta:
+            return False
+        return None
 
     def etapa(self, hoy=None):
         """En qué carpeta está hoy el documento: planeacion · ejecucion · evaluacion · mejora.

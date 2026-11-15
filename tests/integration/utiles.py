@@ -49,8 +49,10 @@ def recibir_documento_revisado(documento, usuario, **kwargs):
 
 
 def evaluar_documento_revisado(documento, usuario, *args, **kwargs):
-    from apps.documentos.presentation.expediente import evaluar_documento
+    """La nota del informe tal como la deja su cierre confirmado; en el producto solo la escribe el cierre."""
+    from apps.documentos.presentation.expediente import _REGISTRO_CIERRE, evaluar_documento
     kwargs.setdefault('declaracion_correspondencia', correspondencia_revisada(documento))
+    kwargs.setdefault('_registro_cierre', _REGISTRO_CIERRE)
     return evaluar_documento(documento, usuario, *args, **kwargs)
 
 
