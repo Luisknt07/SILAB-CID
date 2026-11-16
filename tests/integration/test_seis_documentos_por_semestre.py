@@ -105,6 +105,20 @@ class CatalogoDeCincoAnexosTests(SimpleTestCase):
         self.assertGreaterEqual(anchos[0], stringWidth('precio-sustentacion-leche', 'Helvetica', 8.5) + 11)
         self.assertEqual(max(anchos), anchos[2])
 
+    def test_un_codigo_largo_no_se_parte_en_una_columna_de_ancho_fijo(self):
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+        from apps.documentos.presentation.anexos_evidencia import _anchos_fijos
+        codigo = 'DEMO-2026-B-TRANSFERENCIA-01'
+        filas = [[codigo, '16/10/2026', 'Resultado descrito con varias palabras ' * 4]]
+        # 770 pt es el ancho útil de la hoja apaisada.
+        anchos = _anchos_fijos((10, 10, 80), ('Código', 'Fecha', 'Resultado'), filas, 770,
+                               'Helvetica-Bold', 'Helvetica', 8.5)
+        self.assertAlmostEqual(sum(anchos), 770)
+        self.assertGreaterEqual(anchos[0], stringWidth(codigo, 'Helvetica', 8.5) + 11)
+        # Lo que gana el código sale sobre todo de la columna con más holgura.
+        self.assertGreater(anchos[1], stringWidth('16/10/2026', 'Helvetica', 8.5) + 11)
+        self.assertLess(anchos[2], 616)
+
     def test_ningun_documento_ni_meta_se_llama_ft02_o_ft03(self):
         from apps.documentos.presentation.perfil_laboratorios import NOMBRES
         from apps.gestion_unidades.presentation.gestion_reportes import PRACTICE_REPORT_META, REPORT_CATEGORIES

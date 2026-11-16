@@ -175,12 +175,8 @@ def _reporte(categoria, unidad, inicio, fin):
     return _generic_report(categoria, unidad, inicio, fin)
 
 
-def _anchos_por_contenido(cabecera, filas, ancho, negrita, regular, tamano):
-    """Ancho de cada columna, en puntos, según lo que suele llevar.
-
-    Primero asegura que quepan enteras la palabra más larga del título y la del contenido (esta,
-    hasta un tope); lo que sobra va a las columnas que llevan más texto.
-    """
+def _minimos_y_deseados(cabecera, filas, ancho, negrita, regular, tamano):
+    """Por columna: lo mínimo para no partir palabras y lo que pide su texto habitual, en puntos."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
     relleno = 11  # márgenes internos de la celda
     minimos, deseados = [], []
@@ -188,11 +184,21 @@ def _anchos_por_contenido(cabecera, filas, ancho, negrita, regular, tamano):
         textos = [v.texto if isinstance(v, Enlace) else str(v) for v in (fila[i] for fila in filas)]
         palabra = max((stringWidth(p, regular, tamano) for t in textos for p in t.split()), default=0)
         minimo = max(max(stringWidth(p, negrita, tamano) for p in str(titulo).split() or ['']),
-                     min(palabra, ancho * .18)) + relleno
+                     min(palabra, ancho * .22)) + relleno
         largos = sorted(stringWidth(t, regular, tamano) for t in textos) or [0]
         tipico = largos[int((len(largos) - 1) * .8)]
         minimos.append(minimo)
         deseados.append(max(minimo, min(tipico + relleno, ancho * .4)))
+    return minimos, deseados
+
+
+def _anchos_por_contenido(cabecera, filas, ancho, negrita, regular, tamano):
+    """Ancho de cada columna, en puntos, según lo que suele llevar.
+
+    Primero asegura que quepan enteras la palabra más larga del título y la del contenido (esta,
+    hasta un tope); lo que sobra va a las columnas que llevan más texto.
+    """
+    minimos, deseados = _minimos_y_deseados(cabecera, filas, ancho, negrita, regular, tamano)
     if sum(minimos) >= ancho:
         return [ancho * m / sum(minimos) for m in minimos]
     if sum(deseados) <= ancho:
@@ -200,6 +206,23 @@ def _anchos_por_contenido(cabecera, filas, ancho, negrita, regular, tamano):
     holguras = [d - m for d, m in zip(deseados, minimos)]
     resto = ancho - sum(minimos)
     return [m + resto * h / sum(holguras) for m, h in zip(minimos, holguras)]
+
+
+def _anchos_fijos(pesos, cabecera, filas, ancho, negrita, regular, tamano):
+    """Los anchos pedidos, ensanchando la columna cuya palabra más larga no cabe.
+
+    Lo que le falta a esa columna sale de las que tienen holgura, como un código largo sin
+    espacios en una columna estrecha.
+    """
+    anchos = [ancho * p / sum(pesos) for p in pesos]
+    minimos, _deseados = _minimos_y_deseados(cabecera, filas, ancho, negrita, regular, tamano)
+    faltan = sum(max(0, m - a) for a, m in zip(anchos, minimos))
+    if not faltan:
+        return anchos
+    holguras = [max(0, a - m) for a, m in zip(anchos, minimos)]
+    if sum(holguras) <= faltan:
+        return [ancho * m / sum(minimos) for m in minimos]
+    return [m if a < m else a - faltan * h / sum(holguras) for a, m, h in zip(anchos, minimos, holguras)]
 
 
 # -- las metas, con las cifras del informe ------------------------------------------------
@@ -639,7 +662,8 @@ def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=
     def tabla(registro):
         columnas = len(registro.cabecera)
         if registro.pesos:
-            anchos = [ancho * p / sum(registro.pesos) for p in registro.pesos]
+            anchos = _anchos_fijos(registro.pesos, registro.cabecera, registro.filas, ancho, negrita,
+                                   celda.fontName, celda.fontSize)
         else:
             anchos = _anchos_por_contenido(registro.cabecera, registro.filas, ancho, negrita,
                                            celda.fontName, celda.fontSize)
