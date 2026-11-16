@@ -467,7 +467,7 @@ def operacion_view(request, slug):
         "avisos": [
             "Este panel no autoriza una sesión ni sustituye la verificación de recursos y seguridad.",
             "La guía virtual emplea datos sintéticos. Las partidas no crean reservas, asistencia, consumos ni ejecuciones físicas.",
-            "Para FT03 adjunta CSV e informe, o un ZIP con la evidencia JSON. Identifica expresamente qué resultados proceden de simulación.",
+            "En el registro de ejecución adjunta CSV e informe, o un ZIP con la evidencia JSON. Identifica expresamente qué resultados proceden de simulación.",
         ],
     }
     respuesta = render(

@@ -1071,8 +1071,8 @@ TEMARIOS["preparacion-segura"] = [
         "Cierre documental y seguimiento",
         """
         Registra lo realmente realizado: estado final, asistencia y consumos. Reserva no significa ejecución;
-        cancelación no genera horas atendidas. Reprogramación conserva referencia sin duplicar uso. Un FT03
-        observado puede recibir aclaraciones/evidencias, pero conserva asistencia y consumos ya cerrados.
+        cancelación no genera horas atendidas. Reprogramación conserva referencia sin duplicar uso. Un registro
+        de ejecución observado puede recibir aclaraciones/evidencias, pero conserva asistencia y consumos ya cerrados.
         Cada corrección indica autor, motivo y procedencia.
 
         El acta identifica recursos, incidencias, pendientes y receptor cuando exista. En ejercicio virtual usa

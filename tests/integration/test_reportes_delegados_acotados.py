@@ -140,8 +140,8 @@ class AsignaturasAcotadasTests(BaseDeReportes):
         self.assertEqual([f[1] for f in filas], list(range(3, 504)))
         self.assertEqual(tarjetas[0][1], 1350)
         # Una reserva completada no equivale a un FT02 ni a un FT03 respaldado.
-        self.assertEqual(tarjetas[1], ('FT02 con respaldo completo', 0))
-        self.assertEqual(tarjetas[2], ('FT03 con respaldo completo', 0))
+        self.assertEqual(tarjetas[1], ('Planificaciones con respaldo completo', 0))
+        self.assertEqual(tarjetas[2], ('Ejecuciones con respaldo completo', 0))
         self.assertEqual(tarjetas[3], ('Ejecuciones registradas', 1350))
         self.assertEqual(tarjetas[-1][1], 1350)
         self.assertLessEqual(pico, 402)
@@ -178,8 +178,8 @@ class AsignaturasAcotadasTests(BaseDeReportes):
         _headers, filas, tarjetas, _estados = reporte
         self.assertEqual(len(filas), 501)
         self.assertEqual(tarjetas[0], ('Sesiones previstas', 1350))
-        self.assertEqual(tarjetas[1], ('FT02 con respaldo completo', 0))
-        self.assertEqual(tarjetas[2], ('FT03 con respaldo completo', 0))
+        self.assertEqual(tarjetas[1], ('Planificaciones con respaldo completo', 0))
+        self.assertEqual(tarjetas[2], ('Ejecuciones con respaldo completo', 0))
         self.assertEqual(tarjetas[3], ('Ejecuciones registradas', 1350))
         self.assertLessEqual(pico_reservas, 402)
         self.assertLessEqual(pico_planes, 402)

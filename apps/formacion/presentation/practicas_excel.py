@@ -74,6 +74,6 @@ def render_practices_xlsx(plans, *, unidad=None):
     ]
     if solo_laboratorios:
         hojas.append(('Control documental', 'CONTROL DOCUMENTAL · ESTADO Y VERSIONES DE LOS REGISTROS',
-                      ['Código FT02', 'Versión', 'Estado FT02', 'Planificación vigente', 'Guía FT04 vinculada',
-                       'Estado FT03', 'Alcance de esta información'], control_rows))
+                      ['Código de la planificación', 'Versión', 'Estado de la planificación', 'Planificación vigente',
+                       'Guía FT04 vinculada', 'Estado de la ejecución', 'Alcance de esta información'], control_rows))
     return render_workbook(hojas)

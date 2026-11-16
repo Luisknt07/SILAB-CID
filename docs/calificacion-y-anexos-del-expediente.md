@@ -172,14 +172,61 @@ institucionales, así que ya no se llaman FT02/FT03:
 Los códigos internos de los hallazgos automáticos conservan la sigla. La guía de
 práctica conserva su formato FT04.
 
+**Anexos como formato de registro.** El mismo día el usuario precisó que un anexo
+recoge datos y no debe parecer un informe. Los anexos perdieron los apartados
+numerados («Qué respalda este anexo», «Qué falta para cumplir») y sus párrafos.
+Ahora llevan un cuadro de datos generales (unidad, período, informe al que acompañan
+con su número de anexo, fecha de los datos, metas que respaldan y fuente) y una tabla
+por registro con su total. El avance y lo que falta están solo en el informe. Detalle
+en [expediente-de-calidad.md](expediente-de-calidad.md#dos-formatos-documentos-principales-y-anexos).
+
+Con datos de la copia de validación:
+
+| Anexo | Antes | Ahora |
+| --- | --- | --- |
+| Prácticas (FabLab) | 5 páginas | 4 páginas |
+| Seguridad (FabLab) | 3 páginas | 2 páginas |
+| Equipos (FabLab) | 4 páginas | 3 páginas |
+| Datos del observatorio | — | 3 páginas; serían 11 con la lista de cada dato cargado |
+
+**Anexos propios de otros tipos de unidad.** Los anexos de planta piloto, centro
+experimental y observatorio usan el mismo formato. Ya no se llaman «Informe de…»
+(`documentos.0026`):
+
+| Código | Nombre |
+| --- | --- |
+| PP-PRODUCCION | Producción de la planta piloto: órdenes, lotes y entregas |
+| PP-CALIDAD | Control de calidad de la planta piloto: controles y no conformidades |
+| CE-ENSAYOS | Ensayos del centro experimental: parcelas y seguimiento |
+| OBS-DATOS | Datos del observatorio: fuentes, metodología y actualización de indicadores |
+| OBS-BOLETINES | Publicaciones del observatorio: boletines y calendario |
+| OBS-EVENTOS | Socialización del observatorio: eventos y participantes |
+
+La migración cambia solo el nombre que coincide con el distribuido, se puede repetir
+y se puede revertir.
+
+**Control automático de los anexos fusionados.** `ContextoCalidad.analizar` revisa
+cada anexo entero:
+
+- **prácticas:** planificación, ejecución, guías y sesiones atendidas sin
+  ejecución;
+- **seguridad:** inducciones, inspecciones, protocolo y desechos;
+- **equipamiento:** mantenimiento, funcionalidad, acta de inventario,
+  identificación de equipos e insumos;
+- **investigación:** resultados y transferencia.
+
+Los códigos retirados ya no tienen reglas propias. La huella de fuentes de los cuatro
+anexos fusionados cambia, así que sus revisiones técnicas anteriores piden
+actualizarse.
+
 **Historia.** Los seis documentos retirados quedan inactivos; sus filas, archivos y
 entregas se conservan y los cierres anteriores se leen igual (`ANEXOS_METAS`
 mantiene sus claves). Un informe ya enviado no cambia. Los informes 2026-B ya
-preparados deben generarse de nuevo para que sus anexos salgan con la plantilla
-nueva.
+preparados deben generarse de nuevo para que sus anexos salgan con el formato
+nuevo.
 
 **Aplicar.** Con un respaldo nuevo, la misma orden de mantenimiento aplica
-`documentos.0025` junto con las anteriores:
+`documentos.0025` y `0026` junto con las anteriores:
 
 ```
 docker compose -f docker-compose.local.yml --profile mantenimiento run --rm migrar

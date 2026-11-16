@@ -82,7 +82,8 @@ def _redactar(documento, actores):
             analisis_uso='<p>Las seis sesiones corresponden a una secuencia de diseño, laminado, '
             'fabricación, medición, ensamble y documentación. Se conciliaron las sesiones con una '
             'bitácora independiente de prueba. El período académico va del 17/08 al 08/12/2026.</p>',
-            logros='<ul><li>Seis FT02 y seis FT03 completos.</li><li>Seis guías aprobadas y vinculadas '
+            logros='<ul><li>Seis prácticas planificadas y seis ejecutadas, con su respaldo completo.</li>'
+            '<li>Seis guías aprobadas y vinculadas '
             'al syllabus.</li><li>Recursos identificados y verificados; mantenimiento y controles '
             'de seguridad documentados.</li><li>Un producto y una transferencia con aceptación '
             'y respaldo de ensayo.</li></ul>', dificultades='', acciones=[],

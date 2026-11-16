@@ -547,7 +547,7 @@ def accion_ejecucion_view(request, slug, plan_id):
                         )
                         transaction.set_rollback(True)
                         return redirect("detalle_planificacion_practica", slug=slug, plan_id=plan.pk)
-                    # El cierre operativo puede haber dejado el FT03 en revisión.
+                    # El cierre operativo puede haber dejado la ejecución en revisión.
                     # Su aprobación documental conserva la instantánea física.
                     if not cierre_ya_registrado:
                         estado_previo = reserva.estado

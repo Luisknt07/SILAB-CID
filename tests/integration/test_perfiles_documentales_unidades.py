@@ -22,7 +22,7 @@ from apps.documentos.presentation.perfil_unidades import (
 
 class PerfilesDocumentalesPurosTests(SimpleTestCase):
     def exigido(self, codigo, **cambios):
-        fila = next(f for f in CATALOGO if f[0] == codigo)
+        fila = next(f for f in (*CATALOGO, *CATALOGO_PERFILES) if f[0] == codigo)
         return SimpleNamespace(**(dict(codigo=codigo, nombre=fila[1], fuente_reporte=fila[9], tipos_unidad=[]) | cambios))
 
     def unidad(self, base):
@@ -63,6 +63,8 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
                 with self.subTest(codigo=codigo, nombre=nombre):
                     for base in ('laboratorios', 'plantas_piloto', 'centro_experimental', 'observatorios'):
                         self.assertNotIn('(firmad', nombre_para(exigido, self.unidad(base)))
+                        # Los anexos propios ya no se presentan como «Informe de…» (documentos.0026).
+                        self.assertFalse(nombre_para(exigido, self.unidad(base)).startswith('Informe de'))
                     self.assertEqual(exigido.nombre, nombre)
                     exigido.fuente_reporte = 'fuente-personalizada'
                     self.assertEqual(nombre_para(exigido, self.unidad('laboratorios')), nombre)

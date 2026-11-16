@@ -17,7 +17,7 @@ class DocumentacionReservaPendiente(ValueError):
 
 
 def es_reserva_de_practica(reserva):
-    """Indica si la solicitud debe alimentar el FT02 de uso del laboratorio.
+    """Indica si la solicitud debe alimentar la planificación de uso del laboratorio.
 
     Toda reserva en la que el solicitante utilizará recursos constituye una
     planificación, aunque no necesite guía o actividad formal. Los servicios

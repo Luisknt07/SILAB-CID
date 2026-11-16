@@ -1,7 +1,7 @@
 """Metas centrales y carga de sesiones concretas, conservadas con cada plan.
 
 El catálogo de asignaturas y el número de semanas no son compromisos de uso.
-Los horarios de la agenda y los FT02 vigentes aportan las sesiones y sus horas.
+Los horarios de la agenda y las planificaciones vigentes aportan las sesiones y sus horas.
 """
 from collections import defaultdict
 from datetime import datetime
@@ -27,7 +27,7 @@ def carga_docente(unidad, inicio, fin, calendario, referencias):
     from apps.formacion.models.practicas import PlanificacionPractica
     from apps.reservas.models.reservas import Reserva
 
-    # Una reserva con FT02 cuenta por el FT02 vigente, nunca por ambos. Los
+    # Una reserva con planificación cuenta por la planificación vigente, nunca por ambas. Los
     # horarios únicos y recurrentes ya están materializados por la agenda.
     vigentes = PlanificacionPractica.objects.filter(unidad=unidad,
         eliminado_en__isnull=True, es_version_vigente=True).exclude(estado='archivada')
@@ -113,7 +113,8 @@ def carga_docente(unidad, inicio, fin, calendario, referencias):
     for curso in asignaturas.values():
         curso['horas'] = _horas(curso.pop('segundos'))
     if not sesiones:
-        avisos.append('Falta programar la ocupación del semestre: registra las sesiones y sus horarios en la agenda o en FT02. '
+        avisos.append('Falta programar la ocupación del semestre: registra las sesiones y sus horarios en la agenda '
+                      'o en la planificación de la práctica. '
                       'La referencia mínima no sustituye esa programación.')
     if pendientes:
         avisos.append(f'{len(pendientes)} sesiones están pendientes de vincular a una asignatura del semestre. '
@@ -131,7 +132,8 @@ def carga_docente(unidad, inicio, fin, calendario, referencias):
         horas_requeridas=_horas(sum(por_mes.values())),
         horas_por_mes={m: _horas(s) for m, s in sorted(por_mes.items(), key=lambda par: int(par[0]))},
         avisos=list(dict.fromkeys(avisos)),
-        formula=f'{len(sesiones)} sesiones concretas vinculadas a asignaturas en la agenda y los FT02 vigentes del tramo; '
+        formula=f'{len(sesiones)} sesiones concretas vinculadas a asignaturas en la agenda y las planificaciones '
+                'vigentes del tramo; '
                 'cada sesión cuenta una vez, con su fecha y duración reales. '
                 'El catálogo de asignaturas y las semanas no multiplican la meta.')
 
@@ -184,8 +186,8 @@ def calcular_metas(unidad, inicio, fin, actividades, capacidad, calendario):
             origenes[actividad.codigo] = carga['formula']
         elif actividad.codigo == 'GUIAS':
             valor = max(valor, Decimal(carga['guias']))
-            origenes[actividad.codigo] = (f'{carga["guias"]} guías o prácticas distintas que requieren guía en los FT02 '
-                f'programados; mínimo central {regla["valor"]}. Una misma guía puede utilizarse en varias sesiones. '
+            origenes[actividad.codigo] = (f'{carga["guias"]} guías o prácticas distintas que requieren guía en las '
+                f'planificaciones programadas; mínimo central {regla["valor"]}. Una misma guía puede utilizarse en varias sesiones. '
                 'Los temas sin programación en el catálogo no aumentan la meta.')
         else:
             origenes[actividad.codigo] = ('Cobertura de los registros exigibles del indicador.' if regla['porcentaje'] else

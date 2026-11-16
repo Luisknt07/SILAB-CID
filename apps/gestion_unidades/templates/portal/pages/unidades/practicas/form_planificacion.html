@@ -3,7 +3,7 @@
 {% block portal_content %}
 <section class="practice-shell">
   <header class="practice-hero">
-    <div><span>{% translate "FORMATO FT02 · PLANIFICACIÓN" %}</span><h1>{% if plan.pk %}{% translate "Editar" %} {{ plan.codigo }}{% else %}{% translate "Nueva planificación" %}{% endif %}</h1><p>{{ unidad.nombre }}</p></div>
+    <div><span>{% translate "PRÁCTICA ACADÉMICA · PLANIFICACIÓN" %}</span><h1>{% if plan.pk %}{% translate "Editar" %} {{ plan.codigo }}{% else %}{% translate "Nueva planificación" %}{% endif %}</h1><p>{{ unidad.nombre }}</p></div>
     <div><a href="{% url 'lista_practicas' unidad.slug %}">{% translate "← Volver" %}</a></div>
   </header>
   <form class="practice-form" method="post" novalidate>

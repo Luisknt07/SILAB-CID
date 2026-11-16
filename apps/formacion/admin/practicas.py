@@ -10,7 +10,7 @@ class PlanificacionPracticaAdmin(AdministracionTraducida):
     list_display = ("codigo", "unidad", "actividad", "fecha", "requiere_guia", "estado", "numero_version", "es_version_vigente")
     list_filter = ("estado", "categoria_uso", "requiere_guia", "unidad", "es_version_vigente")
     search_fields = ("codigo", "tema", "asignatura", "docente_tutor")
-    # El FT02 se genera y sincroniza desde la reserva; su estado, version
+    # La planificación se genera y sincroniza desde la reserva; su estado, version
     # vigente, guia y vinculos los decide ese flujo y la revision del panel.
     readonly_fields = (
         "codigo", "grupo_version", "numero_version", "es_version_vigente",

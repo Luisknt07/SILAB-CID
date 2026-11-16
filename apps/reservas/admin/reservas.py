@@ -390,7 +390,7 @@ class ReservaAdmin(_ExpedienteSoloLecturaAdmin):
 
     Cambiar aqui el estado, el horario, los recursos o la cotizacion se
     saltaba la maquina de estados, la compuerta documental, las revisiones,
-    la sincronizacion FT02, las notificaciones y la auditoria que si aplica
+    la sincronizacion de la planificacion, las notificaciones y la auditoria que si aplica
     el panel. El administrador conserva busqueda, filtros y reportes.
     """
 

@@ -1,5 +1,20 @@
 # Estado actual del proyecto — 15 de noviembre de 2026
 
+**Anexos como formato de registro (15 de noviembre, después del rediseño).**
+
+- **Formato.** Un anexo recoge datos; no es un informe. Lleva un cuadro de datos
+  generales y una tabla por registro con su total, sin apartados numerados ni
+  párrafos. El avance y lo que falta para cumplir quedan solo en el informe.
+- **Anexos propios.** Los de planta piloto, centro experimental y observatorio usan
+  el mismo formato y ya no se llaman «Informe de…» (`documentos.0026`).
+- **Control automático.** Revisa cada anexo fusionado entero (prácticas, seguridad
+  y desechos, equipos e inventario, investigación y transferencia).
+- **Nombres.** FT02/FT03 desaparecen también de las pantallas de prácticas y
+  logística, del consolidado de asignaturas y de su Excel.
+- **Pendiente, a cargo del usuario:**
+  - aplicar `documentos.0023` a `0026` con un respaldo nuevo;
+  - volver a generar los informes 2026-B ya preparados.
+
 **Documentos principales con el formato del informe y seis documentos por semestre (15 de noviembre, rediseño).**
 
 - **Formato principal.** El protocolo, el plan de compras, la planificación y el

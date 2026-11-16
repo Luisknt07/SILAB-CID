@@ -97,7 +97,7 @@ def _responsable(responsable):
 def _plan(plan, cache, *, historica=False):
     reserva = plan.reserva if plan.reserva_id else None
     tema = plan.tema_asignatura if plan.tema_asignatura_id else None
-    # El cierre de la reserva cambia legítimamente al validar el FT03. Se firma
+    # El cierre de la reserva cambia legítimamente al validar la ejecución. Se firma
     # su programación y asignaciones, no el estado operativo posterior.
     agenda = (dict(id=reserva.pk, unidad=reserva.laboratorio_id, fecha=reserva.fecha.isoformat(),
         inicio=reserva.hora_inicio.isoformat(), fin=reserva.hora_fin.isoformat(),

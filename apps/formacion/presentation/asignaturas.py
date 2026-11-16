@@ -461,7 +461,7 @@ def reporte_asignaturas(unit, start_date, end_date, state='', search=''):
         guia = plan.guia if plan else None
         ejecucion = getattr(plan, 'ejecucion', None) if plan else None
         from apps.documentos.presentation.cumplimiento_practicas import diagnostico_ejecucion, diagnostico_planificacion
-        pendientes = diagnostico_planificacion(plan)['faltantes'] if plan else ['Planificación FT02']
+        pendientes = diagnostico_planificacion(plan)['faltantes'] if plan else ['Planificación de la práctica']
         if ejecucion is not None and not ejecucion.eliminado_en:
             pendientes = list(dict.fromkeys(pendientes + diagnostico_ejecucion(ejecucion)['faltantes']))
         rows.append([
@@ -512,10 +512,10 @@ def _numero_sesion(programa, fecha, identificador):
 
 
 def _filas_semestre_laboratorio(unidad, desde, hasta):
-    """Une FT02 vigentes y sesiones sin FT02 sin materializar todos los modelos.
+    """Une planificaciones vigentes y sesiones sin planificación sin materializar todos los modelos.
 
-    La reserva con FT02 aparece una vez, por la fecha de su planificación. Las
-    sesiones recurrentes sin un FT02 vigente siguen visibles como pendientes.
+    La reserva con planificación aparece una vez, por la fecha de su planificación. Las
+    sesiones recurrentes sin una planificación vigente siguen visibles como pendientes.
     Las versiones sustituidas, eliminadas y archivadas no generan otra fila.
     """
     planes = PlanificacionPractica.objects.filter(
@@ -594,12 +594,13 @@ def _filas_semestre_laboratorio(unidad, desde, hasta):
 
 
 def _reporte_asignaturas_laboratorio(unit, start_date, end_date, state='', search=''):
-    """Consolidado semestral completo de FT02 y pendientes de las programaciones."""
+    """Consolidado semestral completo de planificaciones y pendientes de las programaciones."""
     from apps.documentos.presentation.cumplimiento_practicas import diagnostico_ejecucion, diagnostico_planificacion
 
     headers = ['Asignatura o actividad', 'Sesión', 'Fecha prevista', 'Tema previsto', 'Horario', 'Escenario',
                'Responsable técnico', 'Docente / tutor', 'Proceso previsto', 'Guía de práctica FT04', 'Reserva',
-               'Trazabilidad FT02', 'Ejecución y evaluación FT03', 'Pendientes documentales', 'Situación']
+               'Trazabilidad de la planificación', 'Ejecución y evaluación de la práctica', 'Pendientes documentales',
+               'Situación']
     hoy, texto, rows, conteo, cache = timezone.localdate(), (search or '').strip().casefold(), [], Counter(), {}
     total = sin_escenario = sin_responsable = ft02_completos = ft03_completos = 0
     for reserva, plan in _filas_semestre_laboratorio(unit, start_date, end_date):
@@ -635,14 +636,14 @@ def _reporte_asignaturas_laboratorio(unit, start_date, end_date, state='', searc
                       if guia else 'Sin guía FT04' if not plan or plan.requiere_guia else 'No requiere guía')
         traza = (f'{plan.codigo} · v{plan.numero_version} · {plan.get_estado_display()} · '
                  + ('Sesión programada' if programacion else 'Planificación individual') if plan else
-                 'Sin FT02 vigente · sesión programada')
+                 'Sin planificación vigente · sesión programada')
         if texto and texto not in ' '.join(str(v) for v in (
                 programa, tema, docente, responsable, escenario, traza, guia_texto,
                 reserva.codigo_reserva if reserva else '',
         )).casefold():
             continue
         diagnostico_plan = (diagnostico_planificacion(plan, espacios=espacios) if plan
-                           else dict(cumple=False, faltantes=['Crear o vincular un FT02 vigente']))
+                           else dict(cumple=False, faltantes=['Crear o vincular una planificación vigente']))
         pendientes = list(diagnostico_plan['faltantes'])
         if plan and plan.reserva_id and reserva is None:
             diagnostico_plan['cumple'] = False
@@ -657,9 +658,9 @@ def _reporte_asignaturas_laboratorio(unit, start_date, end_date, state='', searc
         if diagnostico_ejec:
             pendientes.extend(diagnostico_ejec['faltantes'])
         elif fecha < hoy or reserva and reserva.estado == 'completada':
-            pendientes.append('Registrar la ejecución y evaluación FT03')
+            pendientes.append('Registrar la ejecución y evaluación de la práctica')
         if plan and reserva and plan.fecha != reserva.fecha:
-            pendientes.append('Conciliar la fecha prevista del FT02 con su reserva')
+            pendientes.append('Conciliar la fecha prevista de la planificación con su reserva')
         if not espacios:
             pendientes.append('Escenario o espacio asignado')
         if responsable == 'Por asignar':
@@ -680,14 +681,14 @@ def _reporte_asignaturas_laboratorio(unit, start_date, end_date, state='', searc
             traza,
             (f'{ejecucion.get_estado_display()} · {ejecucion.get_resultado_display()} · '
              f'resultado de aprendizaje: {ejecucion.get_cumplimiento_resultado_display() or "sin evaluar"}')
-            if ejecucion else 'Sin registro FT03',
+            if ejecucion else 'Sin registro de ejecución',
             '; '.join(dict.fromkeys(pendientes)) or ('Respaldo completo' if ejecucion else 'Planificación completa; ejecución pendiente'),
             NOMBRES_SITUACION[situacion],
         ])
     realizadas = sum(conteo[k] for k in ('ejecutada_con_guia', 'ejecutada_validada', 'sin_cumplir', 'ejecutada_pendiente'))
     vencidas = realizadas + conteo['no_ejecutada'] + conteo['reprogramada']
-    cards = [('Sesiones previstas', total), ('FT02 con respaldo completo', ft02_completos),
-             ('FT03 con respaldo completo', ft03_completos), ('Ejecuciones registradas', realizadas),
+    cards = [('Sesiones previstas', total), ('Planificaciones con respaldo completo', ft02_completos),
+             ('Ejecuciones con respaldo completo', ft03_completos), ('Ejecuciones registradas', realizadas),
              ('Avance de ejecución', f'{100 * realizadas / vencidas:.0f} %' if vencidas else '—',
               'actividad registrada; la acreditación documental se muestra por separado'),
              ('Sin responsable asignado', sin_responsable), ('Sin escenario asignado', sin_escenario)]

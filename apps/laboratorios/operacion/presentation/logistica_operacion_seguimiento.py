@@ -217,9 +217,9 @@ def controles_expediente(expediente):
             else "registrado"
             if ejecucion
             else "pendiente",
-            "detalle": "FT03 validado; el resultado puede ser realizado, reprogramado o cancelado. Las evidencias se consultan por el expediente."
+            "detalle": "Ejecución validada; el resultado puede ser realizado, reprogramado o cancelado. Las evidencias se consultan por el expediente."
             if cerrado
-            else "FT03 registrado y pendiente de validación; consulta su estado y adjuntos."
+            else "Ejecución registrada y pendiente de validación; consulta su estado y adjuntos."
             if ejecucion
             else "Registrar lo ocurrido y aportar evidencias mediante el expediente seleccionado.",
         },
@@ -247,7 +247,7 @@ def proxima_accion(expediente, operador=False):
     if estado in {"borrador", "observada"}:
         titulo, detalle = (
             "Completar la planificación",
-            "Revisar la guía, la reserva y las observaciones antes de enviar FT02.",
+            "Revisar la guía, la reserva y las observaciones antes de enviar la planificación.",
         )
     elif estado == "revision":
         titulo, detalle = (
@@ -271,7 +271,7 @@ def proxima_accion(expediente, operador=False):
         )
     elif ejecucion and ejecucion["estado"] == "revision":
         titulo, detalle = (
-            "Validar la ejecución" if operador else "Consultar la revisión del FT03",
+            "Validar la ejecución" if operador else "Consultar la revisión de la ejecución",
             "Revisar resultado y evidencias por el circuito institucional.",
         )
     elif expediente["ejecucion_url"]:

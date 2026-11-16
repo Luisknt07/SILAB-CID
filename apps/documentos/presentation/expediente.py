@@ -938,7 +938,7 @@ def _generar(documento, usuario):
 
 
 def _generar_anexo_de_evidencia(documento, inicio, fin):
-    """Anexo del informe con la plantilla común: metas que respalda, registros que cuentan y lo que falta."""
+    """Anexo del informe con el formato de registro común: datos generales y una tabla por registro."""
     from apps.documentos.presentation.anexos_evidencia import pdf_del_anexo
     from apps.documentos.presentation.perfil_laboratorios import referencia_interna
     from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
@@ -952,8 +952,8 @@ def _generar_anexo_de_evidencia(documento, inicio, fin):
             documento, contenido,
             f'{exigido.codigo}-{documento.anio}{documento.corte}.pdf',
             autor='Generado por el sistema',
-            descripcion=f'{documento.nombre_documental} del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y}: metas que respalda, '
-                        'registros que cuentan y lo que falta.',
+            descripcion=f'{documento.nombre_documental} del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y}: registros del '
+                        'período que respaldan sus metas.',
             tipo_adjunto='informe',
         )
         documento.estado = 'generado'

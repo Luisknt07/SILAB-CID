@@ -88,27 +88,27 @@ CATALOGO = (
 # Evidencias propias de las otras implementaciones. Conservan fuentes y
 # nombres distintos de los formatos de prácticas de los laboratorios.
 CATALOGO_PERFILES = (
-    ('PP-PRODUCCION', 'Informe de producción de la planta piloto: órdenes, lotes y entregas',
+    ('PP-PRODUCCION', 'Producción de la planta piloto: órdenes, lotes y entregas',
      'ejecucion', 'semestral', 'sistema', False, False, 'cierre', 15, 'produccion', 90,
      'Producción realizada frente al plan, cantidades, estados y trazabilidad de lotes y entregas. '
      'Respalda la meta de lotes o procesos de producción ejecutados.', 'INFORME-SEMESTRAL'),
-    ('PP-CALIDAD', 'Informe de control de calidad y no conformidades de la planta piloto',
+    ('PP-CALIDAD', 'Control de calidad de la planta piloto: controles y no conformidades',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'control-calidad', 95,
      'Parámetros, mediciones y resultados por lote u orden; liberación, rechazo y seguimiento. Respalda la '
      'meta de control de calidad de los lotes finalizados.', 'INFORME-SEMESTRAL'),
-    ('CE-ENSAYOS', 'Informe de ensayos y seguimiento de parcelas experimentales',
+    ('CE-ENSAYOS', 'Ensayos del centro experimental: parcelas y seguimiento',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'ensayos', 90,
      'Objetivo, escenario, fechas, manejo, mediciones y resultados respaldados de los ensayos. Respalda la '
      'meta de ensayos y parcelas con seguimiento.', 'INFORME-SEMESTRAL'),
-    ('OBS-DATOS', 'Registro de fuentes, metodología y actualización de indicadores del observatorio',
+    ('OBS-DATOS', 'Datos del observatorio: fuentes, metodología y actualización de indicadores',
      'ejecucion', 'semestral', 'sistema', False, False, 'cierre', 15, 'datos-observatorio', 20,
      'Fichas metodológicas, fuentes y actualizaciones con período de referencia, territorio y '
      'trazabilidad. Respalda la meta de actualización de series y fuentes del observatorio.', 'INFORME-SEMESTRAL'),
-    ('OBS-BOLETINES', 'Informe de publicaciones y cumplimiento del calendario del observatorio',
+    ('OBS-BOLETINES', 'Publicaciones del observatorio: boletines y calendario',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'boletines', 30,
      'Publicaciones previstas y efectivas, fecha, responsable, indicadores y respaldo consultable. '
      'Respalda la meta de boletines, informes o bases de datos publicados.', 'INFORME-SEMESTRAL'),
-    ('OBS-EVENTOS', 'Informe de socialización de resultados y vinculación del observatorio',
+    ('OBS-EVENTOS', 'Socialización del observatorio: eventos y participantes',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'eventos', 40,
      'Actividades realizadas, propósito, destinatarios, productos difundidos y respaldo. Respalda la meta '
      'de eventos de socialización de resultados.', 'INFORME-SEMESTRAL'),
@@ -153,6 +153,13 @@ NOMBRES_ESTANDAR_ANTERIORES = {
     'INDUCCION-SEGURIDAD': frozenset(('Seguridad y condiciones de operación: protocolo, inducciones y controles',
                                       'Registro de inducciones y controles de seguridad')),
     'INVESTIGACION': frozenset(('Resultados de investigación aplicada y desarrollo tecnológico',)),
+    # Anexos propios con nombre de informe (documentos.0026).
+    'PP-PRODUCCION': frozenset(('Informe de producción de la planta piloto: órdenes, lotes y entregas',)),
+    'PP-CALIDAD': frozenset(('Informe de control de calidad y no conformidades de la planta piloto',)),
+    'CE-ENSAYOS': frozenset(('Informe de ensayos y seguimiento de parcelas experimentales',)),
+    'OBS-DATOS': frozenset(('Registro de fuentes, metodología y actualización de indicadores del observatorio',)),
+    'OBS-BOLETINES': frozenset(('Informe de publicaciones y cumplimiento del calendario del observatorio',)),
+    'OBS-EVENTOS': frozenset(('Informe de socialización de resultados y vinculación del observatorio',)),
 }
 
 # Ventanas fijas en el calendario (plazo «entre dos meses»): de qué mes a qué mes.

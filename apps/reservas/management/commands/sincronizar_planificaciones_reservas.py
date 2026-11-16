@@ -7,7 +7,7 @@ from apps.directorio_unidades.models.core import Unidad
 
 class Command(BaseCommand):
     help = (
-        "Genera de forma idempotente la planificación FT02 de las reservas de "
+        "Genera de forma idempotente la planificación de la práctica de las reservas de "
         "recursos existentes. Las solicitudes de servicio conservan su orden propia."
     )
 

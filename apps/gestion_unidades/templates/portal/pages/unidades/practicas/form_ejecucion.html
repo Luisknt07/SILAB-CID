@@ -3,7 +3,7 @@
 {% block portal_content %}
 <section class="practice-shell">
   <header class="practice-hero">
-    <div><span>{% translate "FORMATO FT03 · EJECUCIÓN Y EVALUACIÓN" %}</span><h1>{% translate "Registrar ejecución" %}</h1><p>{{ plan.codigo }} · {{ plan.tema }}</p></div>
+    <div><span>{% translate "PRÁCTICA ACADÉMICA · EJECUCIÓN Y EVALUACIÓN" %}</span><h1>{% translate "Registrar ejecución" %}</h1><p>{{ plan.codigo }} · {{ plan.tema }}</p></div>
     <div><a href="{% url 'detalle_planificacion_practica' unidad.slug plan.pk %}">{% translate "← Volver al expediente" %}</a></div>
   </header>
   <form class="practice-form" method="post" enctype="multipart/form-data" novalidate>
@@ -53,7 +53,7 @@
     {% endif %}
 
     <section class="practice-form__section" data-evidencias>
-      <div class="practice-form__section-heading"><span>05</span><div><h3>{% translate "Evidencias de la práctica" %}</h3><p>{% translate "Fotografías identificadas, registros de asistencia, bitácoras, capturas de simuladores, informes de estudiantes y productos. Quedan en el registro de ejecución y salen en el formato FT03." %}</p></div></div>
+      <div class="practice-form__section-heading"><span>05</span><div><h3>{% translate "Evidencias de la práctica" %}</h3><p>{% translate "Fotografías identificadas, registros de asistencia, bitácoras, capturas de simuladores, informes de estudiantes y productos. Quedan en el registro de ejecución y salen en su documento." %}</p></div></div>
       {% if evidencias %}
       <ul class="practice-evidence-list">
         {% for evidencia in evidencias %}

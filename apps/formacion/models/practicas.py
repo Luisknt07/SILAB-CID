@@ -390,7 +390,7 @@ def evidencia_practica_upload_to(instance, filename):
 class EvidenciaPractica(models.Model):
     """Lo que demuestra que la práctica ocurrió: fotografías, informes, productos.
 
-    Cuelga de la ejecución (FT03). No se sirve por la ruta pública de medios:
+    Cuelga de la ejecución de la práctica. No se sirve por la ruta pública de medios:
     aparecen estudiantes identificados.
     """
 

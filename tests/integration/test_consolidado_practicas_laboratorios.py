@@ -57,8 +57,8 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
         self.assertEqual(filas[0][1], 'Única')
         self.assertIn(self.plan.codigo, filas[0][11])
         self.assertIn('Planificación individual', filas[0][11])
-        self.assertEqual(dict((t[0], t[1]) for t in tarjetas)['FT02 con respaldo completo'], 1)
-        self.assertEqual(dict((t[0], t[1]) for t in tarjetas)['FT03 con respaldo completo'], 0)
+        self.assertEqual(dict((t[0], t[1]) for t in tarjetas)['Planificaciones con respaldo completo'], 1)
+        self.assertEqual(dict((t[0], t[1]) for t in tarjetas)['Ejecuciones con respaldo completo'], 0)
         self.assertIn('Evidencia identificada', filas[0][-2])
 
     @override_settings(UNIT_TYPOLOGY_PROVIDER='apps.configuracion_institucional.tipologias.selectors.tipologias_publicadas')
@@ -72,11 +72,11 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
         self.unidad.save(update_fields=['dependencia'])
         aislada = self.plan_aislado('QA-SUBTIPO-FT02-INDEPENDIENTE')
         headers, filas, tarjetas, _ = self.reporte()
-        self.assertIn('Trazabilidad FT02', headers)
+        self.assertIn('Trazabilidad de la planificación', headers)
         self.assertEqual(len(filas), 2)
         self.assertTrue(any(aislada.codigo in fila[11] for fila in filas))
         self.assertEqual(tarjetas[0], ('Sesiones previstas', 2))
-        self.assertEqual(dict((t[0], t[1]) for t in tarjetas)['FT02 con respaldo completo'], 1)
+        self.assertEqual(dict((t[0], t[1]) for t in tarjetas)['Planificaciones con respaldo completo'], 1)
 
     def test_programacion_y_ft02_se_consolidan_una_sola_vez_con_numero_global(self):
         programa = self.programa()
@@ -86,12 +86,18 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
         self.reserva.save(update_fields=['programacion'])
         sin_ft02 = Reserva.objects.create(laboratorio=self.unidad, usuario=self.usuario, programacion=programa,
             fecha=date(2026, 10, 11), hora_inicio=time(8), hora_fin=time(10), codigo_reserva='QA-SIN-FT02')
-        _, filas, tarjetas, _ = self.reporte()
+        headers, filas, tarjetas, _ = self.reporte()
         self.assertEqual(len(filas), 2)
         self.assertEqual([f[1] for f in filas], [2, 3])
         self.assertEqual(sum(self.plan.codigo in f[11] for f in filas), 1)
         self.assertEqual(sum(sin_ft02.codigo_reserva in f[10] for f in filas), 1)
-        self.assertIn('Sin FT02 vigente', filas[1][11])
+        self.assertIn('Sin planificación vigente', filas[1][11])
+        self.assertIn('Crear o vincular una planificación vigente', filas[1][13])
+        self.assertEqual(filas[1][12], 'Sin registro de ejecución')
+        # FT02 y FT03 no son formatos institucionales: no se nombran en el consolidado.
+        textos = str((headers, [f[11:14] for f in filas], [t[0] for t in tarjetas]))
+        self.assertNotIn('FT02', textos)
+        self.assertNotIn('FT03', textos)
         self.assertEqual(tarjetas[0][1], 2)
         self.assertEqual(Reserva.objects.filter(pk=anterior.pk).count(), 1)
 
@@ -142,7 +148,7 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
         self.assertEqual(len(filas), 1)
         self.assertIn('QA-PLANTA-SESION', filas[0][10])
         self.assertEqual(tarjetas[0][1], 1)
-        self.assertNotIn('Trazabilidad FT02', headers)
+        self.assertNotIn('Trazabilidad de la planificación', headers)
 
     def test_xlsx_vacio_de_laboratorio_tiene_codigos_oficiales_y_control_sin_cambiar_otros_tipos(self):
         for unidad, oficial in ((self.unidad, True), (self.planta, False)):
@@ -166,6 +172,9 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
             self.assertIn(self.plan.codigo, control)
             self.assertIn('Archivada', control)
             self.assertIn('no acredita por sí solo', control)
+            self.assertIn('Estado de la planificación', control)
+            self.assertNotIn('FT02', control)
+            self.assertNotIn('FT03', control)
 
     def test_guias_identifican_formato_ft04_solo_en_laboratorios(self):
         headers, _, tarjetas, _ = reporte_guias_cumplimiento(self.unidad, self.desde, self.hasta)
@@ -188,4 +197,4 @@ class ConsolidadoPracticasLaboratoriosTests(TestCase):
         with ZipFile(BytesIO(render_unit_report_xlsx(reporte))) as archivo:
             detalle = archivo.read('xl/worksheets/sheet2.xml').decode()
             self.assertIn(self.plan.codigo, detalle)
-            self.assertIn('Trazabilidad FT02', detalle)
+            self.assertIn('Trazabilidad de la planificación', detalle)

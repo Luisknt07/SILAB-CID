@@ -26,7 +26,7 @@ GUIAS = {
                 "Roles y decisiones",
                 [
                     "La coordinación administra la ficha, la oferta y las prioridades; el responsable técnico verifica recursos y condiciones de uso; el docente diseña y evalúa; los participantes ejecutan sólo las tareas autorizadas. Registrar persona, rol y suplencia en la actividad concreta, sin publicar documentos de identidad.",
-                    "Separar las decisiones: publicar contenido no aprueba una reserva; aprobar una reserva no certifica el estado físico; completar una práctica no equivale a validar su FT03. Cada decisión conserva actor, fecha, alcance y evidencia.",
+                    "Separar las decisiones: publicar contenido no aprueba una reserva; aprobar una reserva no certifica el estado físico; completar una práctica no equivale a validar su registro de ejecución. Cada decisión conserva actor, fecha, alcance y evidencia.",
                     "Para cada trabajo designar una persona responsable de la preparación, otra de la comprobación de datos y una de la liberación del entregable. Una persona puede asumir más de un rol cuando esté autorizado, dejando visible quién revisó.",
                 ],
             ),

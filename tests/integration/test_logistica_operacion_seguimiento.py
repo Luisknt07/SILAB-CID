@@ -362,7 +362,7 @@ class OperacionLogisticaSeguimientoTests(TestCase):
         self.assertEqual(resumen["evidencias_total"], 0)
         self.assertEqual(resumen["evidencias"], [])
         self.assertEqual(self.controles(response)["ejecucion"]["estado"], "pendiente")
-        self.assertNotContains(response, "Registrar o completar FT03")
+        self.assertNotContains(response, "Registrar o completar la ejecución")
 
     def test_participante_autorizado_consulta_sesion_sin_editar_ejecucion_ajena(self):
         actividad = self.actividad()
@@ -376,7 +376,7 @@ class OperacionLogisticaSeguimientoTests(TestCase):
         self.assertEqual(response.context["expediente"]["id"], plan.pk)
         self.assertEqual(response.context["expediente"]["ejecucion_url"], "")
         self.assertEqual(response.context["indicadores"], [])
-        self.assertNotContains(response, "Registrar o completar FT03")
+        self.assertNotContains(response, "Registrar o completar la ejecución")
 
     def test_guia_publicada_de_actividad_no_completa_plan_que_no_la_vincula(self):
         actividad = self.actividad()

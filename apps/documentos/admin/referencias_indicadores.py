@@ -17,9 +17,11 @@ class ReferenciaIndicadorUnidadAdmin(AdministracionTraducida):
     def alcance_del_cambio(self, obj):
         if obj and obj.codigo in ('PRACTICAS-SEMANA', 'PRACTICAS-MINUTOS'):
             return ('Referencia histórica: se conserva para las versiones anteriores. Los planes nuevos usan '
-                    'las sesiones y los horarios concretos de la agenda y FT02; esta referencia no interviene en su cálculo.')
+                    'las sesiones y los horarios concretos de la agenda y de la planificación de prácticas; esta referencia '
+                    'no interviene en su cálculo.')
         return ('Dirección administra las metas; la unidad no edita los números desde la planificación. '
-                'Las prácticas se obtienen de las sesiones concretas de la agenda y FT02, respetando la referencia mínima '
+                'Las prácticas se obtienen de las sesiones concretas de la agenda y de la planificación de prácticas, '
+                'respetando la referencia mínima '
                 'por unidad y período. Sus horarios determinan las horas de ocupación, sin imponer una frecuencia semanal '
                 'a cada asignatura. El catálogo de asignaturas no constituye carga comprometida. '
                 'Las reglas se conservan al guardar y las versiones firmadas mantienen sus metas. '

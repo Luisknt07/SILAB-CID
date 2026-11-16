@@ -70,7 +70,7 @@ def inicializar_revisiones_unidad(*, unidad_slug, simular=False):
 @operacion_reservas
 @transaction.atomic
 def sincronizar_planificaciones_unidad(*, unidad_slug, simular=False):
-    """Reconcilia FT02 de una unidad y conserva una única transacción local."""
+    """Reconcilia las planificaciones de una unidad y conserva una única transacción local."""
     unidad = Unidad.objects.select_for_update(of=("self",)).get(slug=unidad_slug)
     reservas = (
         Reserva.objects.select_for_update(of=("self",))

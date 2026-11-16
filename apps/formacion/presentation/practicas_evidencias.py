@@ -1,6 +1,6 @@
 """Evidencias de una práctica ejecutada: fotografías, informes, productos.
 
-Se reciben desde el formulario de ejecución (FT03) y se sirven solo a quien
+Se reciben desde el formulario de ejecución y se sirven solo a quien
 puede ver la planificación: aparecen estudiantes identificados, así que no se
 enlazan por la ruta pública de medios.
 """

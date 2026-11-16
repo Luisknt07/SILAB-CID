@@ -302,18 +302,34 @@ generación; las actas y formatos de gestión, sus propios datos. Las secciones 
 en banda verde con línea dorada y la escala es la compacta de `estilos_informe`
 (cuerpo 9,5 pt, tablas 8,5 pt).
 
-Los cinco anexos del informe (`anexos_evidencia.py`) usan una plantilla común,
-apaisada:
+**Anexos del informe.** Los anexos del informe (`anexos_evidencia.py`) son formatos
+de registro, no informes: recogen los datos del período. El análisis (avance, estado
+de cada meta y lo que falta para cumplirla) está en el informe. Cubren los cinco
+anexos comunes y los propios de planta piloto, centro experimental y observatorio.
+Todos usan la misma estructura, apaisada:
 
-1. el nombre de la unidad y la línea «Anexo del informe semestral · Período …»;
-2. **Qué respalda este anexo:** sus metas con las mismas cifras del informe
-   (comprometido, registrado, con respaldo, avance y estado);
-3. los registros que cuentan, con un máximo de ocho columnas y texto oscuro;
-4. **Qué falta para cumplir:** cada requisito pendiente y cuántos registros lo tienen.
+1. **Datos generales**, en un cuadro, debajo del encabezado:
+   - unidad;
+   - período, con sus fechas;
+   - informe al que acompañan, con su número de anexo;
+   - fecha de los datos;
+   - metas que respaldan, con el nombre que tienen en la planificación;
+   - fuente.
+2. **Una tabla por registro:**
+   - la primera fila lleva el nombre del registro, sobre fondo verde claro;
+   - la segunda, los títulos de las columnas;
+   - al pie va el total, por ejemplo «Total: 8 aprobadas · con respaldo completo: 3».
+   - Sin registros, una sola fila dice «Sin registros en el período».
+   - Si la tabla sigue en otra hoja, repite su nombre y sus columnas.
 
-Sus tablas tienen la cabecera en verde claro con texto oscuro, para no apilar dos
-barras verdes bajo la banda de la sección. Las listas completas (todas las
-solicitudes, el inventario entero, la bitácora) quedan en el Centro de reportes.
+No llevan apartados numerados ni párrafos. Donde un registro tiene requisitos, la
+columna «Respaldo» dice «Completo» o «Falta: …». Los títulos de columna y las palabras
+largas no se parten: el ancho de cada columna se calcula con su contenido.
+
+Las listas completas no van en el anexo; quedan en el Centro de reportes. Son todas las
+solicitudes, el inventario entero, la bitácora y cada dato cargado por un observatorio.
+Una tabla de detalle de un anexo propio con más de 40 filas solo dice cuántos
+registros tiene.
 
 **Orientación.** Vertical (A4, márgenes de 14 mm): documentos principales, guía de
 práctica, comprobante y ficha de equipo. Apaisado (A4, márgenes de 13 mm): anexos,

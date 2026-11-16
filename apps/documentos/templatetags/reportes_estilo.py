@@ -155,7 +155,7 @@ def anexos_del_periodo(periodo):
                 anexo=anexo, documento_padre=padre, entrega_padre=entrega,
                 es_soporte_planificacion=soporte,
                 origen_documental='Planificación' if soporte else 'Informe de cierre',
-                # El consolidado de prácticas respalda FT02; no duplica su meta.
+                # El consolidado de prácticas respalda la planificación; no duplica su meta.
                 detalle_indicadores=[] if soporte else getattr(anexo, 'indicadores_cierre', [])))
     return dict(anexos=anexos, cierre=cierre.get('cierre', {}), entrega=cierre,
                 documento=cierre.get('documento'))

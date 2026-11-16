@@ -4,9 +4,14 @@ Fija lo acordado el 15 de noviembre de 2026:
 - los documentos que la unidad firma (protocolo, plan de compras, planificación e informe) llevan el
   formato del informe institucional: portada, responsabilidad y contenido, apartados en verde, 10 pt;
 - los demás conservan el encabezado de tres columnas;
-- el informe lleva cinco anexos con una sola plantilla: qué respalda, registros que cuentan y qué falta;
-  el de investigación y vinculación solo si el plan compromete alguna de sus metas;
+- el informe lleva cinco anexos comunes; el de investigación y vinculación solo si el plan compromete
+  alguna de sus metas;
 - la planificación y la ejecución de prácticas ya no se nombran FT02/FT03.
+
+Y lo acordado después el mismo día: un anexo es un formato de registro, no un informe. Lleva datos
+generales y una tabla por registro con su total, sin apartados numerados ni párrafos. Los anexos
+propios de planta piloto, centro experimental y observatorio usan el mismo formato y ya no se llaman
+«Informe de…» (documentos.0026).
 """
 import tempfile
 from contextlib import ExitStack
@@ -24,7 +29,8 @@ from pypdf import PdfReader
 from apps.directorio_unidades.models.core import Unidad
 from apps.documentos.models.expediente import DocumentoExigido, DocumentoExpediente
 from apps.documentos.presentation.anexos_evidencia import (
-    ANEXOS, CONDICIONALES, NO_COMPROMETIDO, aplica_el_anexo, cifra, componer_anexo, pdf_del_anexo,
+    ANEXOS, ANEXOS_PERFIL, CONDICIONALES, NO_COMPROMETIDO, aplica_el_anexo, cifra, componer_anexo,
+    es_anexo_de_evidencia, pdf_del_anexo,
 )
 from apps.documentos.presentation.evaluacion_cierre import ANEXOS_METAS
 from apps.documentos.presentation.expediente import (
@@ -34,6 +40,7 @@ from apps.documentos.presentation.expediente_catalogo import CATALOGO, CATALOGO_
 from apps.documentos.presentation.expediente_redaccion import ACTIVIDADES_PLAN
 
 MIGRACION = import_module('apps.documentos.migrations.0025_anexos_del_informe')
+MIGRACION_PROPIOS = import_module('apps.documentos.migrations.0026_anexos_propios_como_registro')
 ABSORBIDOS = ('PRACTICAS-FT03', 'GUIAS', 'DESECHOS', 'INVENTARIO-CORTE', 'TRANSFERENCIA', 'ACCIONES-MEJORA')
 IDENTIDAD = (SimpleNamespace(codigo='PRUEBA'), SimpleNamespace(nombre='Institución de prueba', siglas='IP', paleta={}))
 
@@ -73,10 +80,30 @@ class CatalogoDeCincoAnexosTests(SimpleTestCase):
             self.assertEqual(descripcion, por_codigo[codigo][11], codigo)
 
     def test_cada_anexo_respalda_sus_metas_en_la_revision_de_la_direccion(self):
-        for codigo, (_titulo, metas) in ANEXOS.items():
+        for codigo, (_titulo, metas) in (*ANEXOS.items(), *ANEXOS_PERFIL.items()):
             with self.subTest(codigo=codigo):
                 self.assertTrue(set(metas) - {'USO-EFECTIVO'} <= set(ANEXOS_METAS[codigo]))
         self.assertEqual(CONDICIONALES, frozenset(('INVESTIGACION',)))
+
+    def test_los_anexos_propios_usan_el_formato_de_registro_y_no_se_llaman_informe(self):
+        propios = {f[0]: f[1] for f in CATALOGO_PERFILES}
+        self.assertEqual(set(ANEXOS_PERFIL), set(propios))
+        for codigo, nombre in propios.items():
+            with self.subTest(codigo=codigo):
+                self.assertTrue(es_anexo_de_evidencia(SimpleNamespace(codigo=codigo)))
+                self.assertFalse(nombre.startswith(('Informe', 'Registro de')), nombre)
+                self.assertEqual(MIGRACION_PROPIOS.NOMBRES[codigo][1], nombre)
+
+    def test_un_titulo_de_columna_no_se_parte_a_media_palabra(self):
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+        from apps.documentos.presentation.anexos_evidencia import _anchos_por_contenido
+        cabecera = ('Serie', 'Datos incorporados en el semestre', 'Fuente')
+        filas = [['precio-sustentacion-leche', '62', 'Texto largo de la fuente ' * 8]] * 3
+        anchos = _anchos_por_contenido(cabecera, filas, 500, 'Helvetica-Bold', 'Helvetica', 8.5)
+        self.assertAlmostEqual(sum(anchos), 500)
+        self.assertGreaterEqual(anchos[1], stringWidth('incorporados', 'Helvetica-Bold', 8.5) + 11)
+        self.assertGreaterEqual(anchos[0], stringWidth('precio-sustentacion-leche', 'Helvetica', 8.5) + 11)
+        self.assertEqual(max(anchos), anchos[2])
 
     def test_ningun_documento_ni_meta_se_llama_ft02_o_ft03(self):
         from apps.documentos.presentation.perfil_laboratorios import NOMBRES
@@ -186,24 +213,28 @@ class SeisDocumentosTests(TestCase):
                     self.assertEqual({a.exigido.codigo for a in anexos_del(self.informe(tipo, corte))}, anexos)
                     self.assertFalse(set(ABSORBIDOS) & {d.exigido.codigo for d in self.expediente(tipo)})
 
-    def test_cada_anexo_abre_con_lo_que_respalda_y_cierra_con_lo_que_falta(self):
-        informe = self.informe('laboratorios')
-        for anexo in anexos_del(informe):
-            if anexo.exigido.codigo not in ANEXOS:
-                continue
-            with self.subTest(anexo=anexo.exigido.codigo):
-                inicio, fin = tramo_del_documento(anexo)
-                compuesto = componer_anexo(anexo, inicio, fin)
-                titulos = [s.titulo for s in compuesto['secciones']]
-                self.assertEqual(titulos[0], 'Qué respalda este anexo')
-                self.assertEqual(titulos[-1], 'Qué falta para cumplir')
-                self.assertNotIn('FT0', ' '.join(titulos))
-                with ExitStack() as pila:
-                    _sin_identidad_real(pila)
-                    pdf = pdf_del_anexo(anexo, inicio, fin, codigo_documento='SLCID-LAB-PRUEBA', version=1)
-                texto = '\n'.join(p.extract_text() or '' for p in PdfReader(BytesIO(pdf)).pages)
-                self.assertIn('Código: SLCID-LAB-PRUEBA', texto)
-                self.assertIn('QUÉ RESPALDA ESTE ANEXO', texto)
+    def test_cada_anexo_es_un_registro_sin_apartados_de_informe(self):
+        for tipo in ('laboratorios', 'plantas_piloto'):
+            for anexo in anexos_del(self.informe(tipo)):
+                with self.subTest(tipo=tipo, anexo=anexo.exigido.codigo):
+                    self.assertTrue(es_anexo_de_evidencia(anexo.exigido))
+                    inicio, fin = tramo_del_documento(anexo)
+                    compuesto = componer_anexo(anexo, inicio, fin)
+                    self.assertEqual([clave for clave, _valor in compuesto['datos']], [
+                        'Unidad', 'Período', 'Acompaña a', 'Datos al', 'Metas que respalda', 'Fuente'])
+                    self.assertTrue(compuesto['registros'])
+                    nombres = ' '.join(r.titulo for r in compuesto['registros'])
+                    self.assertNotIn('FT0', nombres)
+                    self.assertNotIn('Qué', nombres)
+                    with ExitStack() as pila:
+                        _sin_identidad_real(pila)
+                        pdf = pdf_del_anexo(anexo, inicio, fin, codigo_documento='SLCID-PRUEBA', version=1)
+                    texto = '\n'.join(p.extract_text() or '' for p in PdfReader(BytesIO(pdf)).pages)
+                    self.assertIn('Código: SLCID-PRUEBA', texto)
+                    self.assertIn('Metas que respalda', texto)
+                    self.assertIn(compuesto['registros'][0].titulo.upper(), texto)
+                    for informe in ('QUÉ RESPALDA', 'QUÉ FALTA', '1. ', 'Son las cifras del informe'):
+                        self.assertNotIn(informe, texto)
 
     def test_investigacion_queda_no_aplica_si_el_plan_no_la_compromete(self):
         informe = self.informe('laboratorios')
@@ -275,3 +306,32 @@ class MigracionCincoAnexosTests(TestCase):
         self.assertEqual(self.estado(), estado)
         MIGRACION.separar(registro, self.editor)
         self.assertEqual(self.estado(), antes)
+
+
+class MigracionAnexosPropiosTests(TestCase):
+    """La migración 0026 sobre el catálogo de los anexos propios en el estado de 0025."""
+
+    def test_renombra_solo_lo_distribuido_se_repite_sin_efecto_y_se_revierte(self):
+        editor = SimpleNamespace(connection=SimpleNamespace(alias='default'))
+        informe, _ = DocumentoExigido.objects.get_or_create(codigo='INFORME-SEMESTRAL', defaults=dict(
+            nombre='Informe', carpeta='evaluacion', periodicidad='semestral'))
+        for codigo, (anterior, _nuevo) in MIGRACION_PROPIOS.NOMBRES.items():
+            DocumentoExigido.objects.update_or_create(codigo=codigo, defaults=dict(
+                nombre=anterior, carpeta='evaluacion', periodicidad='semestral', origen='sistema',
+                anexo_de=informe, activo=True))
+        DocumentoExigido.objects.filter(codigo='OBS-EVENTOS').update(nombre='Nombre propio de la institución')
+
+        def nombres():
+            return dict(DocumentoExigido.objects.filter(codigo__in=MIGRACION_PROPIOS.NOMBRES)
+                        .values_list('codigo', 'nombre'))
+        antes = nombres()
+        MIGRACION_PROPIOS.renombrar(registro, editor)
+        despues = nombres()
+        for codigo, (_anterior, nuevo) in MIGRACION_PROPIOS.NOMBRES.items():
+            if codigo != 'OBS-EVENTOS':
+                self.assertEqual(despues[codigo], nuevo, codigo)
+        self.assertEqual(despues['OBS-EVENTOS'], 'Nombre propio de la institución')
+        MIGRACION_PROPIOS.renombrar(registro, editor)
+        self.assertEqual(nombres(), despues)
+        MIGRACION_PROPIOS.restituir(registro, editor)
+        self.assertEqual(nombres(), antes)

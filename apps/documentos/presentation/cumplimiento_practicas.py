@@ -134,7 +134,7 @@ def diagnostico_guia(guia, *, planes=None, cache_archivos=None):
 
 
 def diagnostico_planificacion(plan, *, espacios=None):
-    """Lo que debe mostrar el FT02 vigente para acreditar la planificación."""
+    """Lo que debe mostrar la planificación vigente para acreditarse."""
     faltantes = []
     if plan.eliminado_en or not plan.es_version_vigente or plan.estado == 'archivada':
         faltantes.append('Planificación vigente')

@@ -1,19 +1,24 @@
-"""Encabezado y pie institucionales, iguales en todos los documentos del sistema.
+"""Encabezado y pie institucionales de los documentos del sistema.
 
-La guía de práctica, la planificación semestral, el informe, los formatos de
-práctica FT02/FT03, el comprobante de reserva y los reportes del Centro
-comparten el mismo marco, en vertical o apaisado:
+Hay dos encabezados, en vertical o apaisado:
 
-- caja con el logo a la izquierda, sobre el color institucional;
-- al centro, el nombre del formato y la institución;
-- a la derecha, código, revisión y los datos propios del documento;
-- al pie, línea de acento, producto e institución, y «Página: n de N».
+- Los documentos que la unidad firma (protocolo, plan de compras, planificación e
+  informe) llevan el del informe institucional (``estilo='informe'``). Tiene el logo
+  en un recuadro verde, una barra dorada, y a la derecha la institución, el título y
+  una línea con el código y la cobertura.
+- Los anexos del expediente, la guía de práctica, los registros de prácticas, el
+  comprobante de reserva y los reportes del Centro llevan el de tres columnas:
+  - caja con el logo a la izquierda, sobre el color institucional;
+  - al centro, el nombre del formato y la institución;
+  - a la derecha, código, revisión y los datos propios del documento.
 
-Quien genera un PDF solo declara el nombre del formato y sus metadatos; las
-medidas y los márgenes salen de aquí, de modo que todos los documentos se ven
-como el mismo documento. Cuando un archivo reúne dos formatos distintos (FT02
-y FT03 en el mismo expediente), cada uno abre con :func:`encabezado_en_flujo`
-y comparten el pie de :func:`pie_institucional`.
+Todos llevan al pie una línea de acento, el producto, la institución y «Página: n de N».
+
+Quien genera un PDF solo declara el nombre del formato y sus metadatos. Las medidas y
+los márgenes salen de aquí, de modo que los documentos de una misma clase se ven
+iguales. Cuando un archivo reúne dos formatos distintos (la planificación y la
+ejecución de prácticas en el mismo expediente), cada uno abre con
+:func:`encabezado_en_flujo` y comparten el pie de :func:`pie_institucional`.
 """
 
 from xml.sax.saxutils import escape
