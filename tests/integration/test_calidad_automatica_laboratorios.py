@@ -266,6 +266,15 @@ class CalidadAutomaticaLaboratoriosTests(TestCase):
         self.assertEqual(lectura['fuentes']['datos']['investigacion']['resultados']['reales'], 1)
         self.assertIn('RESULTADO_ENLACE_EXTERNO', self.reglas(lectura))
 
+    def test_un_registro_anulado_no_cuenta_como_resultado_declarado(self):
+        # Como en el FabLab 2026-B: la única transferencia era de demostración y se anuló.
+        from apps.documentos.presentation.medicion_metas import rectificar_evidencia
+        transferencia = self.evidencia('TRANSFERENCIA', codigo='CALIDAD-TRANSFERENCIA-ANULADA', verificar=False)
+        rectificar_evidencia(self.unidad, self.actor, transferencia.pk, 'Registro de demostración.')
+        lectura = self.contexto().analizar('INVESTIGACION')
+        self.assertIn('RESULTADOS_SIN_DECLARACION', self.reglas(lectura))
+        self.assertFalse(lectura['automatico'])
+
     def test_borrador_y_promocion_directa_sin_auditoria_no_son_verificacion(self):
         e = self.evidencia(verificar=False)
         self.assertIn('FUENTE_SIN_VERIFICAR', self.reglas(self.contexto().analizar('INVESTIGACION')))

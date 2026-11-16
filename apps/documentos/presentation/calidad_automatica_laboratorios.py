@@ -75,6 +75,11 @@ def _porcentaje(numerador, denominador):
     return round(min(100, max(0, 100 * numerador / denominador)), 2) if denominador else None
 
 
+def _vigentes(filas):
+    """Las filas de resultados que no están anuladas."""
+    return [fila for fila in filas if fila['estado'] != 'anulado']
+
+
 def _dia(valor):
     return (timezone.localtime(valor) if timezone.is_aware(valor) else valor).date()
 
@@ -586,8 +591,8 @@ class ContextoCalidad:
         propios = []
         _sin, investigacion = self._resultados('INVESTIGACION', propios)
         _sin, transferencia = self._resultados('TRANSFERENCIA', propios)
-        if investigacion['resultados']['filas'] or transferencia['resultados']['filas']:
-            # Con algo registrado, el vacío de la otra parte no exige declararlo aparte.
+        if _vigentes(investigacion['resultados']['filas']) or _vigentes(transferencia['resultados']['filas']):
+            # Con algo vigente registrado, el vacío de la otra parte no exige declararlo aparte.
             propios = [h for h in propios if h['regla'] != 'RESULTADOS_SIN_DECLARACION']
         hallazgos.extend(propios)
         return None, dict(investigacion=investigacion, transferencia=transferencia)
@@ -602,7 +607,8 @@ class ContextoCalidad:
             elif fila['acredita'] and not fila.get('recurso'):
                 self._hallazgo(hallazgos, 'RESULTADO_ENLACE_EXTERNO', 'El enlace externo requiere comprobar el producto o la aceptación.',
                                'documentos.EvidenciaGestionUnidad', fila['pk'], tipo=codigo)
-        if not datos['filas']:
+        if not _vigentes(datos['filas']):
+            # Un registro anulado no es un resultado: el anexo sigue vacío y pide declararse.
             self._hallazgo(hallazgos, 'RESULTADOS_SIN_DECLARACION',
                 'No hay resultados registrados; falta comprobar si existían compromisos o declarar la no aplicación.', tipo=codigo)
         # La verificación atribuida al responsable ya revisó producto y aceptación.
