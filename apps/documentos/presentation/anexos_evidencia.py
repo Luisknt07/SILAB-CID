@@ -471,7 +471,7 @@ def _equipos(unidad, inicio, fin, lectura):
     equipamiento = _reporte('equipamiento', unidad, inicio, fin)
     tarjetas = {str(t[0] if isinstance(t, (list, tuple)) else t.get('label')):
                 (t[1] if isinstance(t, (list, tuple)) else t.get('value')) for t in recursos.get('cards') or ()}
-    actas = _columnas(_tabla(recursos, 'Actas de revisión de inventario'),
+    actas = _columnas(_vigentes(_tabla(recursos, 'Actas de revisión de inventario'), 'Estado'),
                       ('Código', 'Fecha', 'Acta', 'Estado', 'Responsable', 'Respaldo', 'Carácter del registro'),
                       {'Acta': 60, 'Respaldo': 50, 'Carácter del registro': 50})
     pendientes = Counter()
@@ -525,6 +525,13 @@ def _equipos(unidad, inicio, fin, lectura):
     ]
 
 
+def _vigentes(filas, columna='Estado documental'):
+    """Sin los registros anulados: el Centro de reportes los conserva visibles, el anexo no los presenta."""
+    from apps.documentos.models.medicion import EvidenciaGestionUnidad
+    anulado = dict(EvidenciaGestionUnidad.ESTADOS)['anulado']
+    return [fila for fila in filas if str(fila.get(columna, '')).strip() != anulado]
+
+
 def _investigacion(unidad, inicio, fin, lectura):
     columnas = ('Código', 'Fecha', 'Proyecto / convenio', 'Producto / entregable', 'Resultado obtenido', 'Responsable',
                 'Estado documental')
@@ -537,9 +544,10 @@ def _investigacion(unidad, inicio, fin, lectura):
     pesos = (14, 8, 16, 16, 24, 11, 11)
     return [
         Registro('Resultados de investigación', cabecera,
-                 _columnas(_filas(_reporte('investigacion', unidad, inicio, fin)), columnas, largos), pesos=pesos,
-                 vacio='No hay resultados de investigación registrados en el período.'),
-        Registro('Transferencia y servicios entregados', cabecera, _columnas(_filas(transferencia), columnas, largos),
+                 _columnas(_vigentes(_filas(_reporte('investigacion', unidad, inicio, fin))), columnas, largos),
+                 pesos=pesos, vacio='No hay resultados de investigación registrados en el período.'),
+        Registro('Transferencia y servicios entregados', cabecera,
+                 _columnas(_vigentes(_filas(transferencia)), columnas, largos),
                  pesos=pesos, vacio='No hay transferencias ni servicios entregados en el período.'),
         Registro('Solicitudes de servicio', ('Fecha', 'Tipo', 'Solicitud', 'Beneficiario', 'Propósito', 'Estado', 'Tiempo'),
                  servicios, pesos=(9, 10, 28, 15, 16, 12, 10), vacio='No hay solicitudes de servicio en el período.'),

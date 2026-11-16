@@ -105,6 +105,14 @@ class CatalogoDeCincoAnexosTests(SimpleTestCase):
         self.assertGreaterEqual(anchos[0], stringWidth('precio-sustentacion-leche', 'Helvetica', 8.5) + 11)
         self.assertEqual(max(anchos), anchos[2])
 
+    def test_un_registro_anulado_no_se_presenta_en_el_anexo(self):
+        from apps.documentos.presentation.anexos_evidencia import _vigentes
+        filas = [{'Código': 'A', 'Estado documental': 'Rectificado'}, {'Código': 'B', 'Estado documental': 'Borrador'},
+                 {'Código': 'C', 'Estado documental': 'Evidencia verificada'}]
+        self.assertEqual([f['Código'] for f in _vigentes(filas)], ['B', 'C'])
+        actas = [{'Código': 'D', 'Estado': 'Rectificado'}, {'Código': 'E', 'Estado': 'Evidencia verificada'}]
+        self.assertEqual([f['Código'] for f in _vigentes(actas, 'Estado')], ['E'])
+
     def test_un_codigo_largo_no_se_parte_en_una_columna_de_ancho_fijo(self):
         from reportlab.pdfbase.pdfmetrics import stringWidth
         from apps.documentos.presentation.anexos_evidencia import _anchos_fijos
