@@ -15,6 +15,9 @@ from django.urls import reverse
 from apps.recursos.models.consumibles import Consumible
 from apps.recursos.models.software import SoftwareDisponible
 
+# Cómo se nombra cada tipo de recurso en el catálogo de software; un simulador es software con su propia etiqueta.
+CLASES_DE_SOFTWARE = {'software': 'Software', 'licencia': 'Licencias institucionales', 'simulador': 'Simuladores'}
+
 
 def _configuracion(tipo):
     if tipo == 'software':
@@ -38,7 +41,7 @@ def _codigo(tipo, clave):
 def _nombre(tipo, clave):
     clase, familia = clave
     if tipo == 'software':
-        clases = {'software': 'Software', 'licencia': 'Licencias institucionales'}
+        clases = CLASES_DE_SOFTWARE
         accesos = {'instalacion': 'Instalado en equipos', 'licencia': 'Individual temporal',
                    'red': 'Concurrente o de red', 'remoto': 'Acceso remoto'}
         return f"{clases.get(clase, clase or 'Tipo sin definir')} · {accesos.get(familia, familia or 'Acceso sin definir')}"

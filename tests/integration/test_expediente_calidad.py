@@ -71,27 +71,31 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         self.assertTrue(plan.redactable and plan.generable and plan.cargable)
         # Todo lo demás es anexo del informe y ya no es «condicional»; la planificación viaja sin anexos.
         anexos = DocumentoExigido.objects.filter(activo=True, anexo_de__isnull=False)
-        # Cinco anexos comunes (documentos.0025) y los seis formatos nativos de otras tipologías.
-        self.assertEqual(anexos.count(), 11)
+        # Once anexos comunes, uno por documento que pide la universidad (documentos.0027), y los siete
+        # propios de las otras tipologías.
+        self.assertEqual(anexos.count(), 18)
         self.assertFalse(anexos.exclude(anexo_de__codigo='INFORME-SEMESTRAL').exists())
-        # Los seis formatos nativos de otras tipologías no añaden obligaciones
+        # Los siete propios de otras tipologías no añaden obligaciones
         # a un laboratorio ni desaparecen del catálogo de sus propias unidades.
         aplicables = [e for e in anexos if e.aplica_a(self.unidad.dependencia,
                                                     base=self.unidad.codigo_base)]
         self.assertEqual({e.codigo for e in aplicables},
-                         {'PRACTICAS-FT02', 'REGISTRO-USO', 'INDUCCION-SEGURIDAD', 'EQUIPAMIENTO', 'INVESTIGACION'})
+                         {'REGISTRO-USO', 'EQUIPAMIENTO', 'INVENTARIO-CORTE', 'FICHAS-TECNICAS', 'PRACTICAS-FT02',
+                          'GUIAS', 'PRACTICAS-FT03', 'INDUCCION-SEGURIDAD', 'DESECHOS', 'INVESTIGACION',
+                          'TRANSFERENCIA'})
         self.assertFalse(any(e.codigo.startswith(('PP-', 'CE-', 'OBS-')) for e in aplicables))
-        # Investigación y vinculación solo se presenta si el plan la compromete, pero eso lo decide la
-        # generación: en el catálogo ningún anexo es «condicional» que la unidad declare.
+        # Desechos, investigación y transferencia se presentan según los registros y el plan, pero eso lo
+        # decide la generación: en el catálogo ningún anexo es «condicional» que la unidad declare.
         self.assertFalse(anexos.filter(condicional=True).exists())
         self.assertEqual(self.exigido('PRACTICAS-FT02').anexo_de.codigo, 'INFORME-SEMESTRAL')
-        # Equipos e inventario es semestral en el catálogo y viaja con el informe de cada período.
+        # El equipamiento es semestral y viaja con el informe de cada período; el inventario también, en el
+        # laboratorio (anual solo en el observatorio).
         self.assertEqual(self.exigido('EQUIPAMIENTO').periodicidad, 'semestral')
         self.assertEqual(self.exigido('EQUIPAMIENTO').periodicidad_para(self.unidad), 'semestral')
-        # Las listas de chequeo, los anexos depurados y los absorbidos por los cinco anexos dejaron de pedirse aparte.
+        self.assertEqual(self.exigido('INVENTARIO-CORTE').periodicidad_para(self.unidad), 'semestral')
+        # Las listas de chequeo, los anexos depurados y las acciones de mejora dejaron de pedirse aparte.
         for codigo in ('CHEQUEO-SEGURIDAD', 'INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS',
-                       'INSUMOS-CORTE', 'PRACTICAS-FT03', 'GUIAS', 'DESECHOS', 'INVENTARIO-CORTE', 'TRANSFERENCIA',
-                       'ACCIONES-MEJORA'):
+                       'INSUMOS-CORTE', 'ACCIONES-MEJORA'):
             self.assertFalse(DocumentoExigido.objects.filter(codigo=codigo, activo=True).exists(), codigo)
     def test_los_cortes_de_gestion_son_naturales_y_el_calendario_solo_es_referencia(self):
         cortes = cortes_del_anio(2026)
@@ -119,10 +123,10 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         # Un anexo semestral tiene fila en los dos períodos.
         practicas = [d for d in documentos if d.exigido.codigo == 'PRACTICAS-FT02']
         self.assertEqual(sorted(d.corte for d in practicas), ['A', 'B'])
-        # Equipos e inventario (mantenimiento, revisión física y existencias) viaja con el informe de cada período.
+        # El equipamiento y el inventario del laboratorio viajan con el informe de cada período.
         self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO'), ['A', 'B'])
+        self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE'), ['A', 'B'])
         self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE',
-                          'PRACTICAS-FT03', 'GUIAS', 'DESECHOS', 'INVENTARIO-CORTE', 'TRANSFERENCIA',
                           'ACCIONES-MEJORA'} & {d.exigido.codigo for d in documentos})
         self.assertNotIn('ORGANIGRAMA', {d.exigido.codigo for d in documentos})
         # Construir otra vez no duplica.
@@ -167,10 +171,10 @@ class GenerarCargarValidarTests(BaseDelExpediente):
         self.assertIn('01/01/2026 al 30/06/2026', recurso.descripcion)
         anexos = anexos_del(informe)
         self.assertIn(practicas.pk, [a.pk for a in anexos])
-        # Investigación y vinculación no se presenta sin metas comprometidas; todo lo que sí se presenta tiene archivo.
+        # La investigación no se presenta si el plan no compromete su meta; todo lo que sí se presenta tiene archivo.
         self.assertNotIn('INVESTIGACION', {a.exigido.codigo for a in anexos})
         self.assertTrue(all(a.recurso_id for a in anexos))
-        # Equipos e inventario va con el informe de los dos semestres.
+        # El equipamiento va con el informe de los dos semestres.
         self.assertIn('EQUIPAMIENTO', {a.exigido.codigo for a in anexos})
         self.assertIn('EQUIPAMIENTO',
                       {a.exigido.codigo for a in anexos_del(self.documento('INFORME-SEMESTRAL', corte='B'))})
@@ -315,7 +319,7 @@ class ConsolaYAdminTests(BaseDelExpediente):
             self.assertContains(pagina, etapa)
         # La planificación viaja sin anexos: no hay soportes aparte que revisar.
         self.assertNotContains(pagina, 'data-soporte-planificacion=')
-        self.assertContains(pagina, 'Planificación semestral de actividades de la unidad')
+        self.assertContains(pagina, 'Planificación semestral del laboratorio')
         self.assertContains(pagina, 'Vencido')
         self.assertContains(pagina, 'Habilitar expediente del año')
         self.assertFalse(DocumentoExpediente.objects.filter(unidad=self.unidad, anio=2026).exists())
@@ -350,15 +354,15 @@ class ConsolaYAdminTests(BaseDelExpediente):
                                 'archivo': SimpleUploadedFile('resolucion.pdf', pdf_legible_prueba('%PDF-1.4 res'))})
         organigrama.refresh_from_db()
         self.assertEqual(organigrama.estado, 'cargado')
-        # Los desechos van en el anexo de seguridad y desechos (documentos.0025).
-        desechos = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='INDUCCION-SEGURIDAD',
-                                                   anio=2026, corte='A')
-        # Un anexo no se declara «no aplica»: si no hubo desechos, el registro sale vacío y lo dice.
-        self.client.post(ruta, {'anio': 2026, 'documento': desechos.pk, 'accion': 'no_aplica',
-                                'justificacion': 'La unidad no generó desechos.'})
-        desechos.refresh_from_db()
-        self.assertEqual(desechos.estado, 'generado')
-        self.assertIsNone(desechos.validado_por_id)
+        # Los reportes de seguridad se presentan siempre (documentos.0027).
+        seguridad = DocumentoExpediente.objects.get(unidad=self.unidad, exigido__codigo='INDUCCION-SEGURIDAD',
+                                                    anio=2026, corte='A')
+        # Un anexo no se declara «no aplica»: si no hubo registros, el anexo sale vacío y lo dice.
+        self.client.post(ruta, {'anio': 2026, 'documento': seguridad.pk, 'accion': 'no_aplica',
+                                'justificacion': 'La unidad no tuvo inspecciones.'})
+        seguridad.refresh_from_db()
+        self.assertEqual(seguridad.estado, 'generado')
+        self.assertIsNone(seguridad.validado_por_id)
         # El archivo se abre por la ruta de recursos de la unidad, solo para quien la gestiona.
         self.assertEqual(self.client.get(reverse('recurso_unidad', args=[organigrama.recurso_id])).status_code, 200)
 
@@ -395,7 +399,7 @@ class ConsolaYAdminTests(BaseDelExpediente):
         # El tablero lee dos firmas por período y lo de una sola vez, no carpetas.
         self.assertEqual([p['corte'] for p in fila['periodos']], ['A', 'B'])
         self.assertEqual([e['nombre'] for e in fila['periodos'][0]['entregas']],
-            ['Planificación semestral de actividades de la unidad',
+            ['Planificación semestral del laboratorio',
              'Informe semestral de actividades y cumplimiento de la planificación'])
         self.assertIn(organigrama.pk, [d.pk for d in fila['de_la_unidad']])
         self.assertContains(consolidado, 'Documentos de la unidad')

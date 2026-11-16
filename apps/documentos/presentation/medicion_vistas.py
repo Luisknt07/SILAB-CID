@@ -18,7 +18,7 @@ from apps.documentos.models.funcionalidad import TIPO_FUNCIONALIDAD
 from apps.documentos.models.resultados_gestion import (
     CLAVES_DETALLE, CLAVES_RESULTADO, CLAVES_INSPECCION, CONDICIONES_REVISION,
     ESTADOS_CONDICIONES, ESTADOS_ACCION, TIPOS_PRODUCTO, TIPOS_RESULTADO,
-    TIPOS_ESTRUCTURADOS, errores_resultado,
+    TIPOS_ESTRUCTURADOS, condiciones_de, errores_resultado, lectura_condiciones,
 )
 from apps.documentos.presentation.medicion_metas import (
     habilitada, registrar_evidencia, rectificar_evidencia, evidencias_verificadas,
@@ -125,6 +125,8 @@ class EvidenciaForm(forms.ModelForm):
             for clave in CLAVES_INSPECCION:
                 self.fields.pop(clave)
         else:
+            # Las comunes y las propias del tipo de unidad; las de otros tipos no se ofrecen.
+            self.fields['condiciones_revisadas'].choices = condiciones_de(unidad)
             self.fields['fecha'].label = 'Fecha de la inspección realizada'
             self.fields['titulo'].label = 'Título o referencia del chequeo'
             self.fields['descripcion'].label = 'Descripción y conclusión de la revisión'
@@ -184,7 +186,8 @@ class EvidenciaForm(forms.ModelForm):
                 detalle = detalle_perfil(datos, self.campos_del_perfil)
             self.instance.detalle = detalle
             if datos.get('verificar'):
-                for clave, error in errores_resultado(self.instance.tipo, detalle, datos.get('fecha')).items():
+                for clave, error in errores_resultado(self.instance.tipo, detalle, datos.get('fecha'),
+                                                      unidad=self.instance.unidad).items():
                     if clave in datos or clave not in self.errors:
                         self.add_error(clave, error)
         elif self.instance.tipo == 'INVENTARIO' and 'revision_criticidad' in self.fields:
@@ -254,6 +257,8 @@ def fuentes_metas_view(request, slug):
             detalle = fila.detalle if isinstance(fila.detalle, dict) else {}
             fila.condicion_lectura = dict(ESTADOS_CONDICIONES).get(detalle.get('estado_condiciones'), 'Sin documentar')
             fila.accion_lectura = dict(ESTADOS_ACCION).get(detalle.get('estado_accion'), 'Sin documentar')
+            revisadas, exigidas, _cuales = lectura_condiciones(unidad, detalle.get('condiciones_revisadas'))
+            fila.condiciones_lectura = f'{revisadas} de {exigidas}'
         elif tipo in TIPOS_INFRAESTRUCTURA:
             from apps.documentos.models.infraestructura import CRITICIDADES_INFRAESTRUCTURA
             detalle = fila.detalle if isinstance(fila.detalle, dict) else {}

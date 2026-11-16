@@ -48,9 +48,11 @@ class MedicionPerfilesTests(TestCase):
         cls.parcela = EspacioReservable.objects.create(unidad=cls.centro, nombre='Parcela QA', tipo='parcela')
         cls.eje = EjeProductivo.objects.create(unidad=cls.centro, codigo='eje-qa', titulo='Cultivo QA',
             resumen='Ensayo de seguimiento', que_produce='Producto QA')
+        # Solo un ciclo marcado como ensayo, con su diseño, acredita la meta de ensayos (documentos.0027).
         cls.ciclo = CicloProductivo.objects.create(eje=cls.eje, nombre='Ensayo plurianual QA', rubro='Cultivo QA',
             lugar=cls.parcela, inicio=date(2026, 8, 1), fin_previsto=date(2027, 3, 1), estado='en_curso',
-            meta=Decimal('500'), unidad_medida='kg')
+            meta=Decimal('500'), unidad_medida='kg', es_ensayo=True, objetivo='Comparar dos densidades QA',
+            tratamientos='Densidad baja\nDensidad alta', repeticiones=3, variables='Rendimiento por parcela QA')
         cls.registro = RegistroProduccion.objects.create(ciclo=cls.ciclo, fecha=date(2026, 9, 10),
             tipo='pesaje', cantidad=25, unidad_medida='kg', detalle='Muestra y observación identificada QA', registrado_por=cls.actor)
         cls.responsable = ResponsableUnidad.objects.create(unidad=cls.planta, usuario=cls.actor, rol='responsable_tecnico')
@@ -183,6 +185,18 @@ class MedicionPerfilesTests(TestCase):
         self.evidencia(self.centro, 'ENSAYOS', 'ensayo', codigo='ENSAYO-2', ciclo_id=self.ciclo.pk,
             registros_ids=[registro.pk])
         self.assertEqual(self.lectura(self.centro)['gestion_ensayos'], 1)
+
+    def test_un_ciclo_productivo_no_acredita_ni_se_presenta_como_ensayo(self):
+        # Un ensayo es investigación y un ciclo productivo es producción: no se mezclan (documentos.0027).
+        CicloProductivo.objects.filter(pk=self.ciclo.pk).update(es_ensayo=False)
+        with self.assertRaisesMessage(ValidationError, 'marcado como ensayo'):
+            self.evidencia(self.centro, 'ENSAYOS', 'ensayo', ciclo_id=self.ciclo.pk, registros_ids=[self.registro.pk])
+        self.assertEqual(self.lectura(self.centro)['gestion_ensayos'], 0)
+        ensayos = dataset_perfil('ensayos', self.centro, self.inicio, self.fin)
+        self.assertEqual(ensayos['rows'], [])
+        self.assertTrue(all(not t['rows'] for t in ensayos['tablas']))
+        produccion = dataset_perfil('produccion-agropecuaria', self.centro, self.inicio, self.fin)
+        self.assertEqual([fila[0] for fila in produccion['rows']], [self.ciclo.nombre])
 
     def test_registro_de_otra_unidad_no_se_puede_vincular(self):
         with self.assertRaises(ValidationError):

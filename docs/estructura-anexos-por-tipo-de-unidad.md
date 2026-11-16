@@ -1,6 +1,6 @@
 # Estructura de los anexos del expediente por tipo de unidad
 
-Fecha: 16 de noviembre de 2026. Estado: estructura acordada con el usuario, pendiente de programar.
+Fecha: 16 de noviembre de 2026. Estado: programada (`documentos.0027`); el motor es `apps/documentos/presentation/anexos_evidencia.py`.
 
 Este documento define, para cada tipo de unidad, qué anexos acompañan al informe semestral y qué
 tablas y columnas lleva cada uno. Parte de las dos listas que pidió la universidad:
@@ -405,7 +405,7 @@ Exigencia: «Inventario de equipamiento, reactivos e insumos». Tipos: los cuatr
 
 - **Pie:** artículos · bajo el mínimo · sin lotes localizables.
 - **Planta piloto:** incluye materias primas y empaques, y marca los lotes del cliente (LoteConsumible.material_cliente).
-- **Centro experimental:** incluye semillas, fertilizantes y alimento animal.
+- **Centro experimental:** incluye semillas y alimento animal. Los fertilizantes y plaguicidas son agroquímicos y van en la tabla 3.4.
 
 **Tabla 3.6 · Movimientos del período.**
 
@@ -1176,34 +1176,47 @@ Respalda la meta de eventos de socialización de resultados.
 | Evento de socialización | Socialización (observatorio) | — |
 | Metas, avance y lo que falta | Informe semestral | — |
 
-## 7. Qué hay que crear en la plataforma
+## 7. Qué se creó en la plataforma
 
-**Formato:**
+**Formato** (`apps/documentos/presentation/anexos_evidencia.py`):
 
-- la celda de dos líneas;
-- la fila de subtítulo por grupo (por ejemplo, por asignatura en 5.1);
+- la celda de dos líneas (`Par`) y la fila de subtítulo por grupo (`Grupo`);
 - la numeración «n.m» de cada tabla;
+- los datos generales con la exigencia que responde;
 - la lista de anexos que no aplican en el informe.
 
-**Datos:**
+**Datos nuevos y dónde se capturan:**
 
-- la unidad del syllabus en el tema;
-- la superficie de los espacios;
-- el tipo «taller» en los espacios;
-- el tipo «simulador» en el software;
-- las clasificaciones «agroquímico» y «medicamento veterinario» en los insumos;
-- en el centro experimental, marcar un ciclo como ensayo y registrar su objetivo, diseño (tratamientos, repeticiones, variables) y responsable.
+| Dato | Campo | Dónde lo registra la unidad |
+| --- | --- | --- |
+| Unidad del syllabus | `TemaAsignatura.unidad_tematica` | Gestión de la unidad → Prácticas → temas de la asignatura |
+| Superficie de un espacio | `EspacioReservable.superficie_m2` | Gestión de la unidad → Recursos → espacios; página del área |
+| Tipo «taller» | `EspacioReservable.tipo` | La misma pantalla; los tipos que se ofrecen dependen del tipo de unidad |
+| Tipo «simulador» | `SoftwareDisponible.tipo_recurso` | Gestión de la unidad → Recursos → software |
+| Agroquímico y medicamento veterinario | `Consumible.clasificacion` | Gestión de la unidad → Recursos → insumos |
+| Ensayo: objetivo, tratamientos, repeticiones, variables y responsable | `CicloProductivo.es_ensayo` y los demás | Centro experimental → Plan y registros de producción → ciclo |
+| Condiciones de inspección por tipo de unidad | `detalle['condiciones_revisadas']` | Fuentes de las metas → Inspección |
 
-**Inspecciones:** las condiciones propias de la planta piloto y del centro experimental (sección 4.8).
+**Catálogo** (`documentos.0027`, reversible):
 
-**Catálogo:** una migración reversible:
+- crea fichas técnicas y producción agropecuaria;
+- reactiva con nombre nuevo guías, evidencias de prácticas (PRACTICAS-FT03), desechos, inventario y transferencia, que `documentos.0025` había retirado. Su historia se conservó;
+- corrige el período del inventario que todavía no se entregó: toma el del informe al que acompaña.
 
-- crea los anexos nuevos: fichas técnicas, planificación de las prácticas como anexo propio y producción agropecuaria;
-- reactiva con nombre nuevo guías, evidencias de prácticas (antes PRACTICAS-FT03), desechos, inventario y transferencia, que documentos.0025 había retirado. Su historia se conservó.
+**Control automático:** `ContextoCalidad.analizar` revisa cada anexo por separado.
 
-**Control automático:** una revisión por anexo, con las tablas de este documento.
+**Decisiones tomadas al programar:**
 
-**Metas:** la meta de producción agropecuaria en la planificación del centro experimental.
+- **Uso para investigación (tabla 10.2):** cuenta las sesiones de investigación y las de titulación, igual que el informe.
+- **Eventos de socialización:** se presentan en el período en que se realizaron, no en el que se registraron.
+- **Corridas demostrativas de la planta piloto:** incluyen las de sesiones de práctica. Se marcan en la tabla de órdenes y no cuentan para la meta; sus lotes y salidas no se presentan.
+- **Fertilizantes y plaguicidas:** son agroquímicos y van en la tabla de reactivos, no en la de insumos.
+
+**Lo que la plataforma todavía no guarda:**
+
+- **Ensayo de origen de un resultado de investigación** (tabla 10.1 del centro experimental): la evidencia de investigación no guarda el ciclo. La celda queda «—».
+- **Producto de investigación de un ensayo** (tabla 9.3 del centro experimental): por la misma razón, queda «—».
+- **Meta de producción agropecuaria:** el anexo es registro del período, sin meta propia en la planificación.
 
 ## 8. Datos en la base real al 16 de noviembre de 2026
 

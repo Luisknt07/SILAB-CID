@@ -110,8 +110,11 @@ class PlanificacionPracticaForm(forms.ModelForm):
             for campo in ("tema", "resultado_aprendizaje", "asignatura"):
                 self.fields[campo].required = False
         self.fields["tema_asignatura"].label = "Tema de la asignatura (syllabus)"
-        self.fields["tema_asignatura"].label_from_instance = lambda tema: (
-            f"{tema.asignatura.nombre} · {tema.nombre}"
+        # Con la unidad del syllabus delante, cuando el tema la tiene registrada.
+        self.fields["tema_asignatura"].label_from_instance = lambda tema: " · ".join(
+            parte
+            for parte in (tema.asignatura.nombre, tema.unidad_tematica.strip(), tema.nombre)
+            if parte
         )
 
     def _bound_fields(self, names):

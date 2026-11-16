@@ -1,9 +1,10 @@
 """Qué es cada cosa en una unidad, y cómo lo cuentan el asistente y el panel.
 
 Un equipo principal se reserva; un auxiliar acompaña a un principal y no se
-reserva aparte. El inventario distingue insumos, reactivos, materiales,
-empaque, protección y limpieza, con la misma definición en un taller, un
-laboratorio húmedo y una planta piloto.
+reserva aparte. El inventario distingue insumos, reactivos, agroquímicos,
+medicamentos veterinarios, materiales, empaque, protección y limpieza, con la
+misma definición en un taller, un laboratorio húmedo, una planta piloto y un
+centro experimental.
 """
 
 from datetime import date
@@ -127,22 +128,33 @@ class TaxonomiaDeRecursosTests(TestCase):
         self.assertIn(planta, unidad_equipo.laboratorios.all())
 
     # ---------------------------------------------------------- inventario
-    def test_el_inventario_distingue_siete_clases_y_las_muestra(self):
+    def test_el_inventario_distingue_nueve_clases_y_las_muestra(self):
         claves = [codigo for codigo, _ in Consumible.CLASIFICACIONES]
         self.assertEqual(
             claves,
-            ['insumo', 'reactivo', 'material', 'empaque', 'proteccion', 'limpieza', 'otro'],
+            ['insumo', 'reactivo', 'agroquimico', 'veterinario', 'material', 'empaque', 'proteccion', 'limpieza',
+             'otro'],
         )
         self.assertEqual(set(Consumible.CLASIFICACION_DETALLE), set(claves))
+        self.assertEqual(set(Consumible.ICONOS_POR_CLASE), set(claves))
         self.assertEqual(Consumible.objects.get(codigo='BIO-REA-AGAROSA').clasificacion, 'reactivo')
         self.assertEqual(Consumible.objects.get(codigo='BIO-MAT-GUANTES').clasificacion, 'proteccion')
         self.assertEqual(Consumible.objects.get(codigo='BIO-MAT-PUNTAS').clasificacion, 'material')
+        # Las clases que el cargador no trae se registran aquí para ver que cada una se muestra con su nombre.
+        presentes = set(Consumible.objects.filter(unidad=self.unidad, activo=True, visible_en_reservas=True)
+                        .values_list('clasificacion', flat=True))
+        for clave in claves:
+            if clave not in presentes:
+                Consumible.objects.create(unidad=self.unidad, codigo=f'BIO-CLASE-{clave.upper()}',
+                                          nombre=f'Artículo de la clase {clave}', clasificacion=clave,
+                                          familia='Prueba de clases', unidad_medida='unidad',
+                                          visible_en_reservas=True)
 
         pagina = self.client.get(self.unidad.get_absolute_url())
-        self.assertContains(pagina, 'data-inventory-type="reactivo"')
-        self.assertContains(pagina, 'data-inventory-type="proteccion"')
-        self.assertContains(pagina, 'Reactivos')
-        self.assertContains(pagina, 'Protección')
+        for clave in claves:
+            with self.subTest(clase=clave):
+                self.assertContains(pagina, f'data-inventory-type="{clave}"')
+                self.assertContains(pagina, Consumible.CLASIFICACION_DETALLE[clave][0])
 
     def test_el_panel_ofrece_las_clases_y_guarda_un_reactivo(self):
         self.client.force_login(self.coordinacion)

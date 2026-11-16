@@ -81,6 +81,7 @@ from apps.reservas.presentation.seguimiento import linea_tiempo_reserva
 from apps.reservas.presentation.gestion_agenda import _agenda_grid, _agenda_semanal, _calendario_mensual
 from apps.gestion_unidades.presentation.gestion_analitica import _analitica_activos, _analitica_financiera, _analitica_inventario, _distribuciones_reservas, _horas_reserva, _nombre_presentacion, _nombre_presentacion_singular, _preparar_trazabilidad_lotes, _ranking_indicador, _recursos_reales
 from apps.gestion_unidades.presentation.activacion import activar_area, alternar_area, alternar_equipo, alternar_insumo, alternar_software, desactivar_area
+from apps.gestion_unidades.presentation.edicion_area import tipos_de_espacio
 from apps.recursos.presentation.inventario_gestion import inventario_por_area, resumen_del_inventario, resumen_global_del_inventario, retirados_de
 from apps.recursos.presentation.areas_recursos import grupos_de_filas
 from apps.gestion_unidades.presentation.plantillas_ficha import accesorios_de
@@ -2016,6 +2017,11 @@ def _operar_recurso(request, unidad):
             request.POST.get("descripcion_publica") or ""
         ).strip()
         objeto.capacidad = int(request.POST.get("capacidad") or 0)
+        # Un formulario que no trae el campo no borra la superficie ya registrada.
+        if "superficie_m2" in request.POST:
+            objeto.superficie_m2 = _decimal_opcional(
+                request.POST.get("superficie_m2"), "La superficie", maximo=Decimal("99999999.99"),
+            )
         objeto.reservable = _booleano_post(request, "reservable")
         activar = _booleano_post(request, "activo")
         # Un área nueva nace como se pidió; en una existente, el cambio pasa por la cascada al final.
@@ -3782,6 +3788,10 @@ def _datos_recursos_panel(
         "catalogos_equipos_unidad": catalogos_equipos_unidad,
         "espacios": espacios,
         "software": software,
+        # Lo que ofrece el formulario de espacios: los tipos de su tipo de unidad y los que sus espacios ya tienen.
+        "tipos_espacio": tipos_de_espacio(unidad, conservar=list(
+            EspacioReservable.objects.filter(unidad=unidad).order_by().values_list("tipo", flat=True).distinct()
+        )) if vista == "recursos" and modo == "espacios" else [],
         "espacios_gestion": espacios
         + ([] if paginado else list(
             EspacioReservable.objects.filter(unidad=unidad, activo=False)
@@ -4436,6 +4446,7 @@ def gestion_unidad_view(request, slug):
         "criticidades_equipo": UnidadEquipo.CRITICIDAD_CHOICES,
         "roles_equipo": EquiposServicios.ROLES,
         "clasificaciones_consumible": Consumible.CLASIFICACIONES,
+        "tipos_recurso_software": SoftwareDisponible.TIPO_RECURSO_CHOICES,
         "propositos_reserva": Reserva.PROPOSITO_INSTITUCIONAL_CHOICES,
         "provisiones_consumibles": Reserva.PROVISION_CONSUMIBLES_CHOICES,
         "modalidades_servicio": Reserva.MODALIDAD_SERVICIO_CHOICES,

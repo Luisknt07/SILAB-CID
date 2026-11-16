@@ -1,4 +1,23 @@
-# Estado actual del proyecto — 15 de noviembre de 2026
+# Estado actual del proyecto — 16 de noviembre de 2026
+
+**Un anexo por cada documento que pide la universidad (16 de noviembre).**
+
+- **Estructura.** Los anexos del informe responden uno a uno a las exigencias de la
+  universidad y llevan su nombre. Un laboratorio entrega ocho anexos fijos y tres
+  condicionales (desechos, investigación y transferencia). Cada tipo de unidad lleva los
+  suyos: [docs/estructura-anexos-por-tipo-de-unidad.md](docs/estructura-anexos-por-tipo-de-unidad.md).
+- **Formato.** Datos generales con la exigencia que responde y tablas numeradas «n.m», con
+  todos los registros del período. Cada dato tiene un anexo dueño.
+- **Captura.** Campos nuevos: unidad del syllabus, superficie y tipo de espacio, simulador,
+  clases de insumos, datos del ensayo y condiciones de inspección por tipo de unidad.
+- **Control automático.** Revisa cada anexo por separado.
+- **Pendiente, a cargo del usuario:** aplicar `documentos.0027` y las migraciones de los
+  campos nuevos con un respaldo nuevo, y volver a generar los informes ya preparados.
+
+Detalle en
+[docs/calificacion-y-anexos-del-expediente.md](docs/calificacion-y-anexos-del-expediente.md#un-anexo-por-cada-documento-que-pide-la-universidad-16-de-noviembre-de-2026).
+
+**Estado al 15 de noviembre de 2026.**
 
 **Anexos como formato de registro (15 de noviembre, después del rediseño).**
 

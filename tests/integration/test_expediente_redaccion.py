@@ -387,7 +387,7 @@ class ComponerYGenerarTests(BaseDeRedaccion):
         numero = {d.exigido.codigo: n for n, d in anexos_numerados(informe)}
         fila = next(f for f in cumplimiento['filas']
                     if f[0] == 'Prácticas académicas ejecutadas con asistencia y evidencias')
-        self.assertEqual(fila[1:], ['8', '0', '0', '0 %', 'No cumple', f"Anexo {numero['PRACTICAS-FT02']}"])
+        self.assertEqual(fila[1:], ['8', '0', '0', '0 %', 'No cumple', f"Anexo {numero['PRACTICAS-FT03']}"])
         propia = next(f for f in cumplimiento['filas'] if f[0] == 'Jornada de puertas abiertas')
         self.assertEqual(propia[2], '—')
         # Solo lo que no se cumple, con lo que reporta la unidad y el anexo que trae el detalle.
@@ -398,7 +398,7 @@ class ComponerYGenerarTests(BaseDeRedaccion):
         detalle = dict(faltas['filas'])['Prácticas académicas ejecutadas con asistencia y evidencias']
         self.assertIn('La unidad reporta 7.', detalle)
         self.assertIn('Observación de la unidad: Una práctica se movió a B.', detalle)
-        self.assertIn(f"Detalle en el anexo {numero['PRACTICAS-FT02']}.", detalle)
+        self.assertIn(f"Detalle en el anexo {numero['PRACTICAS-FT03']}.", detalle)
         self.assertEqual(registros_del_periodo(self.unidad, date(2026, 3, 9), date(2026, 7, 17))['sesiones'], 0)
 
         redaccion_informe = obtener_redaccion(informe)
@@ -427,7 +427,7 @@ class EditorEnLaConsolaTests(BaseDeRedaccion):
         pagina = self.client.get(self.ruta_editor(plan))
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertContains(pagina, 'Planificación semestral de actividades de la unidad · Período 2026-A')
+        self.assertContains(pagina, 'Planificación semestral del laboratorio · Período 2026-A')
         self.assertContains(pagina, 'Lo que el sistema ya sabe')
         self.assertRegex(pagina.content.decode(),
             r'<td>\s*Luis Técnico\s*</td>\s*<td>\s*Responsable técnico\s*</td>')

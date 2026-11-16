@@ -30,9 +30,10 @@ def campos_perfil(unidad, tipo, inicio, fin):
             referencia_acta=forms.CharField(required=False, max_length=300, label='Referencia del acta o lista de asistencia'))
     elif tipo == 'ENSAYOS':
         from apps.centros_experimentales.operacion.models.centros import CicloProductivo, RegistroProduccion
+        # Solo un ciclo marcado como ensayo acredita un ensayo: un ciclo de producción no se ofrece.
         campos.update(subtipo=forms.ChoiceField(choices=(('ensayo', 'Ensayo con seguimiento del período'),)),
-            ciclo_id=elegir(CicloProductivo.objects.filter(eje__unidad=unidad), 'Ciclo y parcela o área'),
-            registros_ids=elegir(RegistroProduccion.objects.filter(ciclo__eje__unidad=unidad,
+            ciclo_id=elegir(CicloProductivo.objects.filter(eje__unidad=unidad, es_ensayo=True), 'Ensayo y parcela o área'),
+            registros_ids=elegir(RegistroProduccion.objects.filter(ciclo__eje__unidad=unidad, ciclo__es_ensayo=True,
                 fecha__range=(inicio, fin)).select_related('ciclo'), 'Seguimientos y mediciones del semestre', True))
     elif tipo == 'PRODUCCION':
         from apps.plantas_piloto.operacion.models.produccion import OrdenProduccion

@@ -10,6 +10,7 @@ from typing import Callable, Optional
 
 from django import forms
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
@@ -424,15 +425,18 @@ REGISTRO = {
                       'destino', 'para_quien', 'practicas', 'temas_investigacion', 'para_producir_mas', 'videos',
                       'espacios', 'orden', 'publicado'),
         eliminable=True, pagina=lambda unidad, instancia: reverse('eje_centro', args=[unidad.slug, instancia.codigo])),
-    # Los ciclos de la gestión productiva: los planifica quien tiene el módulo de producción del centro.
+    # Los ciclos de la gestión productiva: los planifica quien tiene el módulo de producción del centro. Un ciclo
+    # marcado como ensayo declara además su objetivo, sus tratamientos, sus repeticiones y lo que se mide.
     'ciclo_productivo': Edicion(
         'Ciclo productivo', CicloProductivo,
         ('nombre', 'tipo', 'rubro', 'lugar', 'inicio', 'fin_previsto', 'fin', 'superficie_ha', 'animales', 'meta',
-         'unidad_medida', 'referencia', 'estado', 'notas'),
+         'unidad_medida', 'referencia', 'estado', 'responsable', 'es_ensayo', 'objetivo', 'tratamientos',
+         'repeticiones', 'variables', 'notas'),
         'produccion', lambda unidad: CicloProductivo.objects.filter(eje__unidad=unidad),
         nuevo=lambda unidad, padre: CicloProductivo(),
         campos_nuevo=('eje', 'nombre', 'tipo', 'rubro', 'lugar', 'inicio', 'fin_previsto', 'superficie_ha', 'animales',
-                      'meta', 'unidad_medida', 'referencia', 'estado', 'notas'),
+                      'meta', 'unidad_medida', 'referencia', 'estado', 'responsable', 'es_ensayo', 'objetivo',
+                      'tratamientos', 'repeticiones', 'variables', 'notas'),
         eliminable=True, pagina=lambda unidad, instancia: reverse('produccion_centro', args=[unidad.slug])),
     # Los tableros nativos, los visores externos y la política de datos del observatorio.
     'tablero_observatorio': Edicion(
@@ -479,6 +483,23 @@ def ediciones_de(usuario, unidad):
     return frozenset(clave for clave, edicion in REGISTRO.items() if permisos[edicion.permiso])
 
 
+def personal_de(unidad, conservar=None):
+    """Las cuentas que pueden responder por un registro de la unidad: sus responsables activos y su administrador.
+
+    «conservar» es quien ya responde por el registro que se edita: sigue en la lista aunque haya dejado la unidad,
+    para que editar otro dato no lo borre.
+    """
+    cuentas = Q(responsabilidades_en_unidades__unidad=unidad, responsabilidades_en_unidades__activo=True)
+    for pk in (unidad.administrador_id, conservar):
+        if pk:
+            cuentas |= Q(pk=pk)
+    return get_user_model().objects.filter(cuentas).distinct().order_by('first_name', 'last_name', 'username')
+
+
+def _nombre_de_persona(usuario):
+    return usuario.get_full_name() or usuario.username
+
+
 def _campo(db_field, unidad, **kwargs):
     """Cada campo con el control adecuado y, si apunta a otro registro, solo los de esta unidad."""
     if isinstance(db_field, models.DateTimeField):
@@ -510,6 +531,11 @@ def _campo(db_field, unidad, **kwargs):
         elif destino is CatalogoActividadReserva:
             campo.queryset = CatalogoActividadReserva.objects.filter(
                 unidad=unidad, proposito_codigo='capacitacion').order_by('nombre')
+        elif destino is get_user_model() and db_field.name == 'responsable':
+            # Un responsable es del personal de la unidad, no cualquier cuenta de la plataforma.
+            campo.queryset = personal_de(unidad)
+            campo.label_from_instance = _nombre_de_persona
+            campo.help_text = 'Solo el personal registrado de la unidad y su administrador.'
     return campo
 
 
@@ -534,9 +560,14 @@ GUIAS = {
     'opciones': '*La opción correcta\nOtra opción\nOtra opción más',
     'respuestas_aceptadas': 'Cada forma válida de escribir la respuesta, una por línea',
     'explicacion': 'Por qué esa es la respuesta: se muestra después de responder',
+    # «Modelo.campo»: solo en ese modelo (otro modelo usa el mismo nombre de campo para otra cosa).
+    'CicloProductivo.objetivo': 'Qué se quiere comprobar. Por ejemplo: «Comparar el rendimiento de la papa con tres '
+                                'dosis de nitrógeno»',
+    'CicloProductivo.tratamientos': 'Uno por línea:\nT1 · Testigo sin fertilizar\nT2 · 60 kg de N/ha\nT3 · 120 kg de N/ha',
+    'CicloProductivo.variables': 'Una por línea, con su unidad: altura de planta (cm), rendimiento (t/ha)…',
 }
 
-# Rótulos que algunos modelos traen sin tilde o con el nombre interno del campo.
+# Rótulos que algunos modelos traen sin tilde o con el nombre interno del campo. «Modelo.campo» vale solo en ese modelo.
 ROTULOS = {
     'version': 'Versión', 'descripcion': 'Descripción', 'tipo_recurso': 'Tipo de recurso', 'tipo_acceso': 'Tipo de acceso',
     'uso_en_equipo': 'Uso en el equipo', 'instrucciones_acceso': 'Instrucciones de acceso', 'codigo': 'Código',
@@ -553,7 +584,17 @@ ROTULOS = {
     'area_conocimiento': 'Área de conocimiento', 'modo_operacion': 'Modo de operación', 'publico': 'Visible al público',
     'publicada': 'Publicada', 'activa': 'Activa', 'activo': 'Activo', 'semestre': 'Semestre', 'periodo': 'Período',
     'escena_3d': 'Escena 3D (opcional)', 'lema': 'Frase de portada',
+    'CicloProductivo.responsable': 'Responsable del ciclo o del ensayo',
+    'CicloProductivo.es_ensayo': 'Es un ensayo experimental (compara tratamientos o evalúa una tecnología)',
+    'CicloProductivo.objetivo': 'Objetivo del ensayo', 'CicloProductivo.tratamientos': 'Tratamientos que se comparan',
+    'CicloProductivo.repeticiones': 'Repeticiones por tratamiento',
+    'CicloProductivo.variables': 'Variables que se miden',
 }
+
+
+def _del_modelo(tabla, modelo, nombre):
+    """El rótulo o la guía propios de ese campo en ese modelo; si no tiene, el común a todos."""
+    return tabla.get(f'{modelo.__name__}.{nombre}') or tabla.get(nombre)
 
 
 def formulario_de(edicion, unidad, campos, datos=None, archivos=None, instancia=None, request=None):
@@ -594,11 +635,17 @@ def formulario_de(edicion, unidad, campos, datos=None, archivos=None, instancia=
     formulario = clase(datos, archivos, instance=instancia, prefix='registro', **contexto)
     if edicion.modelo is LeccionCurso and 'nota_minima' in campos:
         formulario.initial['nota_minima'] = nota_sobre_diez(formulario.instance.nota_minima)
+    responsable = formulario.fields.get('responsable')
+    if (isinstance(responsable, forms.ModelChoiceField) and responsable.queryset.model is get_user_model()
+            and getattr(instancia, 'responsable_id', None)):
+        responsable.queryset = personal_de(unidad, conservar=instancia.responsable_id)
     for nombre, campo in formulario.fields.items():
-        if nombre in ROTULOS:
-            campo.label = ROTULOS[nombre]
-        if nombre in GUIAS and isinstance(campo.widget, (forms.TextInput, forms.Textarea, forms.URLInput)):
-            campo.widget.attrs.setdefault('placeholder', GUIAS[nombre])
+        rotulo = _del_modelo(ROTULOS, edicion.modelo, nombre)
+        if rotulo:
+            campo.label = rotulo
+        guia = _del_modelo(GUIAS, edicion.modelo, nombre)
+        if guia and isinstance(campo.widget, (forms.TextInput, forms.Textarea, forms.URLInput)):
+            campo.widget.attrs.setdefault('placeholder', guia)
     return formulario
 
 

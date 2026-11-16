@@ -39,11 +39,12 @@ class ContratoIndicadoresTests(SimpleTestCase):
             evaluar_meta(dict(codigo='PRACTICAS', nombre='Ejecuciones', contador='practicas',
                               indicador='FT03', meta='6', registrado=3), {}),
         ])
-        self.assertEqual(detalle_anexo('PRACTICAS-FT02', cierre)[0]['porcentaje'], 100)
-        # El anexo de prácticas académicas presenta también la ejecución (documentos.0025); un cierre anterior
-        # con el anexo de ejecución aparte se sigue leyendo igual.
-        self.assertEqual([f['porcentaje'] for f in detalle_anexo('PRACTICAS-FT02', cierre)][:2], [100, 50])
-        self.assertEqual(detalle_anexo('PRACTICAS-FT03', cierre)[0]['porcentaje'], 50)
+        # Cada anexo presenta su propia meta (documentos.0027): la planificación de las prácticas, las
+        # planificaciones; los registros de asistencia y evidencias, las ejecuciones.
+        self.assertEqual([(f['codigo'], f['porcentaje']) for f in detalle_anexo('PRACTICAS-FT02', cierre)],
+                         [('PRACTICAS-PLAN', 100)])
+        self.assertEqual([(f['codigo'], f['porcentaje']) for f in detalle_anexo('PRACTICAS-FT03', cierre)],
+                         [('PRACTICAS', 50)])
 
 
 class PlanificaExigenciasTests(BaseDeRedaccion):
@@ -61,15 +62,16 @@ class PlanificaExigenciasTests(BaseDeRedaccion):
         self.assertTrue(filas['PRESTAMOS']['solo_anexo'])
         self.assertEqual(filas['PRESTAMOS']['meta'], '')
         self.assertFalse(filas['INSUMOS']['aplica'])
-        # Los préstamos son consulta de gestión, no anexo; los insumos, el inventario y el mantenimiento viajan en
-        # el anexo de equipos e inventario (documentos.0025).
-        equipos = ['Equipos e inventario: revisión física, mantenimiento y existencias']
+        # Los préstamos son consulta de gestión, no anexo. Cada meta viaja en el anexo del documento que pide la
+        # universidad (documentos.0027): insumos e inventario en el inventario, el mantenimiento en su plan.
+        inventario = ['Inventario de equipamiento, reactivos e insumos']
         self.assertEqual(filas['PRESTAMOS']['anexos'], [])
-        self.assertEqual(filas['INSUMOS']['anexos'], equipos)
+        self.assertEqual(filas['INSUMOS']['anexos'], inventario)
         self.assertEqual(filas['INSUMOS']['nombre_reporte'], filas['INSUMOS']['nombre'])
-        self.assertEqual(filas['MANTENIMIENTO']['anexos'], equipos)
-        self.assertEqual(filas['INVENTARIO']['anexos'], equipos)
-        self.assertEqual(filas['GUIAS']['anexos'], ['Prácticas académicas: planificación, ejecución y guías'])
+        self.assertEqual(filas['INVENTARIO']['anexos'], inventario)
+        self.assertEqual(filas['MANTENIMIENTO']['anexos'],
+                         ['Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad'])
+        self.assertEqual(filas['GUIAS']['anexos'], ['Guías de prácticas de laboratorio'])
 
     def test_no_se_acepta_una_exigencia_inventada(self):
         post = QueryDict('act__GUIAS__exigencia=aprobar_sin_revisar')

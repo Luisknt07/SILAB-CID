@@ -147,6 +147,19 @@ class CicloProductivo(models.Model):
                                   help_text='Por ejemplo «14 t/ha, INIAP» o «7,9 L/vaca/día, promedio de la Sierra 2024».')
     estado = models.CharField('Estado', max_length=12, choices=ESTADOS, default='planificado')
     notas = models.TextField('Notas', blank=True)
+    # Un ensayo es investigación: se presenta en el anexo de ensayos y no en el de producción.
+    es_ensayo = models.BooleanField(
+        'Es un ensayo experimental', default=False,
+        help_text='Márcalo si el ciclo compara tratamientos o evalúa una tecnología; se reporta como ensayo.')
+    objetivo = models.TextField('Objetivo del ensayo', blank=True)
+    tratamientos = models.TextField(
+        'Tratamientos', blank=True, help_text='Los tratamientos que se comparan, uno por línea.')
+    repeticiones = models.PositiveSmallIntegerField('Repeticiones', null=True, blank=True)
+    variables = models.TextField(
+        'Variables que se miden', blank=True, help_text='Por ejemplo: altura de planta, rendimiento, peso al destete.')
+    responsable = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='ciclos_productivos_a_cargo', verbose_name='Responsable del ciclo o ensayo')
 
     class Meta:
         db_table = 'webcitt_cicloproductivo'
@@ -166,6 +179,11 @@ class CicloProductivo(models.Model):
             raise ValidationError({'lugar': 'El área debe ser del mismo centro del eje.'})
         if self.estado == 'cerrado' and not self.fin:
             raise ValidationError({'fin': 'Para cerrar el ciclo, registra su fecha de fin.'})
+        if self.es_ensayo:
+            faltan = {campo: 'Un ensayo necesita este dato.' for campo in ('objetivo', 'tratamientos', 'variables')
+                      if not (getattr(self, campo) or '').strip()}
+            if faltan:
+                raise ValidationError(faltan)
 
     @property
     def producido(self):

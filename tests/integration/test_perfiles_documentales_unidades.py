@@ -29,9 +29,10 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
         return SimpleNamespace(dependencia=base, codigo_base=base)
 
     def test_el_observatorio_no_hereda_formatos_de_practicas_ni_controles_biologicos(self):
-        # Tampoco el registro de uso: el observatorio no tiene meta de sesiones que respaldar. Ejecución,
-        # guías y desechos ya no son anexos aparte: van en prácticas y en seguridad (documentos.0025).
-        for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'INDUCCION-SEGURIDAD'):
+        # Tampoco el registro de uso ni las fichas técnicas: el observatorio no tiene sesiones en un espacio y su
+        # sala y su software van en el inventario (documentos.0027).
+        for codigo in ('REGISTRO-USO', 'FICHAS-TECNICAS', 'PRACTICAS-FT02', 'GUIAS', 'PRACTICAS-FT03',
+                       'INDUCCION-SEGURIDAD', 'DESECHOS'):
             with self.subTest(codigo=codigo):
                 self.assertFalse(aplica_documento(self.exigido(codigo), 'observatorios'))
                 self.assertTrue(aplica_documento(self.exigido(codigo), 'laboratorios'))
@@ -46,10 +47,12 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
                 self.assertTrue(requisitos)
         observatorio = SimpleNamespace(unidad=self.unidad('observatorios'), exigido=exigido)
         self.assertIn('información', ' '.join(requisitos_para(observatorio)))
-        # Los desechos van en el anexo de seguridad y desechos, que el observatorio no lleva.
+        # Su protocolo cubre la seguridad de la información: no lleva reportes de seguridad ni de desechos.
         self.assertFalse(aplica_documento(self.exigido('INDUCCION-SEGURIDAD'), 'observatorios'))
+        self.assertFalse(aplica_documento(self.exigido('DESECHOS'), 'observatorios'))
 
     def test_nombres_anteriores_solo_se_actualizan_en_presentacion_si_la_fuente_sigue_estandar(self):
+        propios = {fila[0] for fila in CATALOGO_PERFILES}
         for codigo, nombres in NOMBRES_ESTANDAR_ANTERIORES.items():
             if codigo in RETIRADOS:
                 # Sin definición vigente, el anexo retirado conserva en su historia el nombre con que se archivó.
@@ -63,8 +66,10 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
                 with self.subTest(codigo=codigo, nombre=nombre):
                     for base in ('laboratorios', 'plantas_piloto', 'centro_experimental', 'observatorios'):
                         self.assertNotIn('(firmad', nombre_para(exigido, self.unidad(base)))
-                        # Los anexos propios ya no se presentan como «Informe de…» (documentos.0026).
-                        self.assertFalse(nombre_para(exigido, self.unidad(base)).startswith('Informe de'))
+                        # Los anexos propios ya no se presentan como «Informe de…» (documentos.0026); los de
+                        # investigación y transferencia sí, con la redacción de la universidad (documentos.0027).
+                        if codigo in propios:
+                            self.assertFalse(nombre_para(exigido, self.unidad(base)).startswith('Informe de'))
                     self.assertEqual(exigido.nombre, nombre)
                     exigido.fuente_reporte = 'fuente-personalizada'
                     self.assertEqual(nombre_para(exigido, self.unidad('laboratorios')), nombre)
@@ -82,8 +87,9 @@ class PerfilesDocumentalesPurosTests(SimpleTestCase):
 
     def test_las_practicas_de_planta_y_campo_siguen_disponibles(self):
         for tipo in ('plantas_piloto', 'centro_experimental'):
-            # Prácticas académicas reúne planificación, ejecución y guías (documentos.0025).
-            for codigo in ('REGISTRO-USO', 'PRACTICAS-FT02', 'INDUCCION-SEGURIDAD'):
+            # Planificación, guías y evidencias de las prácticas son anexos separados (documentos.0027).
+            for codigo in ('REGISTRO-USO', 'FICHAS-TECNICAS', 'PRACTICAS-FT02', 'GUIAS', 'PRACTICAS-FT03',
+                           'INDUCCION-SEGURIDAD', 'DESECHOS'):
                 with self.subTest(tipo=tipo, codigo=codigo):
                     self.assertTrue(aplica_documento(self.exigido(codigo), tipo))
 
@@ -194,7 +200,7 @@ class PerfilesDocumentalesPersistidosTests(TestCase):
             codigos = {d.exigido.codigo for d in construir_expediente(unidad, 2026, hoy=date(2026, 10, 17))}
             propios = {'laboratorios': {'PRACTICAS-FT02', 'INDUCCION-SEGURIDAD'},
                        'plantas_piloto': {'PP-PRODUCCION', 'PP-CALIDAD'},
-                       'centro_experimental': {'CE-ENSAYOS'},
+                       'centro_experimental': {'CE-ENSAYOS', 'CE-PRODUCCION'},
                        'observatorios': {'OBS-DATOS', 'OBS-BOLETINES', 'OBS-EVENTOS'}}[tipo]
             with self.subTest(tipo=tipo):
                 self.assertTrue(propios <= codigos)

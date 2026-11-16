@@ -24,6 +24,7 @@ from apps.recursos.models.unidades import UnidadEquipo
 
 from apps.core.presentation.codigos_sistema import sigla_de_unidad, siguiente_codigo_modelo, siguiente_codigo_unidad
 from apps.gestion_unidades.presentation.auditoria import instantanea, registrar_auditoria
+from apps.gestion_unidades.presentation.edicion_area import tipos_de_espacio
 from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad
 
 GUIA_DE_AREA = {
@@ -50,6 +51,17 @@ class NuevaAreaForm(forms.Form):
                              widget=forms.TextInput(attrs={'placeholder': 'Por ejemplo: Metaverso y mundos virtuales'}))
     tipo = forms.ChoiceField(label='Tipo de espacio', choices=EspacioReservable.TIPO_CHOICES, initial='area')
     capacidad = forms.IntegerField(label='Personas a la vez', min_value=1, max_value=500, initial=6)
+    superficie_m2 = forms.DecimalField(
+        label='Superficie (m²)', required=False, min_value=0, max_digits=10, decimal_places=2,
+        widget=forms.NumberInput(attrs={'min': '0', 'step': '0.01'}),
+        help_text='Superficie útil del espacio; en parcelas e invernaderos, el área cultivable. Puede completarse después.')
+
+    def __init__(self, *args, unidad=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo los tipos de espacio que corresponden al tipo de la unidad.
+        if unidad is not None:
+            self.fields['tipo'].choices = tipos_de_espacio(unidad)
+            self.fields['tipo'].initial = self.fields['tipo'].choices[0][0]
 
 
 class NuevoEquipoForm(forms.Form):
@@ -76,12 +88,13 @@ def codigo_de_area_nueva(unidad, nombre):
     return codigo
 
 
-def crear_area(unidad, nombre, tipo, capacidad):
+def crear_area(unidad, nombre, tipo, capacidad, superficie_m2=None):
     orden = (EspacioReservable.objects.filter(unidad=unidad).order_by('-orden').values_list('orden', flat=True).first() or 0) + 1
     # Nace como plantilla: no se ofrece para reservas hasta que la unidad la
     # complete y la habilite desde el panel de gestión.
     espacio = EspacioReservable.objects.create(
         unidad=unidad, codigo=codigo_de_area_nueva(unidad, nombre), nombre=nombre, tipo=tipo, capacidad=capacidad,
+        superficie_m2=superficie_m2,
         orden=orden, reservable=False, descripcion_publica='Una frase que presente el área en su portada.')
     FichaArea.objects.create(espacio=espacio, publicada=False, fuente='Plantilla para completar por la unidad',
                              **GUIA_DE_AREA)
@@ -128,7 +141,7 @@ def _unidad_con_recursos(request, slug):
 @login_required
 def nueva_area_view(request, slug):
     unidad = _unidad_con_recursos(request, slug)
-    formulario = NuevaAreaForm(request.POST or None)
+    formulario = NuevaAreaForm(request.POST or None, unidad=unidad)
     if request.method == 'POST' and formulario.is_valid():
         with transaction.atomic():
             espacio = crear_area(unidad, **formulario.cleaned_data)

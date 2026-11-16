@@ -10,6 +10,8 @@ CLASES = (
 
 
 def clase_existencia(clasificacion):
+    """La clase de compra de un insumo. Un agroquímico o un medicamento veterinario se compra como insumo
+    (agropecuario): «reactivos» es la clase de los reactivos de análisis. Su tipo queda en el detalle de la fila."""
     return {'material': 'materiales', 'reactivo': 'reactivos'}.get(clasificacion, 'insumos')
 
 
@@ -35,12 +37,14 @@ def inventario_por_clase(unidad, equipos, areas_equipo, areas_insumos, areas_sof
         instalados = [equipo.pk for equipo in software.equipos_instalados.all() if equipo.activa and not equipo.fecha_baja]
         for equipo_id in instalados:
             ids.update(areas_equipo.get(equipo_id, set()))
+        # Un simulador se cuenta como el software: por los equipos donde está instalado, con su etiqueta en el detalle.
         es_licencia = software.tipo_recurso == 'licencia'
         grupos['software']['filas'].append(dict(id=software.pk, nombre=software.nombre,
             codigo=software.codigo, cantidad=str(software.licencias_totales) if es_licencia else str(len(instalados)),
             unidad_medida='licencias declaradas' if es_licencia else 'equipos con instalación registrada',
             areas=areas(ids), areas_ids=sorted(ids), estado='Activo' if software.activo else 'Inactivo',
             detalle=(f'{software.licencias_disponibles} licencias disponibles registradas. ' if es_licencia else '')
+                + ('Simulador · ' if software.tipo_recurso == 'simulador' else '')
                 + software.get_tipo_acceso_display() + (f' · Versión {software.version}' if software.version else ''),
             tipo_recurso=software.tipo_recurso, licencias_totales=software.licencias_totales if es_licencia else None,
             licencias_disponibles=software.licencias_disponibles if es_licencia else None))

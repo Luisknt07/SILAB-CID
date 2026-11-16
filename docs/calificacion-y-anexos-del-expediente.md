@@ -86,26 +86,34 @@ opcional no cuenta. Los registros sin meta (disponibilidad del equipamiento,
 movimientos de insumos, seguimiento de acciones de mejora y préstamos;
 `ANEXOS_AUTOMATICOS`) nunca cuentan, aunque la planificación los mencione.
 
-Desde `documentos.0025` el informe lleva cinco anexos, uno por grupo de metas:
+Desde `documentos.0027` hay un anexo por cada documento que pide la universidad, y
+cada meta de la planificación tiene un solo anexo (`ANEXOS_METAS`):
 
-| Anexo del informe | Contiene | Metas que respalda |
-| --- | --- | --- |
-| Prácticas académicas: planificación, ejecución y guías | Prácticas aprobadas con su estado de respaldo; prácticas ejecutadas con asistencia y evidencias; guías de práctica; lo que le falta a cada registro | Prácticas planificadas, prácticas ejecutadas y guías |
-| Uso de la unidad: sesiones, horas y usuarios (no en observatorios) | Resumen del período, sesiones por propósito, sesiones atendidas con sus horas y, aparte, las que no se cerraron | Registro de sesiones y uso efectivo |
-| Seguridad y desechos: inducciones, inspecciones y desechos (no en observatorios) | Inspecciones mensuales, inducciones y habilitaciones, ingresos con lo pendiente de su control y desechos generados | Inducción, inspecciones y desechos |
-| Equipos e inventario: revisión física, mantenimiento y existencias | Acta de revisión física, datos pendientes de los equipos, mantenimientos frente al programa crítico, equipos fuera de servicio e insumos bajo el mínimo | Revisión del inventario y mantenimiento (80 %) |
-| Investigación y vinculación: resultados, transferencia y servicios | Productos de investigación, transferencias y servicios entregados y aceptados, solicitudes de servicio | Investigación, transferencia y servicios. Solo se presenta si la planificación compromete alguna; si no, queda «no aplica» con su motivo |
-| Producción (plantas piloto) | Producción frente al plan, cantidades, estados y trazabilidad de lotes | Lotes o procesos ejecutados |
-| Control de calidad (plantas piloto) | Parámetros, mediciones, liberación y rechazo por lote | Control de calidad de lotes finalizados |
-| Ensayos (centro experimental) | Objetivo, escenario, manejo, mediciones y resultados | Ensayos y parcelas con seguimiento |
-| Datos (observatorios) | Fichas metodológicas, fuentes y actualizaciones | Actualización de series y fuentes |
-| Boletines (observatorios) | Publicaciones previstas y efectivas con respaldo consultable | Boletines, informes o bases publicados |
-| Socialización (observatorios) | Actividades, destinatarios y productos difundidos | Eventos de socialización |
+| Anexo del informe | Metas que respalda |
+| --- | --- |
+| Registros de uso (no en observatorios) | Registro de sesiones; uso efectivo |
+| Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad | Mantenimiento; la disponibilidad es registro del período |
+| Inventario de equipamiento, reactivos e insumos | Revisión física del inventario; los movimientos de insumos son registro del período |
+| Fichas técnicas de laboratorios, talleres, software, simuladores y espacios (no en observatorios) | Registro del período, sin meta propia |
+| Planificación semestral de las prácticas (no en observatorios) | Prácticas planificadas y aprobadas |
+| Guías de prácticas (no en observatorios) | Guías |
+| Registros de asistencia y evidencias de las prácticas (no en observatorios) | Prácticas ejecutadas |
+| Reportes de seguridad y condiciones de operación (no en observatorios) | Inducción de seguridad; inspecciones mensuales |
+| Registros de gestión de desechos peligrosos y especiales (condicional) | Gestión de desechos |
+| Informe de resultados de investigación aplicada y desarrollo tecnológico (condicional) | Resultados de investigación |
+| Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad (condicional) | Transferencia; servicios |
+| Producción (plantas piloto) | Lotes o procesos ejecutados |
+| Control de calidad (plantas piloto) | Control de calidad de lotes finalizados |
+| Ensayos y parcelas experimentales (centro experimental) | Ensayos y parcelas con seguimiento |
+| Producción agropecuaria (centro experimental) | Registro del período, sin meta propia |
+| Datos (observatorios) | Actualización de series y fuentes |
+| Publicaciones (observatorios) | Boletines, informes o bases publicados |
+| Socialización (observatorios) | Eventos de socialización |
 
-Cada anexo de los cinco comunes abre con «Qué respalda este anexo», con las mismas
-cifras que la tabla de cumplimiento del informe, y cierra con «Qué falta para
-cumplir». Los anexos se numeran en el informe («Anexo 1 …») y la tabla de
-cumplimiento dice en qué anexo está cada meta.
+Lo que contiene cada uno, tabla por tabla, está en
+[estructura-anexos-por-tipo-de-unidad.md](estructura-anexos-por-tipo-de-unidad.md). Los
+anexos se numeran en el informe («Anexo 1 …») y la tabla de cumplimiento dice en qué
+anexo está cada meta. El anexo no repite las cifras de avance: esas están en el informe.
 
 La planificación no lleva anexos. Su PDF ya trae la carga programada por
 asignatura y la sección de mantenimientos previstos.
@@ -113,7 +121,56 @@ asignatura y la sección de mantenimientos previstos.
 Dos metas del informe no tienen anexo: **capacitación** y **difusión**. Se miden
 con evidencias verificadas y figuran en el cierre como metas sin anexo.
 
+## Un anexo por cada documento que pide la universidad (16 de noviembre de 2026)
+
+La universidad pide ocho documentos de gestión por laboratorio y cuatro evidencias de las
+prácticas. Los cinco anexos de `documentos.0025` juntaban exigencias distintas (los desechos
+dentro de la seguridad, el inventario dentro del equipamiento, la transferencia dentro de la
+investigación) y dejaban fuera contenido que las listas piden por nombre. Con el usuario se
+acordó la regla «una exigencia, un documento con su mismo nombre»:
+
+- **Laboratorio:** ocho anexos fijos y tres condicionales.
+- **Planta piloto y centro experimental:** los mismos, más sus dos anexos propios.
+- **Observatorio:** mantenimiento, inventario (anual) y sus tres propios, más investigación y
+  transferencia cuando aplican. No lleva uso, fichas, prácticas, seguridad ni desechos.
+
+`documentos.0027` (reversible, respeta lo editado por la institución):
+
+- vuelve a activar, con nombre nuevo, guías, evidencias de prácticas, desechos, inventario y
+  transferencia, que `0025` había retirado sin borrar su historia;
+- renombra uso, mantenimiento y equipamiento, planificación de las prácticas, seguridad e
+  investigación;
+- crea fichas técnicas y producción agropecuaria del centro experimental;
+- fija el orden que numera los anexos: comunes, propios y condicionales.
+
+Para completar los registros se agregaron campos de captura, con sus migraciones:
+
+| Dato | Dónde se captura |
+| --- | --- |
+| Unidad del syllabus de cada tema | Gestión de la unidad → Prácticas → temas de la asignatura |
+| Superficie y tipo «taller» de un espacio | Gestión de la unidad → Recursos → espacios |
+| Tipo «simulador» del software | Gestión de la unidad → Recursos → software |
+| Clases «agroquímico» y «medicamento veterinario» de un insumo | Gestión de la unidad → Recursos → insumos |
+| Ensayo: objetivo, tratamientos, repeticiones, variables y responsable | Centro experimental → Plan y registros de producción → ciclo |
+| Condiciones de inspección propias de planta piloto y centro experimental | Fuentes de las metas → Inspección |
+
+El control automático revisa cada anexo por separado, con las fuentes del anexo que revisa.
+
+**Aplicar.** Con un respaldo nuevo, la misma orden de mantenimiento aplica `documentos.0027`
+y las migraciones de los campos nuevos (`formacion.0002`, `gestion_unidades.0005`,
+`recursos.0007` y `campo_experimental.0002`):
+
+```
+docker compose -f docker-compose.local.yml --profile mantenimiento run --rm migrar
+```
+
+Después hay que volver a generar los informes ya preparados para que salgan con sus anexos
+nuevos.
+
 ## Seis documentos por semestre (15 de noviembre de 2026, rediseño)
+
+> Esta sección describe la fusión en cinco anexos de `documentos.0025`. La sustituyó la
+> estructura de la sección anterior; se conserva como historia de la decisión.
 
 La auditoría de los PDF del FabLab en 2026-B encontró:
 

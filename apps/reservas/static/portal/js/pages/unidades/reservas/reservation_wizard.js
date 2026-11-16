@@ -5362,8 +5362,9 @@
 
     function softwareTypeLabel(count) {
       const selected = softwareInputs.filter((input) => input.checked);
+      // Un simulador se reserva como software; solo la licencia cambia el nombre de la reserva.
       const kinds = new Set(selected.map((input) => (
-        input.closest('.reservation-software-item')?.dataset.resourceKind || 'software'
+        input.closest('.reservation-software-item')?.dataset.resourceKind === 'licencia' ? 'licencia' : 'software'
       )));
       if (kinds.size > 1) return 'Reserva de software y licencias';
       if (kinds.has('licencia')) return `Reserva de licencia${count === 1 ? '' : 's'} de software`;

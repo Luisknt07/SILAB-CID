@@ -101,7 +101,9 @@ class ProtocoloSeguridadTests(BaseDeRedaccion):
         self.assertLess(avance('protocolo', redaccion.contenido)['porcentaje'], 100)
         self.client.force_login(self.coordinador)
         respuesta = self.client.get(self.ruta_editor(self.protocolo))
-        self.assertContains(respuesta, NOMBRE)
+        # El catálogo lo llama «de seguridad»; en un laboratorio se presenta como protocolo de bioseguridad.
+        self.assertEqual(self.protocolo.nombre_documental, 'Protocolo de bioseguridad')
+        self.assertContains(respuesta, 'Protocolo de bioseguridad')
         self.assertContains(respuesta, 'data-redaccion-tipo="protocolo"')
         self.assertContains(respuesta, 'name="medidas_protocolo__medidas"')
         self.assertContains(respuesta, 'textarea')

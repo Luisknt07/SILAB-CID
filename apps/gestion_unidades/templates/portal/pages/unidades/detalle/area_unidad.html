@@ -269,6 +269,7 @@
         <dl>
           <div><dt>{% translate "Tipo" %}</dt><dd>{{ espacio.get_tipo_display|ui }}</dd></div>
           {% if espacio.capacidad %}<div><dt>{% translate "Capacidad" %}</dt><dd>{{ espacio.capacidad }} persona{{ espacio.capacidad|pluralize }}</dd></div>{% endif %}
+          {% if espacio.superficie_m2 %}<div><dt>{% translate "Superficie" %}</dt><dd>{{ espacio.superficie_m2|floatformat:"-2" }} m²</dd></div>{% endif %}
           {% if espacio.ubicacion %}<div><dt>{% translate "Ubicación" %}</dt><dd>{{ espacio.ubicacion }}</dd></div>{% endif %}
           {% if mobiliario %}<div><dt>{% translate "Mobiliario incluido" %}</dt><dd>{{ mobiliario|join:", " }}</dd></div>{% endif %}
         </dl>

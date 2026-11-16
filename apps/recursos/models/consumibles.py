@@ -21,6 +21,8 @@ class Consumible(models.Model):
     CLASIFICACIONES = [
         ('insumo', 'Insumo'),
         ('reactivo', 'Reactivo'),
+        ('agroquimico', 'Agroquímico'),
+        ('veterinario', 'Medicamento o insumo veterinario'),
         ('material', 'Material'),
         ('empaque', 'Empaque'),
         ('proteccion', 'Protección'),
@@ -38,6 +40,16 @@ class Consumible(models.Model):
             'Reactivos',
             'Sustancias químicas o biológicas que se consumen en un análisis o '
             'un proceso, con lote y vencimiento: agarosa, etanol, kits.',
+        ),
+        'agroquimico': (
+            'Agroquímicos',
+            'Fertilizantes, plaguicidas y reguladores de uso agrícola, con lote, '
+            'vencimiento y ficha de seguridad.',
+        ),
+        'veterinario': (
+            'Medicamentos e insumos veterinarios',
+            'Vacunas, antibióticos, antiparasitarios y biológicos de uso animal, '
+            'con lote y vencimiento.',
         ),
         'material': (
             'Materiales',
@@ -315,7 +327,8 @@ class Consumible(models.Model):
         return medios_publicos(self.medios_referencia)
 
     ICONOS_POR_CLASE = {
-        'insumo': 'fas fa-box-open', 'reactivo': 'fas fa-flask', 'material': 'fas fa-layer-group',
+        'insumo': 'fas fa-box-open', 'reactivo': 'fas fa-flask', 'agroquimico': 'fas fa-seedling',
+        'veterinario': 'fas fa-syringe', 'material': 'fas fa-layer-group',
         'empaque': 'fas fa-box', 'proteccion': 'fas fa-mitten', 'limpieza': 'fas fa-pump-soap', 'otro': 'fas fa-cube',
     }
 

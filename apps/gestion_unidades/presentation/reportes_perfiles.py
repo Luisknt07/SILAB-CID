@@ -8,11 +8,16 @@ from apps.documentos.models.medicion import EvidenciaGestionUnidad
 from apps.documentos.presentation.medicion_metas import evidencias_verificadas, habilitada
 from apps.documentos.presentation.medicion_perfiles import base_perfil, medir_perfiles
 
-CATEGORIAS_PERFIL = ('boletines', 'datos-observatorio', 'eventos', 'ensayos', 'control-calidad')
+CATEGORIAS_PERFIL = ('boletines', 'datos-observatorio', 'eventos', 'ensayos', 'produccion-agropecuaria',
+                     'control-calidad')
+# Tipo y subtipo de la evidencia de gestión que acredita la revisión técnica de cada categoría.
+# La producción agropecuaria es un registro del período: no tiene evidencia de revisión técnica.
 CATEGORIA_RESULTADO = {'boletines': ('BOLETINES', 'publicacion'),
     'datos-observatorio': ('BOLETINES', 'datos'), 'eventos': ('EVENTOS', 'socializacion'),
     'ensayos': ('ENSAYOS', 'ensayo'), 'control-calidad': ('PRODUCCION', 'control_calidad'),
-    'produccion': ('PRODUCCION', 'produccion')}
+    'produccion': ('PRODUCCION', 'produccion'), 'produccion-agropecuaria': ('', '')}
+# Registros del centro que mueven producto; los demás son manejo del ciclo.
+MOVIMIENTOS_DE_PRODUCCION = ('cosecha', 'ordeno', 'postura', 'salida', 'entrega')
 
 
 def _texto(valor):
@@ -23,6 +28,91 @@ def _texto(valor):
 
 def _tabla_perfil(titulo, headers, filas):
     return dict(titulo=titulo, headers=headers, rows=filas[:500], total=len(filas), truncated=len(filas) > 500)
+
+
+def _persona(usuario):
+    return (usuario.get_full_name() or usuario.get_username()) if usuario else 'Sin identificar'
+
+
+def ciclos_del_periodo(unidad, inicio, fin, *, ensayos):
+    """Ciclos del centro vigentes en el período: los ensayos o los productivos, nunca mezclados.
+
+    Un ensayo es investigación y un ciclo productivo es producción. Cada ciclo trae en
+    ``registros_del_periodo`` sus registros con fecha dentro del período, por fecha.
+    """
+    from django.db.models import Prefetch, Q
+    from apps.centros_experimentales.operacion.models.centros import CicloProductivo, RegistroProduccion
+
+    registros = (RegistroProduccion.objects.filter(fecha__range=(inicio, fin))
+                 .select_related('registrado_por').order_by('fecha', 'pk'))
+    return list(CicloProductivo.objects.filter(eje__unidad=unidad, es_ensayo=ensayos, inicio__lte=fin)
+                .filter(Q(fin__isnull=True) | Q(fin__gte=inicio))
+                .select_related('eje', 'lugar', 'responsable')
+                .prefetch_related(Prefetch('registros', queryset=registros, to_attr='registros_del_periodo'))
+                .order_by('inicio', 'nombre', 'pk'))
+
+
+def produccion_de_los_ciclos(ciclos, inicio, corte):
+    """{ciclo: (obtenido desde su inicio, obtenido en el período)}, en la unidad de medida de su meta.
+
+    Suma cosechas, ordeños, posturas y salidas hasta el corte, como ``CicloProductivo.producido``.
+    """
+    from django.db.models import Q, Sum
+    from apps.centros_experimentales.operacion.models.centros import RegistroProduccion
+
+    medidas = {c.pk: c.unidad_medida for c in ciclos}
+    totales = {pk: [0, 0] for pk in medidas}
+    sumas = (RegistroProduccion.objects.filter(ciclo_id__in=medidas, tipo__in=RegistroProduccion.PRODUCCION,
+                                               fecha__lte=corte)
+             .values('ciclo_id', 'unidad_medida')
+             .annotate(total=Sum('cantidad'), periodo=Sum('cantidad', filter=Q(fecha__gte=inicio))))
+    for suma in sumas:
+        if suma['unidad_medida'] == medidas[suma['ciclo_id']]:
+            totales[suma['ciclo_id']] = [suma['total'] or 0, suma['periodo'] or 0]
+    return {pk: tuple(sumado) for pk, sumado in totales.items()}
+
+
+def pendientes_de_trazabilidad(ciclo, registros, corte):
+    """Lo que le falta a un ciclo productivo y a sus registros del período para poder seguirlos.
+
+    Comprueba datos, no resultados: no califica el manejo ni el rendimiento del ciclo.
+    """
+    from apps.centros_experimentales.operacion.models.centros import RegistroProduccion
+
+    faltan = []
+    if not ciclo.lugar_id:
+        faltan.append('área o lote del centro')
+    elif ciclo.lugar.unidad_id != ciclo.eje.unidad_id:
+        faltan.append('área que pertenezca al centro')
+    if not ciclo.meta or ciclo.meta <= 0:
+        faltan.append('meta de producción')
+    if ciclo.tipo in ('hato', 'lote') and not ciclo.animales:
+        faltan.append('número de animales')
+    if ciclo.tipo == 'cultivo' and not ciclo.superficie_ha:
+        faltan.append('superficie')
+    if ciclo.estado == 'cerrado' and not ciclo.fin:
+        faltan.append('fecha de fin real')
+    if ciclo.estado == 'en_curso' and ciclo.inicio <= corte and not registros:
+        faltan.append('registros en el período')
+    con_cantidad = (*RegistroProduccion.PRODUCCION, 'entrega')
+    cuentas = {clave: 0 for clave in ('responsable', 'fecha', 'cantidad', 'unidad', 'destino', 'detalle')}
+    for r in registros:
+        cuentas['responsable'] += not r.registrado_por_id
+        cuentas['fecha'] += r.fecha < ciclo.inicio or r.fecha > corte
+        if r.tipo in con_cantidad:
+            cuentas['cantidad'] += r.cantidad is None or r.cantidad <= 0 or not r.unidad_medida
+            cuentas['unidad'] += bool(r.tipo in RegistroProduccion.PRODUCCION and r.unidad_medida
+                                      and r.unidad_medida != ciclo.unidad_medida)
+            cuentas['destino'] += r.tipo == 'entrega' and not r.destino
+        else:
+            cuentas['detalle'] += not r.detalle.strip()
+    mensajes = {'responsable': 'quién registró', 'fecha': 'fecha dentro del ciclo y hasta el corte',
+                'cantidad': 'cantidad y unidad de medida', 'unidad': 'la unidad de medida de la meta',
+                'destino': 'destino de la entrega', 'detalle': 'detalle de lo realizado'}
+    for clave, cuantos in cuentas.items():
+        if cuantos:
+            faltan.append(f"{mensajes[clave]} en {cuantos} {'registro' if cuantos == 1 else 'registros'}")
+    return faltan
 
 
 def _tablas_no_conformidades(unidad, inicio, corte, revisados, seleccionados, estado, buscar):
@@ -76,17 +166,19 @@ def dataset_perfil(categoria, unidad, inicio, fin, estado='', buscar=''):
     tipo, subtipo = CATEGORIA_RESULTADO[categoria]
     corte = min(fin, timezone.localdate())
     evidencias = list(EvidenciaGestionUnidad.objects.filter(unidad=unidad, tipo=tipo,
-        fecha__range=(inicio, corte)).select_related('recurso', 'responsable', 'validado_por'))
+        fecha__range=(inicio, corte)).select_related('recurso', 'responsable', 'validado_por')) if tipo else []
     evidencias = [e for e in evidencias if isinstance(e.detalle, dict) and
         (e.detalle.get('subtipo') == subtipo or categoria == 'control-calidad' and e.detalle.get('subtipo') == 'sin_produccion')]
-    validas = evidencias_verificadas(unidad, evidencias, inicio, corte) if habilitada() else []
+    validas = evidencias_verificadas(unidad, evidencias, inicio, corte) if tipo and habilitada() else []
     ids_validas = {e.pk for e in validas if not e.demostracion}
-    medidas = medir_perfiles(unidad, inicio, corte, validas) if habilitada() else {}
+    medidas = medir_perfiles(unidad, inicio, corte, validas) if tipo and habilitada() else {}
     refs = {'publicacion': 'publicacion_id', 'datos': 'indicador_id', 'ensayo': 'ciclo_id',
             'control_calidad': 'control_id', 'produccion': 'orden_id'}
     revisados = {e.detalle.get(refs[subtipo]) for e in validas if e.pk in ids_validas} if subtipo in refs else set()
     headers, rows, tablas, capturas, capturas_no_conformidades = [], [], [], [], []
     opciones = (('validado', 'Con revisión técnica vigente'), ('pendiente', 'Revisión técnica pendiente'))
+    # Lo que dice la última columna de un registro conforme y los nombres de las tres tarjetas.
+    conforme, tarjetas = 'Revisión técnica vigente', ('Registros de origen', 'Con revisión técnica', 'Revisión pendiente')
     def agregar(identificador, valores, datos):
         revision = identificador in revisados
         if estado == 'validado' and not revision or estado == 'pendiente' and revision:
@@ -139,19 +231,18 @@ def dataset_perfil(categoria, unidad, inicio, fin, estado='', buscar=''):
             _tabla_perfil('Datos incorporados durante el semestre',
             ['Serie', 'Período', 'Fecha de referencia', 'Territorio', 'Valor', 'Estado', 'Fuente específica'], valores_rows)])
     elif categoria == 'ensayos' and base_perfil(unidad) == 'centro_experimental':
-        from apps.centros_experimentales.operacion.models.centros import CicloProductivo
-        from django.db.models import Q
-        headers = ['Ciclo / ensayo', 'Eje', 'Parcela / área', 'Inicio', 'Fin previsto', 'Estado', 'Seguimientos del semestre', 'Revisión documental']
-        seguimientos, contexto_ciclos = [], []
-        ciclos = CicloProductivo.objects.filter(eje__unidad=unidad, inicio__lte=corte).filter(
-            Q(fin__isnull=True) | Q(fin__gte=inicio)).select_related('eje', 'lugar').prefetch_related('registros__registrado_por')
-        for c in ciclos:
-            registros = [r for r in c.registros.all() if inicio <= r.fecha <= corte]
+        headers = ['Ensayo', 'Eje', 'Parcela / área', 'Inicio', 'Fin previsto', 'Estado', 'Seguimientos del semestre', 'Revisión documental']
+        seguimientos, contexto_ciclos, disenos = [], [], []
+        # Solo los ciclos marcados como ensayo: la producción del centro se consulta en su propia categoría.
+        for c in ciclos_del_periodo(unidad, inicio, corte, ensayos=True):
+            registros = c.registros_del_periodo
             incluido = agregar(c.pk, [c.nombre, c.eje.titulo, c.lugar.nombre if c.lugar_id else 'Sin identificar',
                 _texto(c.inicio), _texto(c.fin_previsto), c.get_estado_display(), len(registros)],
                 dict(id=c.pk, nombre=c.nombre, eje=c.eje_id, lugar=c.lugar_id, inicio=c.inicio,
                      fin=c.fin, estado=c.estado, tipo=c.tipo, rubro=c.rubro, superficie_ha=c.superficie_ha,
                      animales=c.animales, meta=c.meta, medida=c.unidad_medida, referencia_meta=c.referencia,
+                     objetivo=c.objetivo, tratamientos=c.tratamientos, repeticiones=c.repeticiones,
+                     variables=c.variables, responsable_ensayo=c.responsable_id,
                      registros=[dict(id=r.pk, fecha=r.fecha, tipo=r.tipo, cantidad=r.cantidad,
                                      detalle=r.detalle, responsable=r.registrado_por_id) for r in registros]))
             if not incluido:
@@ -159,14 +250,53 @@ def dataset_perfil(categoria, unidad, inicio, fin, estado='', buscar=''):
             contexto_ciclos.append([c.nombre, f'{c.get_tipo_display()} · {c.rubro}',
                 _texto(c.superficie_ha), _texto(c.animales), _texto(c.meta), c.get_unidad_medida_display(),
                 c.referencia or 'Sin referencia registrada', _texto(c.fin)])
+            disenos.append([c.nombre, c.objetivo or 'Sin objetivo registrado',
+                ' · '.join(linea.strip() for linea in c.tratamientos.splitlines() if linea.strip()) or 'Sin tratamientos registrados',
+                _texto(c.repeticiones), c.variables or 'Sin variables registradas', _persona(c.responsable)])
             seguimientos.extend([[c.nombre, _texto(r.fecha), r.get_tipo_display(), _texto(r.cantidad),
-                r.unidad_medida, r.detalle, (r.registrado_por.get_full_name() or r.registrado_por.get_username())
-                if r.registrado_por_id else 'Sin identificar'] for r in registros])
+                r.unidad_medida, r.detalle, _persona(r.registrado_por)] for r in registros])
         tablas.append(_tabla_perfil('Seguimiento, mediciones y observaciones del semestre',
-            ['Ciclo', 'Fecha', 'Registro', 'Cantidad', 'Unidad', 'Resultado / observación', 'Responsable'], seguimientos))
-        tablas.append(_tabla_perfil('Alcance y metas de los ciclos o ensayos',
-            ['Ciclo', 'Tipo / rubro', 'Superficie (ha)', 'Animales', 'Meta del ciclo',
+            ['Ensayo', 'Fecha', 'Registro', 'Cantidad', 'Unidad', 'Resultado / observación', 'Responsable'], seguimientos))
+        tablas.append(_tabla_perfil('Alcance y metas de los ensayos',
+            ['Ensayo', 'Tipo / rubro', 'Superficie (ha)', 'Animales', 'Meta del ciclo',
                      'Unidad', 'Fundamento de la meta', 'Fin real'], contexto_ciclos))
+        tablas.append(_tabla_perfil('Diseño de los ensayos',
+            ['Ensayo', 'Objetivo', 'Tratamientos', 'Repeticiones', 'Variables que se miden', 'Responsable'], disenos))
+    elif categoria == 'produccion-agropecuaria' and base_perfil(unidad) == 'centro_experimental':
+        headers = ['Ciclo', 'Tipo', 'Eje / rubro', 'Área', 'Inicio', 'Fin previsto', 'Meta', 'Obtenido', 'Estado', 'Trazabilidad']
+        opciones = (('validado', 'Con trazabilidad completa'), ('pendiente', 'Con datos por completar'))
+        conforme, tarjetas = 'Completa', ('Ciclos productivos', 'Con trazabilidad completa', 'Con datos por completar')
+        # Los ciclos que no son ensayos. No llevan revisión técnica: se comprueba que puedan seguirse.
+        ciclos = ciclos_del_periodo(unidad, inicio, corte, ensayos=False)
+        obtenido = produccion_de_los_ciclos(ciclos, inicio, corte)
+        manejo, movimientos = [], []
+        for c in ciclos:
+            registros = c.registros_del_periodo
+            pendientes = pendientes_de_trazabilidad(c, registros, corte)
+            if estado == 'validado' and pendientes or estado == 'pendiente' and not pendientes:
+                continue
+            medida = c.get_unidad_medida_display()
+            valores = [c.nombre, c.get_tipo_display(), f'{c.eje.titulo} · {c.rubro}',
+                c.lugar.nombre if c.lugar_id else 'Sin identificar', _texto(c.inicio), _texto(c.fin_previsto),
+                f'{_texto(c.meta)} {medida}', f'{_texto(obtenido[c.pk][0])} {medida}', c.get_estado_display()]
+            filas = [[_texto(r.fecha), c.nombre, r.get_tipo_display(), r.detalle or '—', _texto(r.cantidad),
+                r.unidad_medida or '—', r.get_destino_display() if r.destino else '—', _persona(r.registrado_por)]
+                for r in registros]
+            if buscar and buscar.casefold() not in ' '.join(map(str, [*valores, *(v for f in filas for v in f)])).casefold():
+                continue
+            rows.append([*valores, conforme if not pendientes else 'Falta: ' + ', '.join(pendientes)])
+            capturas.append(dict(id=c.pk, nombre=c.nombre, eje=c.eje_id, lugar=c.lugar_id, inicio=c.inicio,
+                fin_previsto=c.fin_previsto, fin=c.fin, estado=c.estado, tipo=c.tipo, rubro=c.rubro,
+                superficie_ha=c.superficie_ha, animales=c.animales, meta=c.meta, medida=c.unidad_medida,
+                referencia_meta=c.referencia, obtenido=obtenido[c.pk][0], pendientes=pendientes,
+                registros=[dict(id=r.pk, fecha=r.fecha, tipo=r.tipo, cantidad=r.cantidad, medida=r.unidad_medida,
+                                destino=r.destino, detalle=r.detalle, responsable=r.registrado_por_id)
+                           for r in registros]))
+            for r, fila in zip(registros, filas):
+                (movimientos if r.tipo in MOVIMIENTOS_DE_PRODUCCION else manejo).append(fila)
+        cabecera_registros = ['Fecha', 'Ciclo', 'Registro', 'Detalle', 'Cantidad', 'Unidad', 'Destino', 'Registrado por']
+        tablas.append(_tabla_perfil('Labores, sanidad, insumos y novedades del período', cabecera_registros, manejo))
+        tablas.append(_tabla_perfil('Producción obtenida, salidas y entregas del período', cabecera_registros, movimientos))
     elif categoria == 'produccion' and base_perfil(unidad) == 'plantas_piloto':
         from apps.plantas_piloto.operacion.models.produccion import OrdenProduccion
         headers = ['Orden', 'Producto', 'Origen', 'Fecha de fin', 'Estado', 'Obtenido', 'Responsable', 'Revisión documental']
@@ -238,19 +368,24 @@ def dataset_perfil(categoria, unidad, inicio, fin, estado='', buscar=''):
         respaldos.append([e.codigo, _texto(e.fecha), e.titulo, d.get('objetivo', ''), d.get('metodo', ''),
             d.get('resultado', ''), revision,
             reverse('respaldo_meta_unidad', args=[unidad.slug, e.pk]) if e.recurso_id else e.enlace or 'Sin respaldo'])
-    tablas.append(_tabla_perfil('Resultados, revisión técnica y documentos de respaldo',
-        ['Referencia', 'Fecha', 'Actividad', 'Objetivo', 'Método de comprobación', 'Resultado y limitaciones', 'Revisión', 'Respaldo'], respaldos))
-    total_revisados = sum(r[-1] == 'Revisión técnica vigente' for r in rows)
-    return dict(headers=headers, rows=rows[:500], cards=[('Registros de origen', len(rows)),
-        ('Con revisión técnica', total_revisados), ('Revisión pendiente', len(rows) - total_revisados)],
+    if tipo:
+        tablas.append(_tabla_perfil('Resultados, revisión técnica y documentos de respaldo',
+            ['Referencia', 'Fecha', 'Actividad', 'Objetivo', 'Método de comprobación', 'Resultado y limitaciones', 'Revisión', 'Respaldo'], respaldos))
+        notas = ['Las cifras acreditadas requieren respaldo vigente y comprobación atribuida a la coordinación o al responsable técnico.',
+                 'La publicación o el cierre de un registro no confirma por sí solo su calidad. La valoración de metodología y conclusiones corresponde a la revisión competente.',
+                 'Los borradores, ejemplos y registros alterados después de la revisión no acreditan cumplimiento.']
+    else:
+        notas = ['Se presentan los ciclos productivos que no son ensayos; los ensayos se consultan en su propia categoría.',
+                 'La meta corresponde al ciclo completo. Lo obtenido suma cosechas, ordeños, posturas y salidas hasta el corte, en la unidad de medida de la meta; los registros presentados corresponden al período consultado.',
+                 'La trazabilidad comprueba que cada ciclo y cada registro tengan los datos para seguirlos. No califica el manejo ni el rendimiento.']
+    if categoria == 'ensayos':
+        notas.append('Las metas corresponden al ciclo completo; los seguimientos presentados corresponden al período consultado.')
+    if categoria == 'control-calidad':
+        notas.append('Los estados de las no conformidades y sus acciones son los registrados actualmente.')
+    conformes = sum(r[-1] == conforme for r in rows)
+    return dict(headers=headers, rows=rows[:500], cards=[(tarjetas[0], len(rows)),
+        (tarjetas[1], conformes), (tarjetas[2], len(rows) - conformes)],
         state_choices=opciones, tablas=tablas, supporting_documents=[], matrix=False,
         matrix_kind='', structured=False, records=[], column_count=max(1, len(headers)),
         document_meta={}, truncated=len(rows) > 500 or any(t.get('truncated') for t in tablas),
-        notes=['Las cifras acreditadas requieren respaldo vigente y comprobación atribuida a la coordinación o al responsable técnico.',
-               'La publicación o el cierre de un registro no confirma por sí solo su calidad. La valoración de metodología y conclusiones corresponde a la revisión competente.',
-               'Los borradores, ejemplos y registros alterados después de la revisión no acreditan cumplimiento.']
-            + (['Las metas corresponden al ciclo completo; los seguimientos presentados corresponden al período consultado.']
-               if categoria == 'ensayos' else [])
-            + (['Los estados de las no conformidades y sus acciones son los registrados actualmente.']
-               if categoria == 'control-calidad' else []),
-        fuentes_nativas=capturas + capturas_no_conformidades, mediciones=medidas)
+        notes=notas, fuentes_nativas=capturas + capturas_no_conformidades, mediciones=medidas)

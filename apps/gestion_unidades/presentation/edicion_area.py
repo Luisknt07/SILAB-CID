@@ -6,6 +6,7 @@ solo el que se va a editar), sin tocar los demás. La ficha queda publicada cuan
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.validators import MinValueValidator
 from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -36,18 +37,54 @@ CAMPOS_DE_FICHA = {
 }
 
 
+# Los tipos de espacio que se ofrecen a cada tipo de unidad; «otro» cierra siempre la lista.
+_TIPOS_DE_LABORATORIO = ('area', 'estacion', 'sala', 'puesto', 'cabina', 'taller')
+TIPOS_DE_ESPACIO_POR_BASE = {
+    'laboratorios': _TIPOS_DE_LABORATORIO,
+    'plantas_piloto': (*_TIPOS_DE_LABORATORIO, 'linea', 'camara'),
+    'centro_experimental': (*_TIPOS_DE_LABORATORIO, 'parcela', 'invernadero', 'establo'),
+    'observatorios': ('sala', 'area', 'puesto'),
+}
+
+
+def tipos_de_espacio(unidad, conservar=()):
+    """Las opciones de tipo de espacio que corresponden al tipo de la unidad, con las etiquetas del modelo.
+
+    «conservar» son los tipos que ya tienen sus espacios: se ofrecen siempre, para que editar un espacio no le
+    cambie el tipo. Una tipología sin lista propia ofrece todos los tipos del modelo.
+    """
+    propios = TIPOS_DE_ESPACIO_POR_BASE.get(getattr(unidad, 'codigo_base', '') or '')
+    if propios is None:
+        return list(EspacioReservable.TIPO_CHOICES)
+    ofrecidos = {*propios, 'otro', *(tipo for tipo in conservar if tipo)}
+    en_orden = [*propios, *(clave for clave, _ in EspacioReservable.TIPO_CHOICES if clave not in propios and clave != 'otro'), 'otro']
+    etiquetas = dict(EspacioReservable.TIPO_CHOICES)
+    return [(clave, etiquetas[clave]) for clave in en_orden if clave in ofrecidos]
+
+
 class DatosDelAreaForm(forms.ModelForm):
     class Meta:
         model = EspacioReservable
-        fields = ['nombre', 'descripcion_publica', 'capacidad', 'ubicacion', 'caracteristicas', 'mobiliario_incluido', 'imagen']
-        labels = {'descripcion_publica': 'Descripción', 'ubicacion': 'Ubicación', 'caracteristicas': 'Características', 'mobiliario_incluido': 'Mobiliario',
-                  'imagen': 'Foto de portada'}
+        fields = ['nombre', 'tipo', 'descripcion_publica', 'capacidad', 'superficie_m2', 'ubicacion', 'caracteristicas',
+                  'mobiliario_incluido', 'imagen']
+        labels = {'tipo': 'Tipo de espacio', 'descripcion_publica': 'Descripción', 'ubicacion': 'Ubicación',
+                  'caracteristicas': 'Características', 'mobiliario_incluido': 'Mobiliario', 'imagen': 'Foto de portada'}
         widgets = {campo: forms.Textarea(attrs={'rows': 3}) for campo in ('descripcion_publica', 'caracteristicas', 'mobiliario_incluido')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # El tipo se elige entre los de su tipo de unidad; el que el área ya tiene no se pierde, tampoco si un
+        # formulario abierto antes de este cambio llega sin el campo.
+        self.fields['tipo'].choices = tipos_de_espacio(self.instance.unidad, conservar=(self.instance.tipo,))
+        self.fields['tipo'].required = False
+        # Una superficie no es negativa; el modelo solo fija su tamaño.
+        self.fields['superficie_m2'].validators.append(MinValueValidator(0))
+        self.fields['superficie_m2'].widget.attrs.update(min='0', step='0.01')
         self.fields['imagen'].required = False
         self.fields['imagen'].widget = forms.ClearableFileInput(attrs={'accept': 'image/png,image/jpeg,image/webp'})
+
+    def clean_tipo(self):
+        return self.cleaned_data.get('tipo') or self.instance.tipo
 
 
 class FichaDelAreaForm(forms.ModelForm):

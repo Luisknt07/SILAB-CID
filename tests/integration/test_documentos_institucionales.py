@@ -146,7 +146,7 @@ class MismoFormatoEnTodoDocumentoTests(TestCase):
         # La planificación es un documento principal: encabezado del informe institucional, con su título,
         # el código de referencia y la cobertura en una línea, sin las cuatro líneas del formato de anexos.
         self.assertEqual(argumentos['estilo'], 'informe')
-        self.assertEqual(argumentos['formato'], 'Planificación semestral de actividades de la unidad')
+        self.assertEqual(argumentos['formato'], 'Planificación semestral del laboratorio')
         self.assertEqual(argumentos['pie'], 'Expediente de calidad')
         self.assertEqual(tuple(argumentos['metadatos']),
                          ('Código de referencia: SLCID-LAB-PLAN', 'Cobertura: Período 2026-A'))
@@ -233,13 +233,12 @@ class RutaDelCentroDeReportesTests(TestCase):
     def test_las_categorias_que_alimentan_el_expediente_estan_identificadas(self):
         exigidos = documentos_del_expediente(self.unidad)
 
-        self.assertEqual(exigidos['planificaciones'].codigo, 'PRACTICAS-FT02')
-        self.assertEqual(exigidos['reservas'].codigo, 'REGISTRO-USO')
-        self.assertEqual(exigidos['equipamiento'].codigo, 'EQUIPAMIENTO')
-        # Las guías y el inventario completo van dentro de los anexos de prácticas y de equipos (documentos.0025):
-        # sus listas son consultas, no alimentan un documento propio.
-        self.assertNotIn('guias', exigidos)
-        self.assertNotIn('recursos', exigidos)
+        # Cada categoría que alimenta un anexo lo dice: uno por documento que pide la universidad (documentos.0027).
+        self.assertEqual({categoria: exigido.codigo for categoria, exigido in exigidos.items()}, {
+            'reservas': 'REGISTRO-USO', 'equipamiento': 'EQUIPAMIENTO', 'recursos': 'INVENTARIO-CORTE',
+            'planificaciones': 'PRACTICAS-FT02', 'guias': 'GUIAS', 'ejecuciones': 'PRACTICAS-FT03',
+            'seguridad': 'INDUCCION-SEGURIDAD', 'desechos': 'DESECHOS', 'investigacion': 'INVESTIGACION',
+            'transferencia': 'TRANSFERENCIA'})
         # Una consulta de apoyo no es un documento exigido.
         self.assertNotIn('auditoria', exigidos)
         self.assertNotIn('aula', exigidos)
@@ -270,7 +269,7 @@ class RutaDelCentroDeReportesTests(TestCase):
         ruta = reporte['expediente']
         self.assertEqual(ruta['carpeta'], 'Ejecución')
         self.assertTrue(ruta['lo_genera_el_sistema'])
-        self.assertIn('Prácticas académicas: planificación, ejecución y guías', ruta['nombre'])
+        self.assertIn('Planificación semestral de las prácticas', ruta['nombre'])
         self.assertEqual(ruta['url'], reverse('gestion_expediente_unidad', args=[self.unidad.slug]))
         self.assertIn('planificaciones', reporte['choices']['expediente'])
 

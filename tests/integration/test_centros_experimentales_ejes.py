@@ -23,8 +23,9 @@ from apps.reservas.models.reservas import CatalogoActividadReserva
 from apps.centros_experimentales.operacion.models.centros import CicloProductivo, EjeProductivo, RegistroProduccion
 from apps.gestion_unidades.models.operaciones import ConfiguracionOperativaUnidad
 from apps.formacion.models.cursos import Curso
-from apps.gestion_unidades.models.espacios import EspacioReservable
+from apps.gestion_unidades.models.espacios import EspacioReservable, ResponsableUnidad
 from apps.directorio_unidades.models.relaciones import RelacionUnidad
+from apps.documentos.presentation.formularios_perfiles import campos_perfil
 from apps.reservas.models.seguridad import RequisitoAcceso
 from apps.directorio_unidades.models.core import Unidad
 from apps.recursos.models.recursos import DEFAULT_MODULES_BY_DEPENDENCIA
@@ -233,6 +234,126 @@ class GestionProductivaTests(TestCase):
         ficha = self.client.get(self.sf.get_absolute_url())
         self.assertContains(ficha, reverse('produccion_centro', args=[SF]))
         self.assertContains(ficha, 'Referencias para planificar')
+
+
+class EnsayosDelCentroTests(TestCase):
+    """Un ciclo marcado como ensayo es investigación: declara su objetivo, sus tratamientos, sus repeticiones, lo que
+    se mide y quién responde. Se planifica desde la página de producción, se distingue en ella, es el único que acredita
+    un ensayo y el administrador lo filtra."""
+
+    @classmethod
+    def setUpTestData(cls):
+        Usuario = get_user_model()
+        cls.jefa = Usuario.objects.create_user('jefa.centro', first_name='Rosa', last_name='Chalá', password='clave')
+        cls.tecnico = Usuario.objects.create_user('tecnico.campo', first_name='Luis', last_name='Pozo', password='clave')
+        cls.retirado = Usuario.objects.create_user('tecnico.retirado', password='clave')
+        cls.ajeno = Usuario.objects.create_user('cuenta.ajena', password='clave')
+        cls.admin = Usuario.objects.create_superuser('ensayos.admin', 'e@example.org', 'clave')
+        cls.sf = unidad(SF, 'centro_experimental', 'Centro Experimental San Francisco')
+        Unidad.objects.filter(pk=cls.sf.pk).update(administrador=cls.jefa)
+        ResponsableUnidad.objects.create(unidad=cls.sf, usuario=cls.tecnico, nombre='Técnico de campo', rol='tecnico')
+        ResponsableUnidad.objects.create(unidad=cls.sf, usuario=cls.retirado, nombre='Técnico anterior', rol='tecnico',
+                                         activo=False)
+        cls.lote = EspacioReservable.objects.create(unidad=cls.sf, codigo='CESF-ENSAYOS', nombre='Parcelas de ensayo',
+                                                    tipo='parcela')
+        call_command('cargar_ejes_centros', '--sin-fotos', stdout=StringIO())
+        cls.eje = cls.sf.ejes_productivos.get(codigo='cultivos-andinos')
+        cls.ciclo = CicloProductivo.objects.create(
+            eje=cls.eje, nombre='Papa Superchola 2026-B', rubro='Papa', lugar=cls.lote, inicio=date(2026, 3, 1),
+            fin_previsto=date(2026, 9, 1), superficie_ha=Decimal('0.5'), meta=Decimal('10000'), unidad_medida='kg',
+            estado='en_curso')
+
+    def setUp(self):
+        self.client.force_login(self.admin)
+
+    def url(self, pk='nuevo'):
+        return reverse('editar_registro', args=[SF, 'ciclo_productivo', pk])
+
+    def guardar(self, pk='nuevo', **datos):
+        return self.client.post(self.url(pk), {f'registro-{campo}': valor for campo, valor in datos.items()},
+                                HTTP_X_REQUESTED_WITH='fetch')
+
+    def ensayo(self, **cambios):
+        datos = dict(eje=self.eje, nombre='Ensayo de nitrógeno en papa', rubro='Papa', lugar=self.lote,
+                     inicio=date(2026, 9, 1), fin_previsto=date(2027, 2, 1), meta=Decimal('2000'), unidad_medida='kg',
+                     estado='en_curso', es_ensayo=True, objetivo='Comparar tres dosis de nitrógeno en papa Superchola',
+                     tratamientos='T1 · Testigo\nT2 · 60 kg de N/ha\nT3 · 120 kg de N/ha', repeticiones=4,
+                     variables='Rendimiento (t/ha)\nAltura de planta (cm)')
+        datos.update(cambios)
+        return CicloProductivo.objects.create(**datos)
+
+    def test_un_ensayo_se_planifica_desde_la_pagina_con_su_diseno_y_su_responsable(self):
+        formulario = self.client.get(self.url())
+        campos = formulario.context['formulario'].fields
+        for nombre in ('responsable', 'es_ensayo', 'objetivo', 'tratamientos', 'repeticiones', 'variables'):
+            self.assertIn(nombre, campos)
+        # Responde por el ciclo el personal activo de la unidad o su administradora; nadie más.
+        self.assertEqual(set(campos['responsable'].queryset), {self.tecnico, self.jefa})
+        self.assertContains(formulario, 'Luis Pozo')
+        self.assertContains(formulario, 'Repeticiones por tratamiento')
+        self.assertContains(formulario, 'Uno por línea:')
+
+        datos = dict(eje=self.eje.pk, nombre='Ensayo de nitrógeno en papa', tipo='cultivo', rubro='Papa',
+                     lugar=self.lote.pk, inicio='2026-09-01', fin_previsto='2027-02-01', superficie_ha='0.2',
+                     meta='2000', unidad_medida='kg', estado='planificado', responsable=self.tecnico.pk, es_ensayo='on')
+        incompleto = self.guardar(**datos)
+        self.assertEqual(set(incompleto.context['formulario'].errors), {'objetivo', 'tratamientos', 'variables'})
+        diseno = dict(objetivo='Comparar tres dosis de nitrógeno en papa Superchola',
+                      tratamientos='T1 · Testigo\nT2 · 60 kg de N/ha\nT3 · 120 kg de N/ha', repeticiones='4',
+                      variables='Rendimiento (t/ha)\nAltura de planta (cm)')
+        ajeno = self.guardar(**{**datos, **diseno, 'responsable': self.ajeno.pk})
+        self.assertIn('responsable', ajeno.context['formulario'].errors)
+        self.assertFalse(CicloProductivo.objects.filter(nombre='Ensayo de nitrógeno en papa').exists())
+
+        self.assertEqual(self.guardar(**datos, **diseno).json()['ok'], True)
+        ensayo = CicloProductivo.objects.get(nombre='Ensayo de nitrógeno en papa')
+        self.assertTrue(ensayo.es_ensayo)
+        self.assertEqual((ensayo.responsable, ensayo.repeticiones), (self.tecnico, 4))
+        self.assertEqual(ensayo.tratamientos.splitlines()[1], 'T2 · 60 kg de N/ha')
+
+        # La página de producción distingue el ensayo y muestra su objetivo; el ciclo productivo, no.
+        pagina = self.client.get(reverse('produccion_centro', args=[SF]))
+        self.assertContains(pagina, '<span class="centro-estado is-ensayo">Ensayo</span>', count=1)
+        self.assertContains(pagina, 'Objetivo: Comparar tres dosis de nitrógeno en papa Superchola')
+
+    def test_editar_un_ciclo_conserva_al_responsable_que_dejo_la_unidad(self):
+        CicloProductivo.objects.filter(pk=self.ciclo.pk).update(responsable=self.retirado)
+        formulario = self.client.get(self.url(self.ciclo.pk))
+        self.assertEqual(set(formulario.context['formulario'].fields['responsable'].queryset),
+                         {self.tecnico, self.jefa, self.retirado})
+        respuesta = self.guardar(self.ciclo.pk, nombre='Papa Superchola 2026-B', tipo='cultivo', rubro='Papa',
+                                 lugar=self.lote.pk, inicio='2026-03-01', fin_previsto='2026-09-01',
+                                 superficie_ha='0.5', meta='10000', unidad_medida='kg', estado='en_curso',
+                                 responsable=self.retirado.pk, notas='Riego por goteo desde julio')
+        self.assertEqual(respuesta.json()['ok'], True)
+        self.ciclo.refresh_from_db()
+        self.assertEqual((self.ciclo.responsable, self.ciclo.notas, self.ciclo.es_ensayo),
+                         (self.retirado, 'Riego por goteo desde julio', False))
+
+    def test_la_evidencia_de_ensayos_ofrece_solo_ciclos_de_ensayo(self):
+        ensayo = self.ensayo()
+        seguimiento = RegistroProduccion.objects.create(ciclo=ensayo, fecha=date(2026, 10, 5), tipo='labor',
+                                                        detalle='Fertilización del T3')
+        RegistroProduccion.objects.create(ciclo=self.ciclo, fecha=date(2026, 8, 20), tipo='cosecha',
+                                          cantidad=Decimal('4000'), unidad_medida='kg')
+        campos = campos_perfil(self.sf, 'ENSAYOS', date(2026, 7, 1), date(2026, 12, 31))
+        self.assertEqual(list(campos['ciclo_id'].queryset), [ensayo])
+        self.assertEqual(list(campos['registros_ids'].queryset), [seguimiento])
+
+    def test_el_administrador_muestra_y_filtra_los_ensayos(self):
+        self.ensayo(responsable=self.tecnico)
+        modelo = admin.site._registry[CicloProductivo]
+        self.assertIn('es_ensayo', modelo.list_display)
+        self.assertIn('es_ensayo', modelo.list_filter)
+        lista = reverse(f'admin:{CicloProductivo._meta.app_label}_cicloproductivo_changelist')
+        ensayos = self.client.get(lista, {'es_ensayo__exact': '1'})
+        self.assertContains(ensayos, 'Ensayo de nitrógeno en papa')
+        self.assertNotContains(ensayos, 'Papa Superchola 2026-B')
+        productivos = self.client.get(lista, {'es_ensayo__exact': '0'})
+        self.assertContains(productivos, 'Papa Superchola 2026-B')
+        self.assertNotContains(productivos, 'Ensayo de nitrógeno en papa')
+        alta = self.client.get(reverse(f'admin:{CicloProductivo._meta.app_label}_cicloproductivo_add'))
+        self.assertContains(alta, 'name="responsable"')
 
 
 class SimuladoresYCursosTests(TestCase):

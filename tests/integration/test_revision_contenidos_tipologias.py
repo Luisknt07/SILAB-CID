@@ -123,9 +123,12 @@ class AnexosDePerfilTests(TestCase):
         parcela = EspacioReservable.objects.create(unidad=cls.centro, nombre='Parcela QA', tipo='parcela')
         eje = EjeProductivo.objects.create(unidad=cls.centro, codigo='cont-eje-qa', titulo='Eje QA',
             resumen='Seguimiento de cultivo QA', que_produce='Producto QA')
+        # Un ensayo es un ciclo marcado como tal, con su diseño (documentos.0027).
         cls.ciclo = CicloProductivo.objects.create(eje=eje, lugar=parcela, nombre='Ciclo plurianual QA',
             tipo='cultivo', rubro='Papa QA', inicio=date(2026, 8, 1), fin_previsto=date(2027, 2, 1),
-            superficie_ha=2, animales=0, meta=120, unidad_medida='kg', referencia='Plan experimental QA', estado='en_curso')
+            superficie_ha=2, animales=0, meta=120, unidad_medida='kg', referencia='Plan experimental QA', estado='en_curso',
+            es_ensayo=True, objetivo='Evaluar dos variedades QA', tratamientos='Variedad A\nVariedad B',
+            repeticiones=4, variables='Rendimiento QA', responsable=cls.actor)
         RegistroProduccion.objects.create(ciclo=cls.ciclo, fecha=date(2026, 9, 11), tipo='pesaje',
             cantidad=0, unidad_medida='kg', detalle='Medición inicial QA', registrado_por=cls.actor)
 
@@ -160,7 +163,7 @@ class AnexosDePerfilTests(TestCase):
     def test_ensayo_distingue_alcance_meta_unidad_y_seguimiento_del_semestre(self):
         reporte = self.reporte('ensayos', self.centro)
         tablas = {t['titulo']: t for t in reporte['tablas']}
-        contexto = tablas['Alcance y metas de los ciclos o ensayos']
+        contexto = tablas['Alcance y metas de los ensayos']
         self.assertIn('Meta del ciclo', contexto['headers'])
         self.assertIn('Unidad', contexto['headers'])
         self.assertIn('Papa QA', str(contexto['rows']))
@@ -170,6 +173,10 @@ class AnexosDePerfilTests(TestCase):
         seguimiento = tablas['Seguimiento, mediciones y observaciones del semestre']['rows']
         self.assertEqual(seguimiento[0][3], '0.00')
         self.assertIn('ciclo completo', ' '.join(reporte['notes']))
+        # El diseño del ensayo se lee junto a su alcance.
+        diseno = tablas['Diseño de los ensayos']['rows']
+        self.assertEqual(diseno, [['Ciclo plurianual QA', 'Evaluar dos variedades QA', 'Variedad A · Variedad B',
+                                   '4', 'Rendimiento QA', 'Ana Técnica']])
 
     def test_cantidad_producida_identifica_su_unidad_de_medida(self):
         reporte = self.reporte('produccion', self.planta)

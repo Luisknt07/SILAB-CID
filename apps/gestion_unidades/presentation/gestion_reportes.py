@@ -671,10 +671,12 @@ def _generic_report(
             total=Count("pk", distinct=True),
             ingresos=Count("pk", filter=Q(tipo="ingreso"), distinct=True),
             salidas=Count("pk", filter=Q(tipo="salida"), distinct=True),
-            reactivos=Count("consumible_id", filter=Q(consumible__clasificacion="reactivo"), distinct=True),
+            # Reactivos, agroquímicos y medicamentos veterinarios: sustancias con lote, vencimiento y ficha.
+            reactivos=Count("consumible_id", filter=Q(
+                consumible__clasificacion__in=("reactivo", "agroquimico", "veterinario")), distinct=True),
         )
         cards = [("Movimientos", totales["total"]), ("Ingresos", totales["ingresos"]), ("Salidas", totales["salidas"]),
-                 ("Reactivos", totales["reactivos"], "insumos distintos movidos")]
+                 ("Reactivos y sustancias", totales["reactivos"], "insumos distintos movidos")]
     elif category == "produccion":
         from apps.plantas_piloto.operacion.presentation.gestion_produccion import reporte_produccion
 

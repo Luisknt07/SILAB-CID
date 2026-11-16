@@ -306,10 +306,11 @@ def anexos_del(documento, *, incluir_no_aplica=False):
     )
     # Cada anexo lleva el corte del período con el que viaja (el anual, solo uno):
     # basta con quedarse con los del mismo corte que el documento.
+    # El orden numera los anexos: comunes, propios del tipo de unidad y condicionales.
     return sorted(
         (f for f in filas if f.corte == documento.corte and documento_visible(f, documento.unidad)
          and (incluir_no_aplica or f.estado != 'no_aplica')),
-        key=lambda f: (f.exigido.carpeta, f.exigido.orden, f.exigido.codigo),
+        key=lambda f: (f.exigido.orden, f.exigido.codigo),
     )
 
 
@@ -318,18 +319,26 @@ def generar_anexos(documento, usuario, solo_faltantes=False):
     """Produce con lo registrado cada anexo del documento firmado que aún no esté cerrado."""
     if documento.estado == 'validado':
         raise ValidationError('Los anexos de una entrega enviada no se reemplazan.')
+    from apps.documentos.presentation.anexos_evidencia import lecturas_compartidas
+    # Todos los anexos de un informe se arman con la misma lectura de los registros del período.
+    with lecturas_compartidas():
+        _generar_cada_anexo(documento, usuario, solo_faltantes)
+
+
+def _generar_cada_anexo(documento, usuario, solo_faltantes):
     from apps.documentos.presentation.anexos_evidencia import (
-        CONDICIONALES, NO_COMPROMETIDO, aplica_el_anexo, lectura_de_metas)
+        CONDICIONALES, aplica_el_anexo, lectura_de_metas, motivo_no_aplica)
     lectura = None
     for anexo in anexos_del(documento, incluir_no_aplica=True):
         if anexo.exigido.codigo in CONDICIONALES:
-            # Investigación y vinculación solo se presenta si el plan compromete alguna de sus metas.
+            # Desechos, investigación y transferencia solo se presentan cuando aplican.
             if lectura is None:
                 lectura = lectura_de_metas(anexo, *tramo_del_documento(anexo))
             if not aplica_el_anexo(anexo.exigido.codigo, lectura):
-                if anexo.estado != 'no_aplica':
+                motivo = motivo_no_aplica(anexo.exigido.codigo)
+                if anexo.estado != 'no_aplica' or anexo.observacion != motivo:
                     anexo.estado = 'no_aplica'
-                    anexo.observacion = NO_COMPROMETIDO
+                    anexo.observacion = motivo
                     anexo.save(update_fields=['estado', 'observacion', 'actualizado_en'])
                 continue
             if anexo.estado == 'no_aplica':
@@ -938,7 +947,7 @@ def _generar(documento, usuario):
 
 
 def _generar_anexo_de_evidencia(documento, inicio, fin):
-    """Anexo del informe con el formato de registro común: datos generales y una tabla por registro."""
+    """Anexo del informe con el formato de registro común: datos generales y tablas numeradas."""
     from apps.documentos.presentation.anexos_evidencia import pdf_del_anexo
     from apps.documentos.presentation.perfil_laboratorios import referencia_interna
     from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
@@ -953,7 +962,7 @@ def _generar_anexo_de_evidencia(documento, inicio, fin):
             f'{exigido.codigo}-{documento.anio}{documento.corte}.pdf',
             autor='Generado por el sistema',
             descripcion=f'{documento.nombre_documental} del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y}: registros del '
-                        'período que respaldan sus metas.',
+                        'período, en el formato de registro del expediente.',
             tipo_adjunto='informe',
         )
         documento.estado = 'generado'

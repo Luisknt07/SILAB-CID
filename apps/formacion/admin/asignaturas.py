@@ -12,7 +12,7 @@ class TemaAsignaturaInline(BloqueTraducido):
     extra = 0
     autocomplete_fields = ('receta',)
     filter_horizontal = ('software',)
-    fields = ('orden', 'nombre', 'receta', 'software', 'ejercicios', 'resultado_aprendizaje')
+    fields = ('orden', 'unidad_tematica', 'nombre', 'receta', 'software', 'ejercicios', 'resultado_aprendizaje')
     classes = ('collapse',)
 
 
@@ -29,9 +29,9 @@ class AsignaturaAdmin(AdministracionTraducida):
 
 @admin.register(TemaAsignatura)
 class TemaAsignaturaAdmin(AdministracionTraducida):
-    list_display = ('nombre', 'asignatura', 'orden', 'receta')
+    list_display = ('nombre', 'asignatura', 'orden', 'unidad_tematica', 'receta')
     list_filter = ('asignatura__unidad', 'asignatura')
-    search_fields = ('nombre', 'asignatura__nombre', 'asignatura__codigo', 'resultado_aprendizaje')
+    search_fields = ('nombre', 'unidad_tematica', 'asignatura__nombre', 'asignatura__codigo', 'resultado_aprendizaje')
     autocomplete_fields = ('asignatura', 'receta')
     filter_horizontal = ('software',)
     ordering = ('asignatura', 'orden', 'pk')

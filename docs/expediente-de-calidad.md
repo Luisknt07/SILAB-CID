@@ -302,34 +302,43 @@ generación; las actas y formatos de gestión, sus propios datos. Las secciones 
 en banda verde con línea dorada y la escala es la compacta de `estilos_informe`
 (cuerpo 9,5 pt, tablas 8,5 pt).
 
-**Anexos del informe.** Los anexos del informe (`anexos_evidencia.py`) son formatos
-de registro, no informes: recogen los datos del período. El análisis (avance, estado
-de cada meta y lo que falta para cumplirla) está en el informe. Cubren los cinco
-anexos comunes y los propios de planta piloto, centro experimental y observatorio.
-Todos usan la misma estructura, apaisada:
+**Anexos del informe.** Los anexos del informe son formatos de registro, no informes:
+recogen los datos del período. El análisis (avance, estado de cada meta y lo que falta
+para cumplirla) está en el informe. Hay un anexo por cada documento que pide la
+universidad (`documentos.0027`); cuáles lleva cada tipo de unidad, con sus tablas y
+columnas, está en [estructura-anexos-por-tipo-de-unidad.md](estructura-anexos-por-tipo-de-unidad.md).
+
+El motor es `apps/documentos/presentation/anexos_evidencia.py`; los registros de cada
+anexo los arman `anexos_recursos.py`, `anexos_practicas.py`, `anexos_seguridad.py`,
+`anexos_resultados.py` y `anexos_propios.py`. Todos usan la misma estructura, apaisada:
 
 1. **Datos generales**, en un cuadro, debajo del encabezado:
-   - unidad;
-   - período, con sus fechas;
+   - unidad y tipo de unidad;
+   - período, con sus fechas, y fecha de los datos;
    - informe al que acompañan, con su número de anexo;
-   - fecha de los datos;
+   - responsable de la unidad;
+   - exigencia de la universidad a la que responden, con su redacción;
    - metas que respaldan, con el nombre que tienen en la planificación;
    - fuente.
-2. **Una tabla por registro:**
-   - la primera fila lleva el nombre del registro, sobre fondo verde claro;
-   - la segunda, los títulos de las columnas;
-   - al pie va el total, por ejemplo «Total: 8 aprobadas · con respaldo completo: 3».
-   - Sin registros, una sola fila dice «Sin registros en el período».
+2. **Tablas numeradas «n.m»** (el número del anexo y el de la tabla), para citarlas
+   desde el informe o en una observación: «Anexo 2, tabla 2.4».
+   - La primera fila lleva el número y el nombre de la tabla, sobre fondo verde claro.
+   - La segunda, los títulos de las columnas: nueve como máximo.
+   - Una celda puede llevar dos datos que se leen juntos, uno debajo del otro (fecha y
+     horario, código y nombre). Lo que sirve para clasificar o contar va en su columna.
+   - Una fila de subtítulo agrupa las siguientes (por ejemplo, por asignatura).
+   - Al pie va el total. Sin registros, una sola fila dice «Sin registros en el período».
    - Si la tabla sigue en otra hoja, repite su nombre y sus columnas.
+   - Un archivo se muestra como enlace («Abrir»), nunca como dirección.
 
-No llevan apartados numerados ni párrafos. Donde un registro tiene requisitos, la
-columna «Respaldo» dice «Completo» o «Falta: …». Los títulos de columna y las palabras
-largas no se parten: el ancho de cada columna se calcula con su contenido.
+No llevan apartados ni párrafos. Cada anexo presenta todos los registros del período,
+en cualquier estado, con su columna de estado; lo anulado no se presenta. Cada dato
+tiene un anexo dueño y los demás lo citan por su código. Los títulos de columna y las
+palabras largas no se parten: el ancho de cada columna se calcula con su contenido.
 
-Las listas completas no van en el anexo; quedan en el Centro de reportes. Son todas las
-solicitudes, el inventario entero, la bitácora y cada dato cargado por un observatorio.
-Una tabla de detalle de un anexo propio con más de 40 filas solo dice cuántos
-registros tiene.
+Tres anexos son condicionales: desechos, investigación y transferencia. Cuando no
+aplican conservan su número, quedan «No aplica» con su motivo y el informe los lista
+así, para que se vean todas las exigencias.
 
 **Orientación.** Vertical (A4, márgenes de 14 mm): documentos principales, guía de
 práctica, comprobante y ficha de equipo. Apaisado (A4, márgenes de 13 mm): anexos,

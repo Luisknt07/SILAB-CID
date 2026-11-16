@@ -6,35 +6,41 @@ no reescriben el catálogo ni eliminan documentos que ya fueron enviados.
 """
 BASES_AUDITABLES = frozenset(('laboratorios', 'plantas_piloto', 'centro_experimental', 'observatorios'))
 
-# El observatorio no tiene meta de uso de sesiones (politica_metas_unidades): sus
-# atenciones se consultan en el Centro de reportes, sin un anexo que respalde nada.
+# El observatorio es una unidad de información: no tiene sesiones de uso, prácticas ni
+# desechos, y su sala y su software van en el inventario. Sus solicitudes de información
+# atendidas van en el anexo de transferencia y servicios.
 EXCLUIDOS_POR_BASE = {
-    'observatorios': frozenset(('REGISTRO-USO', 'PRACTICAS-FT02',
+    'observatorios': frozenset(('REGISTRO-USO', 'FICHAS-TECNICAS', 'PRACTICAS-FT02',
                                'PRACTICAS-FT03', 'GUIAS', 'INDUCCION-SEGURIDAD', 'DESECHOS')),
 }
 
 NOMBRES_POR_BASE = {
     'plantas_piloto': {
+        'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de bioseguridad e inocuidad',
         'PLANIFICACION': 'Planificación semestral de producción, prácticas y servicios de la planta piloto',
         'INFORME-SEMESTRAL': 'Informe semestral de producción, prácticas y cumplimiento de la planta piloto',
-        'REGISTRO-USO': 'Uso de la planta piloto: sesiones, horas y usuarios',
-        'EQUIPAMIENTO': 'Equipos e inventario de la planta piloto: revisión física, mantenimiento y existencias',
-        'INVESTIGACION': 'Investigación y vinculación de la planta piloto: resultados, entregas y servicios',
+        'REGISTRO-USO': 'Registros de uso de la planta piloto',
+        'FICHAS-TECNICAS': 'Fichas técnicas de líneas de proceso, salas, cámaras, software y espacios',
+        'GUIAS': 'Guías de prácticas de la planta piloto',
+        'INDUCCION-SEGURIDAD': 'Reportes de seguridad, inocuidad y condiciones de operación',
     },
     'centro_experimental': {
+        'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de bioseguridad',
         'PLANIFICACION': 'Planificación semestral de actividades de campo y ensayos del centro experimental',
         'INFORME-SEMESTRAL': 'Informe semestral de actividades de campo, ensayos y cumplimiento',
-        'REGISTRO-USO': 'Uso de los escenarios experimentales: sesiones, horas y usuarios',
-        'EQUIPAMIENTO': 'Equipos e inventario del centro experimental: revisión física, mantenimiento y existencias',
-        'INVESTIGACION': 'Investigación y vinculación del centro experimental: resultados, entregas y servicios',
+        'REGISTRO-USO': 'Registros de uso del centro experimental',
+        'INVENTARIO-CORTE': 'Inventario de equipamiento, insumos agropecuarios y reactivos',
+        'FICHAS-TECNICAS': 'Fichas técnicas de parcelas, invernaderos, instalaciones pecuarias y espacios',
+        'GUIAS': 'Guías de prácticas de campo',
+        'INDUCCION-SEGURIDAD': 'Reportes de seguridad y condiciones de operación de campo',
     },
     'observatorios': {
+        'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de seguridad de la información y condiciones de operación',
         'PLANIFICACION': 'Planificación semestral de indicadores, publicaciones y servicios del observatorio',
         'INFORME-SEMESTRAL': 'Informe semestral de datos, publicaciones y cumplimiento del observatorio',
         # Nombre de su consulta de atenciones; no es anexo del observatorio.
         'REGISTRO-USO': 'Registro de atenciones y uso de espacios del observatorio',
-        'EQUIPAMIENTO': 'Equipos e inventario del observatorio: revisión física, mantenimiento y software',
-        'INVESTIGACION': 'Investigación y vinculación del observatorio: resultados, entrega de información y servicios',
+        'INVENTARIO-CORTE': 'Inventario de equipos informáticos, software y espacios',
     },
 }
 
@@ -59,28 +65,28 @@ REQUISITOS_COMUNES = {
                               'Acceso, operación, emergencias y actualización; medidas específicas sólo cuando apliquen.'),
     'PLAN-COMPRAS-ANUAL': ('Necesidades del año siguiente, cantidades, costos estimados, prioridad y financiamiento.',
                           'Justificación frente a recursos, capacidad y actividades; revisión, emisión y aprobación en la plataforma.'),
-    'REGISTRO-USO': ('Sesiones registradas y atendidas, horas de uso efectivo, usuarios y propósito.',
-                     'Detalle de las sesiones atendidas; las que no se cerraron se cuentan aparte, sin sumarlas al uso.'),
-    'PRACTICAS-FT02': ('Prácticas aprobadas con asignatura, escenario, fecha, docente y guía; prácticas ejecutadas '
-                       'con asistencia y evidencia.',
-                       'Guías vigentes, aprobadas y vinculadas al syllabus; lo que falta a cada registro para contar.'),
-    'PRACTICAS-FT03': ('Referencia a la planificación, ejecución, asistencia, bitácora y resultados.',
-                       'Evidencias de la sesión identificadas y evaluación; diferenciar registros pendientes y prácticas validadas.'),
-    'GUIAS': ('Guía vigente, responsables de elaboración, revisión y aprobación.',
-              'Asignatura, tema y resultado de aprendizaje vinculados con el syllabus; el listado no sustituye cada guía.'),
-    'INDUCCION-SEGURIDAD': ('Inducciones de usuarios nuevos e inspecciones mensuales, con su respaldo.',
-                            'Desechos generados con cantidad, almacenamiento, responsable y entrega al gestor autorizado.'),
-    'DESECHOS': ('Desechos realmente generados: tipo, origen, cantidad, fecha, responsable y almacenamiento.',
-                 'Entrega y respaldo de recepción cuando corresponda; una ausencia de registros no demuestra que no hubo generación.'),
-    'EQUIPAMIENTO': ('Acta de revisión física del inventario y datos pendientes de los equipos.',
-                     'Mantenimientos frente al programa crítico, equipos fuera de servicio e insumos bajo su mínimo.'),
-    'INVENTARIO-CORTE': ('Equipos, software, espacios e insumos aplicables, con custodio, ubicación y condición.',
-                         'Fecha del corte, revisión física y diferencias respaldadas; existencias, lotes y movimientos '
-                         'de insumos del período cuando apliquen.'),
-    'INVESTIGACION': ('Solo si el plan lo compromete: productos de investigación con proyecto, responsable y respaldo.',
-                       'Transferencias y servicios entregados y aceptados; una solicitud o reserva no es un resultado.'),
-    'TRANSFERENCIA': ('Producto o servicio entregado, responsable, destinatario y fecha.',
-                       'Evidencia de entrega y aceptación; separar solicitudes, actividades programadas y resultados obtenidos.'),
+    'REGISTRO-USO': ('Todas las sesiones del período: horario previsto y real, espacio o recurso, propósito y solicitante.',
+                     'Participantes, cierre y horas efectivas; totales por propósito y por mes, y visitas.'),
+    'EQUIPAMIENTO': ('Plan de mantenimiento vigente por equipo y mantenimientos del período, con su informe.',
+                     'Cumplimiento en los equipos críticos, fallas y días fuera de servicio, y pruebas funcionales.'),
+    'INVENTARIO-CORTE': ('Acta de revisión física y equipos con serie, código del bien, custodio, ubicación y estado.',
+                         'Bajas y traspasos; reactivos por lote y vencimiento; insumos y movimientos del período.'),
+    'FICHAS-TECNICAS': ('Ficha de la unidad: ubicación, responsable, horario y capacidad.',
+                        'Espacios y talleres con capacidad, mobiliario y equipos; software y simuladores con versión y licencias.'),
+    'PRACTICAS-FT02': ('Todas las prácticas planificadas, por asignatura: unidad y tema del syllabus, fecha y escenario.',
+                       'Responsable técnico, estudiantes previstos, guía y estado de la revisión de cada una.'),
+    'GUIAS': ('Guías vigentes con versión, aprobación y enlace al documento.',
+              'Vínculo con la asignatura, el tema y el resultado de aprendizaje del syllabus; contenido mínimo completo.'),
+    'PRACTICAS-FT03': ('Ejecución de cada práctica y asistencia nominal.',
+                       'Evidencias identificadas: asistencia firmada, bitácora, fotografías, capturas, informes y productos.'),
+    'INDUCCION-SEGURIDAD': ('Requisitos de acceso, inducciones y habilitaciones, y control de ingresos.',
+                            'Inspecciones mensuales con hallazgos y acciones correctivas, e incidentes de seguridad.'),
+    'DESECHOS': ('Cada desecho generado: clase, clave, origen, cantidad, envase, etiquetado y almacenamiento.',
+                 'Entregas al gestor autorizado con licencia y manifiesto; lo almacenado al corte.'),
+    'INVESTIGACION': ('Solo si el plan la compromete: resultados con proyecto, producto, responsable y respaldo.',
+                       'Uso de la unidad para investigación; una reserva no acredita un resultado.'),
+    'TRANSFERENCIA': ('Transferencias con destinatario, entregable y aceptación documentada.',
+                       'Servicios especializados atendidos, con solicitante, horas y valor; una solicitud no es una entrega.'),
     'ACCIONES-MEJORA': ('Hallazgo o compromiso, acción, responsable, plazo, estado y evidencia de cierre.',
                         'Distinguir los compromisos ordinarios del informe semestral y las acciones del trámite de mejora, cuando exista.'),
 }
@@ -103,6 +109,8 @@ REQUISITOS_POR_BASE = {
                              'Registros de manejo, mediciones, resultados, incidencias y entregas con respaldo.'),
         'CE-ENSAYOS': ('Objetivo y diseño del ensayo, ubicación o parcela, fechas y responsable.',
                       'Tratamientos o manejo, variables medidas, registros de campo, resultados y evidencia identificada.'),
+        'CE-PRODUCCION': ('Ciclos productivos que no son ensayos: tipo, rubro, área, fechas, meta y lo obtenido.',
+                          'Labores, sanidad e insumos aplicados; producción obtenida y su destino, y animales al corte.'),
     },
     'observatorios': {
         'PROTOCOLO-BIOSEGURIDAD': ('Alcance, responsables y controles para instalaciones, información y equipos informáticos.',
@@ -137,7 +145,9 @@ FAMILIAS_PROPIAS = {
 
 CODIGOS_POR_FUENTE = {'reservas': 'REGISTRO-USO', 'recursos': 'INVENTARIO-CORTE',
                      'equipamiento': 'EQUIPAMIENTO', 'investigacion': 'INVESTIGACION',
-                     'transferencia': 'TRANSFERENCIA'}
+                     'transferencia': 'TRANSFERENCIA', 'planificaciones': 'PRACTICAS-FT02',
+                     'ejecuciones': 'PRACTICAS-FT03', 'guias': 'GUIAS', 'seguridad': 'INDUCCION-SEGURIDAD',
+                     'desechos': 'DESECHOS'}
 
 # Donde hay insumos el inventario lleva sus movimientos del período y se presenta cada semestre.
 BASES_INVENTARIO_ANUAL = frozenset(('observatorios',))

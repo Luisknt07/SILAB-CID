@@ -9,7 +9,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from apps.documentos.presentation.evaluacion_cierre import (
-    calcular_cierre, cierre_archivado, confirmar_cierre, lectura_cierre, medir_meta,
+    ANEXOS_METAS, calcular_cierre, cierre_archivado, confirmar_cierre, lectura_cierre, medir_meta,
 )
 from apps.documentos.presentation.expediente import anexos_del, validar_documento
 from apps.documentos.models.expediente import DocumentoElaborado
@@ -190,13 +190,20 @@ class CierreIndicadoresTests(BaseDelExpediente):
     def test_enviar_calcula_anexos_sin_marcas_manuales_y_congela_resultado(self):
         d, _ = self.archivado(self.laboratorio)
         anteriores = {a.pk: a.recurso_id for a in anexos_del(d)}
+        codigos = {a.pk: a.exigido.codigo for a in anexos_del(d)}
         validar_documento(d, self.coordinador)
         d.refresh_from_db()
         datos = cierre_archivado(d)
         self.assertTrue(datos['congelado'])
         self.assertEqual(datos['nota'], 0)
         self.assertEqual(len(datos['anexos']), len(anteriores))
-        self.assertTrue(all(a['detalle_indicadores'] for a in datos['anexos']))
+        # Cada anexo que respalda metas trae su detalle; uno sin meta propia (las fichas técnicas) no inventa
+        # indicadores (documentos.0027).
+        for anexo in datos['anexos']:
+            codigo = codigos[anexo['documento']]
+            with self.subTest(codigo=codigo):
+                self.assertEqual(bool(anexo['detalle_indicadores']), bool(ANEXOS_METAS[codigo]))
+        self.assertIn('FICHAS-TECNICAS', codigos.values())
         self.assertTrue(all(a['recurso'] == anteriores[a['documento']] for a in datos['anexos']))
         with patch('apps.documentos.presentation.evaluacion_cierre.calcular_cierre', side_effect=AssertionError('No recalcular un envío')):
             self.assertEqual(lectura_cierre(d), datos)

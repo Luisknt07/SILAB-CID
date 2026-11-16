@@ -14,6 +14,7 @@ class SoftwareDisponible(models.Model):
     TIPO_RECURSO_CHOICES = [
         ("software", "Software instalado o de libre acceso"),
         ("licencia", "Licencia institucional"),
+        ("simulador", "Simulador"),
     ]
     TIPO_ACCESO_CHOICES = [
         ("instalacion", "Instalado en equipos del laboratorio"),

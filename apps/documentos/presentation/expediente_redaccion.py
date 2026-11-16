@@ -1277,7 +1277,10 @@ def datos_automaticos(documento, inicio, fin, contenido=None):
         from apps.documentos.presentation.anexos_evidencia import anexos_numerados
         base_url = settings.SITE_URL.rstrip('/')
         numerados = anexos_numerados(documento)
-        items = [{'texto': f'Anexo {numero}. {d.nombre_documental}',
+        # Un anexo que no aplica conserva su número y dice por qué: así se ven todas las exigencias.
+        items = [{'texto': f'Anexo {numero}. {d.nombre_documental} · No aplica: {d.observacion}'}
+                 if d.estado == 'no_aplica' else
+                 {'texto': f'Anexo {numero}. {d.nombre_documental}',
                   **({'url': base_url + reverse('recurso_unidad', args=[d.recurso_id])} if d.recurso_id else {})}
                  for numero, d in numerados]
         presentados = {d.pk for _, d in numerados}
@@ -1417,11 +1420,13 @@ def filas_del_plan(unidad, contenido, inicio, fin):
             if not meses:
                 meses = [m for m, _ in meses_del_tramo(inicio, fin)]
         obligatoria = requerida or bool(marcado.get('obligatoria', marcado.get('aplica', False)))
-        anexos = [d[1] for d in CATALOGO if actividad.codigo in ANEXOS_METAS.get(d[0], ())]
         from types import SimpleNamespace
+        from .expediente_catalogo import CATALOGO_PERFILES
         from .perfil_unidades import nombre_para
-        reportes = [nombre_para(SimpleNamespace(codigo=d[0], nombre=d[1]), unidad)
-                    for d in CATALOGO if actividad.codigo in ANEXOS_METAS.get(d[0], ())]
+        # El anexo de la meta con el nombre que lleva en el informe de este tipo de unidad.
+        reportes = [nombre_para(SimpleNamespace(codigo=d[0], nombre=d[1], fuente_reporte=d[9]), unidad)
+                    for d in (*CATALOGO, *CATALOGO_PERFILES) if actividad.codigo in ANEXOS_METAS.get(d[0], ())]
+        anexos = list(reportes)
         politica = plan.get('metas_estandar') or {}
         politica = politica if isinstance(politica, dict) else {}
         origenes = politica.get('origenes') or {}

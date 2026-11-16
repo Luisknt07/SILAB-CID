@@ -123,9 +123,13 @@ def fotografia_nativa(unidad, tipo, detalle, fecha):
                              for v in valores])
     if subtipo == 'ensayo':
         from apps.centros_experimentales.operacion.models.centros import CicloProductivo
-        item = CicloProductivo.objects.filter(pk=detalle['ciclo_id'], eje__unidad=unidad).select_related('lugar').first()
+        # Solo un ciclo marcado como ensayo acredita la meta: un ciclo productivo es producción, no investigación.
+        # La marca decide qué ciclos se consideran; no entra en la huella, que conserva sus campos.
+        item = CicloProductivo.objects.filter(pk=detalle['ciclo_id'], eje__unidad=unidad,
+                                              es_ensayo=True).select_related('lugar').first()
         if item is None or item.estado not in ('en_curso', 'cerrado') or not item.lugar_id:
-            raise ValidationError('El ensayo necesita un ciclo activo o cerrado y una parcela o área identificada.')
+            raise ValidationError('El ensayo necesita un ciclo marcado como ensayo, activo o cerrado, '
+                                  'y una parcela o área identificada.')
         _fecha_real(item.inicio, fecha)
         if item.lugar.unidad_id != unidad.pk:
             raise ValidationError('La parcela o área del ensayo debe pertenecer al centro.')

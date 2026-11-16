@@ -814,6 +814,9 @@ def operar_tema_asignatura(request, unidad):
     objeto.asignatura = get_object_or_404(Asignatura, pk=asignatura_id, unidad=unidad)
     orden = _texto(request, 'orden')
     objeto.orden = int(orden) if orden.isdigit() and int(orden) > 0 else 1
+    # Un formulario abierto antes de que existiera el campo no borra la unidad ya registrada.
+    if 'unidad_tematica' in request.POST:
+        objeto.unidad_tematica = _texto(request, 'unidad_tematica', 160)
     objeto.nombre = _texto(request, 'nombre', 240)
     receta_id = _texto(request, 'receta_id')
     objeto.receta = get_object_or_404(Receta, pk=receta_id, unidad=unidad) if receta_id else None

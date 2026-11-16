@@ -25,7 +25,7 @@ class FuentesGeneracionAutomaticaTests(TestCase):
         cls.unidad = Unidad.objects.create(nombre='Laboratorio fuentes QA', slug='qa-fuentes-generacion',
             dependencia='laboratorios', administrador=cls.actor, fecha_inicio=date(2025, 1, 1))
         documentos = construir_expediente(cls.unidad, 2025)
-        # Un anexo con la plantilla común de los cinco anexos del informe (documentos.0025).
+        # Un anexo con la plantilla común de los anexos del informe (documentos.0027).
         cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO' and d.corte == 'B')
 
     def setUp(self):

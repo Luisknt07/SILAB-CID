@@ -61,6 +61,10 @@ class Asignatura(models.Model):
 class TemaAsignatura(models.Model):
     asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE, related_name='temas')
     orden = models.PositiveSmallIntegerField(default=1, help_text='La semana o el orden en que se dicta.')
+    unidad_tematica = models.CharField(
+        'Unidad del syllabus', max_length=160, blank=True,
+        help_text='La unidad temática del syllabus a la que pertenece el tema, por ejemplo «Unidad 2. Modelado 3D».',
+    )
     nombre = models.CharField(max_length=240)
     receta = models.ForeignKey(
         'plantas_operacion.Receta',

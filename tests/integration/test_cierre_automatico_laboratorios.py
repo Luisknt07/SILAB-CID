@@ -42,7 +42,7 @@ class CierreAutomaticoLaboratoriosTests(TestCase):
             nombre='Informe semestral QA', carpeta='evaluacion', periodicidad='semestral', origen='ambos',
             fuente_reporte='informe', requiere_firma=True, activo=True, anexo_de=None))
         cls.catalogo_anexos = []
-        # Dos anexos del informe (documentos.0025): uso de la unidad y prácticas académicas, que trae las guías.
+        # Dos anexos del informe (documentos.0027): registros de uso y planificación de las prácticas.
         for codigo, fuente in (('REGISTRO-USO', 'reservas'), ('PRACTICAS-FT02', 'planificaciones')):
             exigido, _ = DocumentoExigido.objects.update_or_create(codigo=codigo, defaults=dict(
                 nombre=codigo + ' QA', carpeta='ejecucion', periodicidad='semestral', origen='sistema',

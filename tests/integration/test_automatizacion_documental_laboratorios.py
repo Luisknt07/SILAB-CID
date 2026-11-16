@@ -34,7 +34,7 @@ class AutomatizacionDocumentalLaboratoriosTests(TestCase):
         cls.unidad = Unidad.objects.create(nombre='Laboratorio automático QA', slug='auto-lab-qa',
             dependencia='laboratorios', administrador=cls.actor, fecha_inicio=date(2025, 1, 1))
         documentos = construir_expediente(cls.unidad, 2025)
-        # Investigación y vinculación (documentos.0025), con la plantilla común de los anexos del informe: con un
+        # Resultados de investigación (documentos.0027), con la plantilla común de los anexos del informe: con un
         # resultado verificado por el responsable queda completo y no necesita al Director.
         cls.anexo_id = next(d.pk for d in documentos if d.exigido.codigo == 'INVESTIGACION' and d.corte == 'B')
         cls.informe_id = next(d.pk for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL' and d.corte == 'B')

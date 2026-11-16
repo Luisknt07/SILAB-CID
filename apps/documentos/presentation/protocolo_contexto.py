@@ -7,6 +7,9 @@ from copy import deepcopy
 from django.db.models import Q
 from django.utils.html import escape
 
+# Insumos que son sustancias con lote, vencimiento y ficha de seguridad: su manejo se propone como riesgo químico.
+CLASES_DE_SUSTANCIAS = ('reactivo', 'agroquimico', 'veterinario')
+
 
 def _texto(valor):
     return ''.join(c for c in unicodedata.normalize('NFKD', str(valor or '').lower())
@@ -73,7 +76,7 @@ def propuestas_de(documento):
     def coincidencias(*claves):
         return list(dict.fromkeys(nombre for nombre, tipo in registros
             if any(clave in _texto(nombre + ' ' + tipo) for clave in claves)))
-    quimicos = list(dict.fromkeys([i['nombre'] for i in c['insumos'] if i['clasificacion'] == 'reactivo']
+    quimicos = list(dict.fromkeys([i['nombre'] for i in c['insumos'] if i['clasificacion'] in CLASES_DE_SUSTANCIAS]
         + coincidencias('resina', 'alcohol', 'solvente', 'pintura', 'fundente', 'sanitizante')))
     grupos = [
         ('Máquinas y fabricación', coincidencias('cnc', 'fresad', 'cortadora', 'laser', 'torno', 'prensa', 'impresora 3d', 'manufactura'),

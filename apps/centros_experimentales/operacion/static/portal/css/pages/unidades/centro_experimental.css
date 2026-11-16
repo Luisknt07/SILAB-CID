@@ -63,6 +63,7 @@
 .centro-estado { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #eef2f0; color: #2c4a3b; font-size: 11px; font-weight: 800; }
 .centro-estado.is-en_curso { background: #e3f2e8; color: #1f6b46; }
 .centro-estado.is-cerrado { background: #eceff1; color: #55646b; }
+.centro-estado.is-ensayo { background: #e8eefb; color: #2b4c8c; }
 .centro-aviso { margin: 0 0 14px; padding: 10px 14px; border-left: 4px solid var(--institucion-primario, #1d5b3a); border-radius: 6px; background: #eef6f1; }
 .centro-acciones { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 0 0 14px; }
 .centro-acciones a { color: var(--institucion-texto, #173b2c); font-weight: 700; }

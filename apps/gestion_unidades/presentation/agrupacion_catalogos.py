@@ -11,6 +11,7 @@ from django.db.models import Exists, OuterRef, Prefetch, Q
 
 from apps.gestion_unidades.models.espacios import EspacioReservable
 from apps.gestion_unidades.models.fichas_area import ElementoFichaArea
+from apps.gestion_unidades.presentation.categorias_catalogos import CLASES_DE_SOFTWARE
 from apps.recursos.models.consumibles import Consumible
 from apps.recursos.models.unidades import UnidadEquipo
 
@@ -69,7 +70,7 @@ def agrupar_catalogo(items, tipo, areas_por_registro, areas_referencia_por_regis
             (nombre for pk, nombre in referencias.items() if pk not in areas), key=str.casefold,
         ))
         if tipo == 'software':
-            clase = 'Licencias institucionales' if item.tipo_recurso == 'licencia' else 'Software'
+            clase = CLASES_DE_SOFTWARE.get(item.tipo_recurso, 'Software')
             familia = item.get_tipo_acceso_display()
         else:
             clase = Consumible.CLASIFICACION_DETALLE.get(item.clasificacion, ('Otros', ''))[0]

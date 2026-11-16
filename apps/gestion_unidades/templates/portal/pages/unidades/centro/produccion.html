@@ -17,7 +17,7 @@
   <div class="centro-tabla-envoltura"><table class="centro-tabla">
     <thead><tr><th>{% translate "Ciclo" %}</th><th>{% translate "Periodo" %}</th><th>{% translate "Meta" %}</th><th>{% translate "Producido" %}</th><th>{% translate "Cumplimiento" %}</th><th>{% translate "Rendimiento" %}</th><th>{% translate "Estado" %}</th></tr></thead>
     <tbody>{% for fila in item.ciclos %}{% with ciclo=fila.ciclo %}<tr>
-      <td><strong>{{ ciclo.nombre }}</strong><br><small>{{ ciclo.rubro }}{% if ciclo.lugar %} · {{ ciclo.lugar.nombre }}{% endif %}{% if ciclo.superficie_ha %} · {{ ciclo.superficie_ha|floatformat:"-2" }} ha{% endif %}{% if ciclo.animales %} · {{ ciclo.animales }} {% translate "animales" %}{% endif %}</small></td>
+      <td><strong>{{ ciclo.nombre }}</strong>{% if ciclo.es_ensayo %} <span class="centro-estado is-ensayo">{% translate "Ensayo" %}</span>{% endif %}<br><small>{{ ciclo.rubro }}{% if ciclo.lugar %} · {{ ciclo.lugar.nombre }}{% endif %}{% if ciclo.superficie_ha %} · {{ ciclo.superficie_ha|floatformat:"-2" }} ha{% endif %}{% if ciclo.animales %} · {{ ciclo.animales }} {% translate "animales" %}{% endif %}</small>{% if ciclo.es_ensayo and ciclo.objetivo %}<br><small>{% translate "Objetivo:" %} {{ ciclo.objetivo|truncatechars:200 }}</small>{% endif %}</td>
       <td>{{ ciclo.inicio|date:"d/m/Y" }} – {{ ciclo.fin|default:ciclo.fin_previsto|date:"d/m/Y" }}</td>
       <td>{{ ciclo.meta|floatformat:"-2" }} {{ ciclo.unidad_medida }}{% if ciclo.referencia %}<br><small>{{ ciclo.referencia }}</small>{% endif %}</td>
       <td>{{ fila.producido|floatformat:"-2" }} {{ ciclo.unidad_medida }}</td>

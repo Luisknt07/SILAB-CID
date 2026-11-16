@@ -44,10 +44,10 @@ class RegistroProduccionInline(BloqueTraducido):
 
 @admin.register(CicloProductivo)
 class CicloProductivoAdmin(AdministracionTraducida):
-    list_display = ('nombre', 'eje', 'rubro', 'inicio', 'fin_previsto', 'meta', 'unidad_medida', 'estado')
-    list_filter = ('eje__unidad', 'estado', 'tipo')
-    search_fields = ('nombre', 'rubro', 'eje__titulo')
-    autocomplete_fields = ('eje',)
+    list_display = ('nombre', 'eje', 'rubro', 'es_ensayo', 'inicio', 'fin_previsto', 'meta', 'unidad_medida', 'estado')
+    list_filter = ('eje__unidad', 'es_ensayo', 'estado', 'tipo')
+    search_fields = ('nombre', 'rubro', 'eje__titulo', 'objetivo')
+    autocomplete_fields = ('eje', 'responsable')
     date_hierarchy = 'inicio'
     inlines = (RegistroProduccionInline,)
 

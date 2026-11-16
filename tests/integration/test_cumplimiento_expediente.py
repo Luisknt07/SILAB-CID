@@ -547,14 +547,15 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
 
         periodo = pagina.context['periodos'][0]
         self.assertEqual([e['nombre'] for e in periodo['entregas']], [
-            'Planificación semestral de actividades de la unidad',
+            'Planificación semestral del laboratorio',
             'Informe semestral de actividades y cumplimiento de la planificación'])
         codigos = {a.exigido.codigo for a in periodo['entregas'][1]['anexos']}
-        # Los cinco anexos del informe (documentos.0025); la planificación, sin anexos.
-        self.assertEqual(codigos, {'PRACTICAS-FT02', 'REGISTRO-USO', 'INDUCCION-SEGURIDAD', 'EQUIPAMIENTO',
-                                   'INVESTIGACION'})
+        # Un anexo por cada documento que pide la universidad (documentos.0027); la planificación, sin anexos.
+        self.assertEqual(codigos, {'REGISTRO-USO', 'EQUIPAMIENTO', 'INVENTARIO-CORTE', 'FICHAS-TECNICAS',
+                                   'PRACTICAS-FT02', 'GUIAS', 'PRACTICAS-FT03', 'INDUCCION-SEGURIDAD', 'DESECHOS',
+                                   'INVESTIGACION', 'TRANSFERENCIA'})
         self.assertFalse({'PLAN-MANTENIMIENTO', 'INDICADORES-PLAN', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE',
-                          'INVENTARIO-CORTE', 'GUIAS', 'ACCIONES-MEJORA'} & codigos)
+                          'ACCIONES-MEJORA'} & codigos)
         plan = periodo['entregas'][0]
         self.assertEqual(plan['anexos'], [])
         self.assertEqual(plan['anexos_integrados'], [])
@@ -788,13 +789,20 @@ class RevisionDeAnexosTests(BaseDeCumplimiento):
         seccion = next(s for s in compuesto['secciones'] if s['codigo'] == 'anexos')
         items = seccion['bloques'][0]['items']
 
-        con_enlace = [i for i in items if i['url']]
-        self.assertEqual(len(con_enlace), sum(bool(a.recurso_id) for a in anexos))
+        # Un anexo que no aplica conserva su número y dice por qué, sin enlace: no tiene archivo que abrir.
+        no_aplican = [i for i in items if ' · No aplica: ' in i['texto']]
+        self.assertTrue(no_aplican)  # Sin registros de desechos ni plan que la comprometa, algo no aplica.
+        self.assertEqual(len(no_aplican), len(anexos_del(documento, incluir_no_aplica=True)) - len(anexos))
+        self.assertTrue(all('url' not in i for i in no_aplican))
+        # Cada anexo que se presenta lleva su enlace.
+        self.assertTrue(anexos and all(a.recurso_id for a in anexos))
+        con_enlace = [i for i in items if i.get('url')]
+        self.assertEqual(len(con_enlace), len(anexos))
+        self.assertEqual(len(items), len(no_aplican) + len(con_enlace))
         self.assertTrue(con_enlace[0]['url'].startswith(settings.SITE_URL))
         self.assertIn(reverse('recurso_unidad', args=[anexos[0].recurso_id]), con_enlace[0]['url'])
-        self.assertEqual({i['url'] for i in items}, {
-            settings.SITE_URL.rstrip('/') + reverse('recurso_unidad', args=[a.recurso_id])
-            for a in anexos if a.recurso_id})
+        self.assertEqual({i['url'] for i in con_enlace}, {
+            settings.SITE_URL.rstrip('/') + reverse('recurso_unidad', args=[a.recurso_id]) for a in anexos})
 
 
 class MetasDelPeriodoTests(BaseDeCumplimiento):

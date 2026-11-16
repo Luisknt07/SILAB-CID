@@ -6,22 +6,23 @@ prácticas tienen código institucional confirmado en las fuentes aportadas.
 
 NOMBRES = {
     'RESOLUCION-CREACION': 'Resolución de creación de la unidad',
-    'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de seguridad y condiciones de operación',
+    'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de bioseguridad',
     'PLAN-COMPRAS-ANUAL': 'Plan anual de compras y presupuesto para el año siguiente',
-    'PLANIFICACION': 'Planificación semestral de actividades de la unidad',
+    'PLANIFICACION': 'Planificación semestral del laboratorio',
     'INFORME-SEMESTRAL': 'Informe semestral de actividades y cumplimiento de la planificación',
-    # Anexos del informe (documentos.0025): cinco, cada uno respalda un grupo de metas.
-    'REGISTRO-USO': 'Uso de la unidad: sesiones, horas y usuarios',
-    'PRACTICAS-FT02': 'Prácticas académicas: planificación, ejecución y guías',
-    'INDUCCION-SEGURIDAD': 'Seguridad y desechos: inducciones, inspecciones y desechos',
-    'EQUIPAMIENTO': 'Equipos e inventario: revisión física, mantenimiento y existencias',
-    'INVESTIGACION': 'Investigación y vinculación: resultados, transferencia y servicios',
-    # Retirados en documentos.0025; sus nombres se conservan para leer lo ya archivado.
-    'PRACTICAS-FT03': 'Registro de ejecución y evaluación de prácticas',
-    'GUIAS': 'Registro de guías de práctica y vinculación con el syllabus',
-    'DESECHOS': 'Registro de generación y gestión de desechos peligrosos y especiales',
-    'INVENTARIO-CORTE': 'Inventario integral de recursos de la unidad',
+    # Anexos del informe: uno por cada documento que pide la universidad (documentos.0027).
+    'REGISTRO-USO': 'Registros de uso del laboratorio',
+    'EQUIPAMIENTO': 'Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad',
+    'INVENTARIO-CORTE': 'Inventario de equipamiento, reactivos e insumos',
+    'FICHAS-TECNICAS': 'Fichas técnicas de laboratorios, talleres, software, simuladores y espacios',
+    'PRACTICAS-FT02': 'Planificación semestral de las prácticas',
+    'GUIAS': 'Guías de prácticas de laboratorio',
+    'PRACTICAS-FT03': 'Registros de asistencia y evidencias de las prácticas',
+    'INDUCCION-SEGURIDAD': 'Reportes de seguridad y condiciones de operación',
+    'DESECHOS': 'Registros de gestión de desechos peligrosos y especiales',
+    'INVESTIGACION': 'Informe de resultados de investigación aplicada y desarrollo tecnológico',
     'TRANSFERENCIA': 'Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad',
+    # Retirado en documentos.0025; su nombre se conserva para leer lo ya archivado.
     'ACCIONES-MEJORA': 'Seguimiento de acciones de mejora',
 }
 
@@ -35,28 +36,28 @@ REQUISITOS = {
                       'Datos actuales del laboratorio, atención de observaciones y anexos revisados antes de emitir.'),
     'INFORME-SEMESTRAL': ('Resultados frente a cada meta, registros del período y explicación de diferencias.',
                           'Anexos revisados, evidencias reales, dificultades y acciones de mejora; emisión y aprobación en la plataforma.'),
-    'REGISTRO-USO': ('Sesiones efectivamente realizadas, fechas, horas, usuarios y finalidad.',
-                     'Conciliación independiente que permita comprobar la cobertura del registro; no confundir reservas con atenciones.'),
-    'PRACTICAS-FT02': ('Prácticas aprobadas con asignatura, fecha, escenario, docente, responsable técnico y guía.',
-                       'Prácticas ejecutadas con asistencia y evidencia; guías vigentes, aprobadas y vinculadas al syllabus.'),
-    'PRACTICAS-FT03': ('Referencia a la práctica planificada, ejecución, asistencia, bitácora y evaluación de resultados.',
-                       'Evidencias identificadas de la sesión: fotografías, capturas, informes o productos, según corresponda.'),
-    'GUIAS': ('Guías individuales FT04 vigentes, con elaboración, revisión y aprobación documentadas.',
-              'Vínculo verificable con asignatura, tema y resultado del syllabus; el listado no sustituye las guías.'),
-    'INDUCCION-SEGURIDAD': ('Inducción verificable de usuarios nuevos e inspecciones mensuales al corte, con respaldo.',
-                            'Desechos generados con cantidad, almacenamiento, responsable y entrega al gestor autorizado.'),
-    'DESECHOS': ('Tipo, origen, cantidad, fecha, envase, etiquetado, almacenamiento y responsable.',
-                 'Cuando se entregue: gestor, autorización o licencia, manifiesto y respaldo de recepción.'),
-    'EQUIPAMIENTO': ('Acta de revisión física del inventario y datos pendientes de identificación de los equipos.',
-                     'Mantenimientos del período frente al programa crítico (80 %), equipos fuera de servicio e '
-                     'insumos bajo su mínimo de reposición.'),
-    'INVENTARIO-CORTE': ('Corte de cada semestre: equipos, software, simuladores, espacios, reactivos e insumos.',
-                         'Custodios, ubicación, condición, existencia física y acta integral respaldada; existencias, lotes y '
-                         'movimientos de insumos del período, con diferencias conciliadas.'),
-    'INVESTIGACION': ('Solo si el plan lo compromete: productos de investigación con su proyecto, responsable y respaldo.',
-                       'Transferencias y servicios entregados y aceptados; una solicitud o reserva no acredita resultados.'),
-    'TRANSFERENCIA': ('Producto o servicio entregado, responsable, destinatario y fecha.',
-                       'Respaldo de entrega y aceptación del beneficiario; una solicitud o reserva no acredita transferencia.'),
+    'REGISTRO-USO': ('Todas las sesiones del período: horario previsto y real, espacio o recurso, propósito y solicitante.',
+                     'Participantes, cierre y horas efectivas; totales por propósito y por mes, y visitas.'),
+    'EQUIPAMIENTO': ('Plan de mantenimiento vigente por equipo y mantenimientos del período, con su informe.',
+                     'Cumplimiento en los equipos críticos, fallas y días fuera de servicio, y pruebas funcionales.'),
+    'INVENTARIO-CORTE': ('Acta de revisión física y equipos con serie, código del bien, custodio, ubicación y estado.',
+                         'Bajas y traspasos; reactivos por lote y vencimiento; insumos y movimientos del período.'),
+    'FICHAS-TECNICAS': ('Ficha de la unidad: ubicación, responsable, horario y capacidad.',
+                        'Espacios y talleres con capacidad, mobiliario y equipos; software y simuladores con versión y licencias.'),
+    'PRACTICAS-FT02': ('Todas las prácticas planificadas, por asignatura: unidad y tema del syllabus, fecha y escenario.',
+                       'Responsable técnico, estudiantes previstos, guía y estado de la revisión de cada una.'),
+    'GUIAS': ('Guías vigentes con versión, aprobación y enlace al documento.',
+              'Vínculo con la asignatura, el tema y el resultado de aprendizaje del syllabus; contenido mínimo completo.'),
+    'PRACTICAS-FT03': ('Ejecución de cada práctica y asistencia nominal.',
+                       'Evidencias identificadas: asistencia firmada, bitácora, fotografías, capturas, informes y productos.'),
+    'INDUCCION-SEGURIDAD': ('Requisitos de acceso, inducciones y habilitaciones, y control de ingresos.',
+                            'Inspecciones mensuales con hallazgos y acciones correctivas, e incidentes de seguridad.'),
+    'DESECHOS': ('Cada desecho generado: clase, clave, origen, cantidad, envase, etiquetado y almacenamiento.',
+                 'Entregas al gestor autorizado con licencia y manifiesto; lo almacenado al corte.'),
+    'INVESTIGACION': ('Solo si el plan la compromete: resultados con proyecto, producto, responsable y respaldo.',
+                       'Uso de la unidad para investigación; una reserva no acredita un resultado.'),
+    'TRANSFERENCIA': ('Transferencias con destinatario, entregable y aceptación documentada.',
+                       'Servicios especializados atendidos, con solicitante, horas y valor; una solicitud no es una entrega.'),
     'ACCIONES-MEJORA': ('Hallazgo, acción concreta, responsable, plazo, avance y respaldo.',
                         'Comprobación del cierre; una acción redactada o un PDF generado no equivalen a una mejora ejecutada.'),
 }
@@ -65,19 +66,18 @@ REQUISITOS = {
 # (asignaturas, mantenimiento, inventario, préstamos…) son consultas de gestión.
 REPORTES = {
     'asignaturas': 'Planificación semestral de prácticas por asignatura',
-    # Consultas de detalle; el anexo del informe reúne planificación, ejecución y guías.
-    'planificaciones': 'Prácticas planificadas: asignatura, docente, escenario y guía',
-    'ejecuciones': 'Prácticas ejecutadas: asistencia, bitácora y evidencias',
+    'planificaciones': NOMBRES['PRACTICAS-FT02'],
+    'ejecuciones': NOMBRES['PRACTICAS-FT03'],
     'reservas': NOMBRES['REGISTRO-USO'],
     'mantenimiento': 'Informe de mantenimiento: planificación, ejecución e incidencias',
-    'equipamiento': 'Mantenimiento, disponibilidad y funcionalidad del equipamiento',
+    'equipamiento': NOMBRES['EQUIPAMIENTO'],
     'recursos': NOMBRES['INVENTARIO-CORTE'],
     'inventario': 'Inventario de reactivos e insumos: existencias, lotes y movimientos',
     'prestamos': 'Registro de préstamos y devoluciones de equipos',
     'guias': NOMBRES['GUIAS'],
-    'seguridad': 'Inducciones, inspecciones y controles de seguridad',
+    'seguridad': NOMBRES['INDUCCION-SEGURIDAD'],
     'desechos': NOMBRES['DESECHOS'],
-    'investigacion': 'Resultados de investigación aplicada y desarrollo tecnológico',
+    'investigacion': NOMBRES['INVESTIGACION'],
     'transferencia': NOMBRES['TRANSFERENCIA'],
     'cursos': 'Formación: cursos y eventos, ediciones, inscripciones y certificados',
     'finanzas': 'Informe financiero de servicios: ingresos, egresos y costos',
@@ -105,16 +105,25 @@ def requisitos_para(documento):
     return requisitos_del_perfil(documento)
 
 
+# Código de referencia de cada documento: SLCID-<tipo de unidad>-<sufijo>.
+SUFIJOS_DE_REFERENCIA = {
+    'PLANIFICACION': 'PLAN', 'INFORME-SEMESTRAL': 'INFORME', 'PLAN-COMPRAS-ANUAL': 'COMPRAS',
+    'ACCIONES-MEJORA': 'MEJORA', 'PROTOCOLO-BIOSEGURIDAD': 'SEGURIDAD',
+    'REGISTRO-USO': 'USO', 'EQUIPAMIENTO': 'EQUIPAMIENTO', 'INVENTARIO-CORTE': 'INVENTARIO',
+    'FICHAS-TECNICAS': 'FICHAS', 'PRACTICAS-FT02': 'PRACTICAS-PLAN', 'GUIAS': 'GUIAS',
+    'PRACTICAS-FT03': 'PRACTICAS-EVIDENCIAS', 'INDUCCION-SEGURIDAD': 'REPORTES-SEGURIDAD',
+    'DESECHOS': 'DESECHOS', 'INVESTIGACION': 'INVESTIGACION', 'TRANSFERENCIA': 'TRANSFERENCIA',
+    'PP-PRODUCCION': 'PRODUCCION', 'PP-CALIDAD': 'CALIDAD', 'CE-ENSAYOS': 'ENSAYOS',
+    'CE-PRODUCCION': 'PRODUCCION-AGRO', 'OBS-DATOS': 'DATOS', 'OBS-BOLETINES': 'PUBLICACIONES',
+    'OBS-EVENTOS': 'SOCIALIZACION',
+}
+
+
 def referencia_interna(documento):
     # Referencias breves para que se lean completas en el encabezado A4.
     from apps.documentos.presentation.perfil_unidades import base_de
 
-    sufijo = {'PLANIFICACION': 'PLAN', 'INFORME-SEMESTRAL': 'INFORME',
-              'PLAN-COMPRAS-ANUAL': 'COMPRAS', 'ACCIONES-MEJORA': 'MEJORA',
-              'PROTOCOLO-BIOSEGURIDAD': 'SEGURIDAD', 'REGISTRO-USO': 'USO', 'PRACTICAS-FT02': 'PRACTICAS',
-              'INDUCCION-SEGURIDAD': 'SEGURIDAD-DESECHOS', 'EQUIPAMIENTO': 'EQUIPOS-INVENTARIO',
-              'INVESTIGACION': 'INVESTIGACION-VINCULACION'}.get(
-                  documento.exigido.codigo, documento.exigido.codigo)
+    sufijo = SUFIJOS_DE_REFERENCIA.get(documento.exigido.codigo, documento.exigido.codigo)
     perfil = {'laboratorios': 'LAB', 'plantas_piloto': 'PP',
               'centro_experimental': 'CE', 'observatorios': 'OBS'}.get(
                   base_de(documento.unidad), 'UNIDAD')

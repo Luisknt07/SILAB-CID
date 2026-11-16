@@ -100,7 +100,9 @@ class EvidenciaGestionUnidad(models.Model):
                     'El acta integral debe comprobar equipos, software, espacios y reactivos e insumos.')
         if self.estado == 'validado':
             from .resultados_gestion import errores_resultado
-            resultado = errores_resultado(self.tipo, self.detalle, self.fecha)
+            # Con la unidad, una inspección solo admite las condiciones de su tipo.
+            resultado = errores_resultado(self.tipo, self.detalle, self.fecha,
+                                          unidad=self.unidad if self.unidad_id else None)
             if resultado:
                 errores['__all__'] = list(resultado.values())
             if not self.recurso_id and not self.enlace:

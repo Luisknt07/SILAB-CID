@@ -22,9 +22,10 @@ from tests.integration.test_expediente_redaccion import BaseDeRedaccion, PLAN_CO
 
 
 class AlcanceDocumentalTests(SimpleTestCase):
-    def test_dieciseis_documentos_con_nombre_y_requisitos(self):
-        # Veinte antes de depurar el expediente (documentos.0024): se retiraron cuatro anexos.
-        self.assertEqual(len(NOMBRES), 16)
+    def test_diecisiete_documentos_con_nombre_y_requisitos(self):
+        # Cinco principales, los once anexos que pide la universidad (documentos.0027) y las acciones de mejora,
+        # retiradas, cuyo nombre se conserva para leer lo ya archivado.
+        self.assertEqual(len(NOMBRES), 17)
         self.assertEqual(set(NOMBRES), set(REQUISITOS))
         self.assertTrue(all(REQUISITOS.values()))
 
@@ -36,15 +37,17 @@ class AlcanceDocumentalTests(SimpleTestCase):
 
 
 class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
-    # Equipos e inventario reúne el acta de revisión física del inventario (documentos.0025): un corte por semestre.
+    # El equipamiento y el inventario del laboratorio se presentan cada semestre (documentos.0027).
     def test_lectura_proyecta_dos_cortes_de_inventario_sin_escribir(self):
         antes = DocumentoExpediente.objects.count()
         documentos = leer_expediente(self.unidad, 2026, hoy=date(2026, 10, 17))
-        inventarios = [d for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO']
-        self.assertEqual({d.corte for d in inventarios}, {'A', 'B'})
+        for codigo in ('EQUIPAMIENTO', 'INVENTARIO-CORTE'):
+            with self.subTest(codigo=codigo):
+                cortes = [d for d in documentos if d.exigido.codigo == codigo]
+                self.assertEqual({d.corte for d in cortes}, {'A', 'B'})
+                for d in cortes:
+                    self.assertEqual(d.periodicidad_documental, 'semestral')
         self.assertEqual(DocumentoExpediente.objects.count(), antes)
-        for d in inventarios:
-            self.assertEqual(d.periodicidad_documental, 'semestral')
 
     def test_materializar_no_duplica_cortes_y_separa_gestion_de_calendario_docente(self):
         for _ in range(2):
@@ -58,19 +61,21 @@ class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
         self.assertEqual(cortes_academicos_del_anio(2026)['A'], (date(2026, 3, 9), date(2026, 7, 17)))
         self.assertEqual(inventarios[0].exigido.periodicidad, 'semestral')  # Semestral en el catálogo compartido.
 
-    def test_observatorio_lleva_equipos_e_inventario_cada_semestre_con_nombre_propio(self):
+    def test_observatorio_lleva_equipamiento_cada_semestre_e_inventario_anual_con_nombre_propio(self):
         self.unidad.dependencia = 'observatorios'
         self.unidad.save(update_fields=['dependencia'])
         documentos = leer_expediente(self.unidad, 2026, hoy=date(2026, 10, 17))
-        self.assertNotIn('INVENTARIO-CORTE', {d.exigido.codigo for d in documentos})
-        inventarios = [d for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO']
-        self.assertEqual(sorted(d.corte for d in inventarios), ['A', 'B'])
-        self.assertEqual({d.nombre_documental for d in inventarios},
-                         {'Equipos e inventario del observatorio: revisión física, mantenimiento y software'})
+        equipamiento = [d for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO']
+        self.assertEqual(sorted(d.corte for d in equipamiento), ['A', 'B'])
+        # El inventario del observatorio es anual, con el informe B, y lleva su propio nombre (documentos.0027).
+        inventarios = [d for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE']
+        self.assertEqual([d.corte for d in inventarios], ['B'])
+        self.assertEqual(inventarios[0].periodicidad_documental, 'anual')
+        self.assertEqual(inventarios[0].nombre_documental, 'Inventario de equipos informáticos, software y espacios')
 
     def test_nombre_personalizado_no_se_pisa(self):
         d = self.documento('PRACTICAS-FT02')
-        self.assertEqual(d.nombre_documental, 'Prácticas académicas: planificación, ejecución y guías')
+        self.assertEqual(d.nombre_documental, 'Planificación semestral de las prácticas')
         d.exigido.nombre = 'Registro adaptado por la institución'
         self.assertEqual(d.nombre_documental, 'Registro adaptado por la institución')
 
@@ -81,7 +86,7 @@ class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
         self.assertEqual(datos['codigo_etiqueta'], 'Referencia interna')
         self.assertEqual(datos['codigo_formato'], 'SLCID-LAB-PLAN')
         self.assertNotIn('LAP-GO', datos['codigo_formato'])
-        self.assertIn('actividades de la unidad', datos['titulo'])
+        self.assertEqual(datos['titulo'], 'Planificación semestral del laboratorio')
 
     def test_inspecciones_v3_en_tres_unidades_fisicas_y_sin_exigencia_para_observatorios(self):
         for base in ('laboratorios', 'plantas_piloto', 'centro_experimental', 'observatorios'):

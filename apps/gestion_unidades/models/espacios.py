@@ -19,6 +19,7 @@ class EspacioReservable(models.Model):
         ('sala', 'Sala'),
         ('puesto', 'Puesto individual'),
         ('cabina', 'Cabina o espacio especializado'),
+        ('taller', 'Taller'),
         # Plantas piloto y centros experimentales.
         ('linea', 'Línea de proceso'),
         ('camara', 'Cámara de frío o almacén'),
@@ -63,6 +64,10 @@ class EspacioReservable(models.Model):
         max_length=255,
         blank=True,
         help_text='Referencia física dentro de la unidad.',
+    )
+    superficie_m2 = models.DecimalField(
+        'Superficie (m²)', max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text='Superficie útil del espacio; en parcelas e invernaderos, el área cultivable.',
     )
     capacidad = models.PositiveIntegerField(
         default=1,

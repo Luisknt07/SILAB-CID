@@ -24,7 +24,9 @@ TIPOS_RESULTADO = ('INVESTIGACION', 'TRANSFERENCIA')
 TIPOS_ESTRUCTURADOS = (*TIPOS_RESULTADO, 'INSPECCION', *TIPOS_INFRAESTRUCTURA, TIPO_FUNCIONALIDAD, *TIPOS_PERFIL)
 CLAVES_RESULTADO = ('proyecto', 'tipo_producto', 'producto', 'beneficiario',
                    'aceptacion', 'fecha_aceptacion', 'referencia_aceptacion')
-CONDICIONES_REVISION = (
+# Condiciones que revisa una inspección (docs/estructura-anexos-por-tipo-de-unidad.md, sección 4.8).
+# Las comunes las revisa cualquier unidad; las propias, solo el tipo de unidad que las lleva.
+CONDICIONES_COMUNES = (
     ('infraestructura', 'Infraestructura, ventilación e iluminación'),
     ('equipos', 'Equipos, instalaciones eléctricas y protecciones'),
     ('emergencias', 'Emergencias, rutas de evacuación y señalización'),
@@ -33,6 +35,30 @@ CONDICIONES_REVISION = (
     ('limpieza', 'Orden, limpieza y desinfección'),
     ('desechos', 'Segregación y almacenamiento de desechos'),
 )
+CONDICIONES_PROPIAS = {
+    'plantas_piloto': (
+        ('bpm', 'Buenas prácticas de manufactura'),
+        ('sanitizacion', 'Sanitización de superficies y equipos'),
+        ('plagas', 'Control de plagas'),
+        ('cadena_frio', 'Cadena de frío'),
+    ),
+    'centro_experimental': (
+        ('agroquimicos', 'Manejo y almacenamiento de agroquímicos'),
+        ('maquinaria', 'Maquinaria y herramientas'),
+        ('sanidad_animal', 'Sanidad y bioseguridad animal'),
+    ),
+}
+# El catálogo completo: con él se lee cualquier inspección registrada, sea del tipo de unidad que sea.
+CONDICIONES_REVISION = CONDICIONES_COMUNES + tuple(
+    condicion for propias in CONDICIONES_PROPIAS.values() for condicion in propias)
+# Cada condición en una o dos palabras, para las tablas.
+CONDICIONES_CORTAS = {
+    'infraestructura': 'infraestructura', 'equipos': 'equipos', 'emergencias': 'emergencias',
+    'proteccion': 'protección personal', 'almacenamiento': 'almacenamiento', 'limpieza': 'orden y limpieza',
+    'desechos': 'desechos', 'bpm': 'buenas prácticas de manufactura', 'sanitizacion': 'sanitización',
+    'plagas': 'control de plagas', 'cadena_frio': 'cadena de frío', 'agroquimicos': 'agroquímicos',
+    'maquinaria': 'maquinaria y herramientas', 'sanidad_animal': 'sanidad animal',
+}
 ESTADOS_CONDICIONES = (
     ('seguro', 'Sin condiciones inseguras detectadas en la revisión'),
     ('observado', 'Con observaciones que requieren seguimiento'),
@@ -45,8 +71,41 @@ CLAVES_INSPECCION = ('area', 'condiciones_revisadas', 'sin_hallazgos', 'hallazgo
 CLAVES_DETALLE = tuple(dict.fromkeys(CLAVES_RESULTADO + CLAVES_INSPECCION + CLAVES_INFRAESTRUCTURA + CLAVES_FUNCIONALIDAD + CLAVES_PERFIL + ('revision_criticidad',)))
 
 
-def errores_inspeccion(detalle, fecha):
-    """Documenta lo observado y su seguimiento; no concede permisos de operación."""
+def _tipo_de_unidad(unidad):
+    """El tipo que fija las condiciones propias: la dependencia guardada o la base de su tipología.
+
+    Se lee del modelo ``Unidad`` (``dependencia`` y ``codigo_base``), sin depender de la presentación.
+    """
+    dependencia = getattr(unidad, 'dependencia', '') or ''
+    if dependencia in CONDICIONES_PROPIAS:
+        return dependencia
+    return getattr(unidad, 'codigo_base', '') or dependencia
+
+
+def condiciones_de(unidad):
+    """Las condiciones que revisa una inspección en la unidad: las comunes y las propias de su tipo."""
+    return CONDICIONES_COMUNES + CONDICIONES_PROPIAS.get(_tipo_de_unidad(unidad), ())
+
+
+def lectura_condiciones(unidad, revisadas):
+    """Cuántas de las condiciones que exige el tipo de unidad revisó una inspección, de cuántas, y cuáles.
+
+    Una inspección anterior a las condiciones propias se lee igual: revisó las comunes y le faltan
+    las del tipo. «Cuáles» nombra todo lo que la inspección registró, en una o dos palabras.
+    """
+    exigidas = [clave for clave, _etiqueta in condiciones_de(unidad)]
+    revisadas = [c for c in revisadas if isinstance(c, str)] if isinstance(revisadas, list) else []
+    del_tipo = [clave for clave in exigidas if clave in revisadas]
+    otras = [clave for clave in dict.fromkeys(revisadas) if clave not in exigidas]
+    nombres = [CONDICIONES_CORTAS.get(clave, clave.replace('_', ' ')) for clave in del_tipo + otras]
+    return len(del_tipo), len(exigidas), nombres
+
+
+def errores_inspeccion(detalle, fecha, unidad=None):
+    """Documenta lo observado y su seguimiento; no concede permisos de operación.
+
+    Con la unidad, solo admite las condiciones de su tipo; sin ella, cualquiera del catálogo.
+    """
     if not isinstance(detalle, dict):
         return {'area': 'Identifica el área inspeccionada y las condiciones revisadas.'}
     errores = {}
@@ -58,6 +117,8 @@ def errores_inspeccion(detalle, fecha):
     if (not isinstance(condiciones, list) or not condiciones or
             any(not isinstance(c, str) or c not in dict(CONDICIONES_REVISION) for c in condiciones)):
         errores['condiciones_revisadas'] = 'Indica las condiciones comprobadas en la inspección.'
+    elif unidad is not None and any(c not in dict(condiciones_de(unidad)) for c in condiciones):
+        errores['condiciones_revisadas'] = 'Marca solo las condiciones que corresponden a este tipo de unidad.'
     for clave in ('hallazgos', 'accion_correctiva'):
         valor = detalle.get(clave, '')
         if not isinstance(valor, str) or len(valor) > 3000:
@@ -93,12 +154,12 @@ def errores_inspeccion(detalle, fecha):
     return errores
 
 
-def errores_resultado(tipo, detalle, fecha):
+def errores_resultado(tipo, detalle, fecha, unidad=None):
     """Exige un producto ocurrido; una reserva o una intención no son un resultado."""
     if tipo in TIPOS_PERFIL:
         return errores_perfil(tipo, detalle, fecha)
     if tipo == 'INSPECCION':
-        return errores_inspeccion(detalle, fecha)
+        return errores_inspeccion(detalle, fecha, unidad)
     if tipo in TIPOS_INFRAESTRUCTURA:
         return errores_infraestructura(tipo, detalle, fecha)
     if tipo == TIPO_FUNCIONALIDAD:

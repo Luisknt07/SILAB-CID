@@ -1,9 +1,10 @@
 """Expediente depurado: lo mínimo para cumplir, sin anexos repetidos ni metas que no se miden.
 
-Fija la depuración de ``documentos.0024`` con el catálogo que dejó ``documentos.0025``:
-- la planificación viaja sola y el informe lleva cinco anexos comunes, más los propios de cada tipo;
-- el mantenimiento tiene anexo en los dos períodos, dentro de equipos e inventario;
-- equipos e inventario es semestral en todos los tipos, también en los observatorios;
+Fija la depuración de ``documentos.0024`` con el catálogo que dejó ``documentos.0027``:
+- la planificación viaja sola y el informe lleva un anexo por documento que pide la universidad, más los
+  propios de cada tipo;
+- el mantenimiento tiene anexo en los dos períodos, en el plan de mantenimiento y equipamiento;
+- el inventario es semestral, salvo en los observatorios, que lo presentan una vez al año con el informe B;
 - el reporte del inventario trae los movimientos de insumos;
 - las consultas de gestión solo se ofrecen cuando la unidad tiene registros del módulo;
 - los anexos retirados quedan inactivos sin borrar su historia.
@@ -32,8 +33,34 @@ from apps.recursos.models.consumibles import Consumible, EntradaInventario
 
 DEPURADOS = ('INDICADORES-PLAN', 'PLAN-MANTENIMIENTO', 'PRESTAMOS-EQUIPOS', 'INSUMOS-CORTE')
 MIGRACION = import_module('apps.documentos.migrations.0024_expediente_depurado')
-# La migración siguiente parte de lo que 0024 escribió: renombra o retira parte de lo que 0024 dejó.
+# Las migraciones siguientes parten de lo que 0024 escribió: 0025 renombra o retira parte de lo que 0024
+# dejó y 0027 separa de nuevo un anexo por cada documento que pide la universidad.
 SIGUIENTE = import_module('apps.documentos.migrations.0025_anexos_del_informe')
+POR_EXIGENCIA = import_module('apps.documentos.migrations.0027_anexos_por_exigencia')
+
+
+class _FilasDelCatalogo(list):
+    def first(self):
+        return self[0] if self else None
+
+
+class _CatalogoEnMemoria:
+    """Lo que usan las migraciones de datos del catálogo, sobre filas en memoria, sin base de datos."""
+
+    def __init__(self, filas):
+        self.filas, self.objects = filas, self
+
+    def using(self, _alias):
+        return self
+
+    def filter(self, codigo=None, codigo__in=()):
+        codigos = {codigo} if codigo else set(codigo__in)
+        return _FilasDelCatalogo(f for f in self.filas if f.codigo in codigos)
+
+
+def _fila_del_catalogo(codigo, nombre, descripcion):
+    return SimpleNamespace(codigo=codigo, nombre=nombre, descripcion=descripcion, activo=True, orden=None,
+                           save=lambda update_fields=None: None)
 
 
 class CatalogoDepuradoTests(SimpleTestCase):
@@ -50,48 +77,50 @@ class CatalogoDepuradoTests(SimpleTestCase):
                 self.assertNotIn('cuenta en la nota solo si', fila[11])
 
     def test_la_migracion_escribe_los_mismos_textos_que_el_catalogo(self):
+        # Lo que 0024 escribió pasa por 0025 y 0027 tal como ellas lo aplican: al final es el catálogo vigente.
+        filas = {codigo: _fila_del_catalogo(codigo, MIGRACION.NOMBRES.get(codigo, ('', ''))[1],
+                                            MIGRACION.DESCRIPCIONES.get(codigo, ''))
+                 for codigo in set(MIGRACION.NOMBRES) | set(MIGRACION.DESCRIPCIONES)}
+        catalogo = _CatalogoEnMemoria(list(filas.values()))
+        apps = SimpleNamespace(get_model=lambda *_modelo: catalogo)
+        editor = SimpleNamespace(connection=SimpleNamespace(alias='default'))
+        SIGUIENTE.fusionar(apps, editor)
+        POR_EXIGENCIA.separar_por_exigencia(apps, editor)
         por_codigo = {f[0]: f for f in CATALOGO}
-        cambiados = set(SIGUIENTE.NOMBRES) | set(SIGUIENTE.DESCRIPCIONES) | set(SIGUIENTE.RETIRADOS)
-        for codigo, texto in MIGRACION.DESCRIPCIONES.items():
-            with self.subTest(codigo=codigo, campo='descripción'):
-                if codigo not in cambiados:
-                    self.assertEqual(texto, por_codigo[codigo][11])
-                elif codigo in SIGUIENTE.RETIRADOS:
+        for codigo, fila in filas.items():
+            with self.subTest(codigo=codigo):
+                if codigo in RETIRADOS:
                     # Lo que 0024 escribió es exactamente lo que 0025 reconoce para dejar solo la nota de retiro.
                     self.assertNotIn(codigo, por_codigo)
-                    self.assertTrue(SIGUIENTE._iguales(texto, SIGUIENTE.DESCRIPCIONES_RETIRADOS[codigo]))
-                else:
-                    # 0025 reemplaza el texto de 0024 por el del catálogo vigente.
-                    anterior, nuevo = SIGUIENTE.DESCRIPCIONES[codigo]
-                    self.assertTrue(SIGUIENTE._iguales(texto, anterior))
-                    self.assertEqual(nuevo, por_codigo[codigo][11])
-        for codigo, (_anterior, nombre) in MIGRACION.NOMBRES.items():
-            with self.subTest(codigo=codigo, campo='nombre'):
-                if codigo not in cambiados:
-                    self.assertEqual(nombre, por_codigo[codigo][1])
-                elif codigo in SIGUIENTE.RETIRADOS:
-                    self.assertNotIn(codigo, por_codigo)
-                    self.assertIn(codigo, RETIRADOS)
-                else:
-                    anterior, nuevo = SIGUIENTE.NOMBRES[codigo]
-                    self.assertEqual(nombre, anterior)
-                    self.assertEqual(nuevo, por_codigo[codigo][1])
+                    self.assertEqual((fila.descripcion, fila.activo), (SIGUIENTE.NOTA_RETIRO, False))
+                    continue
+                self.assertTrue(fila.activo)
+                self.assertEqual(fila.descripcion, por_codigo[codigo][11])
+                if codigo in MIGRACION.NOMBRES:
+                    self.assertEqual(fila.nombre, por_codigo[codigo][1])
                     # Un catálogo que conserva el nombre de 0024 se sigue presentando con el nombre vigente.
-                    self.assertIn(nombre, NOMBRES_ESTANDAR_ANTERIORES[codigo])
+                    self.assertIn(MIGRACION.NOMBRES[codigo][1], NOMBRES_ESTANDAR_ANTERIORES[codigo])
 
     def test_cada_anexo_respalda_una_meta_o_es_registro_sin_meta(self):
+        descripciones = {f[0]: f[11] for f in (*CATALOGO, *CATALOGO_PERFILES)}
         for codigo, metas in ANEXOS_METAS.items():
             with self.subTest(codigo=codigo):
-                self.assertTrue(metas)
-        # Equipos e inventario respalda la revisión física y el mantenimiento; disponibilidad e insumos son
-        # registros sin meta. Las acciones de mejora van en el informe, como registro sin meta.
-        self.assertEqual(ANEXOS_METAS['EQUIPAMIENTO'], ('INVENTARIO', 'MANTENIMIENTO', 'EQUIPAMIENTO', 'INSUMOS'))
+                # Un anexo sin meta lo declara en su descripción: es registro del período.
+                self.assertTrue(metas or 'sin meta propia' in descripciones.get(codigo, ''))
+        self.assertEqual((ANEXOS_METAS['FICHAS-TECNICAS'], ANEXOS_METAS['CE-PRODUCCION']), ((), ()))
+        # Un anexo por cada documento que pide la universidad (documentos.0027): cada meta tiene un solo anexo.
+        metas = [meta for respaldadas in ANEXOS_METAS.values() for meta in respaldadas]
+        self.assertEqual(len(metas), len(set(metas)))
+        # El equipamiento respalda el mantenimiento y el inventario la revisión física; la disponibilidad y los
+        # insumos son registros sin meta. Las acciones de mejora van en el informe, como registro sin meta.
+        self.assertEqual(ANEXOS_METAS['EQUIPAMIENTO'], ('MANTENIMIENTO', 'EQUIPAMIENTO'))
+        self.assertEqual(ANEXOS_METAS['INVENTARIO-CORTE'], ('INVENTARIO', 'INSUMOS'))
         self.assertTrue({'EQUIPAMIENTO', 'INSUMOS', 'MEJORA'} <= ANEXOS_AUTOMATICOS)
         self.assertFalse({'INVENTARIO', 'MANTENIMIENTO'} & ANEXOS_AUTOMATICOS)
-        # Los anexos retirados conservan su lectura solo para los cierres anteriores que aún los traen.
-        self.assertEqual(ANEXOS_METAS['INVENTARIO-CORTE'], ('INVENTARIO', 'INSUMOS'))
+        # El anexo retirado conserva su lectura solo para los cierres anteriores que aún lo traen.
         self.assertEqual(ANEXOS_METAS['ACCIONES-MEJORA'], ('MEJORA',))
-        self.assertTrue({'INVENTARIO-CORTE', 'ACCIONES-MEJORA'} <= set(RETIRADOS))
+        self.assertIn('ACCIONES-MEJORA', RETIRADOS)
+        self.assertNotIn('INVENTARIO-CORTE', RETIRADOS)
 
     def test_la_meta_de_mantenimiento_tiene_anexo_y_no_queda_suelta_en_el_cierre(self):
         mantenimiento = dict(codigo='MANTENIMIENTO', nombre='Mantenimiento', indicador='Mantenimientos completados',
@@ -105,15 +134,24 @@ class CatalogoDepuradoTests(SimpleTestCase):
             exigencia='Registro del período', estado='Anexo automático')
         cierre = dict(politica_metas=3, catalogo=[mantenimiento, inventario, disponibilidad],
                       filas=[mantenimiento, inventario])
+        # El mantenimiento y la disponibilidad van en el equipamiento; la revisión física, en el inventario.
         detalle = detalle_anexo('EQUIPAMIENTO', cierre)
-        self.assertEqual([f['codigo'] for f in detalle], ['INVENTARIO', 'MANTENIMIENTO', 'EQUIPAMIENTO'])
-        anexo = SimpleNamespace(nombre_documental='Equipos e inventario: revisión física, mantenimiento y existencias',
-            exigido=SimpleNamespace(nombre='EQUIPAMIENTO'), recurso_id=None, indicadores_cierre=detalle)
-        # Las dos metas obligatorias viajan en el mismo anexo: ninguna queda suelta en el cierre.
-        bloques = [b for grupo in evidencias_cierre(cierre, [anexo]) for b in grupo['elementos']]
-        self.assertEqual(len(bloques), 1)
-        self.assertFalse(bloques[0]['sin_anexo'])
-        self.assertEqual(next(g for g in evidencias_cierre(cierre, [anexo]))['codigo'], 'obligatorio')
+        self.assertEqual([f['codigo'] for f in detalle], ['MANTENIMIENTO', 'EQUIPAMIENTO'])
+        acta = detalle_anexo('INVENTARIO-CORTE', cierre)
+        self.assertEqual([f['codigo'] for f in acta], ['INVENTARIO'])
+        anexos = [
+            SimpleNamespace(nombre_documental='Plan de mantenimiento de equipos e informe de equipamiento, '
+                            'disponibilidad y funcionalidad', exigido=SimpleNamespace(nombre='EQUIPAMIENTO'),
+                            recurso_id=None, indicadores_cierre=detalle),
+            SimpleNamespace(nombre_documental='Inventario de equipamiento, reactivos e insumos',
+                            exigido=SimpleNamespace(nombre='INVENTARIO-CORTE'), recurso_id=None,
+                            indicadores_cierre=acta),
+        ]
+        # Cada meta obligatoria viaja en su anexo: ninguna queda suelta en el cierre.
+        bloques = [b for grupo in evidencias_cierre(cierre, anexos) for b in grupo['elementos']]
+        self.assertEqual(len(bloques), 2)
+        self.assertFalse(any(b['sin_anexo'] for b in bloques))
+        self.assertEqual(next(g for g in evidencias_cierre(cierre, anexos))['codigo'], 'obligatorio')
 
     def test_el_inventario_del_observatorio_no_inventa_un_registro_de_insumos(self):
         inventario = dict(codigo='INVENTARIO', nombre='Inventario', exigible=True, porcentaje=100, aplica=True,
@@ -121,8 +159,8 @@ class CatalogoDepuradoTests(SimpleTestCase):
         mantenimiento = dict(codigo='MANTENIMIENTO', nombre='Mantenimiento', exigible=True, porcentaje=100,
                              aplica=True, exigencia='Obligatorio institucional', estado='Cumple')
         # El plan del observatorio no lleva la actividad de insumos: el anexo muestra solo las metas que respalda.
-        detalle = detalle_anexo('EQUIPAMIENTO', dict(politica_metas=3, catalogo=[inventario, mantenimiento]))
-        self.assertEqual([f['codigo'] for f in detalle], ['INVENTARIO', 'MANTENIMIENTO'])
+        detalle = detalle_anexo('INVENTARIO-CORTE', dict(politica_metas=3, catalogo=[inventario, mantenimiento]))
+        self.assertEqual([f['codigo'] for f in detalle], ['INVENTARIO'])
 
 
 MEDIA = tempfile.mkdtemp(prefix='citt-expediente-depurado-')
@@ -142,10 +180,11 @@ class ExpedienteDepuradoTests(TestCase):
         return construir_expediente(self.unidades[tipo], 2026, hoy=date(2026, 10, 17))
 
     def test_documentos_por_semestre_de_cada_tipo_de_unidad(self):
-        # Planificación + informe con sus cinco anexos (documentos.0025) y los propios de cada tipo; el observatorio
-        # no lleva prácticas, uso ni seguridad, y equipos e inventario es semestral también en él.
-        esperados = {'laboratorios': (7, 7), 'plantas_piloto': (9, 9),
-                     'centro_experimental': (8, 8), 'observatorios': (7, 7)}
+        # Planificación + informe con un anexo por documento que pide la universidad (once, documentos.0027) y
+        # los propios de cada tipo; el observatorio no lleva uso, fichas, prácticas, guías, seguridad ni
+        # desechos, y presenta su inventario una vez al año, con el informe B.
+        esperados = {'laboratorios': (13, 13), 'plantas_piloto': (15, 15),
+                     'centro_experimental': (15, 15), 'observatorios': (8, 9)}
         for tipo, (en_a, en_b) in esperados.items():
             with self.subTest(tipo=tipo):
                 documentos = self.expediente(tipo)
@@ -167,13 +206,19 @@ class ExpedienteDepuradoTests(TestCase):
                     informe = next(d for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL' and d.corte == corte)
                     self.assertIn('EQUIPAMIENTO', {a.exigido.codigo for a in anexos_del(informe)})
 
-    def test_equipos_e_inventario_es_semestral_en_todos_los_tipos(self):
-        # El inventario anual aparte se retiró (documentos.0025): el acta y el resumen van en equipos e inventario.
+    def test_equipamiento_semestral_e_inventario_semestral_salvo_en_el_observatorio(self):
+        # El inventario vuelve como anexo propio (documentos.0027): semestral donde se mueven insumos y anual,
+        # con el informe B, en el observatorio. El equipamiento es semestral en todos los tipos.
         for tipo in self.unidades:
             with self.subTest(tipo=tipo):
                 documentos = self.expediente(tipo)
                 self.assertEqual(sorted(d.corte for d in documentos if d.exigido.codigo == 'EQUIPAMIENTO'), ['A', 'B'])
-                self.assertNotIn('INVENTARIO-CORTE', {d.exigido.codigo for d in documentos})
+                inventario = [d for d in documentos if d.exigido.codigo == 'INVENTARIO-CORTE']
+                self.assertEqual(sorted(d.corte for d in inventario),
+                                 ['B'] if tipo == 'observatorios' else ['A', 'B'])
+                informes = {d.corte: d for d in documentos if d.exigido.codigo == 'INFORME-SEMESTRAL'}
+                for d in inventario:
+                    self.assertIn(d, anexos_del(informes[d.corte]))
 
     def test_el_observatorio_no_recibe_registro_de_uso(self):
         self.assertNotIn('REGISTRO-USO', {d.exigido.codigo for d in self.expediente('observatorios')})
@@ -213,8 +258,9 @@ class ExpedienteDepuradoTests(TestCase):
         self.assertNotIn('Identificación y verificación física del equipamiento', titulos)
         tarjetas = {c[0] for c in reporte['dataset']['cards']}
         self.assertTrue({'Mantenimientos del período', 'Meta de mantenimiento crítico (80 %)'} <= tarjetas)
-        # La consulta alimenta el anexo de equipos e inventario (documentos.0025).
-        self.assertEqual(reporte['expediente']['nombre'], 'Equipos e inventario: revisión física, mantenimiento y existencias')
+        # La consulta alimenta el anexo del plan de mantenimiento y el equipamiento (documentos.0027).
+        self.assertEqual(reporte['expediente']['nombre'],
+                         'Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad')
         self.assertEqual(reporte['expediente']['periodicidad'], 'Una vez por período académico')
 
     def test_una_consulta_de_gestion_sin_registros_no_se_muestra(self):
@@ -223,9 +269,9 @@ class ExpedienteDepuradoTests(TestCase):
         self.assertTrue({'auditoria', 'uso-capacidad'} <= codigos)
         self.assertFalse({'aula', 'visitas', 'cursos', 'finanzas', 'retiros', 'prestamos', 'inventario',
                           'mantenimiento', 'asignaturas'} & codigos)
-        # Ninguna consulta repite la fuente de uno de los cinco anexos del informe. Las listas completas que
-        # absorbieron (inventario, guías, ejecuciones, desechos, transferencia) quedan como consultas (documentos.0025).
-        self.assertFalse({'equipamiento', 'reservas', 'planificaciones', 'seguridad', 'investigacion'} & codigos)
+        # Ninguna consulta repite la fuente de un anexo del informe (documentos.0027).
+        self.assertFalse({'reservas', 'equipamiento', 'recursos', 'planificaciones', 'guias', 'ejecuciones',
+                          'seguridad', 'desechos', 'investigacion', 'transferencia'} & codigos)
         Consumible.objects.create(unidad=unidad, codigo='INS-CONSULTA', nombre='Insumo con registro')
         codigos = {c['codigo'] for c in consultas_de_la_unidad(unidad, date(2026, 7, 1), date(2026, 12, 31))}
         self.assertIn('inventario', codigos)

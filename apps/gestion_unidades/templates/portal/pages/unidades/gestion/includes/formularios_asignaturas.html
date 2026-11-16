@@ -22,6 +22,7 @@
   <div class="unit-console-operation__grid">
     <label>{% translate "Asignatura" %}<select name="asignatura_id" required><option value="">{% translate "Selecciona" %}</option>{% for asignatura in asignaturas_unidad %}{% if asignatura.activa %}<option value="{{ asignatura.pk }}">{{ asignatura.codigo }} · {{ asignatura.nombre }}</option>{% endif %}{% endfor %}</select></label>
     <label>{% translate "Orden del tema" %}<input type="number" name="orden" min="1" step="1" value="1" required></label>
+    <label class="is-wide">{% translate "Unidad del syllabus" %}<input name="unidad_tematica" maxlength="160" placeholder="{% translate "Unidad 2. Modelado 3D" %}"><small>{% translate "La unidad temática del syllabus a la que pertenece el tema. Se muestra en la planificación y en los anexos de prácticas." %}</small></label>
     <label class="is-wide">{% translate "Tema" %}<input name="nombre" maxlength="240" required></label>
     <label>{% translate "Proceso de la unidad" %}<select name="receta_id"><option value="">{% translate "Sin proceso" %}</option>{% for receta in recetas_para_temas %}<option value="{{ receta.pk }}">{{ receta.nombre }}</option>{% endfor %}</select><small>{% translate "La guía de la sesión nace con el procedimiento, la seguridad y los resultados del proceso." %}</small></label>
     <label>{% translate "Simuladores y software" %}<select name="software_ids" multiple size="4">{% for programa in software_para_temas %}<option value="{{ programa.pk }}">{{ programa.nombre }}</option>{% endfor %}</select></label>

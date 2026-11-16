@@ -38,19 +38,42 @@ from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
 VERSION_REGLAS = 3
 # Código, fuente y padre son deliberadamente explícitos. Un catálogo personalizado
 # no recibe una aprobación implícita por compartir una categoría de reporte.
-# Desde documentos.0025 el informe lleva cinco anexos y cada uno se revisa entero:
-# - prácticas: planificación, ejecución y guías;
-# - seguridad: inducciones, inspecciones y desechos;
-# - equipamiento: mantenimiento, funcionalidad, inventario e insumos;
-# - investigación: resultados y transferencia.
-# Los anexos retirados ya no se revisan solos. La versión no cambia: la huella del
-# uso sigue vigente y la de los anexos fusionados cambia porque leen más fuentes.
+# Desde documentos.0027 el informe lleva un anexo por cada documento que pide la
+# universidad y cada uno se revisa por separado, con su propio contenido:
+# - uso: conciliación de las sesiones;
+# - equipamiento: mantenimiento y funcionalidad;
+# - inventario: acta de revisión física, equipos, insumos, lotes y movimientos;
+# - fichas técnicas: espacios y software;
+# - planificación de las prácticas, guías y ejecución, cada una con su diagnóstico
+#   y sus aprobaciones;
+# - seguridad: inducciones, inspecciones y protocolo; desechos, aparte;
+# - investigación y transferencia, cada una con sus resultados.
+# La versión no cambia: la huella del uso sigue vigente y la de los demás anexos
+# cambia sola porque cada uno vuelve a leer únicamente sus fuentes.
 FUENTES_STOCK = {
     'REGISTRO-USO': ('reservas', 'INFORME-SEMESTRAL'),
-    'PRACTICAS-FT02': ('planificaciones', 'INFORME-SEMESTRAL'),
-    'INDUCCION-SEGURIDAD': ('seguridad', 'INFORME-SEMESTRAL'),
     'EQUIPAMIENTO': ('equipamiento', 'INFORME-SEMESTRAL'),
+    'INVENTARIO-CORTE': ('recursos', 'INFORME-SEMESTRAL'),
+    'FICHAS-TECNICAS': ('fichas-tecnicas', 'INFORME-SEMESTRAL'),
+    'PRACTICAS-FT02': ('planificaciones', 'INFORME-SEMESTRAL'),
+    'GUIAS': ('guias', 'INFORME-SEMESTRAL'),
+    'PRACTICAS-FT03': ('ejecuciones', 'INFORME-SEMESTRAL'),
+    'INDUCCION-SEGURIDAD': ('seguridad', 'INFORME-SEMESTRAL'),
+    'DESECHOS': ('desechos', 'INFORME-SEMESTRAL'),
     'INVESTIGACION': ('investigacion', 'INFORME-SEMESTRAL'),
+    'TRANSFERENCIA': ('transferencia', 'INFORME-SEMESTRAL'),
+}
+# Cada anexo de prácticas revisa un grupo de la fuente común y la entidad que se aprueba en él.
+GRUPOS_PRACTICAS = {
+    'PRACTICAS-FT02': ('planificaciones', 'planificaciones'),
+    'GUIAS': ('guias', 'guias'),
+    'PRACTICAS-FT03': ('practicas', 'ejecuciones'),
+}
+# Sustancias con lote, vencimiento y ficha de seguridad: la ficha se exige igual que al reactivo.
+SUSTANCIAS_CON_FICHA = {
+    'reactivo': 'del reactivo',
+    'agroquimico': 'del agroquímico',
+    'veterinario': 'del medicamento veterinario',
 }
 
 
@@ -271,55 +294,66 @@ class ContextoCalidad:
                         sha256_aprobado=sello.get('sha256', ''), coincide=valida))
         return salida
 
-    def _practicas(self, hallazgos):
-        """El anexo de prácticas entero: planificación aprobada, ejecución validada y guías vigentes.
+    def _practicas(self, codigo, hallazgos):
+        """Uno de los tres anexos de prácticas, con lo que le corresponde.
 
-        Su cumplimiento es la parte de esos registros con respaldo completo.
+        - Planificación: el respaldo y la aprobación de cada planificación, y las sesiones
+          docentes sin planificar.
+        - Guías: el respaldo y la aprobación de cada guía, y su vínculo con el syllabus.
+        - Ejecución: el respaldo y la validación de cada ejecución, las sesiones atendidas sin
+          registrarla y las ejecuciones con fecha futura.
+
+        Su cumplimiento es la parte de sus propios registros con respaldo completo. Los tres
+        leen la misma fuente una sola vez.
         """
         datos = self._una_vez('practicas', lambda: conteos_del_periodo(self.unidad, self.inicio, self.fin))
-        diagnosticos, aprobaciones = {}, {}
-        for grupo, entidad in (('planificaciones', 'planificaciones'), ('practicas', 'ejecuciones'), ('guias', 'guias')):
-            diagnosticos[grupo] = datos['diagnostico_' + grupo]
-            aprobaciones[entidad] = self._aprobaciones(datos, entidad, hallazgos)
-            for fila in diagnosticos[grupo]:
-                if not fila['cumple']:
-                    self._hallazgo(hallazgos, 'RESPALDO_PRACTICA_INCOMPLETO', '; '.join(fila['faltantes']),
-                                   grupo, fila['id'], 'bloqueo')
-        for fila in datos.get('fuentes_practicas', {}).get('planificaciones', []):
-            if fila['estado'] == 'aprobada' and not (fila.get('revisado_por') and fila.get('revisado_en')):
-                self._hallazgo(hallazgos, 'FT02_APROBACION_SIN_RESPONSABLE',
-                    'La aprobación de la planificación no identifica a quien la revisó y cuándo.',
-                    'formacion.PlanificacionPractica', fila['id'])
+        grupo, entidad = GRUPOS_PRACTICAS[codigo]
+        diagnosticos = datos['diagnostico_' + grupo]
+        aprobaciones = self._aprobaciones(datos, entidad, hallazgos)
+        for fila in diagnosticos:
+            if not fila['cumple']:
+                self._hallazgo(hallazgos, 'RESPALDO_PRACTICA_INCOMPLETO', '; '.join(fila['faltantes']),
+                               grupo, fila['id'], 'bloqueo')
+        if codigo == 'PRACTICAS-FT02':
+            for fila in datos.get('fuentes_practicas', {}).get('planificaciones', []):
+                if fila['estado'] == 'aprobada' and not (fila.get('revisado_por') and fila.get('revisado_en')):
+                    self._hallazgo(hallazgos, 'FT02_APROBACION_SIN_RESPONSABLE',
+                        'La aprobación de la planificación no identifica a quien la revisó y cuándo.',
+                        'formacion.PlanificacionPractica', fila['id'])
         reservas, planes, ejecuciones = self._sesiones()
-        por_reserva = {p['reserva_id']: p for p in planes if p['reserva_id']}
-        ejecutados = {e['planificacion_id'] for e in ejecuciones}
-        for reserva in reservas:
-            docente = reserva.proposito_codigo == 'docencia_practica' or reserva.subtipo_actividad in (
-                'practica_curricular', 'simulacion_demostracion', 'practica_evaluativa')
-            if not docente:
-                continue
-            plan = por_reserva.get(reserva.pk)
-            if not plan:
-                self._hallazgo(hallazgos, 'SESION_SIN_FT02',
-                               'La sesión docente no tiene una planificación de práctica vigente del período.',
-                               reserva._meta.label, reserva.pk, 'bloqueo')
-            elif reserva.fecha <= self.corte and reserva.es_efectiva and plan['pk'] not in ejecutados:
-                self._hallazgo(hallazgos, 'SESION_ATENDIDA_SIN_FT03',
-                               'La sesión atendida no tiene registrada la ejecución de la práctica.',
-                               reserva._meta.label, reserva.pk, 'bloqueo')
-        for e in ejecuciones:
-            if e['fecha_ejecucion'] > self.corte:
-                self._hallazgo(hallazgos, 'EJECUCION_FUTURA', 'Se registró una ejecución con fecha futura.',
-                               'formacion.EjecucionPractica', e['pk'], 'bloqueo')
-        todas = [fila for filas in diagnosticos.values() for fila in filas]
+        if codigo != 'GUIAS':
+            por_reserva = {p['reserva_id']: p for p in planes if p['reserva_id']}
+            ejecutados = {e['planificacion_id'] for e in ejecuciones}
+            for reserva in reservas:
+                docente = reserva.proposito_codigo == 'docencia_practica' or reserva.subtipo_actividad in (
+                    'practica_curricular', 'simulacion_demostracion', 'practica_evaluativa')
+                if not docente:
+                    continue
+                plan = por_reserva.get(reserva.pk)
+                # La sesión sin planificar es una falta del anexo de planificación; el de
+                # ejecución pide el registro de las sesiones atendidas que sí la tienen.
+                if codigo == 'PRACTICAS-FT02' and not plan:
+                    self._hallazgo(hallazgos, 'SESION_SIN_FT02',
+                                   'La sesión docente no tiene una planificación de práctica vigente del período.',
+                                   reserva._meta.label, reserva.pk, 'bloqueo')
+                elif (codigo == 'PRACTICAS-FT03' and plan and reserva.fecha <= self.corte
+                        and reserva.es_efectiva and plan['pk'] not in ejecutados):
+                    self._hallazgo(hallazgos, 'SESION_ATENDIDA_SIN_FT03',
+                                   'La sesión atendida no tiene registrada la ejecución de la práctica.',
+                                   reserva._meta.label, reserva.pk, 'bloqueo')
+        if codigo == 'PRACTICAS-FT03':
+            for e in ejecuciones:
+                if e['fecha_ejecucion'] > self.corte:
+                    self._hallazgo(hallazgos, 'EJECUCION_FUTURA', 'Se registró una ejecución con fecha futura.',
+                                   'formacion.EjecucionPractica', e['pk'], 'bloqueo')
         universo_uso = None
-        if not todas:
+        if not diagnosticos:
             medida = self._conciliacion('USO', hallazgos)
             universo_uso = medida
             if medida.get('denominador'):
                 self._hallazgo(hallazgos, 'ANEXO_VACIO_CON_ACTIVIDAD',
                     'El anexo está vacío, pero existe actividad que requiere comprobar su aplicabilidad.')
-        porcentaje = _porcentaje(sum(f['cumple'] for f in todas), len(todas))
+        porcentaje = _porcentaje(sum(f['cumple'] for f in diagnosticos), len(diagnosticos))
         return porcentaje, dict(
             diagnosticos=diagnosticos, fuentes=datos.get('fuentes_practicas', {}), universo_uso=universo_uso,
             aprobaciones=aprobaciones,
@@ -369,9 +403,10 @@ class ContextoCalidad:
             elif insumo.stock_total > 0 and not fisicos:
                 self._hallazgo(hallazgos, 'EXISTENCIA_SIN_LOTE', 'El saldo no tiene lotes físicos localizables.',
                                insumo._meta.label, insumo.pk)
-            if insumo.clasificacion == 'reactivo' and not self._archivo(insumo.ficha_tecnica)['disponible']:
-                self._hallazgo(hallazgos, 'REACTIVO_SIN_FICHA', 'Falta ficha técnica o de seguridad disponible del reactivo.',
-                               insumo._meta.label, insumo.pk)
+            if insumo.clasificacion in SUSTANCIAS_CON_FICHA and not self._archivo(insumo.ficha_tecnica)['disponible']:
+                self._hallazgo(hallazgos, 'REACTIVO_SIN_FICHA',
+                    f'Falta ficha técnica o de seguridad disponible {SUSTANCIAS_CON_FICHA[insumo.clasificacion]}.',
+                    insumo._meta.label, insumo.pk)
         from apps.recursos.models.consumibles import EntradaInventario
         movimientos = self._una_vez('movimientos_inventario', lambda: list(EntradaInventario.objects.filter(
             Q(unidad=self.unidad) | Q(consumible__unidad=self.unidad), fecha__date__range=(self.inicio, self.fin))
@@ -395,6 +430,11 @@ class ContextoCalidad:
                 usuario=self._identidad(m.usuario)) for m in movimientos])
 
     def _inventario(self, hallazgos):
+        """El anexo de inventario: acta de revisión física, identificación de cada equipo e insumos.
+
+        Los espacios y el software se revisan en las fichas técnicas. El observatorio no lleva
+        ese anexo y los presenta en su inventario: ahí se revisan con él.
+        """
         fuentes = dict(evidencias=self._control_evidencias({'INVENTARIO'}, hallazgos))
         reales = [e for e in self._evidencias() if e.tipo == 'INVENTARIO' and
                   e.pk in self._verificadas() and not e.demostracion]
@@ -432,22 +472,47 @@ class ContextoCalidad:
             verificador=self._identidad(e.existencia_verificada_por),
             espacios=[self._concretos(s) for s in sorted(e.espacios_asociados.all(), key=lambda s: s.pk)],
             unidades=sorted(u.pk for u in e.laboratorios.all())) for e in inventario]
+        from apps.documentos.presentation.perfil_unidades import EXCLUIDOS_POR_BASE, base_de
+        if 'FICHAS-TECNICAS' in EXCLUIDOS_POR_BASE.get(base_de(self.unidad), ()):
+            fuentes.update(self._espacios_y_software(hallazgos))
+        fuentes.update(self._insumos(hallazgos))
+        return None, fuentes
+
+    def _espacios_y_software(self, hallazgos):
+        """Espacios y software de la unidad con sus datos completos, y lo que les falta.
+
+        Un espacio activo necesita capacidad y ubicación; un programa no puede tener más
+        licencias disponibles que licencias totales.
+        """
         from apps.recursos.models.software import SoftwareDisponible
         from apps.gestion_unidades.models.espacios import EspacioReservable
+        espacios = self._una_vez('espacios', lambda: list(EspacioReservable.objects.filter(
+            unidad=self.unidad).prefetch_related('equipos_asociados').order_by('pk')))
+        for espacio in espacios:
+            faltantes = [etq for valor, etq in ((espacio.capacidad, 'capacidad'),
+                ((espacio.ubicacion or '').strip(), 'ubicación')) if not valor]
+            if espacio.activo and faltantes:
+                self._hallazgo(hallazgos, 'ESPACIO_SIN_DATOS', 'Falta: ' + ', '.join(faltantes) + '.',
+                               espacio._meta.label, espacio.pk)
         software = self._una_vez('software', lambda: list(SoftwareDisponible.objects.filter(
             unidad=self.unidad).prefetch_related('equipos_instalados').order_by('pk')))
         for fila in software:
             if fila.licencias_disponibles > fila.licencias_totales:
                 self._hallazgo(hallazgos, 'LICENCIAS_INCONSISTENTES', 'Hay más licencias disponibles que licencias totales.',
                                'recursos.SoftwareDisponible', fila.pk, 'bloqueo')
-        fuentes['software'] = [dict(datos=self._concretos(s),
-            instalaciones=sorted(e.pk for e in s.equipos_instalados.all())) for s in software]
-        espacios = self._una_vez('espacios', lambda: list(EspacioReservable.objects.filter(
-            unidad=self.unidad).prefetch_related('equipos_asociados').order_by('pk')))
-        fuentes['espacios'] = [dict(datos=self._concretos(s),
-            equipos=sorted(e.pk for e in s.equipos_asociados.all())) for s in espacios]
-        fuentes.update(self._insumos(hallazgos))
-        return None, fuentes
+        return dict(
+            espacios=[dict(datos=self._concretos(s),
+                equipos=sorted(e.pk for e in s.equipos_asociados.all())) for s in espacios],
+            software=[dict(datos=self._concretos(s),
+                instalaciones=sorted(e.pk for e in s.equipos_instalados.all())) for s in software])
+
+    def _fichas(self, hallazgos):
+        """El anexo de fichas técnicas: espacios y talleres, y software y simuladores.
+
+        Es registro del período, sin meta propia: aporta hallazgos, no un porcentaje.
+        Los equipos son del inventario.
+        """
+        return None, self._espacios_y_software(hallazgos)
 
     def _mantenimiento(self, hallazgos):
         medida = self._gestion().get('mediciones_porcentuales', {}).get('MANTENIMIENTO', {})
@@ -503,23 +568,26 @@ class ContextoCalidad:
                 self._hallazgo(hallazgos, 'NO_OPERATIVO_DISPONIBLE',
                     'El equipo figura disponible o en uso, pero su última prueba real indica no operativo.',
                     'recursos.UnidadEquipo', fila['equipo_id'], 'bloqueo', 'FUNCIONALIDAD')
-        # Sin equipos en el alcance, el inventario del mismo anexo dice por qué.
+        # Sin equipos en el alcance no hay pruebas que pedir: el universo lo acreditan el
+        # mantenimiento de este anexo (revisión de criticidad) y el anexo de inventario.
         fuentes['universo_vacio'] = not datos['universo_equipos']
         return None, fuentes  # La comprobación funcional no es un porcentaje global de cumplimiento.
 
     def _equipamiento(self, hallazgos):
-        """El anexo de equipos e inventario entero.
+        """El anexo del equipamiento: el mantenimiento con su medición crítica y la funcionalidad comprobada.
 
-        Revisa el mantenimiento con su medición crítica, la funcionalidad comprobada, el acta
-        de revisión física, la identificación de cada equipo y los insumos. Su cumplimiento es
-        el del programa crítico de mantenimiento; lo demás aporta hallazgos, no un porcentaje.
+        Su cumplimiento es el del programa crítico de mantenimiento, la meta que respalda; la funcionalidad
+        aporta sus hallazgos pero no un porcentaje. El inventario se revisa en su propio anexo.
         """
         cumplimiento, mantenimiento = self._mantenimiento(hallazgos)
         _sin_porcentaje, funcionalidad = self._funcionalidad(hallazgos)
-        _sin_porcentaje, inventario = self._inventario(hallazgos)
-        return cumplimiento, dict(funcionalidad, mantenimiento=mantenimiento, inventario=inventario)
+        return cumplimiento, dict(funcionalidad, mantenimiento=mantenimiento)
 
     def _seguridad(self, hallazgos):
+        """El anexo de seguridad: inducciones, inspecciones mensuales y protocolo vigente.
+
+        Su cumplimiento es el de las inducciones. Los desechos se revisan en su propio anexo.
+        """
         datos = self._gestion()
         mensual = datos.get('cobertura_inspecciones', {})
         medida = datos.get('mediciones_porcentuales', {}).get('SEGURIDAD', {})
@@ -554,6 +622,7 @@ class ContextoCalidad:
         return _porcentaje(medida.get('numerador', 0), medida.get('denominador', 0)), fuentes
 
     def _desechos(self, hallazgos):
+        """El anexo de desechos: cada registro completo y su universo conciliado, que da el cumplimiento."""
         def cargar():
             from apps.recursos.models.desechos import RegistroDesecho
             return list(RegistroDesecho.objects.filter(unidad=self.unidad, fecha_generacion__lte=self.corte)
@@ -577,27 +646,8 @@ class ContextoCalidad:
         return _porcentaje(medida.get('numerador', 0), medida.get('denominador', 0)), dict(
             desechos=fuentes, conciliacion=medida, evidencias=self._control_evidencias({'DESECHOS'}, hallazgos))
 
-    def _seguridad_y_desechos(self, hallazgos):
-        """El anexo de seguridad entero: inducciones, inspecciones mensuales, protocolo y desechos.
-
-        Su cumplimiento es el de las inducciones, la meta principal; los desechos aportan sus hallazgos.
-        """
-        cumplimiento, seguridad = self._seguridad(hallazgos)
-        _porcentaje_desechos, desechos = self._desechos(hallazgos)
-        return cumplimiento, dict(seguridad, desechos=desechos)
-
-    def _investigacion(self, hallazgos):
-        """El anexo de investigación y vinculación: resultados y transferencia con su respaldo."""
-        propios = []
-        _sin, investigacion = self._resultados('INVESTIGACION', propios)
-        _sin, transferencia = self._resultados('TRANSFERENCIA', propios)
-        if _vigentes(investigacion['resultados']['filas']) or _vigentes(transferencia['resultados']['filas']):
-            # Con algo vigente registrado, el vacío de la otra parte no exige declararlo aparte.
-            propios = [h for h in propios if h['regla'] != 'RESULTADOS_SIN_DECLARACION']
-        hallazgos.extend(propios)
-        return None, dict(investigacion=investigacion, transferencia=transferencia)
-
     def _resultados(self, codigo, hallazgos):
+        """El anexo de investigación o el de transferencia: sus resultados con su respaldo."""
         datos = self._una_vez(('resultados', codigo), lambda: resultados_documentados(self.unidad, self.inicio, self.fin, codigo))
         fuentes = dict(resultados=datos, evidencias=self._control_evidencias({codigo}, hallazgos))
         for fila in datos['filas']:
@@ -647,18 +697,24 @@ class ContextoCalidad:
                 self._hallazgo(hallazgos, 'MODO_DEMO', 'El contexto está en modo demostración.', severidad='bloqueo')
             if not getattr(settings, 'MEDICION_METAS_HABILITADA', False):
                 self._hallazgo(hallazgos, 'MEDICION_DESACTIVADA', 'La verificación de fuentes reales está desactivada.')
-            if codigo == 'PRACTICAS-FT02':
-                cumplimiento, fuentes = self._practicas(hallazgos)
+            if codigo in GRUPOS_PRACTICAS:
+                cumplimiento, fuentes = self._practicas(codigo, hallazgos)
             elif codigo == 'REGISTRO-USO':
                 medida = self._conciliacion('USO', hallazgos)
                 fuentes = dict(conciliacion=medida, evidencias=self._control_evidencias({'USO'}, hallazgos))
                 cumplimiento = _porcentaje(medida.get('numerador', 0), medida.get('denominador', 0))
             elif codigo == 'EQUIPAMIENTO':
                 cumplimiento, fuentes = self._equipamiento(hallazgos)
+            elif codigo == 'INVENTARIO-CORTE':
+                cumplimiento, fuentes = self._inventario(hallazgos)
+            elif codigo == 'FICHAS-TECNICAS':
+                cumplimiento, fuentes = self._fichas(hallazgos)
             elif codigo == 'INDUCCION-SEGURIDAD':
-                cumplimiento, fuentes = self._seguridad_y_desechos(hallazgos)
-            elif codigo == 'INVESTIGACION':
-                cumplimiento, fuentes = self._investigacion(hallazgos)
+                cumplimiento, fuentes = self._seguridad(hallazgos)
+            elif codigo == 'DESECHOS':
+                cumplimiento, fuentes = self._desechos(hallazgos)
+            elif codigo in ('INVESTIGACION', 'TRANSFERENCIA'):
+                cumplimiento, fuentes = self._resultados(codigo, hallazgos)
         fuentes = _json_seguro(dict(unidad=self.unidad.pk, codigo=codigo, inicio=self.inicio,
             fin=self.fin, corte=self.corte,
             version_reglas=VERSION_REGLAS,
