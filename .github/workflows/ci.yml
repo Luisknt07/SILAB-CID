@@ -93,6 +93,20 @@ jobs:
         with:
           node-version: "24"
           package-manager-cache: false
+      - name: Descargar de Git LFS el video que verifican las pruebas
+        # El checkout deja los .mp4 como punteros de Git LFS y las pruebas del
+        # curso precargado comprueban el video real. Se descarga solo ese
+        # archivo (3 MB) y no el video institucional (20 MB), para no gastar
+        # la cuota de descarga de LFS en cada ejecución.
+        env:
+          VIDEO_CURSO: apps/formacion/management/cursos_precargados/aplicaciones_logisticas_medios/assets/bienvenida-logistica-ia.mp4
+        run: |
+          git lfs install --local
+          git lfs pull --include "$VIDEO_CURSO"
+          if head -c 7 "$VIDEO_CURSO" | grep -qa '^version'; then
+            echo "::error title=Git LFS::No se descargó $VIDEO_CURSO: sigue siendo un puntero."
+            exit 1
+          fi
       - name: Instalar el entorno fijado en uv.lock
         run: uv sync --locked --dev --no-install-project
       - name: Verificar requirements con hashes y sin cambios del lock
