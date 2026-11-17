@@ -23,6 +23,7 @@ from apps.documentos.presentation.automatizacion_documental import (
 from apps.documentos.presentation.calidad_automatica_laboratorios import ContextoCalidad
 from apps.documentos.presentation.expediente import _generar, construir_expediente, tramo_del_documento
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
+from tests.integration.test_seguimiento_gobernanza import designar
 
 
 @override_settings(MEDICION_METAS_HABILITADA=True, MEDICION_SOLO_DEMO=False)
@@ -252,6 +253,7 @@ class AutomatizacionDocumentalLaboratoriosTests(TestCase):
         from tests.integration.test_confianza_documental_automatica import pdf_prueba
         from tests.integration.utiles import correspondencia_revisada
         director = get_user_model().objects.create_superuser(username='auto-director-qa', password='qa')
+        designar(director)
         documentos = construir_expediente(self.unidad, 2024)
         origen = next(d for d in documentos if d.exigido.codigo == 'RESOLUCION-CREACION')
         cargar_documento(origen, SimpleUploadedFile('resolucion-qa.pdf', pdf_prueba(texto=

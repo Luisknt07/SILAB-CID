@@ -22,6 +22,7 @@ from apps.documentos.presentation.expediente_archivos import (
 )
 from apps.recursos.models.recursos import Recurso
 from tests.integration.utiles import abrir_entrega
+from tests.integration.test_seguimiento_gobernanza import designar
 
 
 class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
@@ -29,6 +30,7 @@ class CorrespondenciaDocumentalLaboratoriosTests(TestCase):
     def setUpTestData(cls):
         cls.actor = get_user_model().objects.create_user(username='correspondencia-responsable')
         cls.director = get_user_model().objects.create_superuser(username='correspondencia-director')
+        designar(cls.director)
         from tests.integration.utiles import identificar
         identificar(cls.actor, tipo_usuario='administrativo', carrera='')
         cls.unidad = Unidad.objects.create(nombre='Laboratorio documental QA', slug='documental-qa',

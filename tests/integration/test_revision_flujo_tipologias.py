@@ -17,6 +17,7 @@ from apps.documentos.presentation.validacion_pdf import copia_aprobada
 from tests.integration.test_expediente_redaccion import BaseDeRedaccion
 from tests.integration.test_protocolo_seguridad import protocolo_completo
 from tests.integration.utiles import abrir_entrega, contenido_plan_completo
+from tests.integration.test_seguimiento_gobernanza import designar
 
 
 class RevisionFlujoTipologiasTests(BaseDeRedaccion):
@@ -44,6 +45,7 @@ class RevisionFlujoTipologiasTests(BaseDeRedaccion):
         protocolo = self.documento('PROTOCOLO-BIOSEGURIDAD', corte='')
         director = get_user_model().objects.create_superuser('direccion-flujo-observatorio', password=None,
             first_name='Elena', last_name='Directora')
+        designar(director)
         for usuario, cedula in ((self.coordinador, '0400000001'), (director, '0400000002')):
             usuario.profile.cedula = cedula
             usuario.profile.save(update_fields=['cedula'])

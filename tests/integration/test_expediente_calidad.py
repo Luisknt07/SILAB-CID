@@ -23,6 +23,7 @@ from apps.recursos.models.recursos import Recurso
 from apps.directorio_unidades.models.core import Unidad
 from tests.integration.utiles import abrir_entrega, identificar
 from tests.integration.utiles import (pdf_legible_prueba, datos_correspondencia_revisada, cargar_documento_revisado)
+from tests.integration.test_seguimiento_gobernanza import designar
 
 MEDIA_TEMPORAL = tempfile.mkdtemp(prefix='citt-expediente-')
 PDF_FIRMADO = pdf_legible_prueba(firmado=True)
@@ -37,6 +38,7 @@ class BaseDelExpediente(TestCase):
             username='coordinador-expediente', password='clave-segura', first_name='Ana', last_name='Coordinadora')
         identificar(cls.coordinador, tipo_usuario='administrativo', carrera='')
         cls.direccion = get_user_model().objects.create_superuser('direccion-investigacion')
+        designar(cls.direccion)
         cls.unidad = Unidad.objects.create(
             nombre='Laboratorio de expediente', slug='laboratorio-expediente', dependencia='laboratorios',
             fecha_inicio=date(2025, 1, 1), administrador=cls.coordinador)

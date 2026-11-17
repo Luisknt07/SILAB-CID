@@ -22,6 +22,7 @@ from apps.documentos.models.expediente import DocumentoExigido, DocumentoExpedie
 from apps.directorio_unidades.models.core import Unidad
 from tests.integration.utiles import abrir_entrega, identificar
 from tests.integration.utiles import (pdf_legible_prueba, datos_correspondencia_revisada, cargar_documento_revisado, evaluar_documento_revisado)
+from tests.integration.test_seguimiento_gobernanza import designar
 
 
 PDF_FIRMADO = pdf_legible_prueba(firmado=True)
@@ -65,6 +66,7 @@ class BaseDeCumplimiento(TestCase):
         asegurar_catalogo()
         cls.direccion = get_user_model().objects.create_superuser(
             'direccion-cumplimiento', 'direccion@ejemplo.ec', 'clave-segura')
+        designar(cls.direccion)
         cls.coordinador = get_user_model().objects.create_user(
             'coordinador-cumplimiento', password='clave-segura')
         identificar(cls.coordinador, tipo_usuario='administrativo', carrera='')
