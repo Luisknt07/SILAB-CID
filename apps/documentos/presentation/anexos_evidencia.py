@@ -651,7 +651,18 @@ def anexo_de_cada_meta(informe):
 
 
 def numero_de_anexo(documento, informe):
-    return next((n for n, anexo in anexos_numerados(informe) if anexo.pk == documento.pk), None)
+    numero = next((n for n, anexo in anexos_numerados(informe) if anexo.pk == documento.pk), None)
+    if numero is not None:
+        return numero
+    # Antes de habilitar el expediente el anexo no tiene fila: lleva el número que tendrá, su
+    # posición entre los anexos que el expediente proyecta para ese período.
+    from .expediente import leer_expediente
+    proyectados = sorted(
+        (d for d in leer_expediente(documento.unidad, documento.anio)
+         if d.exigido.es_anexo and d.corte == documento.corte and not d.mes
+         and d.exigido.anexo_de.codigo == 'INFORME-SEMESTRAL'),
+        key=lambda d: (d.exigido.orden, d.exigido.codigo))
+    return next((n for n, d in enumerate(proyectados, 1) if d.exigido_id == documento.exigido_id), None)
 
 
 def con_respaldo(codigo, medido, registros):
@@ -706,6 +717,10 @@ def componer_anexo(documento, inicio, fin, lectura=None):
     unidad = documento.unidad
     periodo = (f'{documento.anio}-{documento.corte} · del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y}'
                if documento.corte else documento.etiqueta_corte)
+    from .expediente import tramo_del_documento
+    if (inicio, fin) != tuple(tramo_del_documento(documento)):
+        # Consulta en otro rango: se dice, para que no se confunda con el anexo del período.
+        periodo = f'Consulta del {inicio:%d/%m/%Y} al {fin:%d/%m/%Y} · período {documento.etiqueta_corte}'
     cortos = [
         ('Unidad', unidad.nombre),
         ('Tipo de unidad', TIPOS_DE_UNIDAD.get(contexto.base, '—')),

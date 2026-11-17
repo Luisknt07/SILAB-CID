@@ -69,7 +69,7 @@
 .aula-pdf-modal .pdf-viewer-toolbar { min-height: 58px; gap: 8px; padding: 8px 14px; }
 .aula-pdf-modal .pdf-viewer-button { min-width: 44px; min-height: 44px; font-size: 18px; }
 .aula-pdf-modal :is(.pdf-viewer-level, .pdf-viewer-page) { font-size: 16px; }
-.aula-pdf-modal .pdf-viewer-sidebar { flex: 0 0 clamp(150px, 12vw, 240px); }
+.aula-pdf-modal .pdf-viewer-sidebar { flex: 0 0 clamp(190px, 16vw, 320px); }
 .aula-pdf-modal .pdf-viewer-layout--collapsed .pdf-viewer-sidebar { flex-basis: 0; }
 .aula-pdf-modal .pdf-viewer-thumbnail-button { font-size: 14px; }
 .aula-pdf-modal :is(button, a, input):focus-visible { outline: 3px solid #467b56; outline-offset: 3px; }

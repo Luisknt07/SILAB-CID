@@ -526,6 +526,41 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
         self.assertIn('REGISTROS DE USO', texto.upper())
         self.assertNotIn('BORRADOR', texto.upper())
 
+    def test_el_anexo_al_dia_se_consulta_en_otro_rango_de_fechas_y_lleva_su_numero(self):
+        """El visor ofrece el filtro de fechas; el anexo dice que es una consulta y conserva su número."""
+        from io import BytesIO
+
+        from pypdf import PdfReader
+
+        self.client.force_login(self.coordinador)
+        url = reverse('gestion_expediente_unidad', args=[self.laboratorio.slug])
+        pagina = self.client.get(url, {'anio': 2026, 'corte': 'B'}).content.decode()
+        cortes = cortes_del_anio(2026)
+        enlace = next(a for a in enlaces_de(pagina) if 'anexo=REGISTRO-USO' in a.get('href', '')
+                      and 'borrador=1' in a.get('href', ''))
+        self.assertIn('anexo=REGISTRO-USO', enlace['data-pdf-rango'])
+        self.assertEqual((enlace['data-pdf-desde'], enlace['data-pdf-hasta']),
+                         (cortes['B'][0].isoformat(), cortes['B'][1].isoformat()))
+
+        def texto(**fechas):
+            respuesta = self.client.get(url, {'anio': 2026, 'corte': 'B', 'gestionar': 'INFORME-SEMESTRAL',
+                                              'anexo': 'REGISTRO-USO', 'borrador': '1', **fechas})
+            self.assertEqual(respuesta.status_code, 200)
+            cuerpo = (b''.join(respuesta.streaming_content) if getattr(respuesta, 'streaming', False)
+                      else respuesta.content)
+            return ' '.join('\n'.join(p.extract_text() or '' for p in PdfReader(BytesIO(cuerpo)).pages).split())
+
+        del_periodo = texto()
+        # Sin fila guardada todavía, el anexo lleva el número que tendrá en el informe.
+        self.assertIn('Anexo 1', del_periodo)
+        self.assertIn('1.1 SESIONES DEL PERÍODO', del_periodo)
+        self.assertNotIn('Consulta del', del_periodo)
+        consulta = texto(desde='2026-09-01', hasta='2026-09-30')
+        self.assertIn('Consulta del 01/09/2026 al 30/09/2026', consulta)
+        # Un rango inválido o incompleto se ignora y se muestra el período.
+        self.assertNotIn('Consulta del', texto(desde='2026-09-30', hasta='2026-09-01'))
+        self.assertNotIn('Consulta del', texto(desde='ayer', hasta='2026-09-01'))
+
     def test_cada_documento_abre_su_informe_con_las_fechas_del_periodo(self):
         """Del documento al informe completo, ya acotado: no hay que volver a filtrar."""
         self.client.force_login(self.coordinador)

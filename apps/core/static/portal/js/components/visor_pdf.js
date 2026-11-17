@@ -12,6 +12,8 @@
   const BIBLIOTECA = BASE + 'pdf.mjs';
   const TRABAJADOR = BASE + 'pdf.worker.mjs';
   const ZOOM_MINIMO = 0.5, ZOOM_MAXIMO = 4, ZOOM_INICIAL = 1, ANCHO_MAXIMO_DIBUJADO = 3000;
+  // Parte del ancho disponible que ocupa la hoja al 100 % en el ajuste a lo ancho.
+  const PROPORCION_DE_LECTURA = 0.9;
   const ESPERA_MAXIMA = 15000;
   const ESTRECHO = 620;
   let promesaBiblioteca = null;
@@ -158,7 +160,10 @@
 
     const anchoDeAjuste = () => {
       const ancho = anchoDisponible();
-      if (modoAjuste !== 'pagina') return ancho;
+      // En pantallas amplias la hoja no ocupa todo el ancho: deja margen y se lee completa de un vistazo.
+      if (modoAjuste !== 'pagina') {
+        return window.innerWidth <= ESTRECHO ? ancho : Math.max(Math.floor(ancho * PROPORCION_DE_LECTURA), 1);
+      }
       const estilo = window.getComputedStyle(principal);
       const hoja = lienzos[0] && window.getComputedStyle(lienzos[0]);
       const margen = hoja ? parseFloat(hoja.marginBottom) || 0 : (window.innerWidth <= ESTRECHO ? 12 : 22);

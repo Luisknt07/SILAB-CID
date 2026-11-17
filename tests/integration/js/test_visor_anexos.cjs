@@ -54,7 +54,8 @@ test('anexos PDF locales son accesibles y mantienen su posición al ampliar; rec
   assert.equal(links.length,1);assert.equal(links[0].href,origin+'/recursos-unidad/42/');
   assert.equal(links[0].attrs['aria-label'],'Abrir anexo del informe');
   assert.equal(links[0].dataset.pdfAnexo,'');
-  assert.ok(parseFloat(links[0].style.top)>900);
+  // La hoja ocupa el 90 % del ancho disponible al 100 %: el enlace sigue cerca del pie de la página.
+  assert.ok(parseFloat(links[0].style.top)>800);
   const ancho=parseFloat(links[0].style.width), izquierdo=parseFloat(links[0].style.left);
   const zoom=contenedor.querySelectorAll('button').find(c=>c.attrs['aria-label']==='Acercar');
   zoom.fire('click');
@@ -100,7 +101,8 @@ test('ancho al 100 % conserva páginas verticales y horizontales, enlaces y zoom
   const hojas=contenedor.querySelectorAll('.pdf-viewer-canvas');
   const enlaces=contenedor.querySelectorAll('.pdf-viewer-links').map(capa=>capa.children[0]);
   const comprobar=(ancho,zoom)=>{
-    const anchoCss=(ancho-12-2)*zoom;
+    // Al 100 % la hoja ocupa el 90 % del ancho disponible.
+    const anchoCss=Math.floor((ancho-12-2)*0.9)*zoom;
     hojas.forEach((hoja,indice)=>{
       const [anchoBase,altoBase]=medidas[indice];
       assert.equal(parseFloat(hoja.style.width),Math.floor(anchoCss));

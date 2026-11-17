@@ -40,6 +40,17 @@ def ruta_borrador(documento):
         gestionar=principal.pk or principal.exigido.codigo, borrador='1', **extra))
 
 
+def _rango_consultado(request, inicio, fin):
+    """Las fechas que pide el visor, si son válidas; si no, el período del documento."""
+    from datetime import date
+    try:
+        desde = date.fromisoformat(request.GET.get('desde') or '')
+        hasta = date.fromisoformat(request.GET.get('hasta') or '')
+    except ValueError:
+        return inicio, fin
+    return (desde, hasta) if desde <= hasta else (inicio, fin)
+
+
 def borrador_actual(request, documento):
     from apps.documentos.presentation.expediente import tramo_del_documento
     from apps.documentos.presentation.expediente_redaccion import obtener_redaccion, pdf_del_documento
@@ -49,6 +60,9 @@ def borrador_actual(request, documento):
     if not documento.exigido.generable:
         raise PermissionDenied('Este documento se carga desde su fuente; no tiene borrador generado.')
     inicio, fin = tramo_del_documento(documento)
+    if documento.exigido.es_anexo:
+        # Solo la consulta admite otro rango; el anexo que se archiva lleva siempre su período.
+        inicio, fin = _rango_consultado(request, inicio, fin)
     if documento.exigido.redactable:
         contenido = pdf_del_documento(documento, obtener_redaccion(documento), inicio, fin, estricto=False)
     elif documento.exigido.fuente_reporte == 'mejora':
