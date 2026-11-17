@@ -198,6 +198,18 @@ def anexos_del_periodo(periodo):
                 documento=cierre.get('documento'))
 
 
+@register.simple_tag
+def consultas_en_la_tabla(periodos, corte, consultas):
+    """Con un período elegido, las consultas van como última categoría de su tabla de anexos."""
+    if not consultas or not corte:
+        return False
+    for periodo in periodos or []:
+        if periodo.get('corte') == corte:
+            tabla = anexos_del_periodo(periodo)
+            return bool(tabla['anexos'] or tabla['cierre'])
+    return False
+
+
 @register.filter
 def cantidad_items(grupos):
     return sum(len(grupo['elementos']) for grupo in grupos)

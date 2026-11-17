@@ -126,6 +126,7 @@ consultas, minimo_cumplimiento y user.
     <section class="reportes__catalogo" id="reportes-anexos" aria-labelledby="reportes-anexos-titulo">
       <h2 class="reporte-titulo" id="reportes-anexos-titulo"><i class="fas fa-flag-checkered" aria-hidden="true"></i> 3. Anexos y seguimiento</h2>
       <p>El cierre mide el cumplimiento real de las actividades planificadas. Los documentos base y los anexos no agregan puntos a este resultado.</p>
+      {% consultas_en_la_tabla periodos corte consultas as consultas_integradas %}
       {% for periodo in periodos %}
         {% include 'portal/pages/unidades/gestion/includes/anexos_periodo.html' %}
       {% endfor %}
