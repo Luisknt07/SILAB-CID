@@ -15,6 +15,9 @@ from django.test import SimpleTestCase
 COMPOSICION = {'config/modulos.py', 'config/tests_multibase.py'}
 # Consultas puntuales a Centros I+D desde otras aplicaciones, todas diferidas.
 PUNTOS_QUE_CONSULTAN_CENTROS = {
+    'apps/integraciones/concordancia_reglamento.py',
+    'apps/integraciones/seguimiento.py',
+    'apps/integraciones/views_seguimiento.py',
     'apps/core/admin/site.py',
     'apps/gestion_unidades/admin/reportes.py',
     'apps/gestion_unidades/presentation/detalle.py',

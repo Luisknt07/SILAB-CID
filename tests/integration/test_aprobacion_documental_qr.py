@@ -1,4 +1,5 @@
 """Recorrido autenticado, trazabilidad de versiones y verificación sin subir archivos."""
+from tests.integration.test_seguimiento_gobernanza import designar
 from copy import deepcopy
 from io import BytesIO
 import re
@@ -27,6 +28,7 @@ class AprobacionDocumentalQrTests(BaseDeRedaccion):
         self.documento_qr = abrir_entrega(self.documento('PLAN-COMPRAS-ANUAL', corte=''))
         self.director = get_user_model().objects.create_superuser('direccion-aprobacion-qr', password=None,
             first_name='Dirección', last_name='de prueba')
+        designar(self.director)
         self.coordinador.profile.cedula = '0400000001'
         self.coordinador.profile.save(update_fields=['cedula'])
         self.director.profile.cedula = '0400000002'
@@ -288,7 +290,7 @@ class AprobacionDocumentalQrTests(BaseDeRedaccion):
 
     def test_unidad_no_puede_aprobar_su_documento_ni_suplantar_version(self):
         c = self.enviar()
-        with self.assertRaisesMessage(ValidationError, 'Dirección'):
+        with self.assertRaisesMessage(ValidationError, 'No tienes permiso'):
             self.aprobar(c, self.coordinador)
         for cambios in (dict(token=uuid4()), dict(version=c.version + 1)):
             with self.assertRaisesMessage(ValidationError, 'versión cambió'):
@@ -480,8 +482,9 @@ class AprobacionDocumentalQrTests(BaseDeRedaccion):
 
     def test_director_revocado_no_aprueba_con_privilegio_cacheado(self):
         c = self.enviar()
-        get_user_model().objects.filter(pk=self.director.pk).update(is_superuser=False)
-        with self.assertRaisesMessage(ValidationError, 'Dirección'):
+        from apps.core.models.gobernanza import AsignacionGobernanza
+        AsignacionGobernanza.objects.filter(usuario=self.director).update(activa=False)
+        with self.assertRaisesMessage(ValidationError, 'No tienes permiso'):
             self.aprobar(c)
         c.refresh_from_db()
         self.assertIsNone(c.aprobado_en)

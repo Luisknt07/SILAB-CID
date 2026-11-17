@@ -1,4 +1,5 @@
 """Conformidad objetiva, excepciones y separación entre plan y resultados."""
+from tests.integration.test_seguimiento_gobernanza import designar
 from datetime import date, time
 from copy import deepcopy
 from decimal import Decimal
@@ -93,6 +94,7 @@ class ConformidadPlanesTests(TestCase):
         ajuste.enable()
         self.addCleanup(ajuste.disable)
         self.actor = get_user_model().objects.create_superuser('conformidad-plan-direccion', password=None)
+        designar(self.actor)
         self.unidad = Unidad.objects.create(nombre='Laboratorio de conformidad', slug='conformidad-plan',
             dependencia='laboratorios', administrador=self.actor, fecha_inicio=date(2025, 1, 1))
         periodo = PeriodoAcademico.objects.create(codigo='2025-B', anio_referencia=2025, ciclo='B',
@@ -282,8 +284,11 @@ class ConformidadPlanesTests(TestCase):
         self.assertIn('Presupuesto del período, ítem 1', hallazgos[0]['mensaje'])
         self.assertEqual(resumen['items'], 1)
         estado = (d.estado, d.evaluacion, d.evaluado_en, d.recurso_id, d.version)
+        # La prueba presupuestaria requiere un revisor ajeno a la autoría y administración local.
+        revisor = get_user_model().objects.create_superuser('conformidad-revisor-independiente', password=None)
+        designar(revisor)
         with self.assertRaisesMessage(ValidationError, 'Presupuesto del período'):
-            confirmar_conformidad(d, self.actor, d.version, d.recurso.hash_sha256, confirmado=True)
+            confirmar_conformidad(d, revisor, d.version, d.recurso.hash_sha256, confirmado=True)
         d.refresh_from_db()
         self.assertEqual((d.estado, d.evaluacion, d.evaluado_en, d.recurso_id, d.version), estado)
 

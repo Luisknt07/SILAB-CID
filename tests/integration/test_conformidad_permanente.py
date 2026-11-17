@@ -1,4 +1,5 @@
 """Una decisión binaria sobre el archivo permanente, sin notas ni repetición anual."""
+from tests.integration.test_seguimiento_gobernanza import designar
 from datetime import date
 from tempfile import TemporaryDirectory
 
@@ -24,6 +25,7 @@ class ConformidadPermanenteTests(TestCase):
     def setUpTestData(cls):
         usuarios = get_user_model()
         cls.direccion = usuarios.objects.create_superuser('conformidad-direccion', password=None)
+        designar(cls.direccion)
         cls.coordinador = usuarios.objects.create_user('conformidad-coordinador', password=None)
         cls.unidad = Unidad.objects.create(nombre='Laboratorio permanente', slug='laboratorio-permanente',
             dependencia='laboratorios', administrador=cls.coordinador, activo=True,
@@ -351,3 +353,18 @@ class ConformidadPermanenteTests(TestCase):
         d.abre_el, d.vence_el = date(2026, 2, 1), date(2026, 12, 31)
         self.assertIsNotNone(aprobacion_vigente(d))
         self.assertEqual(RegistroAuditoriaUnidad.objects.filter(descripcion=APROBAR).count(), 1)
+
+
+    def test_revisor_funcional_sin_superusuario_acepta_con_independencia(self):
+        self.direccion.is_superuser = False
+        self.direccion.is_staff = False
+        self.direccion.save(update_fields=['is_superuser', 'is_staff'])
+        self.assertTrue(self.aprobar()['vigente'])
+
+    def test_superusuario_sin_designacion_no_acepta(self):
+        from apps.core.models.gobernanza import AsignacionGobernanza
+        AsignacionGobernanza.objects.filter(usuario=self.direccion).update(activa=False)
+        with self.assertRaises(ValidationError):
+            self.aprobar()
+        self.documento.refresh_from_db()
+        self.assertEqual(self.documento.estado, 'cargado')

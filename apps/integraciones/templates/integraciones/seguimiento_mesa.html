@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Seguimiento de Laboratorios y Centros{% endblock %}
+{% block content %}
+<section class="container-fluid py-4">
+  <h1>Seguimiento de Laboratorios y Centros</h1>
+  <p>Consolidados por adscripción y período. Las designaciones funcionales determinan quién prepara, valida y revisa.</p>
+  <nav class="d-flex flex-wrap mb-3" style="gap:1rem" aria-label="Registros de seguimiento">
+    <a href="{% url 'seguimiento_registrar' 'evidencia' %}">Evidencias de Centro</a>
+    <a href="{% url 'seguimiento_registrar' 'referencia' %}">Referencias oficiales de investigación</a>
+    <a href="{% url 'seguimiento_registrar' 'activo' %}">Identidad de activos</a>
+    {% if user.is_superuser %}<a href="{% url 'admin:core_asignaciongobernanza_changelist' %}">Configurar designaciones documentadas</a>{% endif %}
+  </nav>
+  {% if institucional %}<p>Instalaciones sin adscripción: {{ sin_adscripcion }}. Activos con identidad común registrada: {{ activos }}.</p>{% endif %}
+  <h2>Preparar una versión del consolidado</h2>
+  {% if form.fields.ambito.choices %}<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary" type="submit">Preparar desde las fuentes actuales</button></form>{% else %}<p>No tiene un ámbito habilitado para preparar consolidados. La revisión institucional se realiza sobre las versiones preparadas y validadas por cada adscripción.</p>{% endif %}
+  <h2 class="mt-4">Consolidados conservados</h2>
+  <div class="table-responsive"><table class="table"><thead><tr><th>Ámbito</th><th>Período</th><th>Versión</th><th>Estado</th></tr></thead><tbody>
+    {% for c in filas %}<tr><td><a href="{% url 'seguimiento_detalle' c.pk %}">{{ c.fuentes.nombre }}</a></td><td>{{ c.inicio }} – {{ c.fin }}</td><td>{{ c.version }}</td><td>{{ c.get_estado_display }}</td></tr>
+    {% empty %}<tr><td colspan="4">No hay consolidados para sus ámbitos habilitados.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if institucional %}<h2>Exportación institucional</h2><form action="{% url 'seguimiento_exportar' %}" method="get"><label>Inicio <input type="date" name="inicio" required></label> <label>Fin <input type="date" name="fin" required></label> <button class="btn btn-outline-primary">Descargar consolidado y cobertura</button></form>{% endif %}
+  <h2 class="mt-4">Referencias al sistema oficial de investigación</h2>
+  <p>Estas constancias verifican correspondencia con una fuente. La aprobación científica corresponde al procedimiento de Investigación e Innovación.</p>
+  <div class="table-responsive"><table class="table"><thead><tr><th>Centro y registro</th><th>Fuente oficial</th><th>Verificación de correspondencia</th></tr></thead><tbody>
+  {% for r in referencias %}<tr><td>{{ r.centro }} · {{ r.tipo }} {{ r.objeto_id }}</td><td><a href="{{ r.fuente }}" rel="noopener noreferrer">{{ r.sistema }} · {{ r.identificador }}</a> · {{ r.estado_oficial }}</td><td>{% if r.verificado_en %}{{ r.verificado_en }}{% elif ciencia %}<form method="post" action="{% url 'seguimiento_verificar_referencia' r.pk %}">{% csrf_token %}<button class="btn btn-outline-primary">Confirmar correspondencia consultada</button></form>{% else %}Pendiente de Investigación e Innovación{% endif %}</td></tr>{% empty %}<tr><td colspan="3">Sin referencias registradas.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

@@ -1,4 +1,5 @@
 """Conformidad documental objetiva; no autoriza gastos ni acredita resultados futuros."""
+from apps.core.gobernanza import es_revisor_institucional
 import re
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -254,7 +255,7 @@ def confirmar_conformidad(documento, usuario, version, huella, confirmado=False,
         recibir_documento, evaluar_documento, _REGISTRO_CONFORMIDAD_PLAN,
     )
     from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
-    if documento.exigido.codigo not in CODIGOS or not usuario.is_superuser or not usuario.is_active:
+    if documento.exigido.codigo not in CODIGOS or not es_revisor_institucional(usuario) or not usuario.is_active:
         raise ValidationError('La confirmación corresponde a planificación o compras y requiere permiso de Dirección.')
     if not confirmado:
         raise ValidationError('Confirma la conformidad documental de la versión consultada.')

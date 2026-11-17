@@ -388,7 +388,9 @@ def procesar_documento(documento, *, usuario=None, contexto=None, aplicar=True):
     if usuario is not None:
         from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad
         from django.core.exceptions import PermissionDenied
-        if not puede_operar_modulo_unidad(usuario, documento.unidad, 'reportes'):
+        from apps.core.gobernanza import es_revisor_institucional
+        if not (es_revisor_institucional(usuario) or
+                puede_operar_modulo_unidad(usuario, documento.unidad, 'reportes')):
             raise PermissionDenied('No tienes permiso para comprobar este expediente.')
     anterior = ControlAutomaticoDocumento.objects.filter(documento=documento).first()
     inicio, fin = tramo_del_documento(documento)

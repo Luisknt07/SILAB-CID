@@ -31,3 +31,13 @@ def reservation_notifications(request):
         'reservation_notifications': SimpleLazyObject(recientes),
         'reservation_notifications_unread': SimpleLazyObject(sin_leer),
     }
+
+
+def seguimiento_funcional(request):
+    from django.utils.functional import SimpleLazyObject
+    def habilitado():
+        from apps.core.gobernanza import asignaciones_vigentes
+        usuario = getattr(request, 'user', None)
+        return bool(usuario and usuario.is_authenticated and usuario.is_active and
+            (usuario.is_superuser or asignaciones_vigentes(usuario).exists()))
+    return {'seguimiento_habilitado': SimpleLazyObject(habilitado)}

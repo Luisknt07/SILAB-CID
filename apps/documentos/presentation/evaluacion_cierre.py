@@ -1,4 +1,5 @@
 """Cumplimiento del cierre desde metas y registros, con evidencia congelada al enviar."""
+from apps.core.gobernanza import es_revisor_institucional
 import hashlib
 import json
 import re
@@ -411,7 +412,7 @@ def confirmar_cierre(documento, usuario, version, huella, confirmado=False, come
     from apps.documentos.presentation.expediente import _exigir_cierre_concluido
     _exigir_cierre_concluido(documento)
 
-    if not usuario.is_superuser or documento.exigido.codigo != 'INFORME-SEMESTRAL':
+    if not es_revisor_institucional(usuario) or documento.exigido.codigo != 'INFORME-SEMESTRAL':
         raise ValidationError('Solo Dirección confirma el informe de cierre.')
     if documento.estado != 'validado' or not documento.recibido_en or documento.firma_pendiente:
         raise ValidationError('Primero recibe el informe firmado enviado por la unidad.')

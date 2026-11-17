@@ -1,4 +1,5 @@
 """Emisión, envío autenticado y aprobación documental sin descargar ni volver a cargar."""
+from apps.core.gobernanza import es_revisor_institucional
 import hashlib
 from datetime import timedelta
 from io import BytesIO
@@ -144,9 +145,8 @@ def generar_y_enviar_qr(documento, usuario):
 
 @comando
 def decidir_documento_qr(documento, usuario, *, token, version, decision, observacion=''):
-    from django.contrib.auth import get_user_model
-    if not get_user_model().objects.filter(pk=usuario.pk, is_active=True, is_superuser=True).exists():
-        raise ValidationError('La aprobación corresponde a Dirección.')
+    if not es_revisor_institucional(usuario):
+        raise ValidationError('La revisión requiere designación institucional vigente.')
     if str(documento.verificacion_qr) != str(token) or str(documento.version) != str(version):
         raise ValidationError('La versión cambió. Vuelve a abrir la revisión.')
     constancia = comprobar_emision(documento)

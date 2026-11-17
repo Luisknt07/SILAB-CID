@@ -306,6 +306,7 @@ TEMPLATES = [
                 'apps.core.presentation.regional.regional_publica',
                 'apps.portal.context_processors.institutional_navigation',
                 'apps.integraciones.context_processors.reservation_notifications',
+                'apps.integraciones.context_processors.seguimiento_funcional',
             ],
         },
     },

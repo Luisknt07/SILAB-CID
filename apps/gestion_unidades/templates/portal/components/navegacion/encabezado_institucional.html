@@ -23,6 +23,7 @@
           <a class="home-session__user" href="{% url 'profile' %}" aria-label="{% translate 'Mi perfil' %}">
             <i class="simple-icon-user"></i><span>{% firstof user.get_full_name user.get_username %}</span>
           </a>
+          {% if seguimiento_habilitado %}<a class="home-session__user" href="{% url 'seguimiento_mesa' %}">{% translate "Seguimiento" %}</a>{% endif %}
           <form class="home-session__logout" method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit" title="{% translate "Cerrar sesión" %}">{% translate "Cerrar sesión" %}</button>

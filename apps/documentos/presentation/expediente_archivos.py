@@ -1,4 +1,5 @@
 """Archivos del expediente: versiones consultables y retirada con trazabilidad."""
+from apps.core.gobernanza import es_revisor_institucional
 import mimetypes
 import base64
 import hashlib
@@ -283,7 +284,7 @@ def exigir_integridad_documental(documento, usuario, *, etapa, declaracion=None)
         with documento.recurso.archivo.open('rb') as archivo:
             huella, metadatos = _leer_archivo(archivo)
         datos = dict(identidad_documental(documento), sha256=huella, metadatos=metadatos,
-            declaracion_unidad=True, director_revisado=bool(usuario.is_superuser and etapa in ('recibir', 'evaluar')))
+            declaracion_unidad=True, director_revisado=bool(es_revisor_institucional(usuario) and etapa in ('recibir', 'evaluar')))
         registrar_integridad_documental(documento, usuario, datos, etapa=etapa)
         estado = estado_integridad_documental(documento)
     if etapa in ('recibir', 'evaluar') and not estado['correspondencia_verificada']:

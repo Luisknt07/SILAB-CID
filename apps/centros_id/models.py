@@ -391,13 +391,22 @@ class Componente(models.Model):
         ordering = ('centro', 'orden', 'nombre')
         constraints = [models.UniqueConstraint(fields=('centro', 'codigo'), name='componente_codigo_por_centro'),
                        models.CheckConstraint(condition=~models.Q(pk=models.F('integrado_en')),
-                                              name='cid_area_no_se_integra_en_si')]
+                                              name='cid_area_no_se_integra_en_si'),
+                       models.UniqueConstraint(fields=('unidad_slug',), condition=~models.Q(unidad_slug=''),
+                                               name='cid_laboratorio_propio_unico')]
 
     def __str__(self):
         return self.nombre_corto or self.nombre
 
     def clean(self):
         super().clean()
+        if self.unidad_slug:
+            if type(self).objects.filter(unidad_slug=self.unidad_slug).exclude(pk=self.pk).exists():
+                raise ValidationError({'unidad_slug': _('Esta instalación ya figura como capacidad propia de otra área. '
+                    'Para compartirla conserve su adscripción y registre una articulación.')})
+            if self.unidad_slug in self.lista_unidades:
+                raise ValidationError({'unidades_articuladas': _('La misma instalación no puede figurar '
+                    'a la vez como propia y vinculada en esta área.')})
         if self.integrado_en_id:
             padre = self.integrado_en
             if padre.pk == self.pk or padre.centro_id != self.centro_id or padre.integrado_en_id:

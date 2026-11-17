@@ -8,6 +8,7 @@ from django.conf import settings
 from django.urls import include, path
 
 urlpatterns = [
+    path("", include("apps.integraciones.urls")),
     path("", include("apps.portal.presentation.urls")),
     path("", include("apps.centros_id.presentation.urls")),
     path("", include("apps.laboratorios.presentation.urls")),

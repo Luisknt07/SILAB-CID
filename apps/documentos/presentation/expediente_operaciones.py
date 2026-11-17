@@ -59,13 +59,15 @@ def recordar_extraccion(recurso):
 
 
 @contextmanager
-def operacion_de_unidad(unidad_id, usuario):
+def operacion_de_unidad(unidad_id, usuario, *, revision=False):
     principal = _archivos_creados.get() is None
     token = _archivos_creados.set([]) if principal else None
     try:
         with transaction.atomic():
             unidad = Unidad.objects.select_for_update().get(pk=unidad_id)
-            if not puede_operar_modulo_unidad(usuario, unidad, 'reportes'):
+            from apps.core.gobernanza import es_revisor_institucional
+            if not ((revision and es_revisor_institucional(usuario)) or
+                    (not revision and puede_operar_modulo_unidad(usuario, unidad, 'reportes'))):
                 raise ValidationError('No tienes permiso para modificar el expediente de esta unidad.')
             yield unidad
     except Exception:
@@ -100,7 +102,9 @@ def comando(funcion):
         usuario = argumentos['usuario']
         token = _peticion_actual.set(request) if request is not None else None
         try:
-            with operacion_de_unidad(documento.unidad_id, usuario) as unidad:
+            from .independencia_revision import COMANDOS_DE_REVISION
+            with operacion_de_unidad(documento.unidad_id, usuario,
+                    revision=funcion.__name__ in COMANDOS_DE_REVISION) as unidad:
                 actual = DocumentoExpediente.objects.select_for_update().get(pk=documento.pk)
                 documento.__dict__.update(actual.__dict__)
                 campos = [campo.attname for campo in documento._meta.concrete_fields]
@@ -118,6 +122,9 @@ def comando(funcion):
                 if funcion.__name__ == '_generar':
                     from .aprobacion_en_linea import preparar_emision
                     preparar_emision(documento, usuario)
+                from .independencia_revision import COMANDOS_DE_REVISION, exigir_revision_independiente
+                if funcion.__name__ in COMANDOS_DE_REVISION:
+                    exigir_revision_independiente(documento, usuario, unidad)
                 resultado = funcion(*args, **kwargs)
                 if fuentes_previas is not None:
                     # Un contexto nuevo vuelve a leer las fuentes. Reutilizar

@@ -1,4 +1,5 @@
 """Acciones comunes para las entregas principales; anexos y consultas conservan su función."""
+from apps.core.gobernanza import es_revisor_institucional
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -7,9 +8,8 @@ from .expediente_operaciones import comando
 
 @comando
 def decidir_desde_listado(documento, usuario, *, version, huella, decision, observacion=''):
-    from django.contrib.auth import get_user_model
-    if not get_user_model().objects.filter(pk=usuario.pk, is_active=True, is_superuser=True).exists():
-        raise ValidationError('La revisión corresponde a Dirección.')
+    if not es_revisor_institucional(usuario):
+        raise ValidationError('La revisión requiere designación institucional vigente.')
     if decision not in ('aprobar', 'rechazar'):
         raise ValidationError('Selecciona aprobar o rechazar.')
     if (documento.exigido.es_anexo or not documento.recurso_id or documento.estado != 'validado'

@@ -4,6 +4,7 @@ La decisión humana se vincula al archivo y a la unidad, no al año de la fila
 que lo muestra. Una revocación posterior impide recuperar una aprobación
 antigua. La huella acredita integridad; no certifica autoridad ni firma.
 """
+from apps.core.gobernanza import es_revisor_institucional
 import hashlib
 import re
 
@@ -232,8 +233,8 @@ def aprobacion_vigente(documento, inspeccionar=False):
 
 
 def _autoridad(usuario):
-    if not getattr(usuario, 'is_superuser', False) or not getattr(usuario, 'is_active', False):
-        raise ValidationError('Solo Dirección puede aceptar o revocar un documento permanente.')
+    if not es_revisor_institucional(usuario) or not getattr(usuario, 'is_active', False):
+        raise ValidationError('Solo el responsable institucional designado puede aceptar o revocar un documento permanente.')
 
 
 def _datos(documento, usuario, estado, comentario):

@@ -9,6 +9,7 @@ Hay tres tipos de usuario y nada más:
   les asigne;
 * el resto de usuarios, que solo ven y gestionan sus propias reservas.
 """
+from apps.core.gobernanza import es_revisor_institucional
 
 from django.db.models import Q
 
@@ -165,7 +166,7 @@ def es_receptor_de(usuario, unidad):
 
 
 def puede_leer_expediente(usuario, unidad):
-    return (puede_operar_modulo_unidad(usuario, unidad, 'reportes')
+    return (es_revisor_institucional(usuario) or puede_operar_modulo_unidad(usuario, unidad, 'reportes')
             or es_receptor_de(usuario, unidad))
 
 
@@ -173,7 +174,7 @@ def unidades_del_expediente(usuario):
     """El mismo alcance para consola, reportes y administradores de modelos proxy."""
     if not _cuenta_activa(usuario):
         return Unidad.objects.none()
-    if usuario.is_superuser:
+    if usuario.is_superuser or es_revisor_institucional(usuario):
         return Unidad.objects.all()
     operativas = [unidad.pk for unidad in unidades_gestionables(usuario)
                   if puede_operar_modulo_unidad(usuario, unidad, 'reportes')]

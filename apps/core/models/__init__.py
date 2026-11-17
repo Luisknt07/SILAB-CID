@@ -8,3 +8,5 @@ from apps.core.models.periodos import PeriodoAcademico  # noqa: F401
 from apps.core.models.periodos import VersionCalendarioAcademico  # noqa: F401
 from apps.core.models.periodos import SemanaAcademica  # noqa: F401
 from apps.core.models.periodos import VinculacionUsuarioPeriodo  # noqa: F401
+
+from apps.core.models.gobernanza import AsignacionGobernanza  # noqa: F401

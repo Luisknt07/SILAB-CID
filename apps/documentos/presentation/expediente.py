@@ -5,6 +5,7 @@ El calendario académico orienta la docencia, sin redefinir estos reportes.
 Cada documento conserva el alcance con el que se preparó y los archivos ya
 guardados mantienen sus fechas, versiones y resultados originales.
 """
+from apps.core.gobernanza import es_revisor_institucional
 
 from collections import Counter, defaultdict
 from datetime import date
@@ -1156,7 +1157,7 @@ def _invalidar_evaluacion(documento):
 def anotar_observacion(documento, usuario, observacion, *, version, recurso_id, huella,
                       huella_anterior, motivo):
     """Prepara el motivo de una acción administrativa sin sobrescribir el estado."""
-    if not usuario.is_active or not usuario.is_superuser:
+    if not usuario.is_active or not es_revisor_institucional(usuario):
         raise ValidationError('Solo la Dirección anota observaciones desde la administración.')
     from .observaciones_documentales import _guardar_texto
     _guardar_texto(documento, usuario, 'observacion', observacion, version=version,
@@ -1173,7 +1174,7 @@ def observar_documento(documento, usuario, observacion, hasta=None):
     if documento.exigido.es_anexo:
         raise ValidationError(
             f'{documento.nombre_documental} es un anexo: se observa «{documento.exigido.anexo_de.nombre}».')
-    if not usuario.is_active or not usuario.is_superuser:
+    if not usuario.is_active or not es_revisor_institucional(usuario):
         raise ValidationError('Solo la Dirección devuelve documentos para corregir.')
     if not (observacion or '').strip():
         raise ValidationError('Escribe el motivo de la observación: la unidad lo necesita para corregir.')
@@ -1220,7 +1221,7 @@ def recibir_documento(documento, usuario, *, declaracion_correspondencia=None):
     if documento.exigido.es_anexo:
         raise ValidationError(
             f'{documento.nombre_documental} es un anexo: se recibe «{documento.exigido.anexo_de.nombre}».')
-    if not usuario.is_superuser:
+    if not es_revisor_institucional(usuario):
         raise ValidationError('Solo la Dirección da por recibida una entrega que la unidad no validó.')
     if not documento.recurso_id:
         raise ValidationError('No hay documento archivado: no se recibe lo que todavía no existe.')
@@ -1284,7 +1285,7 @@ def solicitar_entrega_tardia(documento, usuario, motivo):
 @comando
 def habilitar_entrega_tardia(documento, usuario, hasta=None):
     """La Dirección abre la entrega vencida que la unidad solicitó."""
-    if not usuario.is_superuser:
+    if not es_revisor_institucional(usuario):
         raise ValidationError('Solo la Dirección habilita una entrega fuera de plazo.')
     if not documento.correccion_hasta and (not documento.ultimatum_hasta or documento.ultimatum_activo):
         raise ValidationError('La reapertura individual procede después del ultimátum colectivo vencido.')
@@ -1345,7 +1346,7 @@ def evaluar_documento(documento, usuario, porcentaje, observacion='', fortalezas
         raise ValidationError(
             f'{documento.nombre_documental} es de cumplimiento obligatorio: la Dirección lo acepta u observa, '
             'sin porcentaje. Solo el informe semestral se califica, con el cumplimiento de sus metas.')
-    if not usuario.is_superuser:
+    if not es_revisor_institucional(usuario):
         raise ValidationError('Solo la Dirección evalúa los documentos enviados.')
     if documento.estado != 'validado' and not registrar_incumplimiento:
         raise ValidationError(
