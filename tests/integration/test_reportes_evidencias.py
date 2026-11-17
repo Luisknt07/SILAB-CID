@@ -158,8 +158,8 @@ class SelectorPorFamiliasTests(BaseDeReportes):
                 self.assertContains(panel, familia)
         self.assertContains(panel, 'Planificación semestral de prácticas por asignatura')
         # Las consultas de prácticas llevan el nombre del anexo al que alimentan (documentos.0027).
-        self.assertContains(panel, 'Planificación semestral de las prácticas')
-        self.assertContains(panel, 'Registros de asistencia y evidencias de las prácticas')
+        self.assertContains(panel, 'Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable')
+        self.assertContains(panel, 'Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados')
         # Un laboratorio que no produce no ofrece producción, pero sí transferencia.
         self.assertNotContains(panel, 'categoria_reporte=produccion')
         self.assertNotContains(panel, 'Producción (plantas piloto)')

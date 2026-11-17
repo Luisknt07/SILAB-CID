@@ -416,7 +416,7 @@ class FlujoPracticasTests(TestCase):
             (output / "expediente-practica.pdf").write_bytes(pdf.content)
         # Sin los nombres FT02/FT03: la consulta y su formato llevan nombres y códigos propios.
         # La consulta lleva el nombre del anexo al que alimenta (documentos.0027).
-        self.assertContains(report, "Planificación semestral de las prácticas")
+        self.assertContains(report, "Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable")
         self.assertContains(report, "PLANIFICACIÓN DE PRÁCTICAS ACADÉMICAS")
         self.assertContains(report, "SLCID-PRACTICAS-PLAN")
         self.assertNotContains(report, "UPEC-P10-S01-FT02")
@@ -428,7 +428,7 @@ class FlujoPracticasTests(TestCase):
         matriz = report.content.decode().split('unit-report__table--matrix-planificaciones"><thead>')[1].split('</thead>')[0]
         self.assertEqual(matriz.count('<th>'), 16)
         self.assertTrue(report_pdf.content.startswith(b"%PDF"))
-        self.assertContains(execution_report, "Registros de asistencia y evidencias de las prácticas")
+        self.assertContains(execution_report, "Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados")
         self.assertContains(execution_report, "EJECUCIÓN Y EVALUACIÓN DE PRÁCTICAS ACADÉMICAS")
         self.assertContains(execution_report, "SLCID-PRACTICAS-EJECUCION")
         self.assertNotContains(execution_report, "UPEC-P10-S01-FT03")

@@ -27,7 +27,7 @@ tablas y columnas lleva cada uno. Parte de las dos listas que pidió la universi
 
 | Tema | Decisión | Por qué |
 | --- | --- | --- |
-| Nombres | La redacción de la universidad, ajustada al documento y al tipo de unidad | Quien revisa encuentra cada exigencia por su nombre |
+| Nombres | La redacción literal de la universidad. Solo cambia donde hay un motivo (ver abajo) | Quien revisa encuentra cada exigencia por su texto |
 | Un documento por exigencia | Solo se unen las exigencias que forman una misma cadena de registros | Cada exigencia se marca una a una |
 | Registros completos | Cada anexo presenta todos los registros del período, en cualquier estado; los anulados no se presentan | El anexo recoge datos; el análisis está en el informe |
 | Sin repeticiones | Cada dato tiene un anexo dueño; los demás lo citan por su código (sección 6) | Una sola cifra para cada cosa |
@@ -38,6 +38,22 @@ tablas y columnas lleva cada uno. Parte de las dos listas que pidió la universi
 | Observatorio, prácticas y desechos | No lleva | No tiene prácticas ni genera desechos peligrosos |
 | Centro experimental | Ensayos y producción agropecuaria van separados | Un ensayo es investigación; un ciclo productivo es producción |
 | Inspecciones | Se agregan condiciones propias del tipo: inocuidad en plantas piloto, agroquímicos, maquinaria y sanidad animal en el centro experimental | Las siete condiciones generales no cubren esos riesgos |
+
+### Dónde el nombre se aparta de la redacción de la universidad
+
+| Anexo | Texto de la universidad | Motivo del ajuste |
+| --- | --- | --- |
+| Registros de uso | Planificación y registros de uso de laboratorios | La planificación es el documento principal «Planificación semestral»; el anexo lleva los registros |
+| Reportes de seguridad y condiciones de operación | Protocolos de bioseguridad y reportes de seguridad y condiciones de operación | El protocolo es un documento principal; el anexo lleva los reportes |
+| Fichas técnicas… utilizados | Inventario o ficha técnica de laboratorios, talleres, software, simuladores y espacios utilizados | El inventario es el anexo 3; este lleva las fichas |
+| Guías de prácticas… | «Guías de prácticas de laboratorio» y «guías de prácticas aprobadas y vinculadas con los contenidos del syllabus» | Las dos listas piden el mismo documento: un solo anexo con ambos textos |
+| Por tipo de unidad | «laboratorio», «laboratorios, talleres…» | Planta piloto, centro experimental y observatorio nombran sus propios espacios, guías e inventario |
+
+Los demás nombres son el texto de la universidad, sin recortes (documentos.0028).
+
+### Lectura por categorías en el Centro de reportes
+
+Los anexos se leen por temas, en el mismo orden y con el mismo número que llevan en el informe: uso, equipamiento e inventario; evidencias de las prácticas; seguridad; los propios del tipo de unidad; y los que dependen de la actividad del período (desechos, investigación y transferencia). Las consultas de gestión quedan aparte, juntas y plegadas: no se entregan ni puntúan, y no se ofrece la que repite un anexo (prácticas por asignatura, inventario de insumos, mantenimiento y visitas).
 
 ## 2. Reglas comunes del formato
 
@@ -92,64 +108,64 @@ El orden es siempre el mismo:
 | N.º | Anexo | Código | Se presenta |
 | --- | --- | --- | --- |
 | 1 | Registros de uso del laboratorio | USO | Siempre |
-| 2 | Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
+| 2 | Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
 | 3 | Inventario de equipamiento, reactivos e insumos | INVENTARIO | Siempre (semestral) |
-| 4 | Fichas técnicas de laboratorios, talleres, software, simuladores y espacios | FICHAS | Siempre |
-| 5 | Planificación semestral de las prácticas | PRACTICAS-PLAN | Siempre |
-| 6 | Guías de prácticas de laboratorio | GUIAS | Siempre |
-| 7 | Registros de asistencia y evidencias de las prácticas | PRACTICAS-EVIDENCIAS | Siempre |
+| 4 | Fichas técnicas de laboratorios, talleres, software, simuladores y espacios utilizados | FICHAS | Siempre |
+| 5 | Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable | PRACTICAS-PLAN | Siempre |
+| 6 | Guías de prácticas de laboratorio aprobadas y vinculadas con los contenidos del syllabus | GUIAS | Siempre |
+| 7 | Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados | PRACTICAS-EVIDENCIAS | Siempre |
 | 8 | Reportes de seguridad y condiciones de operación | SEGURIDAD | Siempre |
-| 9 | Registros de gestión de desechos peligrosos y especiales | DESECHOS | Condicional (sección 4.9) |
-| 10 | Informe de resultados de investigación aplicada y desarrollo tecnológico | INVESTIGACION | Si el plan compromete investigación |
-| 11 | Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad | TRANSFERENCIA | Si el plan compromete transferencia o servicios, o si hubo servicios atendidos |
+| 9 | Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable | DESECHOS | Condicional (sección 4.9) |
+| 10 | Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros | INVESTIGACION | Si el plan compromete investigación |
+| 11 | Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad | TRANSFERENCIA | Si el plan compromete transferencia o servicios, o si hubo servicios atendidos |
 
 ### Planta piloto (prefijo SLCID-PP)
 
 | N.º | Anexo | Código | Se presenta |
 | --- | --- | --- | --- |
 | 1 | Registros de uso de la planta piloto | USO | Siempre |
-| 2 | Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
+| 2 | Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
 | 3 | Inventario de equipamiento, reactivos e insumos | INVENTARIO | Siempre (semestral) |
-| 4 | Fichas técnicas de líneas de proceso, salas, cámaras, software y espacios | FICHAS | Siempre |
-| 5 | Planificación semestral de las prácticas | PRACTICAS-PLAN | Siempre |
-| 6 | Guías de prácticas de la planta piloto | GUIAS | Siempre |
-| 7 | Registros de asistencia y evidencias de las prácticas | PRACTICAS-EVIDENCIAS | Siempre |
+| 4 | Fichas técnicas de líneas de proceso, salas, cámaras, software y espacios utilizados | FICHAS | Siempre |
+| 5 | Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable | PRACTICAS-PLAN | Siempre |
+| 6 | Guías de prácticas de la planta piloto aprobadas y vinculadas con los contenidos del syllabus | GUIAS | Siempre |
+| 7 | Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados | PRACTICAS-EVIDENCIAS | Siempre |
 | 8 | Reportes de seguridad, inocuidad y condiciones de operación | SEGURIDAD | Siempre |
 | 9 | Producción de la planta piloto: órdenes, lotes y entregas | PRODUCCION | Siempre |
 | 10 | Control de calidad de la planta piloto: controles y no conformidades | CALIDAD | Siempre |
-| 11 | Registros de gestión de desechos peligrosos y especiales | DESECHOS | Condicional |
-| 12 | Informe de resultados de investigación aplicada y desarrollo tecnológico | INVESTIGACION | Condicional |
-| 13 | Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad | TRANSFERENCIA | Condicional |
+| 11 | Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable | DESECHOS | Condicional |
+| 12 | Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros | INVESTIGACION | Condicional |
+| 13 | Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad | TRANSFERENCIA | Condicional |
 
 ### Centro experimental (prefijo SLCID-CE)
 
 | N.º | Anexo | Código | Se presenta |
 | --- | --- | --- | --- |
 | 1 | Registros de uso del centro experimental | USO | Siempre |
-| 2 | Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
+| 2 | Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
 | 3 | Inventario de equipamiento, insumos agropecuarios y reactivos | INVENTARIO | Siempre (semestral) |
-| 4 | Fichas técnicas de parcelas, invernaderos, instalaciones pecuarias y espacios | FICHAS | Siempre |
-| 5 | Planificación semestral de las prácticas | PRACTICAS-PLAN | Siempre |
-| 6 | Guías de prácticas de campo | GUIAS | Siempre |
-| 7 | Registros de asistencia y evidencias de las prácticas | PRACTICAS-EVIDENCIAS | Siempre |
+| 4 | Fichas técnicas de parcelas, invernaderos, instalaciones pecuarias y espacios utilizados | FICHAS | Siempre |
+| 5 | Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable | PRACTICAS-PLAN | Siempre |
+| 6 | Guías de prácticas de campo aprobadas y vinculadas con los contenidos del syllabus | GUIAS | Siempre |
+| 7 | Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados | PRACTICAS-EVIDENCIAS | Siempre |
 | 8 | Reportes de seguridad y condiciones de operación de campo | SEGURIDAD | Siempre |
 | 9 | Ensayos y parcelas experimentales | ENSAYOS | Siempre |
 | 10 | Producción agropecuaria: ciclos, labores, sanidad y cosechas | PRODUCCION-AGRO | Siempre |
-| 11 | Registros de gestión de desechos peligrosos y especiales | DESECHOS | Condicional |
-| 12 | Informe de resultados de investigación aplicada y desarrollo tecnológico | INVESTIGACION | Condicional |
-| 13 | Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad | TRANSFERENCIA | Condicional |
+| 11 | Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable | DESECHOS | Condicional |
+| 12 | Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros | INVESTIGACION | Condicional |
+| 13 | Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad | TRANSFERENCIA | Condicional |
 
 ### Observatorio (prefijo SLCID-OBS)
 
 | N.º | Anexo | Código | Se presenta |
 | --- | --- | --- | --- |
-| 1 | Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
+| 1 | Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad | EQUIPAMIENTO | Siempre |
 | 2 | Inventario de equipos informáticos, software y espacios | INVENTARIO | Anual, con el informe B |
 | 3 | Datos del observatorio: fuentes, metodología y actualización de indicadores | DATOS | Siempre |
 | 4 | Publicaciones del observatorio: boletines y calendario | PUBLICACIONES | Siempre |
 | 5 | Socialización del observatorio: eventos y participantes | SOCIALIZACION | Siempre |
-| 6 | Informe de resultados de investigación aplicada y desarrollo tecnológico | INVESTIGACION | Condicional |
-| 7 | Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad | TRANSFERENCIA | Condicional; incluye las solicitudes de información atendidas |
+| 6 | Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros | INVESTIGACION | Condicional |
+| 7 | Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad | TRANSFERENCIA | Condicional; incluye las solicitudes de información atendidas |
 
 **Documentos principales** (sin cambio de estructura):
 
@@ -230,7 +246,7 @@ Exigencia: «Planificación y registros de uso de laboratorios». Tipos: laborat
 - el detalle de los servicios (anexo de transferencia);
 - el análisis de uso frente a la capacidad (informe).
 
-### 4.2 Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad
+### 4.2 Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad
 
 Exigencia: la del mismo nombre. Tipos: los cuatro. En el observatorio cubre equipos informáticos y plataformas.
 
@@ -438,7 +454,7 @@ Exigencia: «Inventario de equipamiento, reactivos e insumos». Tipos: los cuatr
 
 - **Tabla 2.5 · Espacios:** código / nombre, tipo, capacidad y ubicación (EspacioReservable).
 
-### 4.4 Fichas técnicas de laboratorios, talleres, software, simuladores y espacios
+### 4.4 Fichas técnicas de laboratorios, talleres, software, simuladores y espacios utilizados
 
 Exigencia: «Inventario o ficha técnica de laboratorios, talleres, software, simuladores y espacios utilizados». Tipos: laboratorio, planta piloto y centro experimental.
 
@@ -489,7 +505,7 @@ Exigencia: «Inventario o ficha técnica de laboratorios, talleres, software, si
 
 **No va aquí:** los equipos (anexo 3).
 
-### 4.5 Planificación semestral de las prácticas
+### 4.5 Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable
 
 Exigencia: «Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable». Tipos: laboratorio, planta piloto y centro experimental.
 
@@ -585,7 +601,7 @@ Exigencia: «Guías de prácticas de laboratorio» y «Guías de prácticas apro
 | 4 | Fecha | |
 | 5 | Aprobada por | |
 
-### 4.7 Registros de asistencia y evidencias de las prácticas
+### 4.7 Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados
 
 Exigencia: «Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados». Tipos: laboratorio, planta piloto y centro experimental.
 
@@ -732,7 +748,7 @@ Exigencia: «Protocolos de bioseguridad y reportes de seguridad y condiciones de
 - los desechos (anexo de desechos);
 - las fallas técnicas (tabla 2.4).
 
-### 4.9 Registros de gestión de desechos peligrosos y especiales
+### 4.9 Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable
 
 Exigencia: «Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable». Tipos: laboratorio, planta piloto y centro experimental.
 
@@ -781,7 +797,7 @@ Exigencia: «Registros de gestión de desechos peligrosos y especiales, conforme
   - la condición de segregación de desechos (tabla 8.3);
   - los reactivos en existencia (anexo 3).
 
-### 4.10 Informe de resultados de investigación aplicada y desarrollo tecnológico
+### 4.10 Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros
 
 Exigencia: la del mismo nombre. Tipos: los cuatro. Se presenta si el plan compromete investigación.
 
@@ -803,16 +819,17 @@ Exigencia: la del mismo nombre. Tipos: los cuatro. Se presenta si el plan compro
 
 | # | Columna | Contenido |
 | --- | --- | --- |
-| 1 | Sesión | Código (anexo 1) |
-| 2 | Fecha | |
-| 3 | Proyecto o actividad | |
-| 4 | Responsable | |
+| 1 | Proyecto o actividad | Una fila por proyecto o actividad |
+| 2 | Responsable | |
+| 3 | Sesiones | Cantidad registrada |
+| 4 | Atendidas | |
 | 5 | Horas efectivas | |
+| 6 | Códigos de las sesiones | Las sesiones están una a una en el anexo 1; aquí solo se citan |
 
 - **Centro experimental:** la tabla 10.1 cita el ensayo de origen (código del anexo 9).
 - **Observatorio:** van los artículos y proyectos de investigación; los boletines van en su anexo de publicaciones.
 
-### 4.11 Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad
+### 4.11 Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad
 
 Exigencia: la del mismo nombre. Tipos: los cuatro.
 

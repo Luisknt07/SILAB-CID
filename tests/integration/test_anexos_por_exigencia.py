@@ -35,12 +35,13 @@ from apps.documentos.presentation.expediente import (
     anexos_del, construir_expediente, generar_anexos, tramo_del_documento,
 )
 from apps.documentos.presentation.expediente_catalogo import (
-    CATALOGO, CATALOGO_PERFILES, RETIRADOS, TIPOS_CATALOGO_PERFILES, asegurar_catalogo,
+    CATALOGO, CATALOGO_PERFILES, NOMBRES_ESTANDAR_ANTERIORES, RETIRADOS, TIPOS_CATALOGO_PERFILES, asegurar_catalogo,
 )
 from apps.documentos.presentation.expediente_redaccion import ACTIVIDADES_PLAN
 from apps.documentos.presentation.perfil_laboratorios import NOMBRES, SUFIJOS_DE_REFERENCIA, referencia_interna
 
 MIGRACION = import_module('apps.documentos.migrations.0027_anexos_por_exigencia')
+DE_LA_UNIVERSIDAD = import_module('apps.documentos.migrations.0028_nombres_de_la_universidad')
 IDENTIDAD = (SimpleNamespace(codigo='PRUEBA'), SimpleNamespace(nombre='Institución de prueba', siglas='IP', paleta={}))
 COMUNES = ['REGISTRO-USO', 'EQUIPAMIENTO', 'INVENTARIO-CORTE', 'FICHAS-TECNICAS', 'PRACTICAS-FT02', 'GUIAS',
            'PRACTICAS-FT03', 'INDUCCION-SEGURIDAD']
@@ -92,11 +93,11 @@ class CatalogoPorExigenciaTests(SimpleTestCase):
 
     def test_cada_anexo_comun_lleva_el_nombre_de_la_exigencia(self):
         self.assertEqual(self.anexos['EQUIPAMIENTO'][1],
-                         'Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad')
+                         'Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad')
         self.assertEqual(self.anexos['INVENTARIO-CORTE'][1], 'Inventario de equipamiento, reactivos e insumos')
-        self.assertEqual(self.anexos['DESECHOS'][1], 'Registros de gestión de desechos peligrosos y especiales')
+        self.assertEqual(self.anexos['DESECHOS'][1], 'Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable')
         self.assertEqual(NOMBRES['REGISTRO-USO'], 'Registros de uso del laboratorio')
-        self.assertEqual(NOMBRES['GUIAS'], 'Guías de prácticas de laboratorio')
+        self.assertEqual(NOMBRES['GUIAS'], 'Guías de prácticas de laboratorio aprobadas y vinculadas con los contenidos del syllabus')
         for codigo, (titulo, _metas) in ANEXOS.items():
             with self.subTest(codigo=codigo):
                 self.assertEqual(titulo, self.anexos[codigo][1])
@@ -127,15 +128,23 @@ class CatalogoPorExigenciaTests(SimpleTestCase):
                 self.assertTrue(set(metas) - {'USO-EFECTIVO'} <= set(ANEXOS_METAS[codigo]))
 
     def test_la_migracion_escribe_lo_mismo_que_el_catalogo(self):
+        # documentos.0028 lleva los nombres recortados de 0027 a la redacción de la universidad.
         for codigo, (_anterior, nombre) in MIGRACION.NOMBRES.items():
-            self.assertEqual(nombre, self.anexos[codigo][1], codigo)
+            vigente = DE_LA_UNIVERSIDAD.NOMBRES.get(codigo, (nombre, nombre))
+            self.assertEqual(vigente[0], nombre, codigo)
+            self.assertEqual(vigente[1], self.anexos[codigo][1], codigo)
+        for codigo, (recortado, _nuevo) in DE_LA_UNIVERSIDAD.NOMBRES.items():
+            self.assertIn(recortado, NOMBRES_ESTANDAR_ANTERIORES[codigo], codigo)
+        self.assertEqual(DE_LA_UNIVERSIDAD.NOMBRES['FICHAS-TECNICAS'],
+                         (MIGRACION.NUEVOS['FICHAS-TECNICAS']['nombre'], self.anexos['FICHAS-TECNICAS'][1]))
         for codigo, (_anterior, descripcion) in MIGRACION.DESCRIPCIONES.items():
             self.assertEqual(descripcion, self.anexos[codigo][11], codigo)
         for codigo, (_anterior, orden) in MIGRACION.ORDENES.items():
             self.assertEqual(orden, self.anexos[codigo][10], codigo)
         for codigo, datos in MIGRACION.NUEVOS.items():
             fila = self.anexos[codigo]
-            self.assertEqual((datos['nombre'], datos['fuente_reporte'], datos['orden'], datos['descripcion']),
+            nombre = DE_LA_UNIVERSIDAD.NOMBRES.get(codigo, (None, datos['nombre']))[1]
+            self.assertEqual((nombre, datos['fuente_reporte'], datos['orden'], datos['descripcion']),
                              (fila[1], fila[9], fila[10], fila[11]), codigo)
             self.assertEqual(datos['tipos_unidad'], TIPOS_CATALOGO_PERFILES.get(codigo, []))
         # Lo que no cambió de nombre o de orden ya coincide con el catálogo anterior.
@@ -286,6 +295,24 @@ class MigracionPorExigenciaTests(TestCase):
     def setUp(self):
         asegurar_catalogo()
         self.editor = SimpleNamespace(connection=SimpleNamespace(alias='default'))
+        # El catálogo se siembra con los nombres de 0028; estas pruebas parten del estado que dejó 0027.
+        self.con_nombres_de_la_universidad = {
+            e.codigo: e.nombre for e in DocumentoExigido.objects.filter(codigo__in=DE_LA_UNIVERSIDAD.NOMBRES)}
+        DE_LA_UNIVERSIDAD.con_los_nombres_recortados(registro, self.editor)
+
+    def test_los_nombres_de_la_universidad_se_aplican_se_revierten_y_respetan_lo_editado(self):
+        recortados = {e.codigo: e.nombre for e in
+                      DocumentoExigido.objects.filter(codigo__in=DE_LA_UNIVERSIDAD.NOMBRES)}
+        self.assertEqual(recortados, {c: n[0] for c, n in DE_LA_UNIVERSIDAD.NOMBRES.items()})
+        DocumentoExigido.objects.filter(codigo='GUIAS').update(nombre='Guías revisadas por la institución')
+        for _vez in range(2):
+            DE_LA_UNIVERSIDAD.con_la_redaccion_de_la_universidad(registro, self.editor)
+        vigentes = {e.codigo: e.nombre for e in
+                    DocumentoExigido.objects.filter(codigo__in=DE_LA_UNIVERSIDAD.NOMBRES)}
+        self.assertEqual(vigentes.pop('GUIAS'), 'Guías revisadas por la institución')
+        esperados = dict(self.con_nombres_de_la_universidad)
+        esperados.pop('GUIAS')
+        self.assertEqual(vigentes, esperados)
 
     def estado(self):
         return {e.codigo: (e.nombre, e.descripcion, e.activo, e.orden)

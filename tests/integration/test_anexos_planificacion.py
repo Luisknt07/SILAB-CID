@@ -70,8 +70,8 @@ class PlanificaExigenciasTests(BaseDeRedaccion):
         self.assertEqual(filas['INSUMOS']['nombre_reporte'], filas['INSUMOS']['nombre'])
         self.assertEqual(filas['INVENTARIO']['anexos'], inventario)
         self.assertEqual(filas['MANTENIMIENTO']['anexos'],
-                         ['Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad'])
-        self.assertEqual(filas['GUIAS']['anexos'], ['Guías de prácticas de laboratorio'])
+                         ['Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad'])
+        self.assertEqual(filas['GUIAS']['anexos'], ['Guías de prácticas de laboratorio aprobadas y vinculadas con los contenidos del syllabus'])
 
     def test_no_se_acepta_una_exigencia_inventada(self):
         post = QueryDict('act__GUIAS__exigencia=aprobar_sin_revisar')

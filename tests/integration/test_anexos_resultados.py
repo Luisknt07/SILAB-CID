@@ -3,7 +3,7 @@
 Fija lo acordado en docs/estructura-anexos-por-tipo-de-unidad.md, secciones 4.10 y 4.11:
 - las tablas de cada anexo, en el orden y con las columnas de la especificación; los llevan los
   cuatro tipos de unidad y el observatorio suma sus solicitudes de información atendidas;
-- una sesión de investigación se cita por su código: es uso, no resultado;
+- las sesiones de investigación se resumen por proyecto y se citan por su código: es uso, no resultado;
 - un servicio cancelado, rechazado o vencido no se presenta;
 - en la planta piloto, la maquila sin solicitud de servicio se cita por el código de su orden;
 - las evidencias anuladas no se presentan.
@@ -30,7 +30,8 @@ TABLAS = {
          ('Código', 'Fecha', 'Proyecto', 'Tipo de producto', 'Producto / resultado', 'Responsable', 'Beneficiario',
           'Verificación', 'Respaldo')),
         ('Uso de la unidad para investigación',
-         ('Sesión', 'Fecha', 'Proyecto o actividad', 'Responsable', 'Horas efectivas')),
+         ('Proyecto o actividad', 'Responsable', 'Sesiones', 'Atendidas', 'Horas efectivas',
+          'Códigos de las sesiones')),
     ],
     'TRANSFERENCIA': [
         ('Transferencias',
@@ -152,9 +153,9 @@ class InvestigacionTests(_ConUnidades):
         self.reserva(date(2026, 10, 9), estado='confirmada', proposito_codigo='docencia_practica')
         tabla = self.registros('INVESTIGACION')[1]
         self.assertEqual(tabla.filas, [
-            [atendida.codigo_reserva, '12/09/2026', Par('Proyecto Secadores solares', 'Medición de humedad del grano.'),
-             'Dra. Rosa Ruiz', '2'],
-            [pendiente.codigo_reserva, '02/10/2026', 'Ensayo de secado', 'Rosa Ruiz', '—'],
+            # Una fila por proyecto: las sesiones están una a una en el anexo de registros de uso.
+            ['Proyecto Secadores solares', 'Dra. Rosa Ruiz', '1', '1', '2', atendida.codigo_reserva],
+            ['Ensayo de secado', 'Rosa Ruiz', '1', '0', '—', pendiente.codigo_reserva],
         ])
         self.assertEqual(tabla.total, 'Total: 2 sesiones · atendidas: 1 · horas efectivas: 2')
 

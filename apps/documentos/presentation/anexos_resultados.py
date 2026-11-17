@@ -86,7 +86,10 @@ def _sesiones_de_investigacion(contexto):
     from apps.reservas.models.reservas import Reserva
     from .expediente_redaccion import ESTADOS_RESERVA_DESCARTADOS
 
-    filas = []
+    # Una fila por proyecto o actividad. Las sesiones ya están una a una en el anexo de registros de
+    # uso: aquí se resumen y se citan por su código, sin repetirlas.
+    grupos = {}
+    sesiones = 0
     atendidas = 0
     horas_totales = 0.0
     for reserva in (Reserva.objects.filter(laboratorio=contexto.unidad,
@@ -101,18 +104,21 @@ def _sesiones_de_investigacion(contexto):
         actividad = reserva.referencia_actividad.strip() or (
             reserva.actividad_catalogo.nombre if reserva.actividad_catalogo_id else '') or reserva.resumen_solicitud
         responsable = reserva.responsable_actividad.strip() or _solicitante_de(reserva)[0]
-        filas.append([
-            texto(reserva.codigo_reserva),
-            fecha(reserva.fecha),
-            par(texto(actividad, 100), texto(reserva.intencion_solicitud, 200) if reserva.intencion_solicitud.strip()
-                else ''),
-            texto(responsable, 60),
-            cifra(round(horas, 2)) if atendida else '—',
-        ])
+        sesiones += 1
+        grupo = grupos.setdefault((texto(actividad, 100), texto(responsable, 60)),
+                                  dict(sesiones=0, atendidas=0, horas=0.0, codigos=[]))
+        grupo['sesiones'] += 1
+        grupo['atendidas'] += atendida
+        grupo['horas'] += horas
+        grupo['codigos'].append(texto(reserva.codigo_reserva))
+    filas = [[actividad, responsable, cifra(grupo['sesiones']), cifra(grupo['atendidas']),
+              cifra(round(grupo['horas'], 2)) if grupo['atendidas'] else '—', ', '.join(grupo['codigos'])]
+             for (actividad, responsable), grupo in grupos.items()]
     return Registro('Uso de la unidad para investigación',
-                    ('Sesión', 'Fecha', 'Proyecto o actividad', 'Responsable', 'Horas efectivas'),
-                    filas, pesos=(14, 10, 46, 18, 12),
-                    total=(f'Total: {plural(len(filas), "sesión", "sesiones")} · atendidas: {cifra(atendidas)} · '
+                    ('Proyecto o actividad', 'Responsable', 'Sesiones', 'Atendidas', 'Horas efectivas',
+                     'Códigos de las sesiones'),
+                    filas, pesos=(34, 18, 9, 9, 10, 20),
+                    total=(f'Total: {plural(sesiones, "sesión", "sesiones")} · atendidas: {cifra(atendidas)} · '
                            f'horas efectivas: {cifra(round(horas_totales, 1))}'),
                     vacio='No hay sesiones de investigación registradas en el período.')
 

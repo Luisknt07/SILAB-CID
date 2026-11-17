@@ -67,7 +67,7 @@ CATALOGO = (
      'Todas las sesiones del período con su horario previsto y real, espacio o recurso, propósito, '
      'solicitante, participantes, cierre y horas efectivas; totales por propósito y por mes, y visitas. '
      'Respalda las metas de registro de sesiones y de uso efectivo.', 'INFORME-SEMESTRAL'),
-    ('EQUIPAMIENTO', 'Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad',
+    ('EQUIPAMIENTO', 'Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'equipamiento', 20,
      'Plan de mantenimiento vigente por equipo, mantenimientos del período con su informe, cumplimiento del '
      'plan en los equipos críticos, fallas y días fuera de servicio, pruebas funcionales, estado de los '
@@ -79,23 +79,23 @@ CATALOGO = (
      'reactivos por lote, insumos y materiales, y movimientos del período. Se presenta cada semestre; en '
      'los observatorios, una vez al año con el informe B. Respalda la meta de revisión física del '
      'inventario.', 'INFORME-SEMESTRAL'),
-    ('FICHAS-TECNICAS', 'Fichas técnicas de laboratorios, talleres, software, simuladores y espacios',
+    ('FICHAS-TECNICAS', 'Fichas técnicas de laboratorios, talleres, software, simuladores y espacios utilizados',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'fichas-tecnicas', 40,
      'Ficha de la unidad (ubicación, responsable, horario y capacidad), espacios y talleres con su '
      'capacidad, mobiliario y equipos asociados, y software y simuladores con su versión, acceso y '
      'licencias. Es registro del período, sin meta propia.', 'INFORME-SEMESTRAL'),
-    ('PRACTICAS-FT02', 'Planificación semestral de las prácticas', 'ejecucion', 'semestral',
+    ('PRACTICAS-FT02', 'Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable', 'ejecucion', 'semestral',
      'sistema', False, False, 'cierre', 15, 'planificaciones', 50,
      'Todas las prácticas planificadas, por asignatura: unidad y tema del syllabus, fecha, escenario, '
      'responsable técnico, estudiantes previstos, guía y estado de su revisión; sesiones programadas sin '
      'planificación y resumen por asignatura. Respalda la meta de prácticas planificadas.',
      'INFORME-SEMESTRAL'),
-    ('GUIAS', 'Guías de prácticas', 'ejecucion', 'semestral', 'sistema',
+    ('GUIAS', 'Guías de prácticas aprobadas y vinculadas con los contenidos del syllabus', 'ejecucion', 'semestral', 'sistema',
      False, False, 'cierre', 15, 'guias', 60,
      'Guías vigentes con su versión, vínculo con la asignatura y el syllabus, aprobación y enlace al '
      'documento; comprobación de su contenido mínimo y versiones sustituidas en el período. Respalda la '
      'meta de guías.', 'INFORME-SEMESTRAL'),
-    ('PRACTICAS-FT03', 'Registros de asistencia y evidencias de las prácticas', 'ejecucion',
+    ('PRACTICAS-FT03', 'Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados', 'ejecucion',
      'semestral', 'sistema', False, False, 'cierre', 15, 'ejecuciones', 70,
      'Ejecución de cada práctica, asistencia nominal e índice de evidencias por tipo (asistencia firmada, '
      'bitácora, fotografías identificadas, capturas de simulador, informes de estudiantes y productos '
@@ -106,17 +106,17 @@ CATALOGO = (
      'Requisitos de acceso, inducciones y habilitaciones, inspecciones de condiciones con sus hallazgos y '
      'acciones correctivas, cobertura mensual, control de ingresos e incidentes de seguridad. Respalda las '
      'metas de inducción y de inspecciones.', 'INFORME-SEMESTRAL'),
-    ('DESECHOS', 'Registros de gestión de desechos peligrosos y especiales', 'ejecucion', 'semestral', 'sistema',
+    ('DESECHOS', 'Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable', 'ejecucion', 'semestral', 'sistema',
      False, False, 'cierre', 15, 'desechos', 110,
      'Generación y almacenamiento de cada desecho, entregas al gestor autorizado con su manifiesto y lo '
      'almacenado al corte. Se presenta cuando la unidad genera desechos o guarda reactivos, agroquímicos o '
      'medicamentos veterinarios. Respalda la meta de gestión de desechos.', 'INFORME-SEMESTRAL'),
-    ('INVESTIGACION', 'Informe de resultados de investigación aplicada y desarrollo tecnológico', 'evaluacion',
+    ('INVESTIGACION', 'Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros', 'evaluacion',
      'semestral', 'sistema', False, False, 'cierre', 15, 'investigacion', 120,
      'Resultados de investigación con su proyecto, producto, responsable y respaldo verificable, y uso de '
      'la unidad para investigación. Se presenta cuando la planificación compromete la meta. Respalda la '
      'meta de resultados de investigación.', 'INFORME-SEMESTRAL'),
-    ('TRANSFERENCIA', 'Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad',
+    ('TRANSFERENCIA', 'Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad',
      'evaluacion', 'semestral', 'sistema', False, False, 'cierre', 15, 'transferencia', 130,
      'Transferencias con su destinatario y aceptación documentada, y servicios especializados atendidos. '
      'Se presenta cuando la planificación los compromete o hubo servicios atendidos. Respalda las metas de '
@@ -186,22 +186,33 @@ NOMBRES_ESTANDAR_ANTERIORES = {
     'INFORME-SEMESTRAL': frozenset(('Informe semestral de actividades (firmado)',)),
     'EQUIPAMIENTO': frozenset(('Equipamiento: disponibilidad y funcionalidad del período',
                                'Mantenimiento, disponibilidad y funcionalidad del equipamiento',
-                               'Equipos e inventario: revisión física, mantenimiento y existencias')),
+                               'Equipos e inventario: revisión física, mantenimiento y existencias',
+                               'Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y '
+                               'funcionalidad')),
     'INVENTARIO-CORTE': frozenset(('Inventario anual de equipos, software y espacios',
                                    'Inventario de equipos, software, espacios e insumos al corte')),
     'REGISTRO-USO': frozenset(('Registro de uso del período: sesiones, horas y usuarios por tipo y finalidad',
                                'Uso de la unidad: sesiones, horas y usuarios')),
     'PRACTICAS-FT02': frozenset(('FT02 · Planificación de cada práctica',
-                                 'Prácticas académicas: planificación, ejecución y guías')),
-    'PRACTICAS-FT03': frozenset(('FT03 · Registro de ejecución con asistencia, bitácora y evidencias',)),
-    'GUIAS': frozenset(('Guías de prácticas: aprobación y vínculo con el syllabus',)),
+                                 'Prácticas académicas: planificación, ejecución y guías',
+                                 'Planificación semestral de ' 'las prácticas')),
+    'PRACTICAS-FT03': frozenset(('FT03 · Registro de ejecución con asistencia, bitácora y evidencias',
+                                 'Registros de asistencia y evidencias ' 'de las prácticas')),
+    'GUIAS': frozenset(('Guías de prácticas: aprobación y vínculo con el syllabus', 'Guías de ' 'prácticas')),
     'INDUCCION-SEGURIDAD': frozenset(('Seguridad y condiciones de operación: protocolo, inducciones y controles',
                                       'Registro de inducciones y controles de seguridad',
                                       'Seguridad y desechos: inducciones, inspecciones y desechos')),
-    'DESECHOS': frozenset(('Registro de desechos peligrosos y especiales',)),
+    'DESECHOS': frozenset(('Registro de desechos peligrosos y especiales',
+                           'Registros de gestión de desechos ' 'peligrosos y especiales')),
     'INVESTIGACION': frozenset(('Resultados de investigación aplicada y desarrollo tecnológico',
-                                'Investigación y vinculación: resultados, transferencia y servicios')),
-    'TRANSFERENCIA': frozenset(('Transferencia de conocimiento y servicios especializados a la sociedad',)),
+                                'Investigación y vinculación: resultados, transferencia y servicios',
+                                'Informe de resultados de investigación aplicada y ' 'desarrollo tecnológico')),
+    'TRANSFERENCIA': frozenset(('Transferencia de conocimiento y servicios especializados a la sociedad',
+                                'Informe de transferencia de conocimiento, tecnología y servicios '
+                                'especializados a la sociedad')),
+    # Nombres recortados de documentos.0027; documentos.0028 los lleva a la redacción de la universidad.
+    'FICHAS-TECNICAS': frozenset(('Fichas técnicas de laboratorios, talleres, software, simuladores y '
+                                  'espacios',)),
     # Anexos propios con nombre de informe (documentos.0026).
     'PP-PRODUCCION': frozenset(('Informe de producción de la planta piloto: órdenes, lotes y entregas',)),
     'PP-CALIDAD': frozenset(('Informe de control de calidad y no conformidades de la planta piloto',)),

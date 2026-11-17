@@ -269,7 +269,7 @@ class RutaDelCentroDeReportesTests(TestCase):
         ruta = reporte['expediente']
         self.assertEqual(ruta['carpeta'], 'Ejecución')
         self.assertTrue(ruta['lo_genera_el_sistema'])
-        self.assertIn('Planificación semestral de las prácticas', ruta['nombre'])
+        self.assertIn('Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable', ruta['nombre'])
         self.assertEqual(ruta['url'], reverse('gestion_expediente_unidad', args=[self.unidad.slug]))
         self.assertIn('planificaciones', reporte['choices']['expediente'])
 

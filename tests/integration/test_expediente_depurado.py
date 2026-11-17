@@ -37,6 +37,7 @@ MIGRACION = import_module('apps.documentos.migrations.0024_expediente_depurado')
 # dejó y 0027 separa de nuevo un anexo por cada documento que pide la universidad.
 SIGUIENTE = import_module('apps.documentos.migrations.0025_anexos_del_informe')
 POR_EXIGENCIA = import_module('apps.documentos.migrations.0027_anexos_por_exigencia')
+DE_LA_UNIVERSIDAD = import_module('apps.documentos.migrations.0028_nombres_de_la_universidad')
 
 
 class _FilasDelCatalogo(list):
@@ -77,7 +78,8 @@ class CatalogoDepuradoTests(SimpleTestCase):
                 self.assertNotIn('cuenta en la nota solo si', fila[11])
 
     def test_la_migracion_escribe_los_mismos_textos_que_el_catalogo(self):
-        # Lo que 0024 escribió pasa por 0025 y 0027 tal como ellas lo aplican: al final es el catálogo vigente.
+        # Lo que 0024 escribió pasa por 0025, 0027 y 0028 tal como ellas lo aplican: al final es el catálogo
+        # vigente.
         filas = {codigo: _fila_del_catalogo(codigo, MIGRACION.NOMBRES.get(codigo, ('', ''))[1],
                                             MIGRACION.DESCRIPCIONES.get(codigo, ''))
                  for codigo in set(MIGRACION.NOMBRES) | set(MIGRACION.DESCRIPCIONES)}
@@ -86,6 +88,7 @@ class CatalogoDepuradoTests(SimpleTestCase):
         editor = SimpleNamespace(connection=SimpleNamespace(alias='default'))
         SIGUIENTE.fusionar(apps, editor)
         POR_EXIGENCIA.separar_por_exigencia(apps, editor)
+        DE_LA_UNIVERSIDAD.con_la_redaccion_de_la_universidad(apps, editor)
         por_codigo = {f[0]: f for f in CATALOGO}
         for codigo, fila in filas.items():
             with self.subTest(codigo=codigo):
@@ -260,7 +263,7 @@ class ExpedienteDepuradoTests(TestCase):
         self.assertTrue({'Mantenimientos del período', 'Meta de mantenimiento crítico (80 %)'} <= tarjetas)
         # La consulta alimenta el anexo del plan de mantenimiento y el equipamiento (documentos.0027).
         self.assertEqual(reporte['expediente']['nombre'],
-                         'Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad')
+                         'Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad')
         self.assertEqual(reporte['expediente']['periodicidad'], 'Una vez por período académico')
 
     def test_una_consulta_de_gestion_sin_registros_no_se_muestra(self):

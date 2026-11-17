@@ -20,8 +20,8 @@ NOMBRES_POR_BASE = {
         'PLANIFICACION': 'Planificación semestral de producción, prácticas y servicios de la planta piloto',
         'INFORME-SEMESTRAL': 'Informe semestral de producción, prácticas y cumplimiento de la planta piloto',
         'REGISTRO-USO': 'Registros de uso de la planta piloto',
-        'FICHAS-TECNICAS': 'Fichas técnicas de líneas de proceso, salas, cámaras, software y espacios',
-        'GUIAS': 'Guías de prácticas de la planta piloto',
+        'FICHAS-TECNICAS': 'Fichas técnicas de líneas de proceso, salas, cámaras, software y espacios utilizados',
+        'GUIAS': 'Guías de prácticas de la planta piloto aprobadas y vinculadas con los contenidos del syllabus',
         'INDUCCION-SEGURIDAD': 'Reportes de seguridad, inocuidad y condiciones de operación',
     },
     'centro_experimental': {
@@ -30,8 +30,8 @@ NOMBRES_POR_BASE = {
         'INFORME-SEMESTRAL': 'Informe semestral de actividades de campo, ensayos y cumplimiento',
         'REGISTRO-USO': 'Registros de uso del centro experimental',
         'INVENTARIO-CORTE': 'Inventario de equipamiento, insumos agropecuarios y reactivos',
-        'FICHAS-TECNICAS': 'Fichas técnicas de parcelas, invernaderos, instalaciones pecuarias y espacios',
-        'GUIAS': 'Guías de prácticas de campo',
+        'FICHAS-TECNICAS': 'Fichas técnicas de parcelas, invernaderos, instalaciones pecuarias y espacios utilizados',
+        'GUIAS': 'Guías de prácticas de campo aprobadas y vinculadas con los contenidos del syllabus',
         'INDUCCION-SEGURIDAD': 'Reportes de seguridad y condiciones de operación de campo',
     },
     'observatorios': {

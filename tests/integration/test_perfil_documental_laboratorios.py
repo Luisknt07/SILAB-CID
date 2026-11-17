@@ -75,7 +75,7 @@ class PerfilDocumentalLaboratoriosTests(BaseDeRedaccion):
 
     def test_nombre_personalizado_no_se_pisa(self):
         d = self.documento('PRACTICAS-FT02')
-        self.assertEqual(d.nombre_documental, 'Planificación semestral de las prácticas')
+        self.assertEqual(d.nombre_documental, 'Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable')
         d.exigido.nombre = 'Registro adaptado por la institución'
         self.assertEqual(d.nombre_documental, 'Registro adaptado por la institución')
 

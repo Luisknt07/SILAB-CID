@@ -34,17 +34,17 @@ from xml.sax.saxutils import escape
 # Anexos comunes, en el orden de la universidad. Código: (nombre por omisión, metas que respalda).
 ANEXOS = {
     'REGISTRO-USO': ('Registros de uso de la unidad', ('USO', 'USO-EFECTIVO')),
-    'EQUIPAMIENTO': ('Plan de mantenimiento de equipos e informe de equipamiento, disponibilidad y funcionalidad',
+    'EQUIPAMIENTO': ('Plan de mantenimiento de equipos e informes de equipamiento, disponibilidad y funcionalidad',
                      ('MANTENIMIENTO',)),
     'INVENTARIO-CORTE': ('Inventario de equipamiento, reactivos e insumos', ('INVENTARIO',)),
-    'FICHAS-TECNICAS': ('Fichas técnicas de laboratorios, talleres, software, simuladores y espacios', ()),
-    'PRACTICAS-FT02': ('Planificación semestral de las prácticas', ('PRACTICAS-PLAN',)),
-    'GUIAS': ('Guías de prácticas', ('GUIAS',)),
-    'PRACTICAS-FT03': ('Registros de asistencia y evidencias de las prácticas', ('PRACTICAS',)),
+    'FICHAS-TECNICAS': ('Fichas técnicas de laboratorios, talleres, software, simuladores y espacios utilizados', ()),
+    'PRACTICAS-FT02': ('Planificación semestral de las prácticas por asignatura, unidad, fecha, escenario y responsable', ('PRACTICAS-PLAN',)),
+    'GUIAS': ('Guías de prácticas aprobadas y vinculadas con los contenidos del syllabus', ('GUIAS',)),
+    'PRACTICAS-FT03': ('Registros de asistencia, bitácoras, fotografías identificadas, capturas de simuladores, informes de estudiantes y productos desarrollados', ('PRACTICAS',)),
     'INDUCCION-SEGURIDAD': ('Reportes de seguridad y condiciones de operación', ('SEGURIDAD', 'INSPECCIONES')),
-    'DESECHOS': ('Registros de gestión de desechos peligrosos y especiales', ('DESECHOS',)),
-    'INVESTIGACION': ('Informe de resultados de investigación aplicada y desarrollo tecnológico', ('INVESTIGACION',)),
-    'TRANSFERENCIA': ('Informe de transferencia de conocimiento, tecnología y servicios especializados a la sociedad',
+    'DESECHOS': ('Registros de gestión de desechos peligrosos y especiales, conforme a la normativa aplicable', ('DESECHOS',)),
+    'INVESTIGACION': ('Informes de resultados de investigación aplicada y desarrollo tecnológico generados en laboratorios y centros', ('INVESTIGACION',)),
+    'TRANSFERENCIA': ('Informes de transferencia de conocimiento, tecnología y prestación de servicios especializados a la sociedad',
                       ('TRANSFERENCIA', 'SERVICIOS')),
 }
 # Anexos propios de planta piloto, centro experimental y observatorio.

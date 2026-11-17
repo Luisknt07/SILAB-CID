@@ -103,6 +103,32 @@ def grupos_anexos(anexos):
     return _agrupar(anexos, indicadores)
 
 
+# Lectura por temas de los anexos del informe. Siguen el orden del catálogo, así que cada tema queda junto.
+CATEGORIAS_DE_ANEXOS = (
+    ('Uso, equipamiento e inventario', ('REGISTRO-USO', 'EQUIPAMIENTO', 'INVENTARIO-CORTE')),
+    ('Evidencias de las prácticas', ('FICHAS-TECNICAS', 'PRACTICAS-FT02', 'GUIAS', 'PRACTICAS-FT03')),
+    ('Seguridad', ('INDUCCION-SEGURIDAD',)),
+    ('Producción y calidad', ('PP-PRODUCCION', 'PP-CALIDAD')),
+    ('Ensayos y producción agropecuaria', ('CE-ENSAYOS', 'CE-PRODUCCION')),
+    ('Datos, publicaciones y socialización', ('OBS-DATOS', 'OBS-BOLETINES', 'OBS-EVENTOS')),
+    ('Según la actividad del período: desechos, investigación y transferencia',
+     ('DESECHOS', 'INVESTIGACION', 'TRANSFERENCIA')),
+)
+_CATEGORIA_POR_CODIGO = {codigo: titulo for titulo, codigos in CATEGORIAS_DE_ANEXOS for codigo in codigos}
+
+
+def categoria_del_documento(bloque):
+    """El tema bajo el que se lee un documento de la tabla de anexos."""
+    if bloque.get('sin_anexo'):
+        return 'Actividades sin anexo específico'
+    if bloque.get('es_soporte_planificacion'):
+        return 'Respaldos de la planificación'
+    anexo = bloque.get('anexo')
+    exigido = anexo.get('exigido') if isinstance(anexo, dict) else getattr(anexo, 'exigido', None)
+    codigo = exigido.get('codigo') if isinstance(exigido, dict) else getattr(exigido, 'codigo', '')
+    return _CATEGORIA_POR_CODIGO.get(codigo, 'Otros respaldos de la unidad')
+
+
 @register.simple_tag
 def evidencias_cierre(cierre, anexos):
     """Una proyección de metas y archivos; no cambia cálculos ni datos enviados."""
@@ -136,6 +162,7 @@ def evidencias_cierre(cierre, anexos):
     # El número es el del anexo en el informe: el orden del expediente, no el del grupo.
     for numero, bloque in enumerate(bloques, 1):
         bloque['numero_item'] = numero
+        bloque['categoria'] = categoria_del_documento(bloque)
     for grupo in grupos:
         for bloque in grupo['elementos']:
             bloque['grupo_codigo'] = grupo['codigo']
