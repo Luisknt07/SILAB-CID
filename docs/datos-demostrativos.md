@@ -70,3 +70,33 @@ por si el borrador sigue abierto:
 Es mantenimiento periódico, no una carga de datos: puede ejecutarse en la base
 activa.
 
+
+## Limpiar los movimientos antes de registrar datos reales
+
+`limpiar_movimientos` deja la base sin lo que se registró para probar y conserva lo que describe a la
+institución.
+
+- **Borra** (tablas completas): reservas, visitas e ingresos; prácticas planificadas y ejecutadas con sus
+  evidencias; documentos y anexos del expediente con sus archivos, constancias y controles; evidencias de
+  gestión; mantenimientos con su plan, incidencias, préstamos, alertas y desechos; solicitudes de fabricación;
+  planes, órdenes, lotes y calidad de las plantas piloto; movimientos financieros; y la auditoría de todo ello.
+- **Conserva:** unidades, espacios, equipos, existencias y kárdex de inventario, software, asignaturas, guías,
+  catálogo de actividades, cursos, portal, biblioteca de recursos de cada unidad y cuentas reales. La base de
+  Centros no se toca.
+- **Cuentas de demostración** (`demo.`, `.demo.`, `estudiante.prueba`, `sistema.demostrativo`): se borran; si una
+  está ligada a un dato que se conserva, se desactiva.
+
+Sin `--aplicar` solo ensaya: hace todo dentro de una transacción, informa cuántas filas borraría y la revierte.
+
+```powershell
+.venv\Scripts\python.exe manage.py limpiar_movimientos
+.venv\Scripts\python.exe manage.py limpiar_movimientos --aplicar --confirmar BORRAR-MOVIMIENTOS --base <nombre de la base> --retirar-archivos-a <carpeta>
+```
+
+Garantías: nada fuera de la lista pierde filas (si ocurriera, se revierte todo); una fila conservada que señalaba
+a un movimiento queda sin esa referencia y se informa; los archivos de lo borrado se mueven a la carpeta indicada
+en lugar de eliminarse; y las tablas vaciadas vuelven a numerar desde 1. Antes de aplicar hay que respaldar las
+dos bases.
+
+No corrige lo que es de demostración dentro de los catálogos: existencias cargadas como «Recepción demostrativa»,
+equipos y planes marcados `[EVAL]` o `[Ejemplo de inventario]`. Eso se decide aparte.
