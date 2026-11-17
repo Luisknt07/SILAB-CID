@@ -1,7 +1,7 @@
 {% load l10n reportes_estilo %}{% evidencias_cierre cierre anexos as grupos %}{% resumen_metas_cierre grupos as resumen_metas %}
 <section class="cierre-indicadores cierre-dashboard" data-cierre-indicadores>
   <header class="cierre-resumen__cabecera">
-    <div class="cierre-resumen__presentacion"><span class="cierre-resumen__icono"><i class="fas fa-file-alt" aria-hidden="true"></i></span><div><h3>{% if tabla_unificada %}Anexos y actividades · {{ periodo.etiqueta }}{% else %}Metas y documentos del informe de cierre{% endif %}</h3><p>{% if tabla_unificada %}Respaldos de planificación y cierre en una sola tabla. Cada documento indica su origen.{% else %}Consulta cada meta junto al documento que la respalda.{% endif %}</p><span class="cierre-resumen__corte">{% if cierre.congelado %}{% if tabla_unificada %}Informe de cierre archivado{% else %}Entrega archivada{% endif %}{% elif cierre %}Cálculo al día · anexos conservados al enviar{% else %}Informe de cierre pendiente · respaldos de planificación disponibles{% endif %}</span></div></div>
+    <div class="cierre-resumen__presentacion"><span class="cierre-resumen__icono"><i class="fas fa-file-alt" aria-hidden="true"></i></span><div><h3>{% if tabla_unificada %}Anexos y actividades · {{ periodo.etiqueta }}{% else %}Metas y documentos del informe de cierre{% endif %}</h3><p>{% if tabla_unificada %}Un anexo por cada documento que pide la universidad, en el orden del informe.{% else %}Consulta cada meta junto al documento que la respalda.{% endif %}</p><span class="cierre-resumen__corte">{% if cierre.congelado %}{% if tabla_unificada %}Informe de cierre archivado{% else %}Entrega archivada{% endif %}{% elif cierre %}Cálculo al día · anexos conservados al enviar{% else %}Informe de cierre pendiente · respaldos de planificación disponibles{% endif %}</span></div></div>
     {% if cierre %}
     <div class="cierre-resumen" data-resumen-cierre>
       <article class="cierre-resumen__tarjeta is-{{ cierre.avance_metas|semaforo_avance }}">
@@ -37,12 +37,10 @@
   <div class="cierre-indicadores__tabla" tabindex="0" role="region" aria-label="Tabla desplazable de metas y documentos"><table class="cierre-anexos-tabla" data-cierre-evidencias aria-label="Metas, cumplimiento y documentos del período">
   <caption>{{ grupos|cantidad_items }} documentos y actividades · {{ resumen_metas.total }} metas obligatorias</caption>
   {% include 'portal/pages/unidades/gestion/includes/anexos_cierre_cabecera.html' %}
-  {% for grupo in grupos %}
-  {% include 'portal/pages/unidades/gestion/includes/grupo_indicadores.html' with columnas=10 %}
   {% with entrega_contexto=entrega|default:None documento_contexto=documento_principal|default:None %}
-  {% for bloque in grupo.elementos %}<tbody data-meta-bloque data-meta-exigencia="{{ grupo.codigo }}">{% include 'portal/pages/unidades/gestion/includes/anexo_cierre_fila.html' with numero_item=bloque.numero_item nombre=bloque.nombre indicadores=bloque.detalle_indicadores recurso=bloque.recurso anexo=bloque.anexo sin_anexo=bloque.sin_anexo es_soporte_planificacion=bloque.es_soporte_planificacion origen_documental=bloque.origen_documental entrega=bloque.entrega_padre|default:entrega_contexto documento_principal=bloque.documento_padre|default:documento_contexto %}</tbody>{% endfor %}
-  {% endwith %}
+  {% for bloque in grupos|en_orden %}<tbody data-meta-bloque data-meta-exigencia="{{ bloque.grupo_codigo }}">{% include 'portal/pages/unidades/gestion/includes/anexo_cierre_fila.html' with numero_item=bloque.numero_item nombre=bloque.nombre indicadores=bloque.detalle_indicadores recurso=bloque.recurso anexo=bloque.anexo sin_anexo=bloque.sin_anexo es_soporte_planificacion=bloque.es_soporte_planificacion origen_documental=bloque.origen_documental entrega=bloque.entrega_padre|default:entrega_contexto documento_principal=bloque.documento_padre|default:documento_contexto %}</tbody>
   {% empty %}<tbody><tr><td colspan="10">Sin metas ni documentos disponibles para este informe.</td></tr></tbody>{% endfor %}
+  {% endwith %}
   </table></div>
   <p class="metas-vacio" data-metas-vacio hidden>No hay documentos ni actividades que coincidan con los filtros.</p>
 </section>

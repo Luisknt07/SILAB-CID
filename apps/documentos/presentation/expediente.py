@@ -630,15 +630,23 @@ def _preparar(documento, hoy, cortes, categorias):
     return documento
 
 
+# Consulta de gestión: categoría del anexo que ya presenta esos mismos registros.
+CONSULTAS_CUBIERTAS_POR_ANEXO = {'asignaturas': 'planificaciones', 'inventario': 'recursos',
+                                 'mantenimiento': 'equipamiento'}
+
+
 def consultas_de_la_unidad(unidad, inicio, fin):
     """Los informes que no son evidencia: gestión, en PDF del período, para verlos desde el expediente.
 
     Solo se ofrecen los módulos que la unidad usa: una consulta sin un solo registro no aporta.
+    Tampoco la que repite un anexo: la programación por asignatura, el inventario de insumos y
+    el mantenimiento ya están en los anexos de planificación de prácticas, inventario y equipamiento.
     """
     from apps.gestion_unidades.presentation.gestion_reportes import categorias_para, documentos_del_expediente
     from apps.gestion_unidades.presentation.reportes_existencia import tiene_registros
 
     evidencia = set(documentos_del_expediente(unidad))
+    evidencia.update(consulta for consulta, anexo in CONSULTAS_CUBIERTAS_POR_ANEXO.items() if anexo in evidencia)
     base = reverse('gestion_reporte_unidad_pdf', args=[unidad.slug])
     return [
         {'codigo': codigo, 'nombre': nombre,

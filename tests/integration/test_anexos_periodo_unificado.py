@@ -91,7 +91,8 @@ class AnexosPeriodoUnificadoTests(SimpleTestCase):
         self.assertIn('Respaldo propio de la planificación', tabla)
         self.assertIn('FT02 · Programación de actividades', tabla)
         self.assertIn('Anexo de planificación', tabla)
-        self.assertIn('Anexo de informe de cierre', tabla)
+        # Todos los demás son del informe de cierre: no se repite en cada fila.
+        self.assertNotIn('Anexo de informe de cierre', tabla)
         self.assertNotIn('class="explorador__anexos"', html)
 
     def test_el_soporte_no_duplica_meta_ft02_ni_total_de_tarjetas(self):

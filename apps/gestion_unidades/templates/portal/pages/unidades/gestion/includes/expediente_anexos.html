@@ -74,7 +74,7 @@
                       {% if anexo.recurso %}<p>Archivo v{{ anexo.version }}{% if anexo.generado_en %} · generado {{ anexo.generado_en|date:"d/m/Y H:i" }}{% endif %}.</p>{% else %}<p>Se archivará con los datos del período. La consulta al día permite revisar lo registrado antes de generarlo.</p>{% endif %}
                       {% if anexo.validado_en %}<p>Revisión de la unidad: {{ anexo.validado_en|date:"d/m/Y H:i" }}{% if anexo.validado_por %} · {{ anexo.validado_por.get_full_name|default:anexo.validado_por.username }}{% endif %}.</p>{% endif %}
                       <div class="reportes-anexos__operaciones">
-                        {% if not solo_lectura and anexo.recurso and anexo.estado != 'validado' and entrega.documento.estado != 'validado' %}
+                        {% if not solo_lectura and anexo.recurso and anexo.estado != 'validado' and entrega.documento.estado != 'validado' and entrega.documento.exigido.codigo != 'INFORME-SEMESTRAL' %}
                         <form method="post" action="{% url 'gestion_expediente_unidad' unidad.slug %}" class="explorador__validar-anexo">{% csrf_token %}<input type="hidden" name="anio" value="{{ anio }}"><input type="hidden" name="corte" value="{{ periodo.corte }}">{% if volver %}<input type="hidden" name="volver" value="{{ volver }}">{% endif %}<input type="hidden" name="documento" value="{{ anexo.pk }}"><input type="hidden" name="accion" value="validar_anexo"><button type="submit"><i class="fas fa-check" aria-hidden="true"></i> Marcar revisado por la unidad</button></form>
                         {% endif %}
                         {% if not solo_lectura and anexo.recurso and entrega.documento.estado != 'validado' %}

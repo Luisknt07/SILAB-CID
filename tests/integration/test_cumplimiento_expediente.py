@@ -399,7 +399,8 @@ class DocumentoEnviadoTests(BaseDeCumplimiento):
         self.assertNotIn('target', borrador)
         self.assertNotIn('data-pdf-directo', borrador)
         self.assertTrue(borrador.get('data-pdf-titulo'))
-        self.assertIn('is-borrador', borrador.get('class', '').split())
+        # Se abre con «Ver», como cualquier documento: no es un borrador que validar aparte.
+        self.assertIn('is-pdf', borrador.get('class', '').split())
         self.assertTrue(any('is-cargar' in a.get('class', '').split() for a in enlaces_de(contenido)))
         self.assertNotIn('data-estado-entrega="enviados"', contenido)
 

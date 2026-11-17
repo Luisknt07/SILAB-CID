@@ -133,12 +133,20 @@ def evidencias_cierre(cierre, anexos):
             bloques.append(dict(nombre=fila['nombre'], recurso=None, anexo=None,
                                 detalle_indicadores=[lectura], sin_anexo=True))
     grupos = grupos_anexos(bloques)
-    numero = 0
+    # El número es el del anexo en el informe: el orden del expediente, no el del grupo.
+    for numero, bloque in enumerate(bloques, 1):
+        bloque['numero_item'] = numero
     for grupo in grupos:
         for bloque in grupo['elementos']:
-            numero += 1
-            bloque['numero_item'] = numero
+            bloque['grupo_codigo'] = grupo['codigo']
     return grupos
+
+
+@register.filter
+def en_orden(grupos):
+    """Los documentos en una sola lista, en el orden del informe."""
+    return sorted((bloque for grupo in grupos or [] for bloque in grupo['elementos']),
+                  key=lambda bloque: bloque['numero_item'])
 
 
 @register.simple_tag
@@ -150,7 +158,9 @@ def anexos_del_periodo(periodo):
     for entrega in entregas:
         padre = entrega['documento']
         soporte = padre.exigido.codigo == 'PLANIFICACION'
-        for anexo in entrega.get('anexos', []):
+        # El orden del catálogo es el número que cada anexo lleva en el informe.
+        for anexo in sorted(entrega.get('anexos', []),
+                            key=lambda a: (getattr(a.exigido, 'orden', 0) or 0, a.exigido.codigo)):
             anexos.append(dict(nombre=anexo.nombre_documental, recurso=anexo.recurso_id,
                 anexo=anexo, documento_padre=padre, entrega_padre=entrega,
                 es_soporte_planificacion=soporte,

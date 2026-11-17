@@ -40,7 +40,7 @@ class _ContenidoVisible(HTMLParser):
 class AvanceDocumentalInterfazTests(SimpleTestCase):
     def avance(self, porcentaje, **cambios):
         datos = dict(porcentaje=porcentaje, medido=porcentaje is not None,
-            etiqueta='Preparación del documento', alcance='preparacion',
+            etiqueta='Preparación del documento', alcance='metas',
             descripcion='Completitud de los apartados; no acredita uso efectivo.')
         datos.update(cambios)
         return datos
@@ -60,6 +60,15 @@ class AvanceDocumentalInterfazTests(SimpleTestCase):
                 self.assertIn('aria-haspopup="dialog"', html)
                 self.assertIn('Preparación del documento', _ContenidoVisible(html).visible)
                 self.assertIn('no acredita uso efectivo', html)
+
+    def test_los_documentos_que_no_puntuan_no_llevan_barra_ni_porcentaje(self):
+        for alcance in ('vigencia', 'preparacion', 'conformidad'):
+            for porcentaje in (0, 50, 100):
+                with self.subTest(alcance=alcance, porcentaje=porcentaje):
+                    html = self.render_avance(porcentaje, alcance=alcance)
+                    self.assertNotIn('<progress', html)
+                    self.assertNotIn(' %', _ContenidoVisible(html).visible)
+                    self.assertIn('avance-documental__sin-puntos', html)
 
     def test_sin_medicion_no_se_inventa_cero_ni_cumplimiento(self):
         html = self.render_avance(None, etiqueta='Sin medición', alcance='sin_medicion')

@@ -1,8 +1,8 @@
 {% load i18n %}
 {% if consultas %}
-<section class="reportes-consultas-visibles" id="informes-gestion" aria-labelledby="informes-gestion-titulo">
-  <header><h2 id="informes-gestion-titulo"><i class="fas fa-chart-bar" aria-hidden="true"></i> Consultas de gestión</h2><p>{{ consultas|length }} informes del período para consulta y seguimiento. No generan otra entrega ni agregan puntos.</p></header>
+<details class="reportes-plegable reportes-consultas-visibles" id="informes-gestion" aria-labelledby="informes-gestion-titulo">
+  <summary id="informes-gestion-titulo"><i class="fas fa-chart-bar" aria-hidden="true"></i> Consultas de gestión ({{ consultas|length }}) · no se entregan ni puntúan</summary>
   <div class="reportes-consultas-visibles__tabla" role="region" aria-label="Informes de gestión disponibles" tabindex="0"><table><thead><tr><th scope="col">Informe</th><th scope="col">Alcance</th><th scope="col">Documento</th></tr></thead><tbody>
   {% for consulta in consultas %}<tr data-consulta-gestion><th scope="row"><span class="documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ consulta.nombre }}</span></span></th><td>{{ rango_periodo.0|date:"d/m/Y" }} – {{ rango_periodo.1|date:"d/m/Y" }}<small>Se actualiza al consultar; puedes cambiar las fechas en el visor.</small></td><td><a class="documento-accion is-pdf" href="{{ consulta.url }}" data-ver-pdf data-pdf-descarga="{{ consulta.url }}" data-pdf-titulo="{{ consulta.nombre }} · {{ etiqueta_periodo }}" data-pdf-rango="{{ consulta.base }}" data-pdf-desde="{{ consulta.desde }}" data-pdf-hasta="{{ consulta.hasta }}" aria-label="Abrir {{ consulta.nombre }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %} Ver documento</a></td></tr>{% endfor %}
   </tbody></table></div>
-</section>{% endif %}
+</details>{% endif %}

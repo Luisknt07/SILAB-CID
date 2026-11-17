@@ -246,7 +246,9 @@ def resumen_de_entrega(documento):
             or (resumen_control.get('conformidad_documental') or {}).get('priorizacion_inversion')),
         "aprobacion": aprobacion,
         "estado": estado,
-        "estado_unidad": ("Borrador" if documento.estado == 'generado'
+        # Un anexo lo produce el sistema y se valida al enviar el informe: no es un borrador de la unidad.
+        "estado_unidad": (("Generado" if getattr(documento.exigido, 'es_anexo', False) else "Borrador")
+                           if documento.estado == 'generado'
                            else "Listo para enviar" if estado == 'Por validar' else estado),
         "grupo": grupo,
         "grupo_visual": grupo,

@@ -225,3 +225,8 @@
 .reportes-anexos__operaciones button { padding:8px 11px; border:1px solid var(--institucion-primario,#2b6339); border-radius:5px; color:var(--institucion-primario,#2b6339); background:#fff; font:inherit; cursor:pointer; }
 .reportes-anexos__acciones .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 @container (max-width:850px) { .reportes-dashboard .entregas__tabla { min-width:0; } }
+.reportes-plegable { margin:14px 0; border:1px solid #d8e3db; border-radius:7px; background:#fff; }
+.reportes-plegable > summary { padding:10px 14px; color:#285d3a; font-size:13px; font-weight:600; cursor:pointer; }
+.reportes-plegable[open] > summary { border-bottom:1px solid #e2e9e3; }
+.reportes-plegable > :not(summary) { margin:12px 14px; }
+.avance-documental__sin-puntos { color:#87978f; }

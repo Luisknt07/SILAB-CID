@@ -274,7 +274,8 @@ class ExpedienteDepuradoTests(TestCase):
                           'seguridad', 'desechos', 'investigacion', 'transferencia'} & codigos)
         Consumible.objects.create(unidad=unidad, codigo='INS-CONSULTA', nombre='Insumo con registro')
         codigos = {c['codigo'] for c in consultas_de_la_unidad(unidad, date(2026, 7, 1), date(2026, 12, 31))}
-        self.assertIn('inventario', codigos)
+        # El inventario de insumos ya está en el anexo de inventario: la consulta no lo repite.
+        self.assertNotIn('inventario', codigos)
 
     def test_la_consulta_de_atenciones_del_observatorio_aparece_solo_con_registros(self):
         unidad = self.unidades['observatorios']

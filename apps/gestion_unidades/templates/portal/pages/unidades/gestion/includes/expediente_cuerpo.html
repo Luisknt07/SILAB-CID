@@ -64,7 +64,9 @@ consultas, minimo_cumplimiento y user.
       </nav>
     </section>
 
+    {% if guia_reportes.grupos %}<details class="reportes-plegable" data-reportes-guia><summary>Guía: qué reportar y dónde hacerlo</summary>
     {% include 'portal/pages/unidades/gestion/includes/guia_reportes.html' %}
+    </details>{% endif %}
 
     {% if unidad|es_unidad_auditable %}{% include 'portal/pages/unidades/gestion/includes/resumen_automatizacion.html' with control_resumen=automatizacion_resumen permitir_automatizar=True %}{% endif %}
 

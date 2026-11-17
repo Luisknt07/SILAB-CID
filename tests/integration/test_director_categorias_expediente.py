@@ -99,7 +99,9 @@ class DirectorCategoriasExpedienteTests(SimpleTestCase):
         self.assertIn('vista=observaciones', html)
         self.assertIn('data-evaluar-documento', html)
         self.assertIn('citt-matriz__avance', html)
-        self.assertIn('aria-label="Consultar avance de Planificación semestral"', html)
+        # La planificación no puntúa: sin barra ni consulta de avance.
+        self.assertNotIn('aria-label="Consultar avance de Planificación semestral"', html)
+        self.assertNotIn('<progress', html)
         self.assertIn('class="documento-titulo"', html)
         self.assertNotIn('Conformidad documental</a>', html)
         self.assertIn('data-decision-qr', html)

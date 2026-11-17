@@ -1,4 +1,5 @@
 {% load l10n reportes_estilo %}
+{% if avance.alcance == 'vigencia' or avance.alcance == 'preparacion' or avance.alcance == 'conformidad' %}<span class="avance-documental__sin-puntos" data-avance-documental="{{ avance.alcance }}" title="Este documento no lleva puntuación ni barra de avance">—</span>{% else %}
 <div class="avance-documental is-{{ avance.porcentaje|semaforo_avance }}" data-avance-documental="{{ avance.alcance|default:'sin_medicion' }}" data-reporte-informacion>
   <button type="button" class="avance-documental__consulta" data-reporte-informacion-abrir data-modal-titulo="Avance · {{ nombre_documento }}" aria-haspopup="dialog" aria-label="Consultar avance de {{ nombre_documento }}">
     <span class="avance-documental__encabezado"><strong class="avance-documental__valor">{% if avance.medido and avance.porcentaje is not None %}{{ avance.porcentaje|floatformat:1 }} %{% else %}—{% endif %}</strong><i class="fas fa-info-circle" aria-hidden="true"></i></span>
@@ -13,4 +14,4 @@
     <p>{{ avance.descripcion|default:'Todavía no hay una medición verificable para este documento.' }}</p>
     <p>El avance de preparación, la conformidad documental y el cumplimiento de las metas son mediciones distintas. Guardar o revisar un archivo no acredita por sí solo su cumplimiento.</p>
   </template>
-</div>
+</div>{% endif %}

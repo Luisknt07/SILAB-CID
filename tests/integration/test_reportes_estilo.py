@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from django.test import SimpleTestCase
 
+from apps.documentos.templatetags.reportes_estilo import en_orden
 from apps.documentos.templatetags.reportes_estilo import (
     cantidad_items, clasificacion_meta, estado_meta, evidencias_cierre, exigencia_estilo,
     grupos_anexos, grupos_metas, resumen_metas_cierre,
@@ -123,7 +124,7 @@ class PresentacionIndicadoresTests(SimpleTestCase):
         self.assertEqual(fila['detalle_indicadores'][0]['indicador'], 'Actividad propia')
         self.assertEqual(fila['detalle_indicadores'][0]['exigencia'], 'Comprometido en planificación')
 
-    def test_numeracion_continua_entre_grupos_cuenta_documentos_y_no_indicadores(self):
+    def test_la_numeracion_sigue_el_orden_del_informe_y_cuenta_documentos_no_indicadores(self):
         anexos = [
             dict(nombre='Informativo', recurso=10, detalle_indicadores=[
                 dict(codigo='INFO', estado='Anexo automático')]),
@@ -137,7 +138,12 @@ class PresentacionIndicadoresTests(SimpleTestCase):
         bloques = [b for g in grupos for b in g['elementos']]
         self.assertEqual([b['nombre'] for b in bloques],
                          ['Dos indicadores', 'Actividad sin anexo', 'Informativo'])
-        self.assertEqual([b['numero_item'] for b in bloques], [1, 2, 3])
+        # El número es el del anexo en el informe, no la posición dentro de su grupo de exigencia.
+        self.assertEqual([b['numero_item'] for b in bloques], [2, 3, 1])
+        lista = en_orden(grupos)
+        self.assertEqual([b['nombre'] for b in lista], ['Informativo', 'Dos indicadores', 'Actividad sin anexo'])
+        self.assertEqual([b['numero_item'] for b in lista], [1, 2, 3])
+        self.assertEqual({b['grupo_codigo'] for b in lista}, {g['codigo'] for g in grupos})
         self.assertEqual(cantidad_items(grupos), 3)
         self.assertEqual(cantidad_items([]), 0)
         self.assertEqual((cierre, anexos), antes)
