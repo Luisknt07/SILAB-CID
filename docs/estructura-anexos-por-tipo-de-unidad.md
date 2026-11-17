@@ -745,6 +745,21 @@ Exigencia: «Protocolos de bioseguridad y reportes de seguridad y condiciones de
 | 7 | Estado | | estado |
 | 8 | Reportado por | | reportada_por |
 
+**Tabla 8.7 · Simulacros y prácticas de emergencia.**
+
+| # | Columna | Contenido | Fuente |
+| --- | --- | --- | --- |
+| 1 | Fecha | | EvidenciaGestionUnidad (SIMULACRO).fecha |
+| 2 | Emergencia ensayada | Incendio, sismo, derrame o fuga, evacuación, primeros auxilios u otra / nombre del ejercicio | detalle.emergencia, titulo |
+| 3 | Participantes | Número de personas | detalle.participantes |
+| 4 | Resultado u observaciones | | descripcion |
+| 5 | Acción de mejora | Si la hubo | detalle.accion_mejora |
+| 6 | Responsable | | responsable |
+| 7 | Respaldo | Enlace / borrador o verificada | recurso, enlace, estado |
+
+- **Pie:** simulacros del período · participantes.
+- La unidad los registra donde registra sus inspecciones, con el mismo permiso. Son una constancia: no son una meta, no cuentan en la nota del informe ni aparecen como indicador del plan.
+
 **No va aquí:**
 
 - los desechos (anexo de desechos);

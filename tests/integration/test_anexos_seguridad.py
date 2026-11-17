@@ -6,6 +6,7 @@ Fija lo acordado en docs/estructura-anexos-por-tipo-de-unidad.md, secciones 4.8 
 - una inspección se lee contra las condiciones de su tipo de unidad: siete en el laboratorio, once
   en la planta piloto y diez en el centro experimental;
 - un incidente de seguridad va en la 8.6 y no en la tabla de fallas técnicas del anexo de equipamiento;
+- los simulacros y prácticas de emergencia cierran el anexo, en la 8.7 (test_simulacros_emergencia.py);
 - lo que sigue almacenado al corte se presenta aunque se haya generado antes del período;
 - lo anulado y lo de sesiones canceladas no se presenta.
 """
@@ -50,6 +51,10 @@ TABLAS = {
         ('Incidentes de seguridad',
          ('Fecha', 'Lugar o equipo', 'Descripción', 'Prioridad', 'Práctica o sesión', 'Acción / solución', 'Estado',
           'Reportado por')),
+        # Su contenido se prueba en test_simulacros_emergencia.py.
+        ('Simulacros y prácticas de emergencia',
+         ('Fecha', 'Emergencia ensayada', 'Participantes', 'Resultado u observaciones', 'Acción de mejora',
+          'Responsable', 'Respaldo')),
     ],
     'DESECHOS': [
         ('Generación y almacenamiento',

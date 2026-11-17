@@ -14,6 +14,7 @@ class EvidenciaGestionUnidad(models.Model):
              ('INVESTIGACION', 'Resultado de investigación o desarrollo tecnológico'),
              ('TRANSFERENCIA', 'Transferencia o servicio especializado aceptado'),
              ('INSPECCION', 'Inspección de seguridad y condiciones de operación'),
+             ('SIMULACRO', 'Simulacro o práctica de emergencia'),
              ('PLAN-INFRA', 'Plan de mantenimiento de infraestructura'),
              ('EJECUCION-INFRA', 'Informe de ejecución del mantenimiento de infraestructura'),
              ('FUNCIONALIDAD', 'Verificación funcional documentada de equipos'),

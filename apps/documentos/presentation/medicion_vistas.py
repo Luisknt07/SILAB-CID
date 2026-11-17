@@ -12,12 +12,12 @@ from django.views.decorators.http import require_http_methods
 
 from apps.directorio_unidades.models.core import Unidad
 from apps.documentos.models.medicion import EvidenciaGestionUnidad
-from apps.documentos.models.respaldo_medicion import alcances_inventario
+from apps.documentos.models.respaldo_medicion import alcances_inventario, requiere_inspecciones_fisicas
 from apps.documentos.models.infraestructura import TIPOS_INFRAESTRUCTURA, es_laboratorio_infraestructura
 from apps.documentos.models.funcionalidad import TIPO_FUNCIONALIDAD
 from apps.documentos.models.resultados_gestion import (
-    CLAVES_DETALLE, CLAVES_RESULTADO, CLAVES_INSPECCION, CONDICIONES_REVISION,
-    ESTADOS_CONDICIONES, ESTADOS_ACCION, TIPOS_PRODUCTO, TIPOS_RESULTADO,
+    CLAVES_DETALLE, CLAVES_RESULTADO, CLAVES_INSPECCION, CONDICIONES_REVISION, EMERGENCIAS_SIMULACRO,
+    ESTADOS_CONDICIONES, ESTADOS_ACCION, TIPOS_PRODUCTO, TIPOS_RESULTADO, TIPO_SIMULACRO,
     TIPOS_ESTRUCTURADOS, condiciones_de, errores_resultado, lectura_condiciones,
 )
 from apps.documentos.presentation.medicion_metas import (
@@ -139,6 +139,25 @@ class EvidenciaForm(forms.ModelForm):
                 'estado_condiciones', 'sin_hallazgos', 'hallazgos', 'accion_correctiva',
                 'estado_accion', 'plazo_accion', 'descripcion', 'responsable',
                 'archivo', 'recurso', 'enlace', 'verificar'])
+        if tipo == TIPO_SIMULACRO:
+            # Lo propio del simulacro; su resultado u observaciones es la descripción de la evidencia.
+            self.fields['emergencia'] = forms.ChoiceField(required=False, label='Emergencia ensayada',
+                choices=[('', 'Selecciona la emergencia ensayada')] + list(EMERGENCIAS_SIMULACRO))
+            self.fields['participantes'] = forms.IntegerField(required=False, min_value=1, max_value=100000,
+                label='Número de participantes')
+            self.fields['accion_mejora'] = forms.CharField(required=False, max_length=3000,
+                label='Acción de mejora (opcional)', widget=forms.Textarea(attrs={'rows': 3}))
+            self.fields['fecha'].label = 'Fecha del simulacro o la práctica'
+            self.fields['titulo'].label = 'Nombre del simulacro o la práctica'
+            self.fields['descripcion'].label = 'Resultado u observaciones'
+            self.fields['descripcion'].help_text = (
+                'Describe cómo se desarrolló el ejercicio y qué se observó: tiempos, rutas, equipos de '
+                'emergencia y comportamiento de los participantes.')
+            self.fields['responsable'].label = 'Responsable del simulacro'
+            self.fields['archivo'].help_text = 'Adjunta el acta, la lista de participantes o las fotografías del ejercicio.'
+            self.fields['verificar'].label = 'He comprobado que el simulacro se realizó y que su respaldo corresponde'
+            self.order_fields(['codigo', 'fecha', 'titulo', 'emergencia', 'participantes', 'descripcion',
+                'accion_mejora', 'responsable', 'archivo', 'recurso', 'enlace', 'verificar'])
         if tipo in TIPOS_INFRAESTRUCTURA:
             self.fields.update(campos_infraestructura(unidad, tipo))
             self.fields.pop('enlace')
@@ -212,6 +231,9 @@ def fuentes_metas_view(request, slug):
     inicio, fin = cortes[corte]
     tipos = {a.codigo for a in actividades_para(unidad)} & dict(EvidenciaGestionUnidad.TIPOS).keys()
     tipos.add('INSPECCION')  # Registro documental disponible sin crear una meta numérica adicional.
+    if requiere_inspecciones_fisicas(unidad):
+        # Los simulacros van al anexo de seguridad; el observatorio no lo lleva. Tampoco son una meta.
+        tipos.add(TIPO_SIMULACRO)
     if es_laboratorio_infraestructura(unidad):
         tipos.update(TIPOS_INFRAESTRUCTURA)
         tipos.add(TIPO_FUNCIONALIDAD)
@@ -241,7 +263,8 @@ def fuentes_metas_view(request, slug):
                 datos['detalle'] = form.instance.detalle
                 registrar_evidencia(unidad, request.user, dict(datos, tipo=tipo),
                     verificar=form.cleaned_data['verificar'], archivo=form.cleaned_data['archivo'])
-                messages.success(request, 'Evidencia guardada. Solo las verificadas acreditan cumplimiento.')
+                messages.success(request, 'Simulacro guardado. Se presenta en el anexo de seguridad del período.'
+                    if tipo == TIPO_SIMULACRO else 'Evidencia guardada. Solo las verificadas acreditan cumplimiento.')
             else:
                 raise ValidationError('Revisa los campos indicados.')
             return redirect(reverse('fuentes_metas_unidad', args=[slug]) + f'?anio={anio}&corte={corte}&tipo={tipo}&_panel=1')
@@ -259,6 +282,10 @@ def fuentes_metas_view(request, slug):
             fila.accion_lectura = dict(ESTADOS_ACCION).get(detalle.get('estado_accion'), 'Sin documentar')
             revisadas, exigidas, _cuales = lectura_condiciones(unidad, detalle.get('condiciones_revisadas'))
             fila.condiciones_lectura = f'{revisadas} de {exigidas}'
+        elif tipo == TIPO_SIMULACRO:
+            detalle = fila.detalle if isinstance(fila.detalle, dict) else {}
+            emergencia = detalle.get('emergencia') if isinstance(detalle.get('emergencia'), str) else ''
+            fila.emergencia_lectura = dict(EMERGENCIAS_SIMULACRO).get(emergencia, 'Sin identificar')
         elif tipo in TIPOS_INFRAESTRUCTURA:
             from apps.documentos.models.infraestructura import CRITICIDADES_INFRAESTRUCTURA
             detalle = fila.detalle if isinstance(fila.detalle, dict) else {}
@@ -272,6 +299,7 @@ def fuentes_metas_view(request, slug):
     return render(request, 'portal/pages/unidades/gestion/fuentes_metas.html', dict(unidad=unidad, form=form,
         filas=filas, anio=anio, corte=corte, tipo=tipo, resultado_estructurado=tipo in TIPOS_RESULTADO,
         infraestructura=tipo in TIPOS_INFRAESTRUCTURA, funcionalidad=tipo == TIPO_FUNCIONALIDAD,
+        simulacro=tipo == TIPO_SIMULACRO,
         nombre=dict(EvidenciaGestionUnidad.TIPOS)[tipo]))
 
 

@@ -18,7 +18,9 @@ from django.utils import timezone
 
 from apps.documentos.models.expediente import DocumentoExpediente
 from apps.documentos.models.medicion import EvidenciaGestionUnidad
-from apps.documentos.models.respaldo_medicion import corte_efectivo, es_laboratorio, faltantes_desecho
+from apps.documentos.models.respaldo_medicion import (
+    corte_efectivo, es_laboratorio, faltantes_desecho, requiere_inspecciones_fisicas,
+)
 from apps.documentos.models.resultados_gestion import CONDICIONES_REVISION
 from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
 from apps.gestion_unidades.presentation.reportes_evidencias import (
@@ -844,10 +846,16 @@ def acciones_condiciones(category, unit, start_date, end_date):
             'desechos': 'DESECHOS'}.get(category)
     if not tipo:
         return []
-    consulta = urlencode({'anio': start_date.year, 'corte': 'B' if start_date.month >= 7 else 'A', 'tipo': tipo})
-    return [{'label': 'Registrar inspección y respaldo' if tipo == 'INSPECCION' else
-             'Registrar acta de inventario' if tipo == 'INVENTARIO' else 'Registrar conciliación de desechos',
-             'url': reverse('fuentes_metas_unidad', args=[unit.slug]) + '?' + consulta}]
+    periodo = {'anio': start_date.year, 'corte': 'B' if start_date.month >= 7 else 'A'}
+    ruta = reverse('fuentes_metas_unidad', args=[unit.slug]) + '?'
+    acciones = [{'label': 'Registrar inspección y respaldo' if tipo == 'INSPECCION' else
+                 'Registrar acta de inventario' if tipo == 'INVENTARIO' else 'Registrar conciliación de desechos',
+                 'url': ruta + urlencode(periodo | {'tipo': tipo})}]
+    if tipo == 'INSPECCION' and requiere_inspecciones_fisicas(unit):
+        # El simulacro se registra donde la inspección; va al anexo de seguridad y no es una meta.
+        acciones.append({'label': 'Registrar simulacro o práctica de emergencia',
+                         'url': ruta + urlencode(periodo | {'tipo': 'SIMULACRO'})})
+    return acciones
 
 
 def notas_condiciones(category, unit=None):

@@ -21,7 +21,9 @@ TIPOS_PRODUCTO = (
     ('otro', 'Otro producto verificable'),
 )
 TIPOS_RESULTADO = ('INVESTIGACION', 'TRANSFERENCIA')
-TIPOS_ESTRUCTURADOS = (*TIPOS_RESULTADO, 'INSPECCION', *TIPOS_INFRAESTRUCTURA, TIPO_FUNCIONALIDAD, *TIPOS_PERFIL)
+TIPO_SIMULACRO = 'SIMULACRO'
+TIPOS_ESTRUCTURADOS = (*TIPOS_RESULTADO, 'INSPECCION', TIPO_SIMULACRO, *TIPOS_INFRAESTRUCTURA, TIPO_FUNCIONALIDAD,
+                       *TIPOS_PERFIL)
 CLAVES_RESULTADO = ('proyecto', 'tipo_producto', 'producto', 'beneficiario',
                    'aceptacion', 'fecha_aceptacion', 'referencia_aceptacion')
 # Condiciones que revisa una inspección (docs/estructura-anexos-por-tipo-de-unidad.md, sección 4.8).
@@ -68,7 +70,19 @@ ESTADOS_ACCION = (('no_requiere', 'No requiere acción correctiva'),
                   ('pendiente', 'Acción pendiente'), ('resuelta', 'Acción atendida y respaldada'))
 CLAVES_INSPECCION = ('area', 'condiciones_revisadas', 'sin_hallazgos', 'hallazgos',
                     'accion_correctiva', 'estado_condiciones', 'estado_accion', 'plazo_accion')
-CLAVES_DETALLE = tuple(dict.fromkeys(CLAVES_RESULTADO + CLAVES_INSPECCION + CLAVES_INFRAESTRUCTURA + CLAVES_FUNCIONALIDAD + CLAVES_PERFIL + ('revision_criticidad',)))
+# Simulacros y prácticas de emergencia (docs/estructura-anexos-por-tipo-de-unidad.md, tabla 8.7).
+# Dejan constancia de que la emergencia se ensayó; no son una meta ni cuentan en la nota del informe.
+EMERGENCIAS_SIMULACRO = (
+    ('incendio', 'Incendio'),
+    ('sismo', 'Sismo'),
+    ('derrame', 'Derrame o fuga'),
+    ('evacuacion', 'Evacuación'),
+    ('primeros_auxilios', 'Primeros auxilios'),
+    ('otra', 'Otra'),
+)
+# El resultado u observaciones del simulacro es la descripción de la evidencia; aquí va lo propio del tipo.
+CLAVES_SIMULACRO = ('emergencia', 'participantes', 'accion_mejora')
+CLAVES_DETALLE = tuple(dict.fromkeys(CLAVES_RESULTADO + CLAVES_INSPECCION + CLAVES_SIMULACRO + CLAVES_INFRAESTRUCTURA + CLAVES_FUNCIONALIDAD + CLAVES_PERFIL + ('revision_criticidad',)))
 
 
 def _tipo_de_unidad(unidad):
@@ -154,12 +168,30 @@ def errores_inspeccion(detalle, fecha, unidad=None):
     return errores
 
 
+def errores_simulacro(detalle):
+    """Un simulacro verificado dice qué emergencia se ensayó y con cuántas personas."""
+    if not isinstance(detalle, dict):
+        return {'emergencia': 'Indica la emergencia ensayada y el número de participantes.'}
+    errores = {}
+    if detalle.get('emergencia') not in dict(EMERGENCIAS_SIMULACRO):
+        errores['emergencia'] = 'Selecciona la emergencia que se ensayó.'
+    participantes = detalle.get('participantes')
+    if not isinstance(participantes, int) or isinstance(participantes, bool) or participantes < 1:
+        errores['participantes'] = 'Indica cuántas personas participaron, con un número entero mayor que cero.'
+    mejora = detalle.get('accion_mejora', '')
+    if not isinstance(mejora, str) or len(mejora) > 3000:
+        errores['accion_mejora'] = 'Describe la acción de mejora con texto de hasta 3000 caracteres.'
+    return errores
+
+
 def errores_resultado(tipo, detalle, fecha, unidad=None):
     """Exige un producto ocurrido; una reserva o una intención no son un resultado."""
     if tipo in TIPOS_PERFIL:
         return errores_perfil(tipo, detalle, fecha)
     if tipo == 'INSPECCION':
         return errores_inspeccion(detalle, fecha, unidad)
+    if tipo == TIPO_SIMULACRO:
+        return errores_simulacro(detalle)
     if tipo in TIPOS_INFRAESTRUCTURA:
         return errores_infraestructura(tipo, detalle, fecha)
     if tipo == TIPO_FUNCIONALIDAD:
