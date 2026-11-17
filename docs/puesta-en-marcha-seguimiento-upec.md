@@ -37,6 +37,26 @@ En la administración, abrir **Asignaciones funcionales documentadas**. Cada reg
 
 La ausencia, vencimiento, revocación o inactivación impide la decisión correspondiente. El administrador técnico registra los actos respaldados; no debe usar esa configuración para autoatribuir competencias. Las modificaciones de las designaciones quedan en el historial de administración.
 
+### Registro por comando
+
+La misma designación se registra desde la consola del servidor, con el acto y la dedicación obligatorios. Sin `--aplicar` solo muestra lo que haría; repetirla no duplica la designación vigente.
+
+```
+python manage.py designar_funcion --listar
+python manage.py designar_funcion --usuario <cuenta> --rol seguimiento \
+    --acto "<acto de asignación y alcance>" --dedicacion "<dedicación y cobertura>" --aplicar
+python manage.py designar_funcion --usuario <cuenta> --rol seguimiento --revocar --aplicar
+```
+
+- `--rol adscripcion` lleva `--referencia <ID de la dependencia>`; `--rol centro`, el identificador público del Centro; `seguimiento` e `investigacion` no llevan ámbito.
+- `--desde` y `--hasta` (AAAA-MM-DD) fijan la vigencia; por omisión rige desde hoy y sin fecha final.
+- Registra el acto el superusuario activo; si hay más de uno se indica con `--registra`.
+- Al designar el seguimiento, el comando avisa las unidades que esa cuenta administra o coordina: no podrá revisar sus documentos, porque la revisión exige otra persona. Tampoco podrá revisar un documento que ella misma cargó o redactó.
+
+### Qué necesita la Dirección para evaluar
+
+Recibir, observar, habilitar una entrega tardía y evaluar exigen la designación de seguimiento vigente. La consola de cumplimiento de Administración, donde la Dirección decide sobre todas las unidades, exige además la cuenta de administración general. La unidad entrega con su propia cuenta de coordinación; la Dirección revisa con la suya.
+
 ## Uso por período
 
 1. La dependencia o el Centro prepara una versión a partir de las fuentes existentes; el Centro registra previamente sus evidencias del período.
