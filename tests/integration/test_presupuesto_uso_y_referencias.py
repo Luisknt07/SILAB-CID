@@ -98,11 +98,14 @@ class PresupuestoUsoYReferenciasTests(BaseAlcanceReportes):
         self.assertEqual(next(a.minimo for a in originales if a.codigo == 'GUIAS'), '≥ 3 por período')
         self.assertEqual(next(a.minimo for a in nuevas if a.codigo == 'GUIAS'), '≥ 4 por período')
 
-    def test_configuracion_exige_fundamento_y_no_redefine_coberturas_de_seguridad(self):
+    def test_configuracion_exige_fundamento_y_las_coberturas_van_de_1_a_100(self):
         r = ReferenciaIndicadorUnidad(tipo_unidad='laboratorios', codigo='GUIAS', valor=3, fundamento='')
         with self.assertRaises(ValidationError):
             r.full_clean()
-        r.codigo, r.fundamento = 'SEGURIDAD', 'Intento de reducir cobertura'
+        # Dirección puede ajustar una cobertura con su fundamento; nunca por encima de 100 %.
+        r.codigo, r.fundamento, r.valor = 'SEGURIDAD', 'Ajuste de cobertura acordado por Dirección', 90
+        r.full_clean()
+        r.valor = 150
         with self.assertRaises(ValidationError):
             r.full_clean()
 

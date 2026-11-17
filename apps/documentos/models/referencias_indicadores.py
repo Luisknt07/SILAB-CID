@@ -14,7 +14,14 @@ INDICADORES = [('PRACTICAS', 'Prácticas ejecutadas'), ('PRACTICAS-PLAN', 'Prác
     ('BOLETINES', 'Publicaciones del observatorio'), ('DATOS-ACTUALIZADOS', 'Series actualizadas'),
     ('EVENTOS', 'Socializaciones'), ('MANTENIMIENTO', 'Cobertura de mantenimiento crítico (%)'),
     ('PRACTICAS-SEMANA', 'Prácticas por semana y asignatura'),
-    ('PRACTICAS-MINUTOS', 'Minutos previstos por práctica')]
+    ('PRACTICAS-MINUTOS', 'Minutos previstos por práctica'),
+    ('USO', 'Sesiones de uso registradas (%)'), ('SEGURIDAD', 'Usuarios nuevos con inducción (%)'),
+    ('INSPECCIONES', 'Meses con inspección documentada (%)'), ('DESECHOS', 'Desechos con registro (%)'),
+    ('CONTROL-CALIDAD', 'Lotes con control de calidad (%)'),
+    ('INVESTIGACION', 'Resultados de investigación'), ('TRANSFERENCIA', 'Transferencias aceptadas'),
+    ('SERVICIOS', 'Servicios atendidos')]
+# Metas que son una cobertura: su valor va de 1 a 100.
+PORCENTUALES = frozenset({'MANTENIMIENTO', 'USO', 'SEGURIDAD', 'INSPECCIONES', 'DESECHOS', 'CONTROL-CALIDAD'})
 
 
 class ReferenciaIndicadorUnidad(models.Model):
@@ -46,7 +53,7 @@ class ReferenciaIndicadorUnidad(models.Model):
             raise ValidationError({'fundamento': 'Explica el fundamento antes de cambiar la referencia.'})
         if self.nivel_capacidad and self.codigo not in ('PRACTICAS', 'PRACTICAS-PLAN'):
             raise ValidationError({'nivel_capacidad': 'El nivel de capacidad sólo corresponde a prácticas.'})
-        if self.codigo == 'MANTENIMIENTO' and self.valor > 100:
+        if self.codigo in PORCENTUALES and self.valor and self.valor > 100:
             raise ValidationError({'valor': 'La cobertura debe estar entre 1 y 100 %.'})
 
     def __str__(self):

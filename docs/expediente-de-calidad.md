@@ -78,10 +78,18 @@ cuota a partir de una división uniforme de metas mensuales.
 En **Indicadores de la unidad** se elige semana, mes, semestre o año y se puede
 abrir **Configurar aforo y jornadas** y **Editar metas del semestre**. Las metas
 de los documentos enviados se consultan; una corrección sigue el circuito de
-actualización y conserva su historial. Las referencias generales de cantidades
-se administran en **Referencias de indicadores por tipo de unidad**, con valor,
-fundamento y autor: sólo afectan nuevas propuestas. Las coberturas de registro,
-seguridad y trazabilidad mantienen su definición, no una cuota rebajable.
+actualización y conserva su historial.
+
+Todas las metas se administran en **Administración → Reportes e indicadores → Metas del período**:
+una sola tabla con un indicador por fila y un tipo de unidad por columna. Dirección escribe el valor,
+indica el fundamento del cambio y guarda; cada cambio queda en el historial con su autor. Incluye las
+cantidades por período, las coberturas (registro de uso, inducción, inspecciones, desechos, control de
+calidad y mantenimiento, de 1 a 100 %) y las que solo rigen cuando la unidad las programa
+(investigación, transferencia y servicios). Una casilla vacía vuelve al valor inicial del sistema.
+El cambio rige para los planes que aún no se envían; los enviados conservan sus metas. En prácticas y
+guías, la meta del plan es el mayor valor entre ese mínimo y lo que la unidad programó en su agenda.
+Desde la misma pantalla se abre el listado **Referencias de indicadores por tipo de unidad**, con el
+historial y las propuestas de prácticas por nivel de capacidad.
 
 El reporte **Capacidad y aprovechamiento** comparte el mismo conjunto de datos
 para pantalla, PDF, CSV y XLSX, con cuadros mensual y semanal, calidad de la

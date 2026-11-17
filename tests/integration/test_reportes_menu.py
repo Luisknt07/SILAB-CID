@@ -131,7 +131,7 @@ class OrganizacionReportesTests(SimpleTestCase):
 
     def test_cada_herramienta_autorizada_aparece_una_sola_vez(self):
         tarjetas = self.tarjetas()
-        self.assertEqual(len(tarjetas), 15)
+        self.assertEqual(len(tarjetas), 16)
         ordenadas = self.tarjetas_organizadas(self.organizar(tarjetas))
 
         self.assertEqual(Counter(t['object_name'] for t in ordenadas),
@@ -149,7 +149,8 @@ class OrganizacionReportesTests(SimpleTestCase):
         por_categoria = {c['codigo']: {t['object_name'] for sub in c['subcategorias']
                                      for t in sub['models']} for c in categorias}
         self.assertEqual(por_categoria, {
-            'evaluacion': {'reportes-expediente-por-tipo', 'documentos_informemejora_changelist'},
+            'evaluacion': {'metas-del-periodo', 'reportes-expediente-por-tipo',
+                           'documentos_informemejora_changelist'},
             'compras_equipos': {'reportes-necesidades-decanato', 'equipamiento_institucional',
                                'recursos_unidadequipo_transparencia', 'AlertaUsoEquipo', 'TraspasoEquipo'},
             'actividad': {'reportes-institucional', 'gestion_unidades_reporteoperativounidad_changelist',
@@ -255,6 +256,7 @@ class OrganizacionReportesTests(SimpleTestCase):
             with self.subTest(herramienta=clave):
                 tipo = tarjeta['tipo_menu']
                 esperado = ('evaluacion' if clave == 'reportes-cumplimiento-expediente' else
+                            'configuracion' if clave == 'metas-del-periodo' else
                             'documentos' if clave in documentos else
                             'gestion' if clave in gestion else 'sistema')
                 self.assertEqual(tipo['codigo'], esperado)
@@ -266,7 +268,8 @@ class OrganizacionReportesTests(SimpleTestCase):
     def test_leyenda_refleja_solo_los_tipos_autorizados_y_respaldo_documental(self):
         tarjetas = self.tarjetas()
         casos = [
-            (tarjetas, {'unidades': {'documentos', 'sistema', 'gestion'}, 'centros_id': {'sistema'}}),
+            (tarjetas, {'unidades': {'configuracion', 'documentos', 'sistema', 'gestion'},
+                        'centros_id': {'sistema'}}),
             ([t for t in tarjetas if t['object_name'].startswith('reservas-')], {'unidades': {'sistema'}}),
             ([t for t in tarjetas if t['object_name'] == 'reportes-cumplimiento-expediente'], {'unidades': set()}),
             ([], {}),

@@ -1,0 +1,35 @@
+/* Metas del período: una tabla editable, un indicador por fila y un tipo de unidad por columna. */
+.citt-metas { max-width: 1280px; margin: 0 auto; padding: 4px 0 28px; color: #223528; }
+.citt-metas__ayuda { margin: 0 0 14px; padding: 12px 16px; border: 1px solid #d8e3db; border-left: 4px solid #2c6a3f; border-radius: 7px; background: #f6faf7; }
+.citt-metas__ayuda p { margin: 0 0 6px; font-size: 13px; }
+.citt-metas__ayuda ul { margin: 0; padding-left: 18px; font-size: 12px; color: #4b5c53; }
+.citt-metas__ayuda li { margin: 2px 0; }
+.citt-metas__errores { margin: 0 0 14px; padding: 10px 16px; border: 1px solid #e3b7b0; border-left: 4px solid #b3372a; border-radius: 7px; background: #fdf3f1; color: #7a2118; font-size: 13px; }
+.citt-metas__errores ul { margin: 6px 0 0; padding-left: 18px; }
+.citt-metas__tabla { max-width: 100%; overflow-x: auto; border: 1px solid #d8e3db; border-radius: 7px; background: #fff; }
+.citt-metas__tabla table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 13px; }
+.citt-metas__tabla thead th { position: sticky; top: 0; z-index: 1; padding: 10px 12px; border-bottom: 2px solid #e2bd36; background: #285d3a; color: #fff; text-align: left; white-space: nowrap; }
+.citt-metas__tabla tbody th, .citt-metas__tabla tbody td { padding: 9px 12px; border-bottom: 1px solid #e2e9e3; text-align: left; vertical-align: top; }
+.citt-metas__tabla tbody th { width: 34%; font-weight: 400; }
+.citt-metas__tabla tbody th strong { display: block; color: #1f3a2a; font-size: 13px; }
+.citt-metas__tabla small { display: block; margin-top: 3px; color: #617267; font-size: 11px; line-height: 1.35; }
+.citt-metas__tabla tbody tr:hover { background: #f8fbf9; }
+.citt-metas__grupo th { padding: 6px 12px !important; border-left: 4px solid #94a29b; background: #eef2f0; color: #4b5c53; font-size: 11px; font-weight: 700 !important; letter-spacing: .03em; text-transform: uppercase; }
+.citt-metas__casilla { display: flex; align-items: center; gap: 6px; }
+.citt-metas__casilla input { width: 78px; height: 32px; padding: 0 8px; border: 1px solid #b9c7be; border-radius: 5px; background: #fff; color: #1f3a2a; font-size: 14px; font-weight: 600; text-align: right; }
+.citt-metas__casilla input:focus { border-color: #2c6a3f; outline: 2px solid #cfe5d6; }
+.citt-metas__casilla.is-ajustada input { border-color: #c79a12; background: #fff9e6; }
+.citt-metas__unidad { color: #617267; font-size: 11px; white-space: nowrap; }
+.citt-metas__no-aplica { color: #98a39c; font-size: 12px; }
+.citt-metas__marca { display: inline-block; padding: 0 6px; border-radius: 9px; background: #fff3cd; color: #7a5a00; font-size: 10px; font-weight: 700; }
+.citt-metas__oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.citt-metas__pie { margin-top: 14px; padding: 12px 16px; border: 1px solid #d8e3db; border-radius: 7px; background: #fff; }
+.citt-metas__pie label small { display: block; margin: 2px 0 6px; color: #617267; font-size: 11px; }
+.citt-metas__pie textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #b9c7be; border-radius: 5px; font: inherit; font-size: 13px; }
+.citt-metas__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 10px; }
+.citt-metas__acciones button { padding: 8px 18px; border: 0; border-radius: 5px; background: #2c6a3f; color: #fff; font-weight: 700; cursor: pointer; }
+.citt-metas__acciones button:hover { background: #235533; }
+.citt-metas__acciones a { font-size: 12px; }
+@media (max-width: 760px) {
+  .citt-metas__tabla tbody th { width: auto; min-width: 220px; }
+}

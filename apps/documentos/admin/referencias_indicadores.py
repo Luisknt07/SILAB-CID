@@ -1,4 +1,8 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
+from django.urls import path
 
 from apps.core.presentation.administracion import AdministracionTraducida
 from apps.documentos.models.referencias_indicadores import ReferenciaIndicadorUnidad
@@ -25,7 +29,8 @@ class ReferenciaIndicadorUnidadAdmin(AdministracionTraducida):
                 'por unidad y período. Sus horarios determinan las horas de ocupación, sin imponer una frecuencia semanal '
                 'a cada asignatura. El catálogo de asignaturas no constituye carga comprometida. '
                 'Las reglas se conservan al guardar y las versiones firmadas mantienen sus metas. '
-                'El 100 % de cobertura de seguridad, registro y trazabilidad conserva su definición.')
+                'Las coberturas de seguridad, registro y trazabilidad parten de 100 % y Dirección puede ajustarlas '
+                'con su fundamento en «Metas del período».')
 
     def has_module_permission(self, request):
         return request.user.is_active and request.user.is_superuser
@@ -41,3 +46,34 @@ class ReferenciaIndicadorUnidadAdmin(AdministracionTraducida):
     def save_model(self, request, obj, form, change):
         obj.actualizado_por = request.user
         super().save_model(request, obj, form, change)
+
+    def get_urls(self):
+        return [path('metas/', self.admin_site.admin_view(self.metas_del_periodo),
+                     name='metas-del-periodo')] + super().get_urls()
+
+    def metas_del_periodo(self, request):
+        """Todas las metas en una tabla: un indicador por fila y un tipo de unidad por columna."""
+        from apps.documentos.presentation.metas_administracion import guardar_metas, tabla_de_metas
+
+        if not self.has_change_permission(request):
+            raise PermissionDenied
+        errores = []
+        if request.method == 'POST':
+            try:
+                cambios = guardar_metas(request.POST, request.user)
+            except ValidationError as error:
+                errores = error.messages
+            else:
+                if cambios:
+                    messages.success(request, f'Se guardaron {len(cambios)} cambios: ' + '; '.join(cambios) + '.')
+                else:
+                    messages.info(request, 'No hubo cambios que guardar.')
+                return redirect('admin:metas-del-periodo')
+        contexto = {
+            **self.admin_site.each_context(request),
+            'title': 'Metas del período',
+            'tabla': tabla_de_metas(request.POST if errores else None),
+            'errores': errores,
+            'fundamento': request.POST.get('fundamento', '') if errores else '',
+        }
+        return TemplateResponse(request, 'admin/documentos/referenciaindicadorunidad/metas.html', contexto)

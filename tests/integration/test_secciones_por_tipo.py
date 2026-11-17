@@ -664,7 +664,7 @@ class AreaDeReportesTests(TestCase):
             'Reporte institucional',
             'Reportes operativos por unidad',
             'Cumplimiento del expediente por unidad',
-            'Resumen anual de entregas', 'Necesidades de compras por centro de costo', 'Remisión y seguimiento de mejora',
+            'Metas del período', 'Resumen anual de entregas', 'Necesidades de compras por centro de costo', 'Remisión y seguimiento de mejora',
             'Estadísticas de reservas',
             'Reporte de uso por carreras y usuarios', 'Listado de solicitudes de reserva',
             'Equipamiento institucional', 'Lector de equipos'])

@@ -6,10 +6,12 @@ TIPOS_ACCESO = {
     'evaluacion': ('Panel de evaluación', 'Revisa los documentos entregados y los resultados de las unidades; desde aquí se toman las decisiones.'),
     'documentos': ('Documentos y remisiones', 'Archivos entregados por las unidades e informes que se revisan, archivan o remiten.'),
     'sistema': ('Consulta del sistema', 'Resumen o estadística obtenido de los registros; no constituye una entrega documental adicional.'),
+    'configuracion': ('Configuración', 'Reglas que Dirección define para evaluar a las unidades; se editan en pantalla.'),
     'gestion': ('Gestión operativa', 'Registros y herramientas para atender alertas, movimientos e identificación de equipos.'),
 }
 TIPO_POR_ACCESO = {
     'reportes-cumplimiento-expediente': 'evaluacion',
+    'metas-del-periodo': 'configuracion',
     'reportes-evidencias-por-tipo': 'documentos',
     'reportes-necesidades-decanato': 'documentos',
     'documentos_informemejora_changelist': 'documentos',
@@ -30,6 +32,8 @@ def _tipo_acceso(codigo):
 
 CATEGORIAS_REPORTES = (
     ('evaluacion', 'Evaluación y seguimiento', 'Revisión de entregas y acciones posteriores a la evaluación.', (
+        ('Metas de la evaluación', 'Define con qué meta se mide cada indicador, por tipo de unidad.', (
+            'metas-del-periodo',)),
         ('Entregas y mejora', 'Consulta el historial de entregas y el seguimiento de las correcciones.', (
             'reportes-expediente-por-tipo', 'documentos_informemejora_changelist')),
     )),
@@ -111,5 +115,6 @@ def organizar_reportes(modelos):
             tarjeta for categoria in seccion['categorias']
             for subcategoria in categoria['subcategorias'] for tarjeta in subcategoria['models']]
         tipos_visibles = {tarjeta['tipo_menu']['codigo'] for tarjeta in accesos if tarjeta.get('tipo_menu')}
-        seccion['tipos'] = [_tipo_acceso(codigo) for codigo in ('documentos', 'sistema', 'gestion') if codigo in tipos_visibles]
+        seccion['tipos'] = [_tipo_acceso(codigo) for codigo in ('configuracion', 'documentos', 'sistema', 'gestion')
+                           if codigo in tipos_visibles]
     return dict(secciones=secciones)

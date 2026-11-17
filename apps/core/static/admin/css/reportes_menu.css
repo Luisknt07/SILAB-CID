@@ -44,7 +44,7 @@
 .citt-reportes .citt-reportes__tipo { display: inline-flex; width: fit-content; align-items: center; padding: 3px 7px; border: 1px solid var(--reportes-borde); border-radius: 4px; background: var(--reportes-superficie); color: var(--reportes-texto); font-size: 10px; font-weight: 700; line-height: 1.3; }
 .citt-reportes .citt-reportes__tipo.is-documentos { background: var(--reportes-amarillo-suave); color: var(--reportes-acento-tinta); border-color: var(--reportes-amarillo); }
 .citt-reportes .citt-reportes__tipo.is-sistema { background: var(--reportes-verde-suave); color: var(--reportes-verde-tinta); border-color: transparent; }
-.citt-reportes .citt-reportes__tipo.is-gestion { color: var(--reportes-verde-tinta); border-color: var(--reportes-boton); }
+.citt-reportes .citt-reportes__tipo.is-configuracion, .citt-reportes .citt-reportes__tipo.is-gestion { color: var(--reportes-verde-tinta); border-color: var(--reportes-boton); }
 .citt-reportes .citt-admin-model-grid .citt-admin-model-card__copy span.citt-reportes__tipo { display: inline-flex; margin: 0; padding: 2px 5px; font-size: 10px; }
 .citt-reportes .citt-admin-model-grid > article .citt-admin-model-card__icon { width: 36px; height: 36px; color: #fff; border: 0; border-radius: 50%; background: var(--tono, var(--reportes-modulo)); }
 .citt-reportes .citt-admin-model-grid > article:nth-child(7n+4) .citt-admin-model-card__icon { color: var(--reportes-texto); }

@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% comment %}
+Metas del período: cada indicador del plan por tipo de unidad, en una sola tabla editable.
+Lo que se escribe aquí se guarda como referencia de Dirección y sustituye al valor inicial del sistema.
+{% endcomment %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/metas_periodo.css' %}?v=20261117-1">{% endblock %}
+
+{% block bodyclass %}grp-change-list citt-metas-page{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="grp-horizontal-list">
+    <li><a href="{% url 'admin:index' %}">{% translate "Inicio" %}</a></li>
+    <li><a href="{% url 'admin:index' %}#reportes">{% translate "Reportes e indicadores" %}</a></li>
+    <li>Metas del período</li>
+  </ul>
+{% endblock %}
+
+{% block content_title %}<h1>Metas del período</h1>{% endblock %}
+
+{% block content %}
+<section class="citt-metas" data-metas-periodo>
+  <header class="citt-metas__ayuda">
+    <p>Escribe la meta de cada indicador para cada tipo de unidad y guarda. Los planes que aún no se envían toman el valor nuevo al abrirlos; los ya enviados conservan sus metas.</p>
+    <ul>
+      <li><b>%</b> es una cobertura (de 1 a 100); las demás son cantidades por período.</li>
+      <li>Deja una casilla vacía para volver al valor inicial del sistema. Las casillas resaltadas son las que Dirección dejó distintas de ese valor{% if tabla.ajustadas %} ({{ tabla.ajustadas }}){% endif %}.</li>
+      <li><span class="citt-metas__marca is-agenda">agenda</span> La meta del plan es el mayor valor entre este mínimo y lo que la unidad programó en su agenda.</li>
+    </ul>
+  </header>
+
+  {% if errores %}<div class="citt-metas__errores" role="alert"><strong>No se guardó nada. Corrige lo siguiente:</strong><ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+
+  <form method="post" class="citt-metas__formulario">{% csrf_token %}
+    <div class="citt-metas__tabla" role="region" aria-label="Metas por indicador y tipo de unidad" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">Indicador</th>{% for codigo, nombre in tabla.tipos %}<th scope="col">{{ nombre }}</th>{% endfor %}</tr></thead>
+        {% for grupo in tabla.grupos %}{% if grupo.filas %}
+        <tbody class="citt-metas__grupo"><tr><th colspan="{{ tabla.tipos|length|add:1 }}" scope="rowgroup">{{ grupo.nombre }}</th></tr></tbody>
+        <tbody>
+          {% for fila in grupo.filas %}
+          <tr data-meta="{{ fila.codigo }}">
+            <th scope="row"><strong>{{ fila.nombre }}</strong><small>{{ fila.indicador }}{% if fila.sube_con_la_agenda %} <span class="citt-metas__marca is-agenda">agenda</span>{% endif %}</small></th>
+            {% for celda in fila.celdas %}
+            <td>{% if celda.aplica %}
+              <label class="citt-metas__casilla{% if celda.ajustada %} is-ajustada{% endif %}">
+                <span class="citt-metas__oculto">{{ fila.nombre }} · {{ celda.nombre_tipo }}</span>
+                <input type="number" name="{{ celda.campo }}" value="{{ celda.valor }}" min="1" max="{% if fila.porcentaje %}100{% else %}10000{% endif %}" step="1" inputmode="numeric" placeholder="{% if celda.sin_numero %}—{% else %}{{ celda.inicial_texto }}{% endif %}">
+                <span class="citt-metas__unidad">{% if fila.porcentaje %}%{% else %}por período{% endif %}</span>
+              </label>
+              {% if celda.ajustada or celda.sin_numero or celda.segun_programacion %}<small>{% if celda.ajustada %}Ajustada por Dirección · inicial {{ celda.inicial_texto }}{% elif celda.sin_numero %}Sin número: {{ celda.inicial_texto }}{% endif %}{% if celda.segun_programacion %}{% if celda.ajustada or celda.sin_numero %} · {% endif %}Solo si la unidad la programa{% endif %}</small>{% endif %}
+            {% else %}<span class="citt-metas__no-aplica" title="Este indicador no se propone a este tipo de unidad">No aplica</span>{% endif %}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% endif %}{% endfor %}
+      </table>
+    </div>
+
+    <div class="citt-metas__pie">
+      <label for="metas-fundamento"><strong>Fundamento del cambio</strong><small>Obligatorio si cambias algún valor: la decisión o el criterio que lo sustenta. Queda en el historial.</small></label>
+      <textarea id="metas-fundamento" name="fundamento" rows="2" maxlength="1000">{{ fundamento }}</textarea>
+      <div class="citt-metas__acciones">
+        <button type="submit" class="grp-button grp-default">Guardar metas</button>
+        <a href="{% url 'admin:documentos_referenciaindicadorunidad_changelist' %}">Historial y propuestas de prácticas por capacidad</a>
+      </div>
+    </div>
+  </form>
+</section>
+{% endblock %}

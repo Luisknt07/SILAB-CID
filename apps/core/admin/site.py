@@ -35,6 +35,9 @@ MODELOS_FUERA_DEL_INDICE = frozenset({
     "recursos.ArchivoRecurso",
     # La bandeja ya tiene tarjeta explícita en Reportes e indicadores.
     "documentos.InformeMejora",
+    # Las metas se editan en una sola tabla, «Metas del período», en Reportes e indicadores;
+    # desde ella se abre este listado con el historial y las propuestas por capacidad.
+    "documentos.ReferenciaIndicadorUnidad",
     # Consultas de formación: pertenecen al tablero de cada unidad y al curso.
     # Se conservan sus URL y permisos; no se mezclan identidades de todas las unidades en el índice.
     "formacion.CertificadoCurso",
@@ -157,6 +160,13 @@ _DESPUES_DE_LOS_TIPOS = (
                 "permiso": "documentos.view_documentoexpediente",
             },
             {
+                "nombre": "Metas del período",
+                "descripcion": "Define la meta de cada indicador por tipo de unidad: una sola tabla, editable. "
+                               "Los planes que aún no se envían toman el valor nuevo.",
+                "ruta": "admin:metas-del-periodo",
+                "permiso": "documentos.change_referenciaindicadorunidad",
+            },
+            {
                 "nombre": "Resumen anual de entregas",
                 "descripcion": "Compara las entregas de los períodos A y B y los documentos del año; entra a Cumplimiento para evaluarlas.",
                 "ruta": "admin:reportes-expediente-por-tipo",
@@ -261,7 +271,6 @@ _DESPUES_DE_LOS_TIPOS = (
             # El mínimo con el que se mide a todas las unidades va junto al catálogo
             # que dice qué se les exige: las dos cosas son la regla del expediente.
             "documentos.PoliticaDeCalidad",
-            "documentos.ReferenciaIndicadorUnidad",
             "recursos.PoliticaUsoEquipo",
             # Dónde está cada sede: el mapa de ubicación de las unidades las resalta.
             "directorio_unidades.SedeInstitucional",

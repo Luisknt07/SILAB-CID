@@ -4,6 +4,7 @@ No son cuotas emitidas por la Universidad ni alteran compromisos firmados.
 La dotación orienta una propuesta; Dirección decide su pertinencia al revisar
 el diagnóstico, los recursos y el cronograma de la unidad.
 """
+import re
 from dataclasses import replace
 from datetime import timedelta
 from math import ceil
@@ -100,8 +101,10 @@ def actividades_proporcionales(actividades, base, *, funciones=None, capacidad=N
         from .referencias_indicadores import referencia
         configurada = referencia(capacidad, codigo)
         if configurada:
-            cambios['minimo'] = (f'≥ {configurada["valor"]} % de lo programado en equipos críticos'
-                if codigo == 'MANTENIMIENTO' else f'≥ {configurada["valor"]} por período')
+            vigente = cambios.get('minimo', actividad.minimo)
+            # Una cobertura conserva su redacción («% de las sesiones»); solo cambia el número.
+            cambios['minimo'] = (re.sub(r'\d+(?:[.,]\d+)?', str(configurada['valor']), vigente, count=1)
+                if '%' in vigente else f'≥ {configurada["valor"]} por período')
         if codigo in {'PRACTICAS', 'PRACTICAS-PLAN'} and isinstance(capacidad, dict):
             # Fuera del período se requiere revisión, no una exención automática.
             piso = capacidad.get('practicas_minimas')
