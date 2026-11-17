@@ -22,6 +22,7 @@ from apps.documentos.presentation.expediente_redaccion import (
 )
 from apps.documentos.presentation.perfil_unidades import aplica_documento
 from apps.documentos.presentation.protocolo_seguridad import NOMBRE, NOMBRE_ANTERIOR
+from tests.integration.test_seguimiento_gobernanza import designar
 from tests.integration.test_expediente_redaccion import BaseDeRedaccion
 
 
@@ -62,6 +63,7 @@ class ProtocoloSeguridadTests(BaseDeRedaccion):
         self.protocolo = self.documento('PROTOCOLO-BIOSEGURIDAD', corte='')
         self.director = get_user_model().objects.create_superuser('direccion-protocolo', password=None,
             first_name='Directora', last_name='de prueba')
+        designar(self.director)
         self.coordinador.profile.cedula = '0400000001'
         self.coordinador.profile.save(update_fields=['cedula'])
         self.director.profile.cedula = '0400000002'

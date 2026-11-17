@@ -59,7 +59,9 @@ class ObservacionesDocumentalesLecturaTests(SimpleTestCase):
         d = self.documento()
         identidad = identidad_comentario(d, 'observacion')
         usuario = SimpleNamespace(is_active=True, is_superuser=True)
+        # Sin base de datos: la función de seguimiento de la cuenta se da por vigente.
         with patch.object(d, 'save') as guardar, \
+                patch('apps.documentos.presentation.expediente.es_revisor_institucional', return_value=True), \
                 patch('apps.documentos.presentation.observaciones_documentales.registrar_auditoria') as auditar:
             anotar_observacion.__wrapped__(d, usuario, 'Falta adjuntar el respaldo.',
                 version=identidad['version'], recurso_id=identidad['recurso_id'], huella=identidad['huella'],

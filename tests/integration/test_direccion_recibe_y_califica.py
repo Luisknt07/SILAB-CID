@@ -29,6 +29,7 @@ from apps.documentos.models.expediente import PoliticaDeCalidad
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
 from apps.documentos.models.expediente import minimo_vigente, olvidar_politica, penalizacion_vigente
 from tests.integration.test_cumplimiento_expediente import PDF_FIRMADO
+from tests.integration.test_seguimiento_gobernanza import designar
 from tests.integration.utiles import identificar
 from tests.integration.utiles import (datos_correspondencia_revisada, recibir_documento_revisado, evaluar_documento_revisado)
 
@@ -47,6 +48,8 @@ class BaseDelExpediente(TestCase):
         identificar(cls.decano, tipo_usuario='administrativo', carrera='')
         cls.direccion = get_user_model().objects.create_superuser(
             'direccion-recibe', 'd@ejemplo.ec', 'clave-segura')
+        # Revisar exige la función de seguimiento vigente; ser superusuario no basta.
+        designar(cls.direccion)
         cls.decanato = DependenciaAcademica.objects.create(
             nombre='Facultad de Industrias Agropecuarias y Ciencias Ambientales', tipo='decanato')
         cls.decanato.receptores.add(cls.decano)

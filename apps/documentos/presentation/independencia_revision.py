@@ -32,8 +32,11 @@ def conflicto_directo(documento, usuario, unidad):
         return "administra el laboratorio o instalación evaluada"
     if getattr(documento, "cargado_por_id", None) == actor:
         return "cargó el documento evaluado"
+    # En un documento devuelto, validado_por guarda a quien lo observó desde la revisión, no a
+    # quien envió la entrega: esa persona sigue pudiendo habilitar la corrección que devolvió.
     if (
-        getattr(documento, "validado_por_id", None) == actor
+        getattr(documento, "estado", "") != "observado"
+        and getattr(documento, "validado_por_id", None) == actor
         and getattr(documento, "recibido_por_id", None) != actor
     ):
         return "validó la entrega de la unidad"

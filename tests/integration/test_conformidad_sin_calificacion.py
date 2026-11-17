@@ -18,6 +18,7 @@ from apps.documentos.presentation.expediente_catalogo import asegurar_catalogo
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
 from apps.formacion.presentation.evaluacion_rubrica import revisar_documento
 from apps.recursos.models.recursos import Recurso
+from tests.integration.test_seguimiento_gobernanza import designar
 from tests.integration.utiles import (
     correspondencia_revisada, pdf_legible_prueba, registrar_antecedente_evaluacion,
 )
@@ -32,8 +33,11 @@ class ConformidadSinCalificacionTests(TestCase):
         self.addCleanup(ajustes.disable)
         asegurar_catalogo()
         self.direccion = get_user_model().objects.create_superuser('direccion-conformidad-binaria', password=None)
+        # Quien revisa tiene la función de seguimiento y no administra la unidad que evalúa.
+        designar(self.direccion)
+        responsable = get_user_model().objects.create_user('responsable-conformidad-binaria', password=None)
         self.unidad = Unidad.objects.create(nombre='Unidad de conformidad', slug='conformidad-binaria',
-            dependencia='laboratorios', administrador=self.direccion, fecha_inicio=date(2024, 1, 1))
+            dependencia='laboratorios', administrador=responsable, fecha_inicio=date(2024, 1, 1))
 
     def documento(self, codigo):
         exigido = DocumentoExigido.objects.get(codigo=codigo)

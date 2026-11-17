@@ -66,8 +66,10 @@ def operacion_de_unidad(unidad_id, usuario, *, revision=False):
         with transaction.atomic():
             unidad = Unidad.objects.select_for_update().get(pk=unidad_id)
             from apps.core.gobernanza import es_revisor_institucional
-            if not ((revision and es_revisor_institucional(usuario)) or
-                    (not revision and puede_operar_modulo_unidad(usuario, unidad, 'reportes'))):
+            if revision and not es_revisor_institucional(usuario):
+                raise ValidationError('No tienes permiso: solo la Dirección, con la función de seguimiento '
+                                      'vigente, revisa los documentos de esta unidad.')
+            if not revision and not puede_operar_modulo_unidad(usuario, unidad, 'reportes'):
                 raise ValidationError('No tienes permiso para modificar el expediente de esta unidad.')
             yield unidad
     except Exception:

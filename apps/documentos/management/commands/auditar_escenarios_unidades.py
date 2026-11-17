@@ -175,7 +175,8 @@ class AuditoriaHipotesis:
         # Dirección puede recibir después del cierre; la misma API conserva y penaliza la tardanza.
         fecha_tardia = max(FECHA_TARDIA_QA, compras.plazo_original.date() + timedelta(days=1))
         with reloj_qa(fecha_tardia):
-            self.aprobar_documental(compras, direccion, direccion)
+            # Quien carga tras el cierre no revisa lo que cargó: la revisión es de otra persona.
+            self.aprobar_documental(compras, self.carga_tardia, direccion)
         self.registrar(unidad, 'entrega_tardia_conserva_condicion', compras.entregado_tarde, True,
             tardia=compras.entregado_tarde, penalizacion=penalizacion_vigente())
         self.registrar(unidad, 'tardanza_administrativa_sin_puntos', self.progreso(unidad)['resultado_porcentaje'], None)
@@ -201,9 +202,17 @@ class AuditoriaHipotesis:
         coordinacion = usuario.objects.create(username=f'qa.hipotesis.coordinacion.{self.identificador}',
             first_name='Coordinación ficticia QA', email=f'qa-coordinacion-{self.identificador}@example.invalid',
             is_active=True)
-        for actor in (direccion, coordinacion):
+        self.carga_tardia = usuario.objects.create(username=f'qa.hipotesis.tecnica.{self.identificador}',
+            first_name='Administración técnica ficticia QA', email=f'qa-tecnica-{self.identificador}@example.invalid',
+            is_superuser=True, is_staff=True, is_active=True)
+        for actor in (direccion, coordinacion, self.carga_tardia):
             actor.set_unusable_password()
             actor.save(update_fields=['password'])
+        # Revisar exige la función de seguimiento vigente; la cuenta técnica no la tiene.
+        from apps.core.models.gobernanza import AsignacionGobernanza
+        AsignacionGobernanza.objects.create(usuario=direccion, rol='seguimiento', referencia='',
+            acto='Acto ficticio exclusivamente de QA', dedicacion='Cobertura de QA',
+            desde=date(2026, 1, 1), registrado_por=direccion)
         unidades = []
         with reloj_qa():
             for tipo in self.tipos:

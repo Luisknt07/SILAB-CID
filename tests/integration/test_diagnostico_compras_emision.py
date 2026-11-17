@@ -19,6 +19,7 @@ from apps.documentos.presentation.pac_universitario import preparar_pac
 from apps.gestion_unidades.models.espacios import EspacioReservable
 from apps.recursos.models.equipos import EquiposServicios
 from apps.recursos.models.unidades import UnidadEquipo
+from tests.integration.test_seguimiento_gobernanza import designar
 from tests.integration.test_expediente_redaccion import BaseDeRedaccion
 from tests.integration.utiles import abrir_entrega
 from types import SimpleNamespace
@@ -28,6 +29,7 @@ class DiagnosticoComprasEmisionTests(BaseDeRedaccion):
     def setUp(self):
         self.director = get_user_model().objects.create_superuser('direccion-diagnostico-congelado', password=None,
             first_name='Dirección', last_name='del diagnóstico')
+        designar(self.director)
         self.area = EspacioReservable.objects.get(unidad=self.unidad, codigo='RED-A1')
         self.area.equipos_asociados.add(self.unidad_equipo)
         self.documento_pac = abrir_entrega(self.documento('PLAN-COMPRAS-ANUAL', corte=''))

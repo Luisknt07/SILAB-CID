@@ -7,6 +7,7 @@ from apps.documentos.presentation.aprobacion_en_linea import enviar_documento_qr
 from apps.documentos.presentation.expediente import generar_documento, recibir_documento, validar_documento
 from apps.recursos.models.consumibles import Consumible
 from apps.recursos.models.recursos import Recurso
+from tests.integration.test_seguimiento_gobernanza import designar
 from tests.integration.test_expediente_redaccion import BaseDeRedaccion
 from tests.integration.test_protocolo_seguridad import protocolo_completo
 from tests.integration.utiles import abrir_entrega, correspondencia_revisada
@@ -16,6 +17,7 @@ class PreparacionEnRutasDeEntregaTests(BaseDeRedaccion):
     def setUp(self):
         self.director = get_user_model().objects.create_superuser(
             username='direccion-preparacion-rutas-qa', password=None)
+        designar(self.director)
 
     def compras_preparadas_sin_qr(self):
         documento = abrir_entrega(self.documento('PLAN-COMPRAS-ANUAL', corte=''))

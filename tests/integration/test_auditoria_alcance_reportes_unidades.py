@@ -15,6 +15,7 @@ from apps.documentos.models.expediente import DocumentoElaborado, DocumentoExigi
 from apps.documentos.presentation.expediente_catalogo import asegurar_catalogo
 from apps.documentos.presentation.expediente_redaccion import componer, obtener_redaccion
 from apps.recursos.models.recursos import CarpetaRecurso, Recurso
+from tests.integration.test_seguimiento_gobernanza import designar
 from tests.integration.utiles import abrir_entrega, identificar, pdf_legible_prueba
 
 
@@ -32,6 +33,7 @@ class BaseAlcanceReportes(TestCase):
             cls.documentos[tipo] = DocumentoExpediente.objects.create(unidad=unidad,
                 exigido=DocumentoExigido.objects.get(codigo='PLANIFICACION'), anio=2026, corte='B')
         cls.direccion = get_user_model().objects.create_superuser('direccion-alcance-reportes', password=None)
+        designar(cls.direccion)
 
     def setUp(self):
         self.media = self.enterContext(TemporaryDirectory(prefix='citt-auditoria-alcance-'))

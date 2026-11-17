@@ -225,8 +225,9 @@ class SubtiposYRendimientoTests(BaseDeReportes):
         with CaptureQueriesContext(connection) as consultas:
             filas, _ = evidencias_por_unidad(['laboratorios'], self.desde, self.hasta, self.coordinador)
         self.assertEqual(len(filas), 30)
-        # Doce fijas aunque sean treinta unidades: una de ellas resuelve el alcance por permisos de reportes.
-        self.assertLessEqual(len(consultas), 12)
+        # Catorce fijas aunque sean treinta unidades: una resuelve el alcance por permisos de reportes y
+        # dos comprueban, sin caché, la cuenta activa y la designación de seguimiento de quien consulta.
+        self.assertLessEqual(len(consultas), 14)
         activo = UnidadEquipo.objects.filter(laboratorio=unidades[0]).first()
         activo.laboratorios.add(unidades[1])
         with self.assertNumQueries(3):
