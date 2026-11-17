@@ -36,9 +36,12 @@ class EncabezadoPdfTests(SimpleTestCase):
             for modulo in ('apps.core.presentation.identidad', 'apps.core.presentation.pdf_institucional'):
                 pila.enter_context(patch(modulo+'.logo_institucional', return_value=None))
             pdf = PdfReader(BytesIO(render_documento_pdf(compuesto)))
-            # Lo que no es documento principal conserva el encabezado de tres columnas, con la versión.
+            # Lo que no es documento principal conserva el encabezado de tres columnas. El número de versión
+            # es un contador interno de archivos y no se imprime.
             anexo = PdfReader(BytesIO(render_documento_pdf(dict(compuesto, tipo='mejora'))))
-        self.assertIn('Versión: 7', '\n'.join(p.extract_text() or '' for p in anexo.pages))
+        texto_anexo = '\n'.join(p.extract_text() or '' for p in anexo.pages)
+        self.assertIn('Revisión: 01', texto_anexo)
+        self.assertNotIn('Versión', texto_anexo)
         posiciones, fuentes = {}, set()
         def recoger(texto, cm, tm, fuente, tamano):
             if texto.strip():

@@ -76,9 +76,9 @@ def render_documento_pdf(compuesto):
         metadatos = (f"{etiqueta}: {compuesto['codigo_formato']}", f"Cobertura: {compuesto['periodo']}")
         formato = compuesto['titulo']
     else:
-        # Las cuatro líneas del formato institucional: código, revisión, período y versión.
-        metadatos = metadatos_documento(compuesto['codigo_formato'], periodo=compuesto['periodo'],
-                                        version=compuesto.get('version'))
+        # Las líneas del formato institucional: código, revisión y período. El número de versión es un
+        # contador interno de archivos y no se imprime.
+        metadatos = metadatos_documento(compuesto['codigo_formato'], periodo=compuesto['periodo'])
         formato = f"Formato {compuesto['titulo']}"
     dibujar_encabezado, CanvasNumerado, medidas = marco_institucional(
         formato=formato,

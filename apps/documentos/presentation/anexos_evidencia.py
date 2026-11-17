@@ -644,7 +644,8 @@ def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=
     compuesto = componer_anexo(documento, inicio, fin, lectura)
     dibujar, CanvasNumerado, medidas = marco_institucional(
         formato=compuesto['titulo'], apaisado=True, pie='Expediente de calidad',
-        metadatos=metadatos_documento(codigo_documento, periodo=documento.etiqueta_corte, version=version))
+        # Sin número de versión: es un contador interno de archivos, no una edición del formato.
+        metadatos=metadatos_documento(codigo_documento, periodo=documento.etiqueta_corte))
     # Sin marca de borrador: el anexo que se consulta al día es el mismo formato que se archiva.
     tinta = medidas['colores']
     ancho = medidas['ancho_util']

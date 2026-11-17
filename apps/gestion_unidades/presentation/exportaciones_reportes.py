@@ -79,7 +79,7 @@ def marco_pdf_unidad(reporte):
         f"{reporte['start_date']:%d/%m/%Y} – {reporte['end_date']:%d/%m/%Y}" if reporte.get('periodo', True) else None)
     metadatos = metadatos_documento(
         datos.get('code') or expediente.get('codigo'), revision=datos.get('revision', '01'), periodo=periodo,
-        version=expediente.get('version'), generado=None if expediente else reporte['generated_at'])
+        generado=None if expediente else reporte['generated_at'])
     dibujar, lienzo, medidas = marco_institucional(
         formato=datos.get('title') or reporte['category_label'], metadatos=metadatos,
         pie='Centro de reportes', apaisado=True,
