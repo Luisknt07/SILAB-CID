@@ -53,7 +53,7 @@
     {% endif %}
 
     <section class="practice-form__section" data-evidencias>
-      <div class="practice-form__section-heading"><span>05</span><div><h3>{% translate "Evidencias de la práctica" %}</h3><p>{% translate "Fotografías identificadas, registros de asistencia, bitácoras, capturas de simuladores, informes de estudiantes y productos. Quedan en el registro de ejecución y salen en su documento." %}</p></div></div>
+      <div class="practice-form__section-heading"><span>05</span><div><h3>{% translate "Evidencias de la práctica" %}</h3><p>{% translate "Fotografías identificadas, registros de asistencia, bitácoras, capturas de simuladores, informes de estudiantes y productos. Quedan en el registro de ejecución y salen en su documento." %}</p><p>{% translate "Formatos para imprimir, firmar y subir aquí escaneados:" %} <a href="{% url 'lista_asistencia_practica_pdf' unidad.slug plan.pk %}" data-ver-pdf data-pdf-titulo="{% translate "Lista de asistencia" %} · {{ plan.codigo }}" data-pdf-descarga="{% url 'lista_asistencia_practica_pdf' unidad.slug plan.pk %}">{% translate "Lista de asistencia" %}</a> · <a href="{% url 'bitacora_practica_pdf' unidad.slug plan.pk %}" data-ver-pdf data-pdf-titulo="{% translate "Bitácora" %} · {{ plan.codigo }}" data-pdf-descarga="{% url 'bitacora_practica_pdf' unidad.slug plan.pk %}">{% translate "Bitácora" %}</a></p></div></div>
       {% if evidencias %}
       <ul class="practice-evidence-list">
         {% for evidencia in evidencias %}

@@ -48,6 +48,26 @@ EXEC_FIELDS_AUDIT = (
     "hora_fin_real", "estudiantes_asistentes", "cumplimiento_resultado",
     "detalle_operativo",
 )
+# Reabrir una ejecución validada exige decir qué se va a corregir.
+MINIMO_MOTIVO_REAPERTURA = 15
+INFORME_SEMESTRAL_ENVIADO = (
+    "El informe semestral del período de esta práctica ya fue enviado: "
+    "la Dirección debe devolver primero el informe para poder reabrir la ejecución."
+)
+
+
+def _informe_semestral_enviado(unidad, fecha):
+    """El informe semestral ya enviado cuyo tramo contiene la fecha; ``None`` si no lo hay."""
+    from apps.documentos.models.expediente import DocumentoExpediente
+    from apps.documentos.presentation.expediente import tramo_del_documento
+
+    for documento in DocumentoExpediente.objects.filter(
+        unidad=unidad, exigido__codigo="INFORME-SEMESTRAL", estado="validado",
+    ).select_related("exigido", "unidad"):
+        inicio, fin = tramo_del_documento(documento)
+        if inicio <= fecha <= fin:
+            return documento
+    return None
 
 
 def _actividades_para(usuario, unidad):
@@ -505,6 +525,7 @@ def accion_ejecucion_view(request, slug, plan_id):
             planificacion=plan, eliminado_en__isnull=True,
         )
         anteriores = instantanea(ejecucion, EXEC_FIELDS_AUDIT)
+        datos_reapertura = {}
         if ejecucion.estado == "validada" and accion in {"validar", "observar"}:
             raise PermissionDenied("Una ejecución validada conserva su cierre y no puede volver a editarse.")
         if accion == "validar":
@@ -528,11 +549,13 @@ def accion_ejecucion_view(request, slug, plan_id):
                         ejecucion.observaciones_docente
                         or f"Ejecución validada desde {plan.codigo}."
                     )
+                    # La reserva puede estar ya cerrada: desde el panel, o porque la
+                    # ejecución se reabrió después de validarse. No se cierra dos veces.
                     cierre_ya_registrado = (
                         accion_reserva == "completar"
                         and reserva.estado == "completada"
                         and reserva.resultado_cierre == "atendida"
-                    )
+                    ) or (accion_reserva == "cancelar" and reserva.estado == "cancelada")
                     try:
                         validar_compuerta_documental(reserva, accion_reserva)
                         if not cierre_ya_registrado:
@@ -581,6 +604,30 @@ def accion_ejecucion_view(request, slug, plan_id):
             ejecucion.validado_en = timezone.now()
             ejecucion.save()
             audit_action, mensaje = "observar", "Ejecución devuelta con observaciones."
+        elif accion == "reabrir":
+            # Vuelve a «devuelta con observaciones»: quien la registró corrige, agrega
+            # evidencias y la envía otra vez a revisión por el flujo de siempre.
+            motivo = request.POST.get("motivo", "").strip()
+            if ejecucion.estado != "validada":
+                error = gettext("Solo una ejecución validada y cerrada se reabre para corregir.")
+            elif len(motivo) < MINIMO_MOTIVO_REAPERTURA:
+                error = gettext(
+                    "Escribe el motivo de la reapertura: qué se va a corregir (al menos %(minimo)s caracteres)."
+                ) % {"minimo": MINIMO_MOTIVO_REAPERTURA}
+            elif _informe_semestral_enviado(plan.unidad, ejecucion.fecha_ejecucion):
+                error = gettext(INFORME_SEMESTRAL_ENVIADO)
+            else:
+                error = ""
+            if error:
+                messages.error(request, error)
+                return redirect("detalle_planificacion_practica", slug=slug, plan_id=plan.pk)
+            ejecucion.estado = "observada"
+            ejecucion.observaciones_revision = motivo
+            ejecucion.validado_por = request.user
+            ejecucion.validado_en = timezone.now()
+            ejecucion.save()
+            audit_action, mensaje = "observar", "Ejecución reabierta para corregir."
+            datos_reapertura = {"motivo_reapertura": motivo}
         elif accion == "archivar":
             ejecucion.eliminar_logicamente(request.user)
             audit_action, mensaje = "archivar", "Ejecución archivada sin eliminar su historial."
@@ -594,7 +641,7 @@ def accion_ejecucion_view(request, slug, plan_id):
             objeto=ejecucion,
             descripcion=mensaje,
             anteriores=anteriores,
-            nuevos=instantanea(ejecucion, EXEC_FIELDS_AUDIT),
+            nuevos=instantanea(ejecucion, EXEC_FIELDS_AUDIT) | datos_reapertura,
         )
         if accion == 'validar':
             from apps.documentos.presentation.aprobacion_tecnica_laboratorios import registrar_aprobacion_tecnica
@@ -616,6 +663,15 @@ def detalle_planificacion_view(request, slug, plan_id):
         detalle_ejecucion = ejecucion.detalle_operativo or (
             construir_detalle_operativo(plan.reserva) if plan.reserva_id else {}
         )
+    es_operador = puede_operar_modulo_unidad(request.user, plan.unidad, "practicas")
+    # Quien valida puede reabrir lo validado, salvo que el informe del período ya se haya enviado.
+    reapertura = ""
+    if ejecucion and es_operador and ejecucion.estado == "validada":
+        reapertura = (
+            "bloqueada"
+            if _informe_semestral_enviado(plan.unidad, ejecucion.fecha_ejecucion)
+            else "disponible"
+        )
     return render(
         request,
         "portal/pages/unidades/practicas/detalle.html",
@@ -626,8 +682,11 @@ def detalle_planificacion_view(request, slug, plan_id):
             "evidencias": list(ejecucion.evidencias.all()) if ejecucion else [],
             "detalle_ejecucion": detalle_ejecucion,
             "auditoria": auditoria,
-            "es_operador": puede_operar_modulo_unidad(request.user, plan.unidad, "practicas"),
+            "es_operador": es_operador,
             "puede_editar": _puede_editar_plan(request.user, plan),
+            "reapertura": reapertura,
+            "minimo_motivo_reapertura": MINIMO_MOTIVO_REAPERTURA,
+            "informe_semestral_enviado": INFORME_SEMESTRAL_ENVIADO,
         },
     )
 

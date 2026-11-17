@@ -267,6 +267,16 @@ urlpatterns = [
         name="planificacion_practica_pdf",
     ),
     path(
+        "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/formatos/asistencia/",
+        vista_diferida('apps.formacion.presentation.practicas_formatos.lista_asistencia_pdf_view'),
+        name="lista_asistencia_practica_pdf",
+    ),
+    path(
+        "gestion/unidades/<slug:slug>/practicas/<int:plan_id>/formatos/bitacora/",
+        vista_diferida('apps.formacion.presentation.practicas_formatos.bitacora_pdf_view'),
+        name="bitacora_practica_pdf",
+    ),
+    path(
         "laboratorio/<slug:slug>/procesos/<int:receta_id>/ficha/",
         vista_diferida('apps.formacion.presentation.aula.ficha_proceso_publica_view'),
         name="ficha_proceso_publica",
@@ -408,5 +418,5 @@ urlpatterns = [
     ),
 ]
 
-for _ruta, _orden in zip(urlpatterns, (2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 141, 142, 143, 144, 145, 146, 147, 148, 149, 156, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 216, 217, 218, 225, 226, 227), strict=True):
+for _ruta, _orden in zip(urlpatterns, (2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 141, 142, 143, 144, 145, 146, 147, 148, 149, 156, 156.1, 156.2, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 216, 217, 218, 225, 226, 227), strict=True):
     _ruta.prioridad_proyecto = _orden
