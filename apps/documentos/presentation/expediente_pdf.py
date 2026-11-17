@@ -165,11 +165,21 @@ def render_documento_pdf(compuesto):
         historia.extend([encabezado_seccion('CONTENIDO', ancho_util, tinta), Spacer(1, 3 * mm), indice,
                          PageBreak(), titulo_documento, subtitulo_documento, Spacer(1, 3 * mm)])
 
+    def celda_de_tabla(valor):
+        # Una celda con enlace abre el respaldo desde el PDF, igual que los ítems de las listas.
+        if isinstance(valor, dict):
+            texto = escape(str(valor.get('texto') or ''))
+            if valor.get('url'):
+                direccion = escape(str(valor['url']), {'"': '&quot;'})
+                texto = f'<link href="{direccion}" color="#006633"><u>{texto}</u></link>'
+            return Paragraph(texto, estilos['celda'])
+        return _p(valor, estilos['celda'])
+
     def tabla(cabecera, filas, anchos=None, resaltar_ultima=False, conservar_total=False):
         con_cabecera=any(cabecera)
         datos = [[_p(c, estilos['cabecera']) for c in cabecera]] if con_cabecera else []
         for fila in filas:
-            datos.append([_p(c, estilos['celda']) for c in fila])
+            datos.append([celda_de_tabla(c) for c in fila])
         if not anchos and cabecera == ['Código', 'Equipo', 'Categoría', 'Estado', 'Año', 'Valor (USD)']:
             anchos = [ancho_util * p for p in (.17, .36, .17, .13, .07, .10)]
         if not anchos and cabecera[:3] == ['Equipo', 'Plan', 'Frecuencia']:
