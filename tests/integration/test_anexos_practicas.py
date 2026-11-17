@@ -28,7 +28,8 @@ from pypdf import PdfReader
 
 from apps.directorio_unidades.models.core import Unidad
 from apps.documentos.presentation.anexos_evidencia import (
-    Enlace, Grupo, Par, anexos_numerados, componer_anexo, constructor_de, contexto_del_anexo, fecha, pdf_del_anexo,
+    MINIATURA_ALTO, MINIATURA_ANCHO, MINIATURA_LADO, Enlace, Grupo, Imagen, Par, Registro, anexos_numerados,
+    componer_anexo, constructor_de, contexto_del_anexo, fecha, imagen, pdf_del_anexo,
 )
 from apps.documentos.presentation.anexos_practicas import REQUISITOS_CORTOS, _incidente
 from apps.documentos.presentation.expediente import anexos_del, construir_expediente, tramo_del_documento
@@ -105,6 +106,25 @@ def _anexo(unidad, codigo):
 
 def _direccion(nombre, *argumentos, consulta=''):
     return settings.SITE_URL.rstrip('/') + reverse(nombre, args=argumentos) + consulta
+
+
+def _imagen_de_prueba(formato='PNG', tamano=(1600, 1200), fondo='#2f6f4f', **opciones):
+    """Una imagen ficticia con contenido: dos franjas de color."""
+    from PIL import Image
+
+    lienzo = Image.new('RGB', tamano, fondo)
+    lienzo.paste('#e1b93f', (0, 0, tamano[0] // 2, tamano[1] // 3))
+    salida = BytesIO()
+    lienzo.save(salida, formato, **opciones)
+    return salida.getvalue()
+
+
+def _imagenes_y_enlaces(pdf):
+    """Cuántas imágenes lleva el PDF y a qué direcciones enlaza."""
+    lector = PdfReader(BytesIO(pdf))
+    enlaces = [anotacion.get_object()['/A']['/URI'] for pagina in lector.pages
+               for anotacion in pagina.get('/Annots') or () if '/A' in anotacion.get_object()]
+    return sum(len(pagina.images) for pagina in lector.pages), enlaces
 
 
 class TablasDeLaEspecificacionTests(TestCase):
@@ -413,11 +433,11 @@ class AsistenciaYEvidenciasTests(_ConUnidad):
                     creado_por=self.coordinadora)
         return EjecucionPractica.objects.create(**(base | datos))
 
-    def adjuntar(self, ejecucion, tipo, nombre, descripcion):
+    def adjuntar(self, ejecucion, tipo, nombre, descripcion, contenido=b'Respaldo exclusivo de prueba.'):
         evidencia = EvidenciaPractica(ejecucion=ejecucion, tipo=tipo, nombre_original=nombre,
                                       extension='.' + nombre.rsplit('.', 1)[-1], descripcion=descripcion,
                                       subido_por=self.coordinadora)
-        evidencia.archivo.save(nombre, ContentFile(b'Respaldo exclusivo de prueba.'), save=True)
+        evidencia.archivo.save(nombre, ContentFile(contenido), save=True)
         return evidencia
 
     def participante(self, reserva, nombre, **datos):
@@ -549,6 +569,61 @@ class AsistenciaYEvidenciasTests(_ConUnidad):
         for fila in tabla.filas:
             self.assertNotIn(settings.MEDIA_URL, fila[3].principal.url)
 
+    def test_las_fotografias_y_capturas_se_ven_en_miniatura_y_lo_demas_se_enlaza(self):
+        ejecucion = self.ejecutar(self.plan(requiere_guia=False))
+        asistencia = self.adjuntar(ejecucion, 'asistencia', 'asistencia.pdf', 'Registro firmado de prueba.',
+                                   b'%PDF-1.4 respaldo de prueba')
+        foto = self.adjuntar(ejecucion, 'fotografia', 'foto.jpg', 'Grupo ficticio en el taller, 10/09/2026.',
+                             _imagen_de_prueba('JPEG'))
+        captura = self.adjuntar(ejecucion, 'captura', 'captura.webp', 'Pantalla del simulador de prueba.',
+                                _imagen_de_prueba('WEBP', (900, 1500)))
+        danada = self.adjuntar(ejecucion, 'fotografia', 'danada.png', 'Fotografía que se subió dañada.')
+        ausente = self.adjuntar(ejecucion, 'captura', 'ausente.png', 'Captura cuyo archivo ya no está.',
+                                _imagen_de_prueba())
+        ausente.archivo.storage.delete(ausente.archivo.name)
+
+        def abrir(evidencia):
+            return Enlace('Abrir', _direccion('evidencia_practica', self.unidad.slug, evidencia.pk))
+        anexo = _anexo(self.unidad, 'PRACTICAS-FT03')
+        registros = componer_anexo(anexo, *tramo_del_documento(anexo))['registros']
+        # Las tablas y sus columnas son las de la especificación: solo cambia lo que lleva la celda del archivo.
+        self.assertEqual([(r.titulo, tuple(r.cabecera)) for r in registros], TABLAS['PRACTICAS-FT03'])
+        archivos = [fila[3] for fila in registros[3].filas]
+        self.assertEqual(archivos, [
+            Par(abrir(asistencia), 'PDF'), Imagen(foto.archivo, abrir(foto), 'JPG'), Par(abrir(danada), 'PNG'),
+            Imagen(captura.archivo, abrir(captura), 'WEBP'), Par(abrir(ausente), 'PNG')])
+        for celda_de_imagen in (archivos[1], archivos[3]):
+            # Cabe en el recuadro de 45 × 34 mm sin deformarse.
+            _contenido, ancho, alto = celda_de_imagen.copia()
+            dibujado = celda_de_imagen.medida()
+            self.assertLessEqual(dibujado[0], MINIATURA_ANCHO + .01)
+            self.assertLessEqual(dibujado[1], MINIATURA_ALTO + .01)
+            self.assertAlmostEqual(dibujado[0] / dibujado[1], ancho / alto, places=3)
+
+        with ExitStack() as pila:
+            _sin_identidad_real(pila)
+            pdf = pdf_del_anexo(anexo, *tramo_del_documento(anexo), codigo_documento='SLCID-PRUEBA', version=1)
+        imagenes, enlaces = _imagenes_y_enlaces(pdf)
+        self.assertEqual(imagenes, 2)
+        # Cada evidencia conserva su enlace, también las que se ven en miniatura.
+        self.assertEqual(sorted(enlaces), sorted(abrir(e).url for e in (asistencia, foto, captura, danada, ausente)))
+        self.assertLess(len(pdf), 250 * 1024)
+
+    def test_las_evidencias_van_por_practica_y_dentro_en_el_orden_de_la_exigencia(self):
+        primera = self.ejecutar(self.plan(requiere_guia=False))
+        segunda = self.ejecutar(self.plan(fecha=date(2026, 9, 17), requiere_guia=False))
+        # Se cargan al revés de como las pide la universidad.
+        for ejecucion in (segunda, primera):
+            for tipo in ('otro', 'producto', 'informe', 'captura', 'fotografia', 'bitacora', 'asistencia'):
+                self.adjuntar(ejecucion, tipo, tipo + '.pdf', 'Evidencia de prueba.')
+        tipos = dict(EvidenciaPractica.TIPOS)
+        en_orden = [tipos[tipo] for tipo in ('asistencia', 'bitacora', 'fotografia', 'captura', 'informe', 'producto',
+                                             'otro')]
+        tabla = self.registros('PRACTICAS-FT03')[3]
+        self.assertEqual([(fila[0], fila[1]) for fila in tabla.filas],
+                         [(ejecucion.planificacion.codigo, tipo) for ejecucion in (primera, segunda)
+                          for tipo in en_orden])
+
     def test_no_hace_una_consulta_por_practica_ni_por_evidencia(self):
         def practica(dia):
             sesion = self.reserva(dia, estado='completada')
@@ -585,3 +660,89 @@ class CitaDelIncidenteTests(SimpleTestCase):
     def test_un_incidente_sin_registro_vinculado_se_dice_y_sin_incidente_es_no(self):
         self.assertEqual(_incidente(self.ejecucion(), {}), Par('Sí', 'sin incidencia vinculada'))
         self.assertEqual(_incidente(self.ejecucion(tuvo=False), {}), 'No')
+
+
+class CeldaDeImagenTests(SimpleTestCase):
+    """El motor dibuja una imagen en miniatura; si no la puede abrir, deja el enlace y sigue."""
+
+    ABRIR = Enlace('Abrir', 'http://testserver/evidencia-de-prueba/')
+
+    def archivo(self, nombre, contenido):
+        return ContentFile(contenido, name=nombre)
+
+    def test_una_imagen_se_reduce_antes_de_incrustarla_y_no_se_deforma(self):
+        celda_de_imagen = imagen(self.archivo('foto.png', _imagen_de_prueba()), self.ABRIR, 'PNG')
+        self.assertIsInstance(celda_de_imagen, Imagen)
+        contenido, ancho, alto = celda_de_imagen.copia()
+        self.assertTrue(contenido.startswith(b'\xff\xd8'), 'se incrusta como JPEG')
+        self.assertEqual((ancho, alto), (MINIATURA_LADO, MINIATURA_LADO * 3 // 4))
+        self.assertLess(len(contenido), 60 * 1024)
+        dibujado = celda_de_imagen.medida()
+        self.assertAlmostEqual(dibujado[0], MINIATURA_ANCHO, places=3)
+        self.assertAlmostEqual(dibujado[1], MINIATURA_ALTO, delta=1)
+        # Una imagen vertical se ajusta al alto; una pequeña no se amplía.
+        vertical = imagen(self.archivo('captura.jpg', _imagen_de_prueba('JPEG', (600, 1200))), self.ABRIR, 'JPG')
+        self.assertAlmostEqual(vertical.medida()[1], MINIATURA_ALTO, places=3)
+        self.assertAlmostEqual(vertical.medida()[0], MINIATURA_ALTO / 2, places=3)
+        pequena = imagen(self.archivo('icono.png', _imagen_de_prueba(tamano=(40, 30))), self.ABRIR, 'PNG')
+        self.assertEqual(pequena.medida(), (40, 30))
+
+    def test_una_fotografia_girada_se_endereza_segun_su_orientacion(self):
+        from PIL import Image
+
+        orientacion = Image.Exif()
+        orientacion[0x0112] = 6  # La cámara estaba de lado: hay que girarla un cuarto de vuelta.
+        girada = imagen(self.archivo('foto.jpg', _imagen_de_prueba('JPEG', (800, 400), exif=orientacion)),
+                        self.ABRIR, 'JPG')
+        _contenido, ancho, alto = girada.copia()
+        self.assertEqual((ancho, alto), (350, 700))
+
+    def test_lo_que_no_es_una_imagen_que_se_pueda_abrir_queda_con_su_enlace(self):
+        sin_imagen = Par(self.ABRIR, 'JPG')
+        self.assertEqual(imagen(self.archivo('foto.jpg', b'Esto no es una imagen.'), self.ABRIR, 'JPG'), sin_imagen)
+        self.assertEqual(imagen(self.archivo('foto.jpg', b''), self.ABRIR, 'JPG'), sin_imagen)
+        self.assertEqual(imagen('carpeta-que-no-existe/foto.jpg', self.ABRIR, 'JPG'), sin_imagen)
+        # Un PDF, un documento o un video no se intentan abrir como imagen, aunque lo fueran por dentro.
+        self.assertEqual(imagen(self.archivo('acta.pdf', _imagen_de_prueba()), self.ABRIR, 'PDF'),
+                         Par(self.ABRIR, 'PDF'))
+        self.assertEqual(imagen(self.archivo('video.mp4', b'video'), '—', 'MP4'), Par('—', 'MP4'))
+
+    def test_el_pdf_incrusta_la_miniatura_y_una_imagen_danada_o_ausente_no_lo_detiene(self):
+        otro = Enlace('Abrir', 'http://testserver/otra-evidencia-de-prueba/')
+        filas = [
+            ['PL-PRUEBA-1', imagen(self.archivo('foto.png', _imagen_de_prueba()), self.ABRIR, 'PNG')],
+            # Celdas armadas a mano con un archivo dañado y con uno que no existe.
+            ['PL-PRUEBA-2', Imagen(b'Esto no es una imagen.', otro, 'JPG')],
+            ['PL-PRUEBA-3', Imagen('carpeta-que-no-existe/foto.png', None, 'PNG')],
+        ]
+        # Muchas filas con miniatura: la tabla sigue en otras hojas sin partir ninguna.
+        for n in range(4, 12):
+            foto = self.archivo('foto.jpg', _imagen_de_prueba('JPEG', fondo=(n * 20, 90, 60)))
+            filas.append([f'PL-PRUEBA-{n}', imagen(foto, self.ABRIR, 'JPG')])
+        de_la_ficha = imagen(self.archivo('plano.webp', _imagen_de_prueba('WEBP', fondo='#444444')), self.ABRIR, 'WEBP')
+        compuesto = {'titulo': 'Anexo de prueba', 'numero': 7,
+                     'datos': [('Unidad', 'Unidad de prueba'), ('Período', '2026-B')], 'datos_cortos': 2,
+                     'registros': [Registro('Evidencias', ('Práctica', 'Archivo'), filas, pesos=(80, 20)),
+                                   Registro('Ficha con imagen', ('Dato', 'Valor'), [['Fotografía', de_la_ficha]],
+                                            ficha=True)]}
+        documento = SimpleNamespace(etiqueta_corte='2026-B', unidad=SimpleNamespace(nombre='Unidad de prueba'))
+        with ExitStack() as pila:
+            _sin_identidad_real(pila)
+            pila.enter_context(patch('apps.documentos.presentation.anexos_evidencia.componer_anexo',
+                                     return_value=compuesto))
+            pdf = pdf_del_anexo(documento, date(2026, 7, 1), date(2026, 12, 31), codigo_documento='SLCID-PRUEBA',
+                                version=1)
+        lector = PdfReader(BytesIO(pdf))
+        imagenes, enlaces = _imagenes_y_enlaces(pdf)
+        self.assertEqual(imagenes, 10)
+        self.assertEqual(enlaces.count(self.ABRIR.url), 10)
+        self.assertEqual(enlaces.count(otro.url), 1)
+        self.assertGreater(len(lector.pages), 2)
+        ancho_de_hoja = float(lector.pages[0].mediabox.width)
+        for pagina in lector.pages:
+            for anotacion in pagina.get('/Annots') or ():
+                # Ninguna celda se sale de la hoja apaisada.
+                self.assertLessEqual(float(anotacion.get_object()['/Rect'][2]), ancho_de_hoja - 30)
+        texto = ' '.join('\n'.join(p.extract_text() or '' for p in lector.pages).split())
+        for n in range(1, 12):
+            self.assertIn(f'PL-PRUEBA-{n}', texto)

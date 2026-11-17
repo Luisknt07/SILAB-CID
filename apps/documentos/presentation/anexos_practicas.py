@@ -13,7 +13,9 @@ El respaldo de cada práctica y el contenido mínimo de cada guía salen de los 
 from collections import Counter, defaultdict
 from html import unescape
 
-from .anexos_evidencia import Grupo, Par, Registro, cifra, enlace, faltan, fecha, hora, nombre_de, par, plural, texto
+from .anexos_evidencia import (
+    Grupo, Par, Registro, cifra, enlace, faltan, fecha, hora, imagen, nombre_de, par, plural, texto,
+)
 
 # Requisitos de los diagnósticos en una o dos palabras, para decir en una celda qué falta.
 REQUISITOS_CORTOS = {
@@ -54,6 +56,8 @@ APARTADOS_GUIA = (
 ALCANCES_GUIA = {'sesion': 'Una sesión', 'periodo': 'El período'}
 # Tabla de índice de evidencias: los tipos que piden una columna, en el orden de la exigencia.
 TIPOS_DE_EVIDENCIA = ('asistencia', 'bitacora', 'fotografia', 'captura', 'informe', 'producto')
+# Tabla de evidencias: dentro de cada práctica van en ese mismo orden y, al final, las de otro tipo.
+ORDEN_DE_EVIDENCIAS = {tipo: posicion for posicion, tipo in enumerate(TIPOS_DE_EVIDENCIA)}
 ASISTENCIAS = {'asistio': 'Asistió', 'no_asistio': 'No asistió'}
 SIN_PLANIFICACION = 'Sin planificación vigente'
 
@@ -515,7 +519,9 @@ def evidencias(contexto):
                 asistencias[asistencia if asistencia in ASISTENCIAS else 'sin_registrar'] += 1
                 asistencia_filas.append([codigo, texto(nombre, 70), _perfil_de(registro),
                                          ASISTENCIAS.get(asistencia, 'Sin registrar'), texto(observacion, 110)])
-        adjuntas = list(ejecucion.evidencias.all())
+        # En el orden de la exigencia; las de un mismo tipo, por fecha de carga.
+        adjuntas = sorted(ejecucion.evidencias.all(),
+                          key=lambda evidencia: ORDEN_DE_EVIDENCIAS.get(evidencia.tipo, len(ORDEN_DE_EVIDENCIAS)))
         por_tipo = Counter(evidencia.tipo for evidencia in adjuntas)
         otras += sum(cantidad for tipo, cantidad in por_tipo.items() if tipo not in TIPOS_DE_EVIDENCIA)
         if ejecutada:
@@ -531,9 +537,11 @@ def evidencias(contexto):
             # El archivo se sirve con la vista protegida: aparecen estudiantes identificados.
             archivo = (enlace(reverse('evidencia_practica', args=[unidad.slug, evidencia.pk]))
                        if evidencia.archivo else '—')
+            formato = evidencia.extension.lstrip('.').upper()
             archivos_filas.append([
                 codigo, tipos.get(evidencia.tipo, evidencia.tipo), texto(evidencia.descripcion, 200),
-                par(archivo, evidencia.extension.lstrip('.').upper()),
+                # Una fotografía o una captura se ve en miniatura; lo demás, y lo que no se pueda abrir, se enlaza.
+                imagen(evidencia.archivo, archivo, formato) if evidencia.archivo else par(archivo, formato),
                 par(nombre_de(evidencia.subido_por), fecha(evidencia.creado_en)),
             ])
     realizadas = resultados['ejecutada']

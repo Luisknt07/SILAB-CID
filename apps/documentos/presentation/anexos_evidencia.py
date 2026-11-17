@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from importlib import import_module
 from io import BytesIO
+from pathlib import Path
 from xml.sax.saxutils import escape
 
 # Anexos comunes, en el orden de la universidad. Código: (nombre por omisión, metas que respalda).
@@ -124,6 +125,14 @@ MESES = ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto
          'noviembre', 'diciembre')
 LARGO_MAXIMO = 300  # Una celda nunca ocupa más que una página.
 COLUMNAS_MAXIMAS = 9  # En la hoja apaisada, con letra de 8,5 pt.
+# Una imagen va en miniatura dentro de su celda; el archivo completo se abre con el enlace.
+MINIATURA_ANCHO = 45 * 72 / 25.4  # 45 mm, en puntos
+MINIATURA_ALTO = 34 * 72 / 25.4  # 34 mm
+MINIATURA_LADO = 700  # Píxeles del lado mayor de la copia que se incrusta, para que el PDF no pese.
+MINIATURA_CALIDAD = 70
+EXTENSIONES_DE_IMAGEN = ('.png', '.jpg', '.jpeg', '.webp')
+FORMATOS_DE_IMAGEN = ('PNG', 'JPEG', 'MPO', 'WEBP')
+PESO_MAXIMO_DE_IMAGEN = 25 * 1024 * 1024
 
 
 # -- piezas de una tabla -----------------------------------------------------------------
@@ -153,6 +162,37 @@ class Par:
     """Celda de dos líneas: el dato principal y, debajo y más pequeño, el que lo acompaña."""
     principal: object
     secundario: object = ''
+
+
+@dataclass
+class Imagen:
+    """Una fotografía o una captura: va en miniatura y, debajo, el enlace para abrirla completa.
+
+    ``archivo`` es un archivo guardado (FileField), una ruta o el contenido en bytes. Si no se
+    puede abrir como imagen, la celda queda con el enlace y el pie: nunca detiene el anexo.
+    """
+    archivo: object
+    enlace: object = None
+    pie: str = ''
+    _copia: object = field(default=None, init=False, repr=False, compare=False)
+
+    def copia(self):
+        """La copia reducida que se incrusta: (JPEG, ancho, alto) en píxeles; ``None`` si no se pudo abrir."""
+        if self._copia is None:
+            self._copia = _copia_reducida(self.archivo) or ()
+        return self._copia or None
+
+    def medida(self, ancho=MINIATURA_ANCHO, alto=MINIATURA_ALTO):
+        """Ancho y alto con que se dibuja, en puntos: cabe en el recuadro sin deformarse ni ampliarse."""
+        if not self.copia():
+            return 0, 0
+        _contenido, pixeles_ancho, pixeles_alto = self.copia()
+        escala = min(ancho / pixeles_ancho, alto / pixeles_alto, 1)
+        return pixeles_ancho * escala, pixeles_alto * escala
+
+    def sin_imagen(self):
+        """La celda cuando la imagen no se puede mostrar: el enlace y, debajo, el pie."""
+        return par(self.enlace or '—', self.pie)
 
 
 @dataclass
@@ -287,6 +327,56 @@ def enlace_recurso(recurso, rotulo='Abrir'):
     return enlace(reverse('recurso_unidad', args=[recurso.pk]), rotulo)
 
 
+def imagen(archivo, enlace=None, pie=''):
+    """Celda con la miniatura de un archivo guardado; si no es una imagen que se pueda abrir, el enlace y el pie.
+
+    Solo se muestran PNG, JPG y WEBP. Un PDF, un documento, un video o un archivo que falta o
+    está dañado quedan como estaban: con su enlace.
+    """
+    celda_de_imagen = Imagen(archivo, enlace, pie)
+    nombre = str(archivo if isinstance(archivo, (str, Path)) else getattr(archivo, 'name', '') or '')
+    if nombre.lower().endswith(EXTENSIONES_DE_IMAGEN) and celda_de_imagen.copia():
+        return celda_de_imagen
+    return celda_de_imagen.sin_imagen()
+
+
+def _copia_reducida(archivo):
+    """La imagen como JPEG pequeño, derecha según su orientación: (contenido, ancho, alto); ``None`` si no se abre."""
+    try:
+        from PIL import Image, ImageOps
+
+        if isinstance(archivo, (bytes, bytearray)):
+            contenido = bytes(archivo)
+        elif isinstance(archivo, (str, Path)):
+            with open(archivo, 'rb') as abierto:
+                contenido = abierto.read(PESO_MAXIMO_DE_IMAGEN + 1)
+        else:
+            with archivo.open('rb') as abierto:
+                contenido = abierto.read(PESO_MAXIMO_DE_IMAGEN + 1)
+        if not contenido or len(contenido) > PESO_MAXIMO_DE_IMAGEN:
+            return None
+        with Image.open(BytesIO(contenido)) as original:
+            if original.format not in FORMATOS_DE_IMAGEN:
+                return None
+            # Una fotografía de varios megapíxeles se decodifica ya reducida.
+            original.draft('RGB', (MINIATURA_LADO, MINIATURA_LADO))
+            copia = ImageOps.exif_transpose(original)
+            copia.thumbnail((MINIATURA_LADO, MINIATURA_LADO))
+            if copia.mode in ('RGBA', 'LA', 'PA') or 'transparency' in copia.info:
+                # El JPEG no tiene transparencia: la imagen se asienta sobre blanco.
+                copia = copia.convert('RGBA')
+                fondo = Image.new('RGB', copia.size, 'white')
+                fondo.paste(copia, mask=copia.getchannel('A'))
+                copia = fondo
+            else:
+                copia = copia.convert('RGB')
+            salida = BytesIO()
+            copia.save(salida, 'JPEG', quality=MINIATURA_CALIDAD, optimize=True)
+            return salida.getvalue(), copia.width, copia.height
+    except Exception:  # Un archivo ausente, dañado o desmesurado deja el enlace; el anexo se genera igual.
+        return None
+
+
 def celda(valor):
     """Texto de la celda; una dirección se vuelve un enlace corto en lugar de la URL entera."""
     limpio = str(valor or '').strip()
@@ -369,7 +459,15 @@ def _lineas_de(valor):
         return [valor.texto]
     if isinstance(valor, Par):
         return _lineas_de(valor.principal) + _lineas_de(valor.secundario)
+    if isinstance(valor, Imagen):
+        # Lo que va escrito debajo de la miniatura; el ancho de esta lo da :func:`_ancho_de_imagen`.
+        return _lineas_de(valor.sin_imagen())
     return [str(valor)]
+
+
+def _ancho_de_imagen(valor):
+    """El ancho, en puntos, de la miniatura de la celda; cero si la celda no lleva imagen."""
+    return valor.medida()[0] if isinstance(valor, Imagen) else 0
 
 
 def _minimos_y_deseados(cabecera, filas, ancho, negrita, regular, tamano):
@@ -383,8 +481,10 @@ def _minimos_y_deseados(cabecera, filas, ancho, negrita, regular, tamano):
         # La palabra más larga de cualquiera de las dos líneas: un código largo no se parte.
         palabra = max((stringWidth(p, regular, tamano) for fila in filas for t in _lineas_de(fila[i])
                        for p in t.split()), default=0)
+        # Una miniatura tampoco se recorta: la columna le hace sitio como a una palabra larga.
+        figura = max((_ancho_de_imagen(fila[i]) for fila in filas), default=0)
         minimo = max(max(stringWidth(p, negrita, tamano) for p in str(titulo).split() or ['']),
-                     min(palabra, ancho * .22)) + relleno
+                     min(palabra, ancho * .22), figura) + relleno
         largos = sorted(stringWidth(t, regular, tamano) for t in textos) or [0]
         tipico = largos[int((len(largos) - 1) * .8)]
         minimos.append(minimo)
@@ -637,6 +737,7 @@ def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.platypus import CondPageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from reportlab.platypus import Image as Miniatura
 
     from apps.core.presentation.estilo_reportes import estilos_informe
     from apps.core.presentation.pdf_institucional import marco_institucional, metadatos_documento
@@ -677,6 +778,16 @@ def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=
 
     def parrafo(valor, estilo=normal):
         return Paragraph(marcado(valor), estilo)
+
+    def contenido(valor, disponible):
+        """Lo que se dibuja en una celda de datos: un párrafo o, si es una imagen, su miniatura y el enlace."""
+        if not isinstance(valor, Imagen):
+            return parrafo(valor)
+        if not valor.copia():
+            return parrafo(valor.sin_imagen())
+        # La miniatura no se parte entre hojas: la fila entera pasa a la siguiente.
+        figura = Miniatura(BytesIO(valor.copia()[0]), *valor.medida(min(MINIATURA_ANCHO, disponible)))
+        return [figura, Spacer(1, 2), parrafo(valor.sin_imagen())]
 
     def datos_generales(pares, cortos):
         # Dos pares por fila; la exigencia, las metas y la fuente ocupan la fila entera.
@@ -727,9 +838,10 @@ def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=
                     estilo += [('SPAN', (0, posicion), (-1, posicion)),
                                ('BACKGROUND', (0, posicion), (-1, posicion), fondo_grupo)]
                 elif registro.ficha:
-                    datos.append([parrafo(fila[0], etiqueta), parrafo(fila[1])])
+                    datos.append([parrafo(fila[0], etiqueta), contenido(fila[1], anchos[1] - 10)])
                 else:
-                    datos.append([parrafo(v) for v in fila])
+                    # Diez puntos son los márgenes laterales de la celda.
+                    datos.append([contenido(v, a - 10) for v, a in zip(fila, anchos)])
             total = registro.total
             if total == '' and not registro.ficha:
                 cuenta = sum(not isinstance(fila, Grupo) for fila in registro.filas)

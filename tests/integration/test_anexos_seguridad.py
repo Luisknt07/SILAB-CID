@@ -317,6 +317,21 @@ class DesechosTests(_ConUnidades):
         ])
         self.assertEqual(tabla.total, 'Total: 2 entregas · 2 unidades · 8,1 kg · manifiestos: 2 · con documento: 0')
 
+    def test_la_entrega_enlaza_su_manifiesto_por_la_vista_protegida(self):
+        from django.conf import settings
+        from django.urls import reverse
+
+        entregado = self.desecho(
+            'Aceite usado', date(2026, 8, 3), clase='especial', etapa='entregado', fecha_entrega=date(2026, 8, 20),
+            gestor_autorizado='Gestor de Prueba S.A.', licencia_gestor='LIC-PRUEBA-001', manifiesto='MAN-PRUEBA-0001',
+            documento='desechos/prueba/manifiesto-de-prueba.pdf')
+        tabla = self.registros('DESECHOS')[1]
+        documento = tabla.filas[0][5]
+        self.assertEqual(documento, Enlace('Abrir', settings.SITE_URL.rstrip('/') + reverse(
+            'manifiesto_desecho_unidad', args=[self.unidad.slug, entregado.pk])))
+        self.assertNotIn(settings.MEDIA_URL, documento.url)
+        self.assertEqual(tabla.total, 'Total: 1 entrega · 1 kg · manifiestos: 1 · con documento: 1')
+
     def test_lo_generado_antes_del_periodo_y_sin_entregar_sigue_almacenado_al_corte(self):
         self.desechos()
         contexto = self.contexto('DESECHOS')

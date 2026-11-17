@@ -62,5 +62,5 @@ class AplicacionesPropietariasTests(SimpleTestCase):
                 with self.subTest(proveedor=proveedor, nombre=ruta.name):
                     self.assertTrue(ruta.callback.ruta_diferida.startswith(paquete + '.'))
                     prioridades.append(ruta.prioridad_proyecto)
-        self.assertEqual(len(prioridades), 272)
+        self.assertEqual(len(prioridades), 274)
         self.assertEqual(len(prioridades), len(set(prioridades)))

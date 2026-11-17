@@ -86,7 +86,7 @@ Los anexos se leen por temas, en el mismo orden y con el mismo número que lleva
 - **Total:** al pie de cada tabla, en una fila con fondo verde claro.
 - **Tabla sin registros:** una sola fila dice «Sin registros en el período».
 - **Tabla que sigue en otra hoja:** repite su nombre y sus columnas.
-- **Archivos:** se muestran como enlace («Abrir»), nunca como una dirección completa.
+- **Archivos:** se muestran como enlace («Abrir»), nunca como una dirección completa. Las imágenes de las evidencias de prácticas se ven, además, en miniatura (tabla 7.4).
 - **Datos de otro anexo:** se citan por su código (por ejemplo, la práctica PL-26-0063 en el anexo de evidencias).
 
 **Anexos condicionales.**
@@ -646,15 +646,17 @@ Exigencia: «Registros de asistencia, bitácoras, fotografías identificadas, ca
 
 - **Fuente:** EvidenciaPractica.tipo y el diagnóstico de la práctica.
 
-**Tabla 7.4 · Evidencias.** Una por fila, agrupadas por práctica.
+**Tabla 7.4 · Evidencias.** Una por fila, agrupadas por práctica y, dentro de cada una, en el orden de la exigencia: asistencia, bitácora, fotografía, captura, informe, producto y, al final, las de otro tipo.
 
 | # | Columna | Contenido | Fuente |
 | --- | --- | --- | --- |
 | 1 | Práctica | Código | EvidenciaPractica.ejecucion |
 | 2 | Tipo | | tipo |
 | 3 | Descripción | | descripcion |
-| 4 | Archivo | Enlace / formato | archivo, extension |
+| 4 | Archivo | Miniatura o enlace / formato | archivo, extension |
 | 5 | Subida por / fecha | | subido_por |
+
+- **Imágenes:** una fotografía o una captura (PNG, JPG o WEBP) se muestra en miniatura, de hasta 45 × 34 mm, con el enlace «Abrir» debajo para verla completa. Lo demás (PDF, documentos, video) y la imagen que falta o no se puede abrir se enlazan.
 
 ### 4.8 Reportes de seguridad y condiciones de operación
 
@@ -782,6 +784,8 @@ Exigencia: «Registros de gestión de desechos peligrosos y especiales, conforme
 | 4 | Gestor / licencia | | gestor_autorizado, licencia_gestor |
 | 5 | Manifiesto | Número | manifiesto |
 | 6 | Documento | Enlace | documento |
+
+- **Dónde se registra:** la unidad anota la entrega y adjunta el manifiesto escaneado en Gestión de la unidad → Reportes → Registro de desechos → «Registrar entrega al gestor y manifiesto». El documento se abre con la vista protegida de la unidad.
 
 **Tabla 9.3 · Almacenado al corte.**
 
@@ -1197,7 +1201,7 @@ Respalda la meta de eventos de socialización de resultados.
 
 **Formato** (`apps/documentos/presentation/anexos_evidencia.py`):
 
-- la celda de dos líneas (`Par`) y la fila de subtítulo por grupo (`Grupo`);
+- la celda de dos líneas (`Par`), la celda de imagen en miniatura (`Imagen`) y la fila de subtítulo por grupo (`Grupo`);
 - la numeración «n.m» de cada tabla;
 - los datos generales con la exigencia que responde;
 - la lista de anexos que no aplican en el informe.

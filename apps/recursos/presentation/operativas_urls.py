@@ -102,3 +102,14 @@ _adquisiciones = path('gestion/unidades/<slug:slug>/adquisiciones/',
     vista_diferida('apps.recursos.presentation.ciclo_catalogo.adquisiciones_unidad_view'), name='adquisiciones_unidad')
 _adquisiciones.prioridad_proyecto = 170.3
 urlpatterns.append(_adquisiciones)
+# Desechos: la unidad registra la entrega al gestor y su manifiesto, que se abre solo con la vista protegida.
+for _ruta, _orden in (
+    (path('gestion/unidades/<slug:slug>/desechos/entregas/',
+          vista_diferida('apps.recursos.presentation.desechos.entregas_desechos_view'),
+          name='entregas_desechos_unidad'), 170.4),
+    (path('gestion/unidades/<slug:slug>/desechos/<int:desecho_id>/manifiesto/',
+          vista_diferida('apps.recursos.presentation.desechos.manifiesto_desecho_view'),
+          name='manifiesto_desecho_unidad'), 170.5),
+):
+    _ruta.prioridad_proyecto = _orden
+    urlpatterns.append(_ruta)

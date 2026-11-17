@@ -11,8 +11,8 @@ from datetime import date
 from decimal import Decimal
 
 from .anexos_evidencia import (
-    Registro, celda, cifra, enlace, enlace_archivo, enlace_recurso, evidencias_de_gestion, fecha, mes, nombre_de,
-    par, plural, si_no, texto, verificacion,
+    Registro, celda, cifra, enlace, enlace_recurso, evidencias_de_gestion, fecha, mes, nombre_de, par, plural, si_no,
+    texto, verificacion,
 )
 
 TIPOS_REQUISITO = {'induccion': 'Inducción', 'sanitario': 'Sanitario', 'documento': 'Documento',
@@ -299,6 +299,7 @@ def desechos(contexto):
     al corte, también lo generado antes del período.
     """
     from django.db.models import Q
+    from django.urls import reverse
 
     from apps.recursos.models.desechos import RegistroDesecho
 
@@ -335,7 +336,8 @@ def desechos(contexto):
         _cantidad(d),
         par(texto(d.gestor_autorizado, 90), texto(d.licencia_gestor) if d.licencia_gestor else ''),
         texto(d.manifiesto),
-        enlace_archivo(d.documento),
+        # El manifiesto se abre con la vista protegida de la unidad, no con la ruta de medios.
+        enlace(reverse('manifiesto_desecho_unidad', args=[contexto.unidad.slug, d.pk])) if d.documento else '—',
     ] for d in entregados]
     manifiestos = len({d.manifiesto.strip() for d in entregados if d.manifiesto.strip()})
     con_documento = sum(bool(d.documento) for d in entregados)

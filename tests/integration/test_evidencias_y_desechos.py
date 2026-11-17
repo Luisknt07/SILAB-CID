@@ -20,7 +20,7 @@ from apps.reservas.models.reservas import CatalogoActividadReserva, Reserva
 from apps.formacion.models.practicas import EjecucionPractica, EvidenciaPractica, PlanificacionPractica
 from apps.recursos.models.desechos import RegistroDesecho
 from apps.directorio_unidades.models.core import Unidad
-from tests.integration.utiles import identificar
+from tests.integration.utiles import identificar, pdf_legible_prueba
 
 import tempfile
 
@@ -199,6 +199,200 @@ class DesechosTests(BaseDePracticas):
         self.assertContains(lista, 'Solventes usados')
         alta = self.client.get(reverse('admin:laboratorios_registrodesecho_add'))
         self.assertEqual(alta.status_code, 200)
+
+
+class EntregasDesdeLaUnidadTests(BaseDePracticas):
+    """La unidad registra desde su gestión la entrega al gestor, con el manifiesto escaneado."""
+
+    def setUp(self):
+        super().setUp()
+        self.ruta = reverse('entregas_desechos_unidad', args=[self.unidad.slug])
+
+    def almacenado(self, nombre='Solventes usados', **campos):
+        datos = dict(unidad=self.unidad, fecha_generacion=date(2026, 3, 3), clase='peligroso', nombre=nombre,
+                     cantidad=Decimal('4.5'), unidad_medida='l', etapa='almacenado',
+                     registrado_por=self.coordinador)
+        datos.update(campos)
+        return RegistroDesecho.objects.create(**datos)
+
+    def manifiesto(self, nombre='manifiesto-prueba.pdf', contenido=None, tipo='application/pdf'):
+        contenido = contenido or pdf_legible_prueba(
+            'Manifiesto ficticio MAN-PRUEBA-0001: entrega de desechos de la unidad de prueba al gestor de prueba.')
+        return SimpleUploadedFile(nombre, contenido, content_type=tipo)
+
+    def entrega(self, *desechos, **extra):
+        datos = {'desechos': [d.pk for d in desechos], 'fecha_entrega': '2026-03-10',
+                 'gestor_autorizado': 'Gestor de Prueba S.A.', 'licencia_gestor': 'LIC-PRUEBA-001',
+                 'manifiesto': 'MAN-PRUEBA-0001', 'responsable': self.coordinador.pk,
+                 'documento': self.manifiesto()}
+        datos.update(extra)
+        return {clave: valor for clave, valor in datos.items() if valor is not None}
+
+    def test_la_unidad_registra_la_entrega_de_varios_desechos_con_un_manifiesto(self):
+        from apps.formacion.models.practicas import RegistroAuditoriaUnidad
+
+        solventes, aceite = self.almacenado(), self.almacenado('Aceite usado', clase='especial')
+        tratado = self.almacenado('Ácido neutralizado', etapa='tratado', observaciones='Neutralizado.')
+        pagina = self.client.get(self.ruta)
+        self.assertContains(pagina, 'Registrar una entrega')
+        self.assertEqual(set(pagina.context['form'].fields['desechos'].queryset), {solventes, aceite})
+        self.assertNotIn(tratado, pagina.context['form'].fields['desechos'].queryset)
+
+        respuesta = self.client.post(self.ruta, self.entrega(solventes, aceite))
+
+        self.assertRedirects(respuesta, self.ruta)
+        solventes.refresh_from_db()
+        aceite.refresh_from_db()
+        for desecho in (solventes, aceite):
+            self.assertEqual(
+                (desecho.etapa, desecho.fecha_entrega, desecho.gestor_autorizado, desecho.licencia_gestor,
+                 desecho.manifiesto, desecho.responsable),
+                ('entregado', date(2026, 3, 10), 'Gestor de Prueba S.A.', 'LIC-PRUEBA-001', 'MAN-PRUEBA-0001',
+                 self.coordinador))
+            self.assertTrue(desecho.documento.name.startswith(f'desechos/{self.unidad.pk}/'))
+            self.assertTrue(desecho.documento.name.endswith('.pdf'))
+            desecho.full_clean()
+        # Un solo archivo respalda a todos los desechos del manifiesto.
+        self.assertEqual(solventes.documento.name, aceite.documento.name)
+        rastro = RegistroAuditoriaUnidad.objects.filter(unidad=self.unidad, entidad=RegistroDesecho._meta.label,
+                                                        accion='actualizar')
+        self.assertEqual({r.objeto_id for r in rastro}, {str(solventes.pk), str(aceite.pk)})
+        registro = rastro.get(objeto_id=str(solventes.pk))
+        self.assertEqual(registro.usuario, self.coordinador)
+        self.assertEqual(registro.datos_anteriores['etapa'], 'almacenado')
+        self.assertEqual((registro.datos_nuevos['etapa'], registro.datos_nuevos['manifiesto'],
+                          registro.datos_nuevos['documento']),
+                         ('entregado', 'MAN-PRUEBA-0001', solventes.documento.name))
+
+        lista = self.client.get(self.ruta)
+        abrir = reverse('manifiesto_desecho_unidad', args=[self.unidad.slug, solventes.pk])
+        self.assertContains(lista, abrir)
+        self.assertContains(lista, 'No hay desechos almacenados pendientes de entrega.')
+        self.assertNotContains(lista, '/media/')
+        archivo = self.client.get(abrir)
+        self.assertEqual(archivo.status_code, 200)
+        self.assertEqual(archivo['Content-Type'], 'application/pdf')
+        self.assertTrue(b''.join(archivo.streaming_content).startswith(b'%PDF'))
+
+    def test_un_archivo_de_tipo_no_permitido_ilegible_o_muy_pesado_se_rechaza(self):
+        desecho = self.almacenado()
+        rechazos = (
+            (self.manifiesto('manifiesto.exe', b'MZ programa'), 'El manifiesto debe ser un archivo PDF, PNG o JPG.'),
+            (self.manifiesto('manifiesto.docx', b'PK documento'), 'El manifiesto debe ser un archivo PDF, PNG o JPG.'),
+            (self.manifiesto('manifiesto.pdf', b'Esto no es un PDF.'), 'un PDF o una imagen legible'),
+            (self.manifiesto('manifiesto.jpg', b'\xff\xd8\xff imagen rota', 'image/jpeg'),
+             'un PDF o una imagen legible'),
+        )
+        for archivo, mensaje in rechazos:
+            with self.subTest(archivo=archivo.name):
+                respuesta = self.client.post(self.ruta, self.entrega(desecho, documento=archivo))
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertContains(respuesta, mensaje)
+        with patch('apps.recursos.presentation.desechos.MAXIMO_BYTES_MANIFIESTO', 100):
+            pesado = self.client.post(self.ruta, self.entrega(desecho))
+        self.assertContains(pesado, 'El manifiesto no puede superar 25 MB.')
+        sin_archivo = self.client.post(self.ruta, self.entrega(desecho, documento=None))
+        self.assertTrue(sin_archivo.context['form'].errors['documento'])
+        desecho.refresh_from_db()
+        self.assertEqual((desecho.etapa, desecho.manifiesto, bool(desecho.documento)), ('almacenado', '', False))
+
+    def test_una_entrega_incoherente_no_guarda_nada_ni_deja_el_archivo(self):
+        from pathlib import Path
+
+        antes, despues = self.almacenado(), self.almacenado('Generado después', fecha_generacion=date(2026, 3, 12))
+        carpeta = Path(MEDIA_TEMPORAL, 'desechos', str(self.unidad.pk))
+        guardados = set(carpeta.glob('*'))
+        # La entrega del 10 de marzo no puede incluir lo que se generó el 12.
+        respuesta = self.client.post(self.ruta, self.entrega(antes, despues))
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'Generado después: La entrega no puede ser anterior a la generación.')
+        futura = self.client.post(self.ruta, self.entrega(antes, fecha_entrega='2999-01-01'))
+        self.assertContains(futura, 'la fecha no puede ser futura')
+        ajeno = RegistroDesecho.objects.create(
+            unidad=Unidad.objects.create(nombre='Otro laboratorio', slug='otro-laboratorio-desechos',
+                                         dependencia='laboratorios', fecha_inicio=date(2026, 1, 1)),
+            fecha_generacion=date(2026, 3, 1), clase='peligroso', nombre='De otra unidad', cantidad=Decimal('1'))
+        de_otra = self.client.post(self.ruta, self.entrega(ajeno))
+        self.assertEqual(de_otra.status_code, 200)
+        self.assertTrue(de_otra.context['form'].errors['desechos'])
+        for desecho in (antes, despues, ajeno):
+            desecho.refresh_from_db()
+            self.assertEqual((desecho.etapa, bool(desecho.documento)), ('almacenado', False))
+        self.assertEqual(set(carpeta.glob('*')), guardados)
+
+    def test_una_entrega_ya_registrada_se_completa_y_se_corrige_conservando_el_manifiesto(self):
+        entregado = self.almacenado(
+            etapa='entregado', fecha_entrega=date(2026, 3, 8), gestor_autorizado='Gestor de Prueba S.A.',
+            manifiesto='MAN-PRUEBA-0007')
+        corregir = self.ruta + f'?corregir={entregado.pk}'
+        lista = self.client.get(self.ruta)
+        self.assertContains(lista, 'Falta el archivo')
+        self.assertContains(lista, f'?corregir={entregado.pk}')
+        formulario = self.client.get(corregir)
+        self.assertContains(formulario, 'Esta entrega todavía no tiene su manifiesto escaneado.')
+        self.assertContains(formulario, 'value="MAN-PRUEBA-0007"')
+        self.assertNotIn('desechos', formulario.context['form'].fields)
+
+        datos = self.entrega(desechos=None, corregir=entregado.pk, manifiesto='MAN-PRUEBA-0007',
+                             fecha_entrega='2026-03-08')
+        self.assertRedirects(self.client.post(self.ruta, datos), self.ruta)
+        entregado.refresh_from_db()
+        primero = entregado.documento.name
+        self.assertTrue(primero)
+        self.assertEqual(entregado.licencia_gestor, 'LIC-PRUEBA-001')
+
+        # Sin subir otro archivo se corrige el dato y se conserva el manifiesto.
+        datos = self.entrega(desechos=None, corregir=entregado.pk, manifiesto='MAN-PRUEBA-0008',
+                             fecha_entrega='2026-03-08', documento=None)
+        self.assertRedirects(self.client.post(self.ruta, datos), self.ruta)
+        entregado.refresh_from_db()
+        self.assertEqual((entregado.manifiesto, entregado.documento.name), ('MAN-PRUEBA-0008', primero))
+        # Solo se corrige una entrega: un desecho almacenado se registra con el formulario de entrega.
+        self.assertEqual(self.client.get(self.ruta + f'?corregir={self.almacenado().pk}').status_code, 404)
+
+    def test_quien_no_gestiona_la_seguridad_de_la_unidad_no_registra_ni_abre_el_manifiesto(self):
+        from apps.gestion_unidades.models.espacios import ResponsableUnidad
+        from tests.integration.test_seguimiento_gobernanza import designar
+
+        desecho, otro = self.almacenado(), self.almacenado('Aceite usado')
+        self.client.post(self.ruta, self.entrega(desecho))
+        desecho.refresh_from_db()
+        abrir = reverse('manifiesto_desecho_unidad', args=[self.unidad.slug, desecho.pk])
+        Usuario = get_user_model()
+        # Un técnico de la unidad opera recursos y mantenimiento, no la seguridad ni los reportes.
+        tecnico = Usuario.objects.create_user(username='tecnico-desechos', password='clave-segura')
+        identificar(tecnico, tipo_usuario='administrativo', carrera='')
+        ResponsableUnidad.objects.create(unidad=self.unidad, usuario=tecnico, rol='tecnico')
+        for usuario in (self.ajeno, tecnico):
+            with self.subTest(usuario=usuario.username):
+                self.client.force_login(usuario)
+                self.assertEqual(self.client.get(self.ruta).status_code, 403)
+                self.assertEqual(self.client.post(self.ruta, self.entrega(otro)).status_code, 403)
+                self.assertEqual(self.client.get(abrir).status_code, 404)
+                # Tampoco por la ruta de medios.
+                self.assertEqual(self.client.get(desecho.documento.url).status_code, 404)
+        otro.refresh_from_db()
+        self.assertEqual(otro.etapa, 'almacenado')
+        self.client.logout()
+        self.assertEqual(self.client.get(self.ruta).status_code, 302)
+        self.assertEqual(self.client.get(abrir).status_code, 302)
+        # La Dirección lee el expediente de la unidad: abre el manifiesto, pero no registra entregas.
+        direccion = Usuario.objects.create_user(username='direccion-desechos', password='clave-segura')
+        identificar(direccion, tipo_usuario='administrativo', carrera='')
+        designar(direccion)
+        self.client.force_login(direccion)
+        self.assertEqual(self.client.get(abrir).status_code, 200)
+        self.assertEqual(self.client.get(self.ruta).status_code, 403)
+
+    def test_el_centro_de_reportes_lleva_a_registrar_la_entrega(self):
+        self.almacenado()
+        pagina = self.client.get(reverse('gestion_reporte_unidad', args=[self.unidad.slug]), {
+            'categoria_reporte': 'desechos', 'desde': '2026-03-01', 'hasta': '2026-03-31'})
+        self.assertContains(pagina, 'Registrar entrega al gestor y manifiesto')
+        self.assertContains(pagina, self.ruta)
+        otra_categoria = self.client.get(reverse('gestion_reporte_unidad', args=[self.unidad.slug]), {
+            'categoria_reporte': 'seguridad', 'desde': '2026-03-01', 'hasta': '2026-03-31'})
+        self.assertNotContains(otra_categoria, self.ruta)
 
 
 class ConsolidadoPorTipoTests(BaseDePracticas):

@@ -1058,6 +1058,13 @@ def build_unit_report(request, unit):
                 dataset['registration_actions'].append(dict(
                     label='Registrar resultado y respaldo' if tipo == 'INVESTIGACION' else 'Registrar entrega y aceptación',
                     url=reverse('fuentes_metas_unidad', args=[unit.slug]) + '?' + consulta))
+        if (category == 'desechos' and getattr(request, 'user', None) is not None
+                and puede_operar_modulo_unidad(request.user, unit, 'seguridad')):
+            # La entrega al gestor y su manifiesto se registran desde aquí, sin pasar por el panel de administración.
+            from django.urls import reverse
+            dataset['registration_actions'].append(dict(
+                label='Registrar entrega al gestor y manifiesto',
+                url=reverse('entregas_desechos_unidad', args=[unit.slug])))
         filters = {
             "categoria_reporte": category,
             "desde": start_date.isoformat(),
