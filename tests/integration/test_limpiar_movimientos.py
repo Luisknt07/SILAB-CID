@@ -117,6 +117,25 @@ class LimpiarMovimientosTests(TestCase):
         self.unidad.refresh_from_db()
         self.assertIsNone(self.unidad.administrador_id)
 
+    def test_las_existencias_solo_se_borran_si_se_pide_y_el_insumo_queda_en_el_catalogo_con_saldo_cero(self):
+        from apps.recursos.models.consumibles import Consumible, EntradaInventario, LoteConsumible
+        insumo = Consumible.objects.create(unidad=self.unidad, codigo='INS-LIMPIEZA', nombre='Filamento de prueba',
+                                           unidad_medida='kg', minimo=2)
+        EntradaInventario.objects.create(unidad=self.unidad, consumible=insumo, tipo='ingreso', motivo='recepcion',
+                                         cantidad=5, usuario=self.real, nota='Recepción de prueba.')
+        insumo.refresh_from_db()
+        self.assertEqual(insumo.stock_total, 5)
+        self.aplicar()
+        insumo.refresh_from_db()
+        self.assertEqual(insumo.stock_total, 5)
+        self.assertTrue(EntradaInventario.objects.exists())
+        salida = self.aplicar('--existencias')
+        self.assertIn('insumos que quedan con saldo 0: 1', salida)
+        self.assertFalse(EntradaInventario.objects.exists())
+        self.assertFalse(LoteConsumible.objects.exists())
+        insumo.refresh_from_db()
+        self.assertEqual((insumo.stock_total, insumo.minimo), (0, 2))
+
     def test_los_archivos_de_lo_borrado_se_mueven_a_la_carpeta_indicada(self):
         ruta = self.del_expediente.archivo.path
         conservado = self.de_biblioteca.archivo.path

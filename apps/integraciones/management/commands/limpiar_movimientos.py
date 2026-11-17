@@ -58,6 +58,8 @@ CUENTAS_DEMO = ('demo.', '.demo.', 'estudiante.prueba', 'sistema.demostrativo')
 # Lo que una cuenta arrastra sin ser dato de la institución.
 PROPIO_DE_LA_CUENTA = {'auth.User', 'core.UserProfile', 'account.EmailAddress', 'core.VinculacionUsuarioPeriodo',
                        'gestion_unidades.ResponsableUnidad', 'socialaccount.SocialAccount', 'socialaccount.SocialToken'}
+# Existencias de insumos: el kárdex y sus lotes. Solo con --existencias; el catálogo de insumos se conserva.
+EXISTENCIAS = ('recursos.EntradaInventario', 'recursos.LoteConsumible')
 
 
 def _modelo(etiqueta):
@@ -70,10 +72,6 @@ def _modelo(etiqueta):
     return modelo
 
 
-def _tabla(modelo):
-    return connection.ops.quote_name(modelo._meta.db_table)
-
-
 class Command(BaseCommand):
     help = 'Borra los movimientos de prueba y conserva catálogos y configuración. Sin --aplicar solo ensaya.'
 
@@ -83,6 +81,8 @@ class Command(BaseCommand):
         parser.add_argument('--base', default='', help='Nombre de la base sobre la que se espera actuar.')
         parser.add_argument('--retirar-archivos-a', default='',
                             help='Carpeta adonde se mueven los archivos de lo borrado. Sin ella, los archivos se dejan.')
+        parser.add_argument('--existencias', action='store_true',
+                            help='Borra también lotes y movimientos de inventario y deja cada insumo con saldo 0.')
         parser.add_argument('--listar-archivos', action='store_true',
                             help='Escribe la ruta de cada archivo de lo borrado, para retirarlos después.')
 
@@ -94,7 +94,8 @@ class Command(BaseCommand):
         if aplicar and opciones['base'] != base:
             raise CommandError(f'Esta conexión usa la base «{base}». Para aplicar indique --base {base}')
         self.stdout.write(f'Base: {base} · modo: {"APLICAR" if aplicar else "ensayo (se revierte)"}')
-        movimientos = [_modelo(etiqueta) for etiqueta in MOVIMIENTOS]
+        movimientos = [_modelo(etiqueta) for etiqueta in
+                       MOVIMIENTOS + (EXISTENCIAS if opciones['existencias'] else ())]
         if len(set(movimientos)) != len(movimientos):
             raise CommandError('La lista de movimientos repite un modelo.')
         self.objetivos = set(movimientos)
@@ -115,6 +116,8 @@ class Command(BaseCommand):
                 Recurso = apps.get_model('recursos.Recurso')
                 Recurso._base_manager.filter(pk__in=recursos)._raw_delete(connection.alias)
                 self.stdout.write(f'  {"recursos.Recurso (archivos del expediente)":48} {len(recursos):>6} filas borradas')
+                if opciones['existencias']:
+                    self._saldos_en_cero()
                 # Cualquier referencia que quede hacia algo borrado detiene todo aquí, antes de confirmar.
                 with connection.cursor() as cursor:
                     cursor.execute('SET CONSTRAINTS ALL IMMEDIATE')
@@ -194,6 +197,21 @@ class Command(BaseCommand):
                 if modelo in self.objetivos or campo.remote_field.model in self.objetivos:
                     vistas.add(tabla)
                     tabla._base_manager.all()._raw_delete(connection.alias)
+
+    # ---- Existencias ---------------------------------------------------------------------------
+
+    def _saldos_en_cero(self):
+        """Sin lotes ni kárdex, cada insumo queda con saldo 0 y sin lote ni vencimiento propios.
+
+        El insumo sigue en el catálogo con su mínimo, su objetivo y su precio de referencia.
+        """
+        Consumible = apps.get_model('recursos.Consumible')
+        con_saldo = Consumible._base_manager.exclude(stock_total=0).update(stock_total=0)
+        con_lote = Consumible._base_manager.exclude(lote='').update(lote='')
+        con_vencimiento = (Consumible._base_manager.exclude(fecha_vencimiento=None)
+                           .update(fecha_vencimiento=None))
+        self.stdout.write(f'  insumos que quedan con saldo 0: {con_saldo} · sin lote propio: {con_lote} · '
+                          f'sin vencimiento propio: {con_vencimiento}')
 
     # ---- Archivos ------------------------------------------------------------------------------
 

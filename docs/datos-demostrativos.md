@@ -80,7 +80,8 @@ institución.
   evidencias; documentos y anexos del expediente con sus archivos, constancias y controles; evidencias de
   gestión; mantenimientos con su plan, incidencias, préstamos, alertas y desechos; solicitudes de fabricación;
   planes, órdenes, lotes y calidad de las plantas piloto; movimientos financieros; y la auditoría de todo ello.
-- **Conserva:** unidades, espacios, equipos, existencias y kárdex de inventario, software, asignaturas, guías,
+- **Conserva:** unidades, espacios, equipos, existencias y kárdex de inventario (salvo con `--existencias`),
+  software, asignaturas, guías,
   catálogo de actividades, cursos, portal, biblioteca de recursos de cada unidad y cuentas reales. La base de
   Centros no se toca.
 - **Cuentas de demostración** (`demo.`, `.demo.`, `estudiante.prueba`, `sistema.demostrativo`): se borran; si una
@@ -98,5 +99,8 @@ a un movimiento queda sin esa referencia y se informa; los archivos de lo borrad
 en lugar de eliminarse; y las tablas vaciadas vuelven a numerar desde 1. Antes de aplicar hay que respaldar las
 dos bases.
 
-No corrige lo que es de demostración dentro de los catálogos: existencias cargadas como «Recepción demostrativa»,
-equipos y planes marcados `[EVAL]` o `[Ejemplo de inventario]`. Eso se decide aparte.
+Con `--existencias` borra además los lotes y el kárdex de insumos y deja cada insumo con saldo 0. El insumo sigue
+en el catálogo con su mínimo, su objetivo y su precio de referencia; la unidad registra después su recepción real.
+
+No corrige lo que es de demostración dentro de los catálogos: equipos marcados `[EVAL]` o
+`[Ejemplo de inventario]`. Eso se decide aparte.
