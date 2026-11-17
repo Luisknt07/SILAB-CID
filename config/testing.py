@@ -1,5 +1,6 @@
 """Pruebas con base y archivos aislados, también en procesos paralelos."""
 
+import multiprocessing
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -7,7 +8,8 @@ from tempfile import TemporaryDirectory
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
-from django.test.runner import DiscoverRunner, ParallelTestSuite
+from django.test.runner import DiscoverRunner, ParallelTestSuite, _init_worker
+from django.test.signals import setting_changed
 
 
 def validar_bases_pruebas(aliases):
@@ -46,7 +48,28 @@ def aislar_worker(media_root, password_hashers):
     settings.STORAGES = almacenes_de_pruebas()
 
 
+def iniciar_worker(counter, initial_settings=None, serialized_contents=None, process_setup=None,
+                   process_setup_args=None, debug_mode=None, used_aliases=None):
+    """Prepara el proceso de pruebas y lo aísla también cuando se crea con fork.
+
+    Django solo llama a ``process_setup`` cuando los procesos se crean con spawn (Windows y
+    macOS). Con fork (Linux, y por tanto la integración continua) no lo llama: los procesos
+    compartían la carpeta de archivos y una prueba veía los que otra generaba a la vez.
+    """
+    _init_worker(counter, initial_settings, serialized_contents, process_setup, process_setup_args,
+                 debug_mode, used_aliases)
+    if multiprocessing.get_start_method() == 'spawn' or not callable(process_setup):
+        return
+    process_setup(*(process_setup_args or ()))
+    # El proceso hereda del padre los almacenes ya resueltos con la carpeta común: se avisa
+    # del cambio para que vuelvan a leerla, como hace override_settings.
+    for nombre in ('MEDIA_ROOT', 'PASSWORD_HASHERS', 'STORAGES'):
+        setting_changed.send(sender=settings._wrapped.__class__, setting=nombre,
+                             value=getattr(settings, nombre), enter=True)
+
+
 class SuiteParalelaAislada(ParallelTestSuite):
+    init_worker = iniciar_worker
     process_setup = aislar_worker
 
 

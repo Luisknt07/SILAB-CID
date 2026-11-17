@@ -144,7 +144,51 @@ jobs:
         # config.testing.PruebasAisladas crea MEDIA_ROOT temporal. Django crea
         # test_citt_ci y sus clones; nunca se usa una base institucional.
         # Dependencias efímeras de QA: trazas paralelas e inspección del PDF.
-        run: uv run --no-sync --with tblib==3.2.2 --with PyMuPDF==1.28.2 python manage.py test tests scripts.tests apps --parallel 4 --noinput --verbosity 1
+        # El registro se guarda fuera del repositorio para el paso siguiente;
+        # bash corre con pipefail, así que tee no oculta un fallo.
+        run: >-
+          uv run --no-sync --with tblib==3.2.2 --with PyMuPDF==1.28.2 python manage.py test
+          tests scripts.tests apps --parallel 4 --noinput --verbosity 1
+          2>&1 | tee "$RUNNER_TEMP/pruebas.log"
+      - name: Señalar las pruebas que no pasaron
+        # El registro completo exige iniciar sesión. Las anotaciones se ven en
+        # el resumen de la ejecución y se leen sin credenciales.
+        if: failure()
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          registro = Path(os.environ['RUNNER_TEMP']) / 'pruebas.log'
+          if not registro.exists():
+              raise SystemExit(0)
+
+
+          def escapar(texto):
+              return texto.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+
+
+          texto = registro.read_text(encoding='utf-8', errors='replace')
+          fallos = []
+          for bloque in re.split(r'^={70}\n', texto, flags=re.M)[1:]:
+              titulo, _, resto = bloque.partition('\n')
+              if not titulo.startswith(('FAIL: ', 'ERROR: ')):
+                  continue
+              cuerpo = re.split(r'^-{70}\nRan \d+ tests? in ', resto, flags=re.M)[0]
+              lineas = [linea for linea in cuerpo.splitlines() if linea.strip() and set(linea) != {'-'}]
+              fallos.append((titulo, '\n'.join(lineas[-14:])))
+          if not fallos:
+              print('::error title=Pruebas Django::El paso falló sin pruebas señaladas; sigue el final del registro.')
+              print('::error title=Final del registro::' + escapar('\n'.join(texto.splitlines()[-25:])))
+              raise SystemExit(0)
+          # GitHub admite diez anotaciones de error por paso: nueve con detalle y una con la lista.
+          for titulo, detalle in fallos[:9]:
+              corto = titulo.split(' (')[0].replace(':', '')
+              print(f'::error title={corto}::{escapar(titulo + chr(10) + detalle)}')
+          nombres = '\n'.join(titulo for titulo, _ in fallos[:150])
+          print(f'::error title=Pruebas Django - {len(fallos)} sin pasar::{escapar(nombres)}')
+          PY
 
       - name: Separación física Centros y copia verificada en dos PostgreSQL efímeros
         env:
