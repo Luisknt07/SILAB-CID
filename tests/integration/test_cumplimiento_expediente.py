@@ -510,6 +510,22 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
         self.assertNotIn('2026-B', [fila['etiqueta'] for fila in historico])
         self.assertContains(pagina, 'Histórico por período')
 
+    def test_el_anexo_al_dia_se_abre_sin_marca_de_borrador(self):
+        """El anexo que se consulta es el mismo formato que se archiva: sin marca de agua."""
+        from io import BytesIO
+
+        from pypdf import PdfReader
+
+        self.client.force_login(self.coordinador)
+        respuesta = self.client.get(reverse('gestion_expediente_unidad', args=[self.laboratorio.slug]), {
+            'anio': 2026, 'corte': 'A', 'gestionar': 'INFORME-SEMESTRAL', 'anexo': 'REGISTRO-USO', 'borrador': '1'})
+        self.assertEqual(respuesta.status_code, 200)
+        cuerpo = (b''.join(respuesta.streaming_content) if getattr(respuesta, 'streaming', False)
+                  else respuesta.content)
+        texto = '\n'.join(pagina.extract_text() or '' for pagina in PdfReader(BytesIO(cuerpo)).pages)
+        self.assertIn('REGISTROS DE USO', texto.upper())
+        self.assertNotIn('BORRADOR', texto.upper())
+
     def test_cada_documento_abre_su_informe_con_las_fechas_del_periodo(self):
         """Del documento al informe completo, ya acotado: no hay que volver a filtrar."""
         self.client.force_login(self.coordinador)

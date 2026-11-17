@@ -55,12 +55,12 @@ def borrador_actual(request, documento):
         from apps.documentos.presentation.expediente_redaccion import pdf_acciones_de_mejora
         contenido = pdf_acciones_de_mejora(documento, inicio, fin, borrador=True)
     elif es_anexo_de_evidencia(documento.exigido):
-        # El borrador es el mismo anexo que se archiva: metas, registros que cuentan y lo que falta.
+        # Es el mismo anexo que se archiva, con los registros al día: no lleva marca de borrador.
         from apps.documentos.presentation.anexos_evidencia import pdf_del_anexo
         from apps.documentos.presentation.perfil_laboratorios import referencia_interna
         from apps.documentos.presentation.perfil_unidades import es_unidad_auditable
         contenido = pdf_del_anexo(
-            documento, inicio, fin, version=documento.version + 1, borrador=True,
+            documento, inicio, fin, version=documento.version + 1,
             codigo_documento=(referencia_interna(documento) if es_unidad_auditable(documento.unidad)
                               else documento.exigido.codigo))
     else:

@@ -632,7 +632,7 @@ def componer_anexo(documento, inicio, fin, lectura=None):
 
 # -- PDF ----------------------------------------------------------------------------------
 
-def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=None, borrador=False):
+def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=None):
     from reportlab.lib import colors
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
@@ -645,9 +645,7 @@ def pdf_del_anexo(documento, inicio, fin, *, codigo_documento, version, lectura=
     dibujar, CanvasNumerado, medidas = marco_institucional(
         formato=compuesto['titulo'], apaisado=True, pie='Expediente de calidad',
         metadatos=metadatos_documento(codigo_documento, periodo=documento.etiqueta_corte, version=version))
-    if borrador:
-        from apps.documentos.presentation.documentos_entrega import con_marca_borrador
-        dibujar = con_marca_borrador(dibujar)
+    # Sin marca de borrador: el anexo que se consulta al día es el mismo formato que se archiva.
     tinta = medidas['colores']
     ancho = medidas['ancho_util']
     estilos = estilos_informe(tinta)
