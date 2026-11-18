@@ -1,12 +1,11 @@
-"""Simulacros y prácticas de emergencia: una constancia en el anexo de seguridad, sin meta.
+"""Simulacros y prácticas de emergencia: una constancia que la unidad registra, sin meta.
 
-Fija lo acordado en docs/estructura-anexos-por-tipo-de-unidad.md, tabla 8.7:
 - la unidad los registra donde registra sus inspecciones, con el mismo permiso y con su respaldo;
-- se presentan en la tabla 8.7 de su período, también en borrador; los rectificados no se presentan;
+- un simulacro rectificado queda anulado;
 - no son una meta: no cambian la nota del informe ni las mediciones del período;
-- el observatorio, que no lleva anexo de seguridad, no los registra.
+- no van en el anexo de reportes de seguridad: se presentan en su documento de «Respaldo para auditoría»;
+- el observatorio, que no lleva inspecciones físicas, no los registra.
 """
-from contextlib import ExitStack
 from datetime import date
 from io import BytesIO
 from unittest.mock import patch
@@ -16,13 +15,10 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from pypdf import PdfReader
 
 from apps.directorio_unidades.models.core import Unidad
 from apps.documentos.models.medicion import EvidenciaGestionUnidad
-from apps.documentos.presentation.anexos_evidencia import (
-    Enlace, Par, anexos_numerados, constructor_de, contexto_del_anexo, metas_del_anexo, pdf_del_anexo,
-)
+from apps.documentos.presentation.anexos_evidencia import constructor_de, contexto_del_anexo, metas_del_anexo
 from apps.documentos.presentation.evaluacion_cierre import calcular_cierre, evaluar_meta
 from apps.documentos.presentation.expediente import anexos_del, construir_expediente, tramo_del_documento
 from apps.documentos.presentation.expediente_redaccion import ACTIVIDADES_PLAN, filas_del_plan, registros_del_periodo
@@ -31,12 +27,8 @@ from apps.documentos.presentation.medicion_metas import (
 )
 from apps.formacion.models.practicas import RegistroAuditoriaUnidad
 from apps.gestion_unidades.presentation.reportes_condiciones import acciones_condiciones
-from tests.integration.test_anexos_practicas import _sin_identidad_real
 
 ANEXO = 'INDUCCION-SEGURIDAD'
-TABLA = 'Simulacros y prácticas de emergencia'
-COLUMNAS = ('Fecha', 'Emergencia ensayada', 'Participantes', 'Resultado u observaciones', 'Acción de mejora',
-            'Responsable', 'Respaldo')
 
 
 def _acta_en_pdf():
@@ -92,14 +84,6 @@ class SimulacrosDeEmergenciaTests(TestCase):
 
     def simulacro(self, verificar=True, **datos):
         return registrar_evidencia(self.unidad, self.responsable, self.datos(**datos), verificar=verificar)
-
-    def tabla(self, inicio=None, fin=None):
-        anexo = _anexo(self.unidad)
-        if inicio is None:
-            inicio, fin = tramo_del_documento(anexo)
-            self.assertEqual((inicio, fin), (self.inicio, self.fin))
-        registros = constructor_de(ANEXO)(contexto_del_anexo(anexo, inicio, fin))
-        return next(r for r in registros if r.titulo == TABLA)
 
     # -- registro -------------------------------------------------------------------------
 
@@ -184,43 +168,9 @@ class SimulacrosDeEmergenciaTests(TestCase):
         self.client.force_login(self.responsable)
         ruta = reverse('fuentes_metas_unidad', args=[self.observatorio.slug])
         self.assertEqual(self.client.get(ruta, {'anio': 2026, 'corte': 'B', 'tipo': 'SIMULACRO'}).status_code, 403)
-        codigos = {a.exigido.codigo for a in anexos_del(_informe(self.observatorio), incluir_no_aplica=True)}
-        self.assertNotIn(ANEXO, codigos)
 
-    # -- tabla 8.7 ------------------------------------------------------------------------
-
-    def test_sin_simulacros_la_tabla_sale_vacia_con_sus_columnas(self):
-        tabla = self.tabla()
-        self.assertEqual(tuple(tabla.cabecera), COLUMNAS)
-        self.assertEqual(tabla.filas, [])
-        self.assertEqual(tabla.vacio, 'No se registraron simulacros ni prácticas de emergencia en el período.')
-        self.assertEqual(tabla.total, 'Total: 0 simulacros · participantes: 0')
-
-    def test_el_simulacro_aparece_en_la_tabla_de_su_periodo_y_no_en_la_de_otro(self):
-        self.simulacro()
-        self.simulacro(verificar=False, codigo='SIM-10', dia=date(2026, 10, 2), emergencia='incendio',
-                       participantes=7, accion_mejora='')
-        self.simulacro(codigo='SIM-05', dia=date(2026, 5, 10), emergencia='derrame', participantes=4)
-        tabla = self.tabla()
-        self.assertEqual(tabla.filas, [
-            ['18/09/2026', Par('Sismo', 'Simulacro de evacuación por sismo'), '18',
-             'Evacuación completa en tres minutos; una salida estaba sin señalizar.',
-             'Señalizar la salida posterior.', 'Rita Responsable',
-             Par(Enlace('Abrir', 'https://example.org/simulacros/sim-09'), 'Evidencia verificada')],
-            ['02/10/2026', Par('Incendio', 'Simulacro de evacuación por sismo'), '7',
-             'Evacuación completa en tres minutos; una salida estaba sin señalizar.', '—', 'Rita Responsable',
-             Par(Enlace('Abrir', 'https://example.org/simulacros/sim-10'), 'Borrador')],
-        ])
-        self.assertEqual(tabla.total, 'Total: 2 simulacros · participantes: 25')
-        # El del primer semestre va en la tabla de su período.
-        anterior = self.tabla(date(2026, 1, 1), date(2026, 6, 30))
-        self.assertEqual([(fila[0], fila[1].principal, fila[2]) for fila in anterior.filas],
-                         [('10/05/2026', 'Derrame o fuga', '4')])
-        self.assertEqual(anterior.total, 'Total: 1 simulacro · participantes: 4')
-
-    def test_un_simulacro_rectificado_no_se_presenta(self):
+    def test_un_simulacro_rectificado_queda_anulado(self):
         simulacro = self.simulacro()
-        self.assertEqual(len(self.tabla().filas), 1)
         self.client.force_login(self.responsable)
         respuesta = self.client.post(reverse('fuentes_metas_unidad', args=[self.unidad.slug]), dict(
             anio=2026, corte='B', tipo='SIMULACRO', accion='rectificar', evidencia=simulacro.pk,
@@ -228,24 +178,17 @@ class SimulacrosDeEmergenciaTests(TestCase):
         self.assertEqual(respuesta.status_code, 302)
         simulacro.refresh_from_db()
         self.assertEqual(simulacro.estado, 'anulado')
-        tabla = self.tabla()
-        self.assertEqual(tabla.filas, [])
-        self.assertEqual(tabla.total, 'Total: 0 simulacros · participantes: 0')
 
-    def test_es_la_tabla_87_del_anexo_y_cabe_en_el_pdf(self):
+    # -- no va en el anexo ----------------------------------------------------------------
+
+    def test_el_anexo_de_seguridad_no_presenta_los_simulacros(self):
         self.simulacro()
         anexo = _anexo(self.unidad)
-        numero = {a.exigido.codigo: n for n, a in anexos_numerados(_informe(self.unidad))}[ANEXO]
         inicio, fin = tramo_del_documento(anexo)
+        self.assertEqual((inicio, fin), (self.inicio, self.fin))
         titulos = [r.titulo for r in constructor_de(ANEXO)(contexto_del_anexo(anexo, inicio, fin))]
-        self.assertEqual(f'{numero}.{titulos.index(TABLA) + 1}', '8.7')
-        self.assertEqual(titulos[-1], TABLA)
-        with ExitStack() as pila:
-            _sin_identidad_real(pila)
-            pdf = pdf_del_anexo(anexo, inicio, fin, codigo_documento='SLCID-PRUEBA', version=1)
-        texto = ' '.join('\n'.join(p.extract_text() or '' for p in PdfReader(BytesIO(pdf)).pages).split())
-        self.assertIn('8.7 ' + TABLA.upper(), texto)
-        self.assertIn('Total: 1 simulacro · participantes: 18', texto)
+        self.assertEqual(len(titulos), 6)
+        self.assertFalse([titulo for titulo in titulos if 'imulacro' in titulo])
 
     # -- no es una meta -------------------------------------------------------------------
 

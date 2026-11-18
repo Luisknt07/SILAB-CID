@@ -70,7 +70,7 @@ ESTADOS_ACCION = (('no_requiere', 'No requiere acción correctiva'),
                   ('pendiente', 'Acción pendiente'), ('resuelta', 'Acción atendida y respaldada'))
 CLAVES_INSPECCION = ('area', 'condiciones_revisadas', 'sin_hallazgos', 'hallazgos',
                     'accion_correctiva', 'estado_condiciones', 'estado_accion', 'plazo_accion')
-# Simulacros y prácticas de emergencia (docs/estructura-anexos-por-tipo-de-unidad.md, tabla 8.7).
+# Simulacros y prácticas de emergencia: se presentan en su documento de «Respaldo para auditoría».
 # Dejan constancia de que la emergencia se ensayó; no son una meta ni cuentan en la nota del informe.
 EMERGENCIAS_SIMULACRO = (
     ('incendio', 'Incendio'),

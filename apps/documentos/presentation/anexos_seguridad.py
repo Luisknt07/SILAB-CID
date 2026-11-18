@@ -267,46 +267,15 @@ def _incidentes(contexto):
                     vacio='No se reportaron incidentes de seguridad en el período.')
 
 
-def _simulacros(contexto):
-    """Los simulacros y prácticas de emergencia del período: constancia de que se ensayaron, sin meta."""
-    from apps.documentos.models.resultados_gestion import EMERGENCIAS_SIMULACRO, TIPO_SIMULACRO
-
-    emergencias = dict(EMERGENCIAS_SIMULACRO)
-    filas = []
-    participantes = 0
-    for evidencia in evidencias_de_gestion(contexto.unidad, TIPO_SIMULACRO, contexto.inicio, contexto.fin):
-        detalle = evidencia.detalle if isinstance(evidencia.detalle, dict) else {}
-        personas = detalle.get('participantes')
-        personas = personas if isinstance(personas, int) and not isinstance(personas, bool) and personas > 0 else None
-        participantes += personas or 0
-        respaldo = enlace_recurso(evidencia.recurso) if evidencia.recurso_id else enlace(evidencia.enlace)
-        filas.append([
-            fecha(evidencia.fecha),
-            par(emergencias.get(detalle.get('emergencia'), '—'), texto(evidencia.titulo, 90)),
-            cifra(personas),
-            texto(evidencia.descripcion),
-            texto(detalle.get('accion_mejora'), 200),
-            nombre_de(evidencia.responsable),
-            par(respaldo, verificacion(evidencia)),
-        ])
-    return Registro('Simulacros y prácticas de emergencia',
-                    ('Fecha', 'Emergencia ensayada', 'Participantes', 'Resultado u observaciones',
-                     'Acción de mejora', 'Responsable', 'Respaldo'),
-                    filas, pesos=(9, 17, 9, 26, 18, 11, 10),
-                    total=(f'Total: {plural(len(filas), "simulacro", "simulacros")} · '
-                           f'participantes: {cifra(participantes)}'),
-                    vacio='No se registraron simulacros ni prácticas de emergencia en el período.')
-
-
 def seguridad(contexto):
     """Anexo de reportes de seguridad y condiciones de operación (sección 4.8).
 
     Requisitos de acceso, habilitaciones, inspecciones con su cobertura mensual, control de
-    ingresos, incidentes de seguridad y simulacros. Las condiciones que revisa una inspección
-    son las comunes y las propias del tipo de unidad.
+    ingresos e incidentes de seguridad. Las condiciones que revisa una inspección son las
+    comunes y las propias del tipo de unidad.
     """
     return [_requisitos(contexto), _habilitaciones(contexto), _inspecciones(contexto), _cobertura(contexto),
-            _ingresos(contexto), _incidentes(contexto), _simulacros(contexto)]
+            _ingresos(contexto), _incidentes(contexto)]
 
 
 # -- desechos ------------------------------------------------------------------------------

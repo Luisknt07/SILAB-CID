@@ -39,8 +39,6 @@ ESTADOS_DE_EQUIPO = ('disponible', 'en_uso', 'mantenimiento', 'dañado', 'presta
 # Clasificaciones del inventario que van en la tabla de reactivos; las demás son insumos y materiales.
 CLASES_DE_REACTIVO = ('reactivo', 'agroquimico', 'veterinario')
 DIAS_PARA_VENCER = 90
-# Una calibración está «por vencer» si vence dentro de estos días después del corte.
-DIAS_DE_AVISO_DE_CALIBRACION = 30
 DIAS = ('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo')
 
 
@@ -590,62 +588,11 @@ def _infraestructura(contexto):
         vacio=f'No hay intervenciones de infraestructura{alcance} programadas ni ejecutadas en el período.')
 
 
-def _vigencia_de_calibracion(proxima, corte):
-    """La situación de la calibración de un equipo al corte, según la fecha de su próxima calibración."""
-    if not proxima:
-        return 'Sin programar'
-    if proxima < corte:
-        return 'Vencida'
-    return 'Por vencer' if proxima <= corte + timedelta(days=DIAS_DE_AVISO_DE_CALIBRACION) else 'Vigente'
-
-
-def _calibracion(unidad, inicio, fin, corte, equipos):
-    """Un equipo activo por fila: los que tienen fecha de calibración o una orden de calibración en el período.
-
-    Las órdenes son las mismas de la tabla de mantenimientos del período, sin las canceladas, y se citan
-    por su código. Las fechas de calibración se guardan en el modelo del equipo.
-    """
-    ordenes = defaultdict(list)
-    for orden in _ordenes_del_periodo(unidad, inicio, fin).filter(tipo='calibracion').exclude(estado='cancelado'):
-        ordenes[orden.equipo_id].append(orden)
-    filas, vigencias = [], Counter()
-    for equipo in equipos:
-        modelo, suyas = equipo.equipo, ordenes[equipo.pk]
-        if not (modelo.fecha_ultima_calibracion or modelo.proxima_calibracion or suyas):
-            continue
-        vigencia = _vigencia_de_calibracion(modelo.proxima_calibracion, corte)
-        vigencias[vigencia] += 1
-        completadas = sum(orden.estado == 'completado' for orden in suyas)
-        cuantas = cifra(len(suyas)) + (f' · completadas: {cifra(completadas)}' if completadas != len(suyas) else '')
-        # El respaldo es el informe de la calibración más reciente del período que lo tenga.
-        informe = next((orden.informe for orden in reversed(suyas) if orden.informe), None)
-        filas.append([
-            _equipo(equipo),
-            fecha(modelo.fecha_ultima_calibracion),
-            fecha(modelo.proxima_calibracion),
-            vigencia,
-            par(cuantas, texto(', '.join(orden.codigo for orden in suyas))) if suyas else '0',
-            enlace_archivo(informe),
-        ])
-    pie = (f'Total: {plural(len(filas), "equipo con calibración registrada", "equipos con calibración registrada")}'
-           f' · vigentes: {cifra(vigencias["Vigente"])} · por vencer: {cifra(vigencias["Por vencer"])} · vencidas: '
-           f'{cifra(vigencias["Vencida"])}')
-    if vigencias['Sin programar']:
-        pie += f' · sin programar: {cifra(vigencias["Sin programar"])}'
-    return Registro(
-        'Calibración de equipos',
-        ('Código / nombre', 'Última calibración', 'Próxima calibración', 'Vigencia al corte',
-         'Calibraciones del período', 'Respaldo'),
-        filas, pesos=(32, 13, 13, 12, 20, 10), total=pie,
-        vacio='Ningún equipo activo tiene fechas de calibración ni órdenes de calibración en el período.')
-
-
 def mantenimiento(contexto):
     """Anexo de mantenimiento y equipamiento (sección 4.2).
 
     Plan vigente, órdenes del período, cumplimiento en equipos críticos, fallas, pruebas funcionales,
-    estado de los equipos al corte, infraestructura y vigencia de la calibración de los equipos. Los
-    incidentes de seguridad son del anexo de seguridad.
+    estado de los equipos al corte e infraestructura. Los incidentes de seguridad son del anexo de seguridad.
     """
     unidad, inicio, fin, corte = contexto.unidad, contexto.inicio, contexto.fin, contexto.corte
     equipos = list(_equipos_activos(unidad, corte))
@@ -657,7 +604,6 @@ def mantenimiento(contexto):
         _pruebas_funcionales(unidad, inicio, fin, equipos),
         _estado_de_equipos(equipos),
         _infraestructura(contexto),
-        _calibracion(unidad, inicio, fin, corte, equipos),
     ]
 
 
@@ -783,14 +729,6 @@ def _bajas_y_traspasos(unidad, inicio, fin):
         vacio='No hubo bajas ni traspasos de equipos en el período.')
 
 
-def _sustancia_controlada(articulo):
-    """Si el artículo es una sustancia sujeta a control y con qué autorización o licencia se usa."""
-    if not articulo.sustancia_controlada:
-        return 'No'
-    return 'Sí · ' + (texto(articulo.autorizacion_control, 160) if articulo.autorizacion_control.strip()
-                      else 'sin autorización registrada')
-
-
 def _reactivos(unidad, inicio, corte, base):
     """Un lote por fila: los que tienen saldo al corte y los que se cerraron o ingresaron en el período."""
     from django.db.models import Q
@@ -812,10 +750,10 @@ def _reactivos(unidad, inicio, corte, base):
         for articulo in (a for a in articulos if a.clasificacion == clase):
             comunes = [_codigo_y_nombre(articulo.codigo, articulo.nombre),
                        par(texto(articulo.presentacion, 50), texto(articulo.marca, 40) if articulo.marca else '')]
-            finales = [_sustancia_controlada(articulo), enlace_archivo(articulo.ficha_tecnica)]
+            ficha = enlace_archivo(articulo.ficha_tecnica)
             if not lotes[articulo.pk]:
                 filas.append([*comunes, 'Sin lote registrado', _cantidad(articulo.stock_total, articulo.unidad_medida),
-                              fecha(articulo.fecha_vencimiento), texto(articulo.ubicacion, 70), '—', *finales])
+                              fecha(articulo.fecha_vencimiento), texto(articulo.ubicacion, 70), '—', ficha])
             for lote in lotes[articulo.pk]:
                 con_saldo = lote.cantidad_actual > 0
                 vencido = bool(con_saldo and lote.fecha_vencimiento and lote.fecha_vencimiento < corte)
@@ -830,17 +768,16 @@ def _reactivos(unidad, inicio, corte, base):
                     par(fecha(lote.fecha_vencimiento), 'vencido' if vencido else ''),
                     texto(lote.ubicacion_completa, 80),
                     lote.get_estado_display(),
-                    *finales,
+                    ficha,
                 ])
     sustantivo = ('artículo', 'artículos') if en_centro else ('reactivo', 'reactivos')
     return Registro(
         'Reactivos, agroquímicos y medicamentos veterinarios' if en_centro else 'Reactivos',
         ('Código / nombre', 'Presentación / marca', 'Lote', 'Cantidad', 'Vencimiento', 'Ubicación',
-         'Estado del lote', 'Controlada', 'Ficha de seguridad'),
-        filas, pesos=(19, 12, 13, 8, 9, 14, 8, 10, 7),
+         'Estado del lote', 'Ficha de seguridad'),
+        filas, pesos=(22, 14, 15, 9, 9, 16, 8, 7),
         total=(f'Total: {plural(len(articulos), *sustantivo)} · lotes: {cifra(total_lotes)} · vencidos con saldo: '
-               f'{cifra(vencidos)} · vencen en {DIAS_PARA_VENCER} días: {cifra(por_vencer)} · controlados: '
-               f'{cifra(sum(a.sustancia_controlada for a in articulos))}'),
+               f'{cifra(vencidos)} · vencen en {DIAS_PARA_VENCER} días: {cifra(por_vencer)}'),
         vacio='La unidad no tiene reactivos, agroquímicos ni medicamentos veterinarios activos en su inventario.')
 
 
@@ -1054,61 +991,8 @@ def _ficha_de_la_unidad(contexto):
         ['Personal', f'Atiende a {plural(capacidad.capacidad_personal, "persona", "personas")} a la vez' if capacidad
          else sin_capacidad],
         ['Carreras que atiende', texto('; '.join(carreras) or unidad.carreras)],
-        ['Reglamento de uso', _reglamento_de_uso(unidad)],
     ]
     return Registro('Ficha de la unidad', ('Dato', 'Valor'), filas, ficha=True)
-
-
-# Lo que la unidad todavía no ha escrito se dice, no se deja en blanco.
-SIN_REGISTRAR = 'Sin registrar'
-
-
-def _reglamento_de_uso(unidad):
-    """El reglamento publicado de la unidad: su título y el enlace a la página donde se consulta.
-
-    El texto del reglamento no se copia: se lee en la página de la unidad. Un reglamento sin publicar
-    o sin normas escritas no cuenta como vigente.
-    """
-    from apps.recursos.models.recursos import ReglamentoUnidad
-
-    reglamento = ReglamentoUnidad.objects.filter(unidad=unidad, activo=True).first()
-    if not reglamento or not any((apartado or '').strip() for apartado in (
-            reglamento.normas_generales, reglamento.reservas_horarios, reglamento.equipos_materiales,
-            reglamento.seguridad)):
-        return SIN_REGISTRAR
-    return par(texto(reglamento.titulo, 180), enlace(unidad.get_absolute_url(), 'Consultar en la página de la unidad'))
-
-
-def _personal_de_la_unidad(unidad):
-    """Los responsables activos, con la formación y el acto con que fueron designados."""
-    from apps.gestion_unidades.models.espacios import ResponsableUnidad
-
-    filas, designados, formados = [], 0, 0
-    for persona in (ResponsableUnidad.objects.filter(unidad=unidad, activo=True).select_related('usuario', 'unidad')
-                    .order_by('orden', 'nombre', 'pk')):
-        formacion, acto = persona.formacion.strip(), persona.acto_designacion.strip()
-        designados += bool(acto)
-        formados += bool(formacion)
-        if acto or persona.fecha_designacion:
-            designacion = par(texto(acto, 200) if acto else 'Acto sin registrar',
-                              fecha(persona.fecha_designacion) if persona.fecha_designacion
-                              else 'Fecha sin registrar')
-        else:
-            designacion = SIN_REGISTRAR
-        filas.append([
-            texto(persona.nombre_publico, 160),
-            par(persona.get_rol_display(), 'responsable de la unidad' if persona.es_administrador_principal else ''),
-            texto(formacion, 200) if formacion else SIN_REGISTRAR,
-            designacion,
-            texto(persona.horario_atencion, 120) if persona.horario_atencion.strip() else SIN_REGISTRAR,
-        ])
-    return Registro(
-        'Personal de la unidad',
-        ('Nombre', 'Rol', 'Formación', 'Designación', 'Horario de atención'),
-        filas, pesos=(20, 15, 24, 25, 16),
-        total=(f'Total: {plural(len(filas), "persona", "personas")} · con designación registrada: '
-               f'{cifra(designados)} · con formación registrada: {cifra(formados)}'),
-        vacio='La unidad no tiene personal registrado.')
 
 
 def _uso_del_periodo(unidad, inicio, fin):
@@ -1241,8 +1125,7 @@ def _software_y_simuladores(unidad, usos):
 
 
 def fichas(contexto):
-    """Anexo de fichas técnicas (sección 4.4): ficha de la unidad, espacios y talleres, software y simuladores,
-    y personal de la unidad.
+    """Anexo de fichas técnicas (sección 4.4): ficha de la unidad, espacios y talleres, y software y simuladores.
 
     Los equipos son del anexo de inventario: aquí se citan por su código.
     """
@@ -1251,5 +1134,4 @@ def fichas(contexto):
         _ficha_de_la_unidad(contexto),
         _espacios(contexto, por_espacio),
         _software_y_simuladores(contexto.unidad, por_software),
-        _personal_de_la_unidad(contexto.unidad),
     ]

@@ -38,6 +38,7 @@ tablas y columnas lleva cada uno. Parte de las dos listas que pidió la universi
 | Observatorio, prácticas y desechos | No lleva | No tiene prácticas ni genera desechos peligrosos |
 | Centro experimental | Ensayos y producción agropecuaria van separados | Un ensayo es investigación; un ciclo productivo es producción |
 | Inspecciones | Se agregan condiciones propias del tipo: inocuidad en plantas piloto, agroquímicos, maquinaria y sanidad animal en el centro experimental | Las siete condiciones generales no cubren esos riesgos |
+| Lo que pide una auditoría fuera de las listas de la universidad | Calibración de equipos, sustancias controladas, personal de la unidad, reglamento de uso, simulacros, capacitación y difusión, y satisfacción de los usuarios no van en los anexos: cada tema es un documento propio de «Respaldo para auditoría» en el Centro de reportes | No cargar los anexos con información que no corresponde a su exigencia |
 
 ### Dónde el nombre se aparta de la redacción de la universidad
 
@@ -344,21 +345,6 @@ Exigencia: la del mismo nombre. Tipos: los cuatro. En el observatorio cubre equi
 
 - **Centro experimental:** incluye riego, invernaderos, establos y cercas.
 - **Observatorio:** incluye red, servidores y respaldos de la sala.
-
-**Tabla 2.8 · Calibración de equipos.** Un equipo activo por fila: los que tienen alguna fecha de calibración o al menos una orden de calibración en el período.
-
-| # | Columna | Contenido | Fuente |
-| --- | --- | --- | --- |
-| 1 | Código / nombre | (anexo 3) | UnidadEquipo.codigo_unidad, EquiposServicios.nombre |
-| 2 | Última calibración | | EquiposServicios.fecha_ultima_calibracion |
-| 3 | Próxima calibración | | EquiposServicios.proxima_calibracion |
-| 4 | Vigencia al corte | Vigente, por vencer (vence en los 30 días siguientes al corte), vencida o sin programar (no tiene próxima calibración) | proxima_calibracion, frente al corte |
-| 5 | Calibraciones del período | Cuántas órdenes de calibración, sin las canceladas / sus códigos (los de 2.2) | MantenimientoEquipo (tipo calibración) |
-| 6 | Respaldo | Enlace al informe de la calibración más reciente del período | MantenimientoEquipo.informe |
-
-- **Pie:** equipos con calibración registrada · vigentes · por vencer · vencidas · sin programar, si los hay.
-- **Sin equipos con calibración:** la tabla se presenta sin filas.
-
 - **No va aquí:**
   - la identificación del equipo (anexo 3);
   - los incidentes de seguridad (anexo 8).
@@ -416,10 +402,9 @@ Exigencia: «Inventario de equipamiento, reactivos e insumos». Tipos: los cuatr
 | 5 | Vencimiento | | fecha_vencimiento |
 | 6 | Ubicación | Bodega · estantería · posición | bodega, estanteria, posicion |
 | 7 | Estado del lote | | estado |
-| 8 | Controlada | Sustancia sujeta a control: «Sí · referencia de la autorización o licencia», «Sí · sin autorización registrada» o «No» | Consumible.sustancia_controlada, autorizacion_control |
-| 9 | Ficha de seguridad | Enlace | Consumible.ficha_tecnica |
+| 8 | Ficha de seguridad | Enlace | Consumible.ficha_tecnica |
 
-- **Pie:** reactivos · lotes · vencidos con saldo · que vencen en 90 días · controlados.
+- **Pie:** reactivos · lotes · vencidos con saldo · que vencen en 90 días.
 - **Centro experimental:** se llama «Reactivos, agroquímicos y medicamentos veterinarios».
 
 **Tabla 3.5 · Insumos y materiales.**
@@ -486,10 +471,6 @@ Exigencia: «Inventario o ficha técnica de laboratorios, talleres, software, si
 | Puestos con mobiliario / equipados | puestos_mobiliario, puestos_equipados |
 | Personal | capacidad_personal |
 | Carreras que atiende | Asignatura.carrera |
-| Reglamento de uso | ReglamentoUnidad.titulo del reglamento publicado / enlace a la página de la unidad donde se consulta. «Sin registrar» si no está publicado o no tiene normas |
-
-- **Responsable:** aquí solo se nombra; su formación y su designación van en la tabla 4.4.
-- **Reglamento de uso:** se identifica y se enlaza; su texto no se copia en el anexo.
 
 **Tabla 4.2 · Espacios y talleres.**
 
@@ -522,21 +503,6 @@ Exigencia: «Inventario o ficha técnica de laboratorios, talleres, software, si
 | 6 | Instalado en | Códigos de equipos (anexo 3) | equipos_instalados |
 | 7 | Uso en equipo | Opcional u obligatorio | uso_en_equipo |
 | 8 | Uso en el período | Prácticas · sesiones | anexos 5 y 1 |
-
-**Tabla 4.4 · Personal de la unidad.**
-
-- **Contenido:** una fila por responsable activo de la unidad.
-- Lo que la unidad no ha registrado se presenta como «Sin registrar».
-
-| # | Columna | Contenido | Fuente |
-| --- | --- | --- | --- |
-| 1 | Nombre | | ResponsableUnidad.nombre o la cuenta vinculada |
-| 2 | Rol | Rol / «responsable de la unidad» si es el administrador principal | rol, Unidad.administrador |
-| 3 | Formación | Título o formación | formacion |
-| 4 | Designación | Acto / fecha | acto_designacion, fecha_designacion |
-| 5 | Horario de atención | | horario_atencion |
-
-- **Pie:** personas · con designación registrada · con formación registrada.
 
 **No va aquí:** los equipos (anexo 3).
 
@@ -779,21 +745,6 @@ Exigencia: «Protocolos de bioseguridad y reportes de seguridad y condiciones de
 | 6 | Acción / solución | | solucion |
 | 7 | Estado | | estado |
 | 8 | Reportado por | | reportada_por |
-
-**Tabla 8.7 · Simulacros y prácticas de emergencia.**
-
-| # | Columna | Contenido | Fuente |
-| --- | --- | --- | --- |
-| 1 | Fecha | | EvidenciaGestionUnidad (SIMULACRO).fecha |
-| 2 | Emergencia ensayada | Incendio, sismo, derrame o fuga, evacuación, primeros auxilios u otra / nombre del ejercicio | detalle.emergencia, titulo |
-| 3 | Participantes | Número de personas | detalle.participantes |
-| 4 | Resultado u observaciones | | descripcion |
-| 5 | Acción de mejora | Si la hubo | detalle.accion_mejora |
-| 6 | Responsable | | responsable |
-| 7 | Respaldo | Enlace / borrador o verificada | recurso, enlace, estado |
-
-- **Pie:** simulacros del período · participantes.
-- La unidad los registra donde registra sus inspecciones, con el mismo permiso. Son una constancia: no son una meta, no cuentan en la nota del informe ni aparecen como indicador del plan.
 
 **No va aquí:**
 
@@ -1227,11 +1178,10 @@ Respalda la meta de eventos de socialización de resultados.
 | --- | --- | --- |
 | Sesión de uso | Registros de uso | Prácticas, seguridad, investigación, transferencia |
 | Visita | Registros de uso | — |
-| Plan y orden de mantenimiento, falla técnica, prueba funcional, vigencia de la calibración | Plan de mantenimiento e informe de equipamiento | Evidencias de prácticas (incidente) |
+| Plan y orden de mantenimiento, falla técnica, prueba funcional | Plan de mantenimiento e informe de equipamiento | Evidencias de prácticas (incidente) |
 | Equipo: identidad, custodia y estado | Inventario | Mantenimiento, fichas técnicas, software |
 | Reactivo, insumo, materia prima y sus movimientos | Inventario | Desechos (origen), producción (consumo) |
 | Espacio, taller, línea, parcela, software, simulador | Fichas técnicas | Uso, planificación de prácticas, producción, ensayos |
-| Personal de la unidad: formación y designación | Fichas técnicas (tabla 4.4) | Ficha de la unidad (solo el nombre) |
 | Práctica planificada | Planificación de las prácticas | Guías, evidencias, desechos |
 | Guía | Guías | Planificación de las prácticas |
 | Ejecución, asistencia y evidencias | Registros de asistencia y evidencias | — |
@@ -1263,11 +1213,9 @@ Respalda la meta de eventos de socialización de resultados.
 | --- | --- | --- |
 | Unidad del syllabus | `TemaAsignatura.unidad_tematica` | Gestión de la unidad → Prácticas → temas de la asignatura |
 | Superficie de un espacio | `EspacioReservable.superficie_m2` | Gestión de la unidad → Recursos → espacios; página del área |
-| Formación y designación del personal | `ResponsableUnidad.formacion`, `acto_designacion`, `fecha_designacion` | Gestión de la unidad → Configuración → Equipo humano → responsable; admin de Django |
 | Tipo «taller» | `EspacioReservable.tipo` | La misma pantalla; los tipos que se ofrecen dependen del tipo de unidad |
 | Tipo «simulador» | `SoftwareDisponible.tipo_recurso` | Gestión de la unidad → Recursos → software |
 | Agroquímico y medicamento veterinario | `Consumible.clasificacion` | Gestión de la unidad → Recursos → insumos |
-| Sustancia sujeta a control y su autorización o licencia | `Consumible.sustancia_controlada`, `autorizacion_control` | Gestión de la unidad → Recursos → insumos; página de insumos de la unidad |
 | Ensayo: objetivo, tratamientos, repeticiones, variables y responsable | `CicloProductivo.es_ensayo` y los demás | Centro experimental → Plan y registros de producción → ciclo |
 | Condiciones de inspección por tipo de unidad | `detalle['condiciones_revisadas']` | Fuentes de las metas → Inspección |
 

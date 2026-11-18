@@ -2840,7 +2840,7 @@ def _operar_responsable(request, unidad):
     objeto.horario_atencion = (
         request.POST.get("horario_atencion") or ""
     ).strip()
-    # Formación y designación (anexo de fichas técnicas). Solo si el formulario las trae: otro
+    # Formación y designación del personal. Solo si el formulario las trae: otro
     # formulario que no las envía no las borra.
     if "formacion" in request.POST:
         objeto.formacion = (request.POST.get("formacion") or "").strip()

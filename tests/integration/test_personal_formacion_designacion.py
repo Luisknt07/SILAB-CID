@@ -1,8 +1,8 @@
 """Formación y designación del personal de la unidad: dónde se escriben y quién puede escribirlas.
 
-Los tres campos (`formacion`, `acto_designacion`, `fecha_designacion`) alimentan la tabla «Personal de la
-unidad» del anexo de fichas técnicas (docs/estructura-anexos-por-tipo-de-unidad.md, sección 4.4). Se editan en
-el formulario del personal del panel de gestión, con los permisos que ya tenía, y en el admin de Django.
+Los tres campos (`formacion`, `acto_designacion`, `fecha_designacion`) se editan en el formulario del personal
+del panel de gestión, con los permisos que ya tenía, y en el admin de Django. No van en el anexo de fichas
+técnicas: se presentan en su documento de «Respaldo para auditoría».
 """
 from datetime import date
 

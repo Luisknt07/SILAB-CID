@@ -852,7 +852,7 @@ def acciones_condiciones(category, unit, start_date, end_date):
                  'Registrar acta de inventario' if tipo == 'INVENTARIO' else 'Registrar conciliación de desechos',
                  'url': ruta + urlencode(periodo | {'tipo': tipo})}]
     if tipo == 'INSPECCION' and requiere_inspecciones_fisicas(unit):
-        # El simulacro se registra donde la inspección; va al anexo de seguridad y no es una meta.
+        # El simulacro se registra donde la inspección; no va en el anexo de seguridad y no es una meta.
         acciones.append({'label': 'Registrar simulacro o práctica de emergencia',
                          'url': ruta + urlencode(periodo | {'tipo': 'SIMULACRO'})})
     return acciones

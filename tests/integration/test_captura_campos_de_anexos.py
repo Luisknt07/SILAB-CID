@@ -230,7 +230,7 @@ class SoftwareEInsumosTests(BaseCaptura):
         reactivo.refresh_from_db()
         self.assertEqual((reactivo.sustancia_controlada, reactivo.autorizacion_control),
                          (True, 'Licencia de prueba 001'))
-        # Controlada sin autorización se guarda: no se bloquea a la unidad; el anexo lo dirá.
+        # Controlada sin autorización se guarda: no se bloquea a la unidad.
         respuesta = self.operar(**ficha, sustancia_controlada='true', autorizacion_control='')
         self.assertEqual(respuesta.status_code, 200, respuesta.content)
         reactivo.refresh_from_db()

@@ -1673,48 +1673,6 @@ def componer(documento, contenido, inicio, fin):
     }
 
 
-# Las dos metas del plan que no tienen anexo propio: su respaldo se lista en el mismo informe.
-METAS_SIN_ANEXO = (('CAPACITACION', 'Capacitación'), ('DIFUSION', 'Difusión'))
-
-
-def _bloques_de_respaldo_sin_anexo(documento, datos, inicio, fin):
-    """Los registros de capacitación y difusión del período, con su verificación y el enlace a su respaldo.
-
-    La tabla sale si el plan compromete alguna de las dos metas o si hay registros de esos tipos; una
-    meta comprometida sin registros lo dice en su fila. Si no aplica ninguna de las dos, no hay tabla.
-    """
-    from apps.documentos.presentation.anexos_evidencia import (
-        Enlace, enlace, enlace_recurso, evidencias_de_gestion, fecha, nombre_de, texto, verificacion,
-    )
-    from apps.documentos.presentation.medicion_metas import habilitada
-    comprometidas = {f['codigo'] for f in datos['filas']}
-    # Con la medición activa, «verificada» es la evidencia que la meta contó; las demás quedan pendientes.
-    fuentes = ((datos.get('registros') or {}).get('fuentes_gestion') or {}) if habilitada() else None
-    filas = []
-    for codigo, actividad in METAS_SIN_ANEXO:
-        evidencias = evidencias_de_gestion(documento.unidad, codigo, inicio, fin)
-        if not evidencias and codigo in comprometidas:
-            filas.append([actividad, '—', 'Sin registros en el período', '—', '—', '—'])
-        contadas = None if fuentes is None else {f.get('evidencia') for f in fuentes.get(codigo) or ()}
-        for evidencia in evidencias:
-            respaldo = enlace_recurso(evidencia.recurso) if evidencia.recurso_id else enlace(evidencia.enlace)
-            pendiente = (contadas is not None and evidencia.estado == 'validado' and not evidencia.demostracion
-                         and evidencia.pk not in contadas)
-            filas.append([
-                actividad, fecha(evidencia.fecha),
-                f'{texto(evidencia.titulo, 120)} ({texto(evidencia.codigo)})\n{texto(evidencia.descripcion, 220)}',
-                nombre_de(evidencia.responsable),
-                'Verificación pendiente' if pendiente else verificacion(evidencia),
-                # El enlace viaja como dato para que el informe archivado lo conserve.
-                {'texto': respaldo.texto, 'url': respaldo.url} if isinstance(respaldo, Enlace) else respaldo,
-            ])
-    if not filas:
-        return []
-    return [{'tipo': 'tabla', 'titulo': 'Respaldo de las actividades sin anexo',
-             'cabecera': ['Actividad', 'Fecha', 'Descripción', 'Responsable', 'Verificación', 'Respaldo'],
-             'filas': filas, 'anchos_relativos': [.14, .13, .31, .15, .15, .12]}]
-
-
 def _bloques_del_campo(campo, valor, documento, contenido, inicio, fin, registros):
     if campo.clave == 'revision_recursos':
         return []
@@ -1814,12 +1772,11 @@ def _bloques_del_campo(campo, valor, documento, contenido, inicio, fin, registro
         return bloques
     if campo.tipo == 'cumplimiento':
         datos = filas_de_cumplimiento(documento, contenido, inicio, fin, registros)
-        respaldo = _bloques_de_respaldo_sin_anexo(documento, datos, inicio, fin)
         if not datos['hay_plan']:
             return [{'tipo': 'vacio', 'texto': 'El período no tiene planificación semestral redactada en el sistema; '
-                                               'el cumplimiento no puede compararse con un plan.'}, *respaldo]
+                                               'el cumplimiento no puede compararse con un plan.'}]
         if not datos['filas']:
-            return [{'tipo': 'vacio', 'texto': 'La planificación del período no comprometió actividades.'}, *respaldo]
+            return [{'tipo': 'vacio', 'texto': 'La planificación del período no comprometió actividades.'}]
         filas = []
         detalles = []
         from apps.documentos.presentation.anexos_evidencia import anexo_de_cada_meta, cifra, con_respaldo
@@ -1857,7 +1814,7 @@ def _bloques_del_campo(campo, valor, documento, contenido, inicio, fin, registro
             bloques.append({'tipo': 'tabla', 'titulo': 'Qué falta para cumplir',
                             'cabecera': ['Meta', 'Qué falta'], 'filas': detalles,
                             'anchos_relativos': [.32, .68]})
-        return bloques + respaldo
+        return bloques
     return []
 
 

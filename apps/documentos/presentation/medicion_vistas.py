@@ -232,7 +232,7 @@ def fuentes_metas_view(request, slug):
     tipos = {a.codigo for a in actividades_para(unidad)} & dict(EvidenciaGestionUnidad.TIPOS).keys()
     tipos.add('INSPECCION')  # Registro documental disponible sin crear una meta numérica adicional.
     if requiere_inspecciones_fisicas(unidad):
-        # Los simulacros van al anexo de seguridad; el observatorio no lo lleva. Tampoco son una meta.
+        # Los simulacros se registran donde hay inspecciones físicas; el observatorio no las lleva. No son una meta.
         tipos.add(TIPO_SIMULACRO)
     if es_laboratorio_infraestructura(unidad):
         tipos.update(TIPOS_INFRAESTRUCTURA)
@@ -263,7 +263,7 @@ def fuentes_metas_view(request, slug):
                 datos['detalle'] = form.instance.detalle
                 registrar_evidencia(unidad, request.user, dict(datos, tipo=tipo),
                     verificar=form.cleaned_data['verificar'], archivo=form.cleaned_data['archivo'])
-                messages.success(request, 'Simulacro guardado. Se presenta en el anexo de seguridad del período.'
+                messages.success(request, 'Simulacro guardado. Se presenta en su documento de «Respaldo para auditoría», en el Centro de reportes.'
                     if tipo == TIPO_SIMULACRO else 'Evidencia guardada. Solo las verificadas acreditan cumplimiento.')
             else:
                 raise ValidationError('Revisa los campos indicados.')

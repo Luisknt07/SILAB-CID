@@ -121,16 +121,6 @@ asignatura y la sección de mantenimientos previstos.
 Dos metas del informe no tienen anexo: **capacitación** y **difusión**. Se miden
 con evidencias verificadas y figuran en el cierre como metas sin anexo.
 
-Su respaldo va dentro del propio informe: después de la tabla de cumplimiento, la
-tabla «Respaldo de las actividades sin anexo» lista cada registro de capacitación y
-de difusión del período (sin los anulados) con su fecha, descripción, responsable,
-verificación y el enlace al archivo o a la publicación. Sale cuando el plan compromete
-alguna de las dos metas o cuando hay registros; una meta comprometida sin registros
-lo dice en su fila («Sin registros en el período»). El informe enviado conserva la
-tabla tal como se generó. La unidad registra estas evidencias, con su archivo, desde
-el Centro de reportes: en la fila de la meta, «Detalle y evidencias» → «Registrar
-evidencia» (con la medición de metas activa y mientras el informe no se haya enviado).
-
 ## Un anexo por cada documento que pide la universidad (16 de noviembre de 2026)
 
 La universidad pide ocho documentos de gestión por laboratorio y cuatro evidencias de las
