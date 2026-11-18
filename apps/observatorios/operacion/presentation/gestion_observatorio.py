@@ -40,6 +40,10 @@ NAVEGACION_GESTION_OBSERVATORIO = (
     ('obs_publicaciones', 'Publicaciones y calendario', 'Producción de datos'),
     ('obs_solicitudes', 'Solicitudes de datos', 'Atención'),
     ('visitas', 'Visitas', 'Atención'),
+    # Sus equipos informáticos, software y sala (anexo 2) y su plan de mantenimiento (anexo 1) se registran
+    # en las mismas pantallas que en un laboratorio: sin ellas esos anexos no tendrían de dónde salir.
+    ('recursos', 'Equipos, software y sala', 'Unidad'),
+    ('mantenimiento', 'Mantenimiento', 'Unidad'),
     ('reportes', 'Centro de reportes', 'Unidad'),
     ('configuracion', 'Configuración de la unidad', 'Unidad'),
 )

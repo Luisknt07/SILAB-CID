@@ -27,6 +27,7 @@
     </tr>{% endwith %}{% endfor %}
     {% for indicador in sin_catalogo %}<tr><td><strong>{% if indicador.url_fuente %}<a href="{{ indicador.url_fuente }}" target="_blank" rel="noopener noreferrer">{{ indicador.fuente }}</a>{% else %}{{ indicador.fuente }}{% endif %}</strong></td><td>{{ indicador.get_tipo_fuente_display }}</td><td>—</td><td>—</td><td>{{ indicador.get_periodicidad_display }}</td><td><a href="{% url 'indicador_observatorio' unidad.slug indicador.codigo %}">{{ indicador.nombre }}</a></td></tr>{% endfor %}
   </tbody></table></div>
+  {% if 'fuente_datos' in ediciones %}<p class="registro-agregar">{% translate "Nueva fuente de datos" as titulo_nuevo %}{% translate "Agregar una fuente" as rotulo_nuevo %}{% include 'portal/pages/unidades/includes/editar.html' with clave='fuente_datos' pk='nuevo' titulo=titulo_nuevo rotulo=rotulo_nuevo %} <small>{% translate "Después, elígela en la ficha de cada serie, en «Base o fuente de datos»." %}</small></p>{% endif %}
 </section>
 
 <section class="unit-report__section" id="conexiones">

@@ -38,7 +38,7 @@ from apps.recursos.models.software import SoftwareDisponible
 from apps.directorio_unidades.models.core import Unidad
 from apps.recursos.models.unidades import UnidadEquipo
 from apps.recursos.presentation.referencia_editor import ReferenciaComercialForm
-from apps.observatorios.operacion.models.observatorios import AliadoObservatorio, EncuestaObservatorio, IndicadorObservatorio, LineaObservatorio, PoliticaDatosObservatorio, PublicacionObservatorio, SolicitudDatos, TableroObservatorio, ValorIndicador, VisorExterno
+from apps.observatorios.operacion.models.observatorios import AliadoObservatorio, EncuestaObservatorio, FuenteDatos, IndicadorObservatorio, LineaObservatorio, PoliticaDatosObservatorio, PublicacionObservatorio, SolicitudDatos, TableroObservatorio, ValorIndicador, VisorExterno
 from apps.centros_experimentales.operacion.models.centros import CicloProductivo, EjeProductivo
 
 from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
@@ -370,6 +370,16 @@ REGISTRO = {
             unidad=unidad, orden=_siguiente(IndicadorObservatorio.objects.filter(unidad=unidad))),
         eliminable=True,
         pagina=lambda unidad, instancia: reverse('indicador_observatorio', args=[unidad.slug, instancia.codigo])),
+    # El catálogo de fuentes es común a los observatorios: cada uno agrega las suyas y corrige solo las que
+    # ninguna serie de otro observatorio usa; se ligan a la serie desde su ficha («Base o fuente de datos»).
+    'fuente_datos': Edicion(
+        'Fuente de datos', FuenteDatos,
+        ('nombre', 'institucion', 'descripcion', 'url', 'documentacion', 'metodo', 'acceso', 'licencia',
+         'periodicidad', 'requiere_clave'),
+        'contenido', lambda unidad: FuenteDatos.objects.filter(indicadores__unidad=unidad).exclude(
+            indicadores__in=IndicadorObservatorio.objects.exclude(unidad=unidad)).distinct(),
+        nuevo=lambda unidad, padre: FuenteDatos(),
+        pagina=lambda unidad, instancia: reverse('fuentes_observatorio', args=[unidad.slug])),
     'valor_indicador': Edicion(
         'Valor del indicador', ValorIndicador, ('periodo', 'fecha', 'territorio', 'valor', 'provisional', 'nota'),
         'contenido', lambda unidad: ValorIndicador.objects.filter(indicador__unidad=unidad),

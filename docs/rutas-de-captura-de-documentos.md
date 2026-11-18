@@ -7,8 +7,8 @@ documento lo cuente. Sirve para que ningún documento quede sin datos por no sab
 Cada fila se comprobó recorriendo la pantalla con una cuenta de unidad (administra y coordina; no es superusuario),
 enviando lo que envía el formulario, llevando un registro hasta su estado válido y generando después el documento. Las
 pruebas quedan en `tests/integration/test_rutas_de_captura_*.py` y se ejecutan con la suite: la columna «Probado» nombra
-la que cubre cada fila. Todo se probó con un laboratorio; lo propio de planta piloto, centro experimental y observatorio
-se indica como «sin probar».
+la que cubre cada fila. Lo común se probó con un laboratorio; lo propio de planta piloto, centro experimental y
+observatorio, y lo común que cambia en ellos, está al final, en «Planta piloto, centro experimental y observatorio».
 
 Cómo leer las direcciones: `<unidad>` es el identificador de la unidad (por ejemplo `laboratorio-clinico`). «Panel» es
 Gestionar unidad (`/gestion/unidades/<unidad>/`). «Centro de reportes» es el expediente de la unidad
@@ -294,3 +294,59 @@ Pruebas: `tests/integration/test_rutas_de_captura_insumos.py` (clase `RutaDeCapt
   compatibles definidos (el filamento y sus impresoras); un reactivo o material de uso general se consume directo
   de su lote, que en ese paso queda «En uso» desde hoy sin equipo. Cada consumo sigue siendo un movimiento con
   lote, cantidad, motivo, persona, fecha, saldo resultante y auditoría.
+
+## Planta piloto, centro experimental y observatorio
+
+Lo propio de cada tipo de unidad y lo común que cambia respecto del laboratorio. Lo que figura como «Igual que en laboratorio» se registra en las mismas pantallas descritas arriba. Pruebas: `tests/integration/test_rutas_de_captura_otros_tipos.py`.
+
+- **Planta piloto:** la producción y la calidad se operan en el ERP de la planta (`/erp/<unidad>/`), que existe cuando la unidad marca «Registra producción» en Configuración. El lote de un insumo se descuenta solo si está «En uso».
+- **Centro experimental:** un ensayo es un ciclo marcado «Es un ensayo experimental»; va en el anexo de ensayos y nunca en el de producción agropecuaria.
+- **Observatorio:** su panel ahora incluye «Equipos, software y sala» y «Mantenimiento», de donde salen sus anexos 1 y 2; la página de fuentes ofrece «Agregar una fuente». No lleva registro de uso, prácticas, seguridad ni desechos.
+
+### Planta piloto (prefijo SLCID-PP)
+
+| Documento | Tabla o dato | Dónde se registra (menú → pantalla → botón) | Dirección | Quién puede | Cuándo cuenta | Probado |
+| --- | --- | --- | --- | --- | --- | --- |
+| Requisito previo | Activar la producción | Panel de la unidad → Configuración y personal → «Registra producción» → Guardar | `/gestion/unidades/<unidad>/?view=configuracion` | Administración o coordinación | Sin esto no hay ERP (404) | `setUp` de `RutasDeLaPlantaPilotoTests` |
+| Anexo 9 · Producción | Producto y receta (datos de 9.1) | ERP de la planta → Producción → «Nuevo producto» / «Nueva receta» (con sus insumos) | `/erp/<unidad>/?view=produccion` | Permiso de producción | Producto y receta activos | `test_la_orden_cerrada_con_su_consumo_y_la_venta_del_lote_salen_en_el_anexo_de_produccion` |
+| Anexo 9 · Producción | 9.1 Órdenes de producción | ERP → Producción → «Planificar orden» → «Iniciar» → «Cerrar» | `/erp/<unidad>/?view=produccion` | Permiso de producción | Fechas de la orden dentro del período (terminada para la meta) | ídem |
+| Anexo 9 · Producción | 9.2 Lotes producidos | Nacen al «Cerrar» la orden (cantidad obtenida y ubicación) | ídem | Permiso de producción | Fecha de producción en el período; no demostrativo | ídem |
+| Anexo 9 · Producción | 9.3 Consumo de materias primas | «Cerrar» la orden: cantidad y lote abierto de cada insumo | ídem | Permiso de producción | Consumo con la referencia de la orden; el lote del insumo debe estar «en uso» | ídem |
+| Anexo 9 · Producción | 9.4 Salidas de producto | ERP → Producción → lote disponible → «Registrar salida» (venta, transferencia, muestra, consumo interno, baja) | ídem | Permiso de producción | Lote liberado; con frío, temperatura al despacho | ídem |
+| Anexo 10 · Calidad | Plan y parámetros | ERP → Calidad → «Nuevo plan» / «Nuevo parámetro» | `/erp/<unidad>/?view=calidad` | Permiso de producción | Plan activo del producto | `test_la_liberacion_la_no_conformidad_y_su_accion_salen_en_el_anexo_de_calidad` |
+| Anexo 10 · Calidad | 10.1 Controles y 10.2 Liberación | ERP → Calidad → lote por liberar → «Controlar» → valores → Guardar | `/gestion/unidades/<unidad>/calidad/control/?lote_producto=<lote>` | Permiso de producción | Control registrado; conforme libera el lote (aprobado) | ídem |
+| Anexo 10 · Calidad | 10.3 No conformidades | Nacen del control no conforme; ERP → Calidad → no conformidad → disposición, causa y estado | `/erp/<unidad>/?view=calidad` | Permiso de producción | Detectada en el período o abierta | ídem |
+| Anexo 10 · Calidad | 10.4 Acciones correctivas | ERP → Calidad → no conformidad → «Nueva acción» (responsable, compromiso, estado, verificación) | ídem | Permiso de producción | Acción de una no conformidad listada | ídem |
+| Anexo 8 · Seguridad e inocuidad | Inspección con BPM, sanitización, plagas y cadena de frío | Centro de reportes → Seguridad → «Registrar inspección» (11 condiciones) | `/gestion/unidades/<unidad>/metas/fuentes/?tipo=INSPECCION` | Permiso de reportes | Verificada, con respaldo | `test_la_inspeccion_de_la_planta_revisa_bpm_sanitizacion_plagas_y_cadena_de_frio` |
+| Anexos 1 a 7, 11 a 13 | Uso, equipamiento, inventario, fichas, prácticas, guías, evidencias, desechos, investigación, transferencia | Igual que en laboratorio | — | — | — | Cubiertos por las pruebas de laboratorio |
+
+### Centro experimental (prefijo SLCID-CE)
+
+| Documento | Tabla o dato | Dónde se registra (menú → pantalla → botón) | Dirección | Quién puede | Cuándo cuenta | Probado |
+| --- | --- | --- | --- | --- | --- | --- |
+| Requisito previo | Eje productivo | Ficha del centro → Ejes productivos → «Agregar» | `/laboratorio/<unidad>/editar/eje_productivo/nuevo/` | Coordinación (contenido) | Eje del centro | `test_un_ensayo_con_su_seguimiento_y_su_resultado_sale_en_el_anexo_de_ensayos` |
+| Anexo 9 · Ensayos | 9.1 Ensayos | Producción del centro → «Planificar un ciclo» → marcar «Es un ensayo experimental» (objetivo, tratamientos, repeticiones, variables) | `/centro-experimental/<unidad>/produccion/` | Permiso de producción | Ciclo marcado como ensayo vigente en el período | ídem |
+| Anexo 9 · Ensayos | 9.2 Seguimiento y mediciones | Producción del centro → «Registrar» (pesaje o conteo, labor, sanidad) | ídem | Permiso de producción | Registro con fecha en el período | ídem |
+| Anexo 9 · Ensayos | 9.3 Resultados y revisión técnica | Centro de reportes → Ensayos → «Registrar evidencia» (ensayo, seguimientos, resultado; «Limitaciones:» las separa) | `/gestion/unidades/<unidad>/metas/fuentes/?tipo=ENSAYOS` | Permiso de reportes | Evidencia verificada con respaldo | ídem |
+| Anexo 10 · Producción agropecuaria | 10.1 Ciclos productivos | Producción del centro → «Planificar un ciclo» (sin marcar ensayo) | `/centro-experimental/<unidad>/produccion/` | Permiso de producción | Ciclo vigente en el período | `test_un_hato_con_sanidad_ordeno_entrega_y_conteo_sale_en_produccion_agropecuaria` |
+| Anexo 10 · Producción agropecuaria | 10.2 Labores, sanidad e insumos | Producción del centro → «Registrar» (labor, sanidad, insumo aplicado) | ídem | Permiso de producción | Fecha en el período | ídem |
+| Anexo 10 · Producción agropecuaria | 10.3 Producción y salidas | Producción del centro → «Registrar» (cosecha, ordeño, postura, salida, entrega con destino) | ídem | Permiso de producción | Fecha en el período | ídem |
+| Anexo 10 · Producción agropecuaria | 10.4 Animales al corte | Ciclo de tipo hato o lote con «Animales»; «Registrar» pesaje o conteo, novedad, sanidad | ídem | Permiso de producción | Ciclo de animales vigente | ídem |
+| Anexo 8 · Seguridad de campo | Inspección con agroquímicos, maquinaria y sanidad animal | Centro de reportes → Seguridad → «Registrar inspección» (10 condiciones) | `/gestion/unidades/<unidad>/metas/fuentes/?tipo=INSPECCION` | Permiso de reportes | Verificada, con respaldo | `test_la_inspeccion_del_centro_revisa_agroquimicos_maquinaria_y_sanidad_animal` |
+| Anexos 1 a 7, 11 a 13 | Uso, equipamiento, inventario, fichas, prácticas, guías, evidencias, desechos, investigación, transferencia | Igual que en laboratorio (mismo panel; no recorrido aparte) | — | — | — | Cubiertos por las pruebas de laboratorio |
+
+### Observatorio (prefijo SLCID-OBS)
+
+| Documento | Tabla o dato | Dónde se registra (menú → pantalla → botón) | Dirección | Quién puede | Cuándo cuenta | Probado |
+| --- | --- | --- | --- | --- | --- | --- |
+| Anexo 1 · Equipamiento | Plan de mantenimiento, órdenes, incidencias | Panel del observatorio → Mantenimiento (nuevo en el panel) → «Nuevo plan», «Programar» | `/gestion/unidades/<unidad>/?view=mantenimiento` | Permiso de mantenimiento | Igual que en laboratorio | `test_el_panel_del_observatorio_registra_sus_equipos_y_su_plan_de_mantenimiento` |
+| Anexo 2 · Inventario (anual, informe B) | Equipos informáticos, software y sala | Panel del observatorio → Equipos, software y sala (nuevo en el panel) → «Nuevo equipo» / software / espacio | `/gestion/unidades/<unidad>/?view=recursos` | Permiso de recursos | Activo al corte; acta de revisión igual que en laboratorio | ídem |
+| Anexo 3 · Datos | 3.4 Fuentes de datos | Fuentes, bases y actualización → «Agregar una fuente» (nuevo) | `/laboratorio/<unidad>/editar/fuente_datos/nuevo/` (desde la página de fuentes) | Coordinación (contenido) | Fuente ligada a una serie | `test_una_serie_con_su_ficha_su_fuente_y_sus_datos_sale_en_el_anexo_de_datos` |
+| Anexo 3 · Datos | 3.1 Ficha metodológica | Indicadores → «Agregar un indicador» (definición, fórmula, unidad, fuente, «Base o fuente de datos») | `/laboratorio/<unidad>/editar/indicador_observatorio/nuevo/` | Coordinación (contenido) | Serie registrada | ídem |
+| Anexo 3 · Datos | 3.3 Datos incorporados | Ficha del indicador → «Agregar un valor» (o plantilla CSV en el panel) | `/laboratorio/<unidad>/editar/valor_indicador/nuevo/?padre=<indicador>` | Coordinación (contenido) | Registrado en el semestre | ídem |
+| Anexo 3 · Datos | 3.2 Actualización y revisión técnica | Centro de reportes → Boletines y datos → «Registrar evidencia» (actualización de una serie, datos incorporados) | `/gestion/unidades/<unidad>/metas/fuentes/?tipo=DATOS-ACTUALIZADOS` | Permiso de reportes | Evidencia verificada: «Vigente» | ídem |
+| Anexo 4 · Publicaciones | 4.1 Calendario de publicaciones | Calendario de publicaciones → «Planificar una publicación» → estado «Publicada», fecha y enlace o archivo | `/laboratorio/<unidad>/editar/publicacion_observatorio/nuevo/` | Coordinación (contenido) | Prevista o publicada en el período; revisión con evidencia «publicación» verificada | `test_un_boletin_publicado_sale_en_el_calendario_de_publicaciones` |
+| Anexo 5 · Socialización | 5.1 Eventos realizados | Centro de reportes → Eventos → «Registrar evidencia» (destinatarios, participantes, fecha, acta) | `/gestion/unidades/<unidad>/metas/fuentes/?tipo=EVENTOS` | Permiso de reportes | Evidencia verificada con fecha del evento en el período | `test_un_evento_con_sus_participantes_sale_en_el_anexo_de_socializacion` |
+| Anexo 7 · Transferencia | 11.3 Solicitudes de información | La persona pide en «Solicitar datos»; la unidad: Solicitudes de datos → «Editar» → estado «Atendida» y respuesta | `/laboratorio/<unidad>/editar/solicitud_datos/<solicitud>/` | Coordinación (contenido) | Recibida o atendida en el período | `test_una_solicitud_atendida_sale_en_la_tabla_de_solicitudes_de_informacion` |
+| Uso, prácticas, seguridad, desechos | No se exigen | — | — | — | No figuran en su expediente | `test_el_observatorio_no_lleva_registro_de_uso_practicas_seguridad_ni_desechos` |
+| Anexo 6 · Investigación; resto del 7 | Resultados y transferencias | Igual que en laboratorio | — | — | — | Cubiertos por las pruebas de laboratorio |

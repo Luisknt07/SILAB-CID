@@ -145,7 +145,8 @@ class GestionDeObservatorioTests(TestCase):
         self.assertEqual(panel.context['vista_gestion'], 'obs_indicadores')
         claves = [seccion['clave'] for seccion in panel.context['secciones_navegacion']]
         self.assertEqual(claves[:3], ['obs_indicadores', 'obs_publicaciones', 'obs_solicitudes'])
-        for clave in ('indicadores', 'reservas', 'recursos', 'mantenimiento', 'practicas', 'seguridad'):
+        # Sus equipos y su mantenimiento sí: son sus anexos 1 y 2. Lo demás de un laboratorio, no.
+        for clave in ('indicadores', 'reservas', 'practicas', 'seguridad'):
             self.assertNotIn(clave, claves)
         self.assertTrue(all(seccion['habilitada'] for seccion in panel.context['secciones_navegacion']))
         self.assertContains(panel, 'Panel del observatorio')
