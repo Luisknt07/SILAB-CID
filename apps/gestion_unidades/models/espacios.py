@@ -280,6 +280,24 @@ class ResponsableUnidad(models.Model):
         blank=True,
         help_text='Horario o modalidad habitual de contacto.',
     )
+    formacion = models.CharField(
+        'Título o formación',
+        max_length=200,
+        blank=True,
+        help_text='Título profesional o formación que respalda su función en la unidad.',
+    )
+    acto_designacion = models.CharField(
+        'Acto de designación',
+        max_length=200,
+        blank=True,
+        help_text='Documento con que fue designado: tipo y número (resolución, memorando, acción de personal).',
+    )
+    fecha_designacion = models.DateField(
+        'Fecha de designación',
+        null=True,
+        blank=True,
+        help_text='Fecha del acto de designación.',
+    )
     publico = models.BooleanField(
         default=True,
         help_text='Muestra sus datos de contacto en la información pública de la unidad.',

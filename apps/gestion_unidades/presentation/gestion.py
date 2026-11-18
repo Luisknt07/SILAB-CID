@@ -2840,6 +2840,16 @@ def _operar_responsable(request, unidad):
     objeto.horario_atencion = (
         request.POST.get("horario_atencion") or ""
     ).strip()
+    # Formación y designación (anexo de fichas técnicas). Solo si el formulario las trae: otro
+    # formulario que no las envía no las borra.
+    if "formacion" in request.POST:
+        objeto.formacion = (request.POST.get("formacion") or "").strip()
+    if "acto_designacion" in request.POST:
+        objeto.acto_designacion = (request.POST.get("acto_designacion") or "").strip()
+    if "fecha_designacion" in request.POST:
+        objeto.fecha_designacion = _fecha_opcional(
+            request.POST.get("fecha_designacion"), "La fecha de designación"
+        )
     objeto.publico = _booleano_post(request, "publico")
     objeto.recibe_reservas = _booleano_post(request, "recibe_reservas")
     objeto.permisos_operativos = {

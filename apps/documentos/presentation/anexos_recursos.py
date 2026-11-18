@@ -1054,8 +1054,61 @@ def _ficha_de_la_unidad(contexto):
         ['Personal', f'Atiende a {plural(capacidad.capacidad_personal, "persona", "personas")} a la vez' if capacidad
          else sin_capacidad],
         ['Carreras que atiende', texto('; '.join(carreras) or unidad.carreras)],
+        ['Reglamento de uso', _reglamento_de_uso(unidad)],
     ]
     return Registro('Ficha de la unidad', ('Dato', 'Valor'), filas, ficha=True)
+
+
+# Lo que la unidad todavía no ha escrito se dice, no se deja en blanco.
+SIN_REGISTRAR = 'Sin registrar'
+
+
+def _reglamento_de_uso(unidad):
+    """El reglamento publicado de la unidad: su título y el enlace a la página donde se consulta.
+
+    El texto del reglamento no se copia: se lee en la página de la unidad. Un reglamento sin publicar
+    o sin normas escritas no cuenta como vigente.
+    """
+    from apps.recursos.models.recursos import ReglamentoUnidad
+
+    reglamento = ReglamentoUnidad.objects.filter(unidad=unidad, activo=True).first()
+    if not reglamento or not any((apartado or '').strip() for apartado in (
+            reglamento.normas_generales, reglamento.reservas_horarios, reglamento.equipos_materiales,
+            reglamento.seguridad)):
+        return SIN_REGISTRAR
+    return par(texto(reglamento.titulo, 180), enlace(unidad.get_absolute_url(), 'Consultar en la página de la unidad'))
+
+
+def _personal_de_la_unidad(unidad):
+    """Los responsables activos, con la formación y el acto con que fueron designados."""
+    from apps.gestion_unidades.models.espacios import ResponsableUnidad
+
+    filas, designados, formados = [], 0, 0
+    for persona in (ResponsableUnidad.objects.filter(unidad=unidad, activo=True).select_related('usuario', 'unidad')
+                    .order_by('orden', 'nombre', 'pk')):
+        formacion, acto = persona.formacion.strip(), persona.acto_designacion.strip()
+        designados += bool(acto)
+        formados += bool(formacion)
+        if acto or persona.fecha_designacion:
+            designacion = par(texto(acto, 200) if acto else 'Acto sin registrar',
+                              fecha(persona.fecha_designacion) if persona.fecha_designacion
+                              else 'Fecha sin registrar')
+        else:
+            designacion = SIN_REGISTRAR
+        filas.append([
+            texto(persona.nombre_publico, 160),
+            par(persona.get_rol_display(), 'responsable de la unidad' if persona.es_administrador_principal else ''),
+            texto(formacion, 200) if formacion else SIN_REGISTRAR,
+            designacion,
+            texto(persona.horario_atencion, 120) if persona.horario_atencion.strip() else SIN_REGISTRAR,
+        ])
+    return Registro(
+        'Personal de la unidad',
+        ('Nombre', 'Rol', 'Formación', 'Designación', 'Horario de atención'),
+        filas, pesos=(20, 15, 24, 25, 16),
+        total=(f'Total: {plural(len(filas), "persona", "personas")} · con designación registrada: '
+               f'{cifra(designados)} · con formación registrada: {cifra(formados)}'),
+        vacio='La unidad no tiene personal registrado.')
 
 
 def _uso_del_periodo(unidad, inicio, fin):
@@ -1188,7 +1241,8 @@ def _software_y_simuladores(unidad, usos):
 
 
 def fichas(contexto):
-    """Anexo de fichas técnicas (sección 4.4): ficha de la unidad, espacios y talleres, y software y simuladores.
+    """Anexo de fichas técnicas (sección 4.4): ficha de la unidad, espacios y talleres, software y simuladores,
+    y personal de la unidad.
 
     Los equipos son del anexo de inventario: aquí se citan por su código.
     """
@@ -1197,4 +1251,5 @@ def fichas(contexto):
         _ficha_de_la_unidad(contexto),
         _espacios(contexto, por_espacio),
         _software_y_simuladores(contexto.unidad, por_software),
+        _personal_de_la_unidad(contexto.unidad),
     ]

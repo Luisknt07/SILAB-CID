@@ -97,6 +97,7 @@ TABLAS = {
         ('Software y simuladores',
          ('Código / nombre', 'Versión', 'Tipo', 'Acceso', 'Licencias', 'Instalado en', 'Uso en equipo',
           'Uso en el período')),
+        ('Personal de la unidad', ('Nombre', 'Rol', 'Formación', 'Designación', 'Horario de atención')),
     ],
 }
 # El centro experimental nombra así la tabla de reactivos.
@@ -110,7 +111,7 @@ INVENTARIO_DEL_OBSERVATORIO = [
     ('Espacios', ('Código / nombre', 'Tipo', 'Capacidad', 'Ubicación')),
 ]
 DATOS_DE_LA_FICHA = ['Nombre y tipo', 'Ubicación', 'Responsable', 'Horario de operación', 'Aforo de seguridad',
-                     'Puestos con mobiliario / equipados', 'Personal', 'Carreras que atiende']
+                     'Puestos con mobiliario / equipados', 'Personal', 'Carreras que atiende', 'Reglamento de uso']
 # Qué anexos de esta sección lleva cada tipo de unidad.
 ANEXOS_DEL_TIPO = {
     'laboratorios': ('REGISTRO-USO', 'EQUIPAMIENTO', 'INVENTARIO-CORTE', 'FICHAS-TECNICAS'),
@@ -211,6 +212,8 @@ class TablasDeLaEspecificacionTests(_ConUnidades):
                                      _tablas_esperadas(tipo, codigo))
 
     def test_en_una_unidad_vacia_las_tablas_se_presentan_sin_filas(self):
+        # Sin personal activo: el responsable técnico del laboratorio ocuparía una fila de la tabla de personal.
+        ResponsableUnidad.objects.update(activo=False)
         for tipo, codigos in ANEXOS_DEL_TIPO.items():
             for codigo in codigos:
                 with self.subTest(tipo=tipo, anexo=codigo):
@@ -829,3 +832,92 @@ class FichasTecnicasTests(_ConUnidades):
         fila = self.tabla('FICHAS-TECNICAS', 'Espacios y talleres', 'centro_experimental').filas[0]
         self.assertEqual(fila[0], Par('CE-P07', 'Parcela 7'))
         self.assertEqual(fila[4], Par('Eje: Cultivos andinos', 'Ciclo en curso: Papa Superchola 2026-B'))
+
+    def test_el_personal_activo_va_con_su_formacion_y_su_designacion(self):
+        ResponsableUnidad.objects.filter(pk=self.responsable.pk).update(
+            formacion='Ingeniero de prueba en mecatrónica', acto_designacion='Memorando de prueba 001',
+            fecha_designacion=date(2026, 3, 2), horario_atencion='Lunes a viernes 08:00–12:00', orden=1)
+        # La coordinadora administra la unidad: su fila lo dice. Solo tiene la fecha de su designación.
+        ResponsableUnidad.objects.create(unidad=self.unidad, usuario=self.coordinadora, rol='coordinacion',
+                                         fecha_designacion=date(2025, 1, 15), orden=0)
+        # Un contacto sin cuenta: tiene el acto, pero no su fecha.
+        ResponsableUnidad.objects.create(unidad=self.unidad, nombre='Contacto Ficticio', email='contacto@example.org',
+                                         rol='soporte', acto_designacion='Acta de prueba 7', orden=2)
+        tabla = self.tabla('FICHAS-TECNICAS', 'Personal de la unidad')
+        self.assertEqual(tabla.filas, [
+            ['Carla Coordinadora', Par('Coordinación de la unidad', 'responsable de la unidad'), 'Sin registrar',
+             Par('Acto sin registrar', '15/01/2025'), 'Sin registrar'],
+            ['Tomás Técnico', 'Responsable técnico', 'Ingeniero de prueba en mecatrónica',
+             Par('Memorando de prueba 001', '02/03/2026'), 'Lunes a viernes 08:00–12:00'],
+            ['Contacto Ficticio', 'Soporte operativo', 'Sin registrar', Par('Acta de prueba 7', 'Fecha sin registrar'),
+             'Sin registrar'],
+        ])
+        self.assertEqual(tabla.total,
+                         'Total: 3 personas · con designación registrada: 2 · con formación registrada: 1')
+
+    def test_el_personal_sin_datos_dice_sin_registrar_y_el_inactivo_no_aparece(self):
+        ResponsableUnidad.objects.create(unidad=self.unidad, nombre='Persona Retirada', email='retirada@example.org',
+                                         formacion='Técnica de prueba', acto_designacion='Memorando de prueba 002',
+                                         activo=False)
+        # El personal de otra unidad tampoco se mezcla.
+        ResponsableUnidad.objects.create(unidad=self.unidades['plantas_piloto'], nombre='Persona De Otra Unidad',
+                                         email='otra@example.org')
+        tabla = self.tabla('FICHAS-TECNICAS', 'Personal de la unidad')
+        self.assertEqual(tabla.filas, [
+            ['Tomás Técnico', 'Responsable técnico', 'Sin registrar', 'Sin registrar', 'Sin registrar'],
+        ])
+        self.assertEqual(tabla.total,
+                         'Total: 1 persona · con designación registrada: 0 · con formación registrada: 0')
+        ResponsableUnidad.objects.filter(unidad=self.unidad).update(activo=False)
+        vacia = self.tabla('FICHAS-TECNICAS', 'Personal de la unidad')
+        self.assertEqual(vacia.filas, [])
+        self.assertEqual(vacia.vacio, 'La unidad no tiene personal registrado.')
+
+    def test_la_ficha_enlaza_el_reglamento_publicado_y_dice_sin_registrar_si_no_lo_hay(self):
+        from apps.recursos.models.recursos import ReglamentoUnidad
+
+        def fila_del_reglamento():
+            return dict(self.registros('FICHAS-TECNICAS')[0].filas)['Reglamento de uso']
+
+        # La unidad recibe su reglamento al crearse; aquí se publica con un título propio.
+        ReglamentoUnidad.objects.update_or_create(unidad=self.unidad, defaults=dict(
+            titulo='Reglamento de uso del laboratorio de prueba', normas_generales='Norma de prueba.', activo=True))
+        self.assertEqual(fila_del_reglamento(), Par(
+            'Reglamento de uso del laboratorio de prueba',
+            Enlace('Consultar en la página de la unidad', 'http://testserver' + self.unidad.get_absolute_url())))
+        # Sin publicar no es el reglamento vigente.
+        ReglamentoUnidad.objects.filter(unidad=self.unidad).update(activo=False)
+        self.assertEqual(fila_del_reglamento(), 'Sin registrar')
+        # Publicado, pero sin ninguna norma escrita, tampoco.
+        ReglamentoUnidad.objects.filter(unidad=self.unidad).update(
+            activo=True, normas_generales='', reservas_horarios='', equipos_materiales='', seguridad=' ')
+        self.assertEqual(fila_del_reglamento(), 'Sin registrar')
+        ReglamentoUnidad.objects.filter(unidad=self.unidad).delete()
+        self.assertEqual(fila_del_reglamento(), 'Sin registrar')
+
+    def test_el_pdf_de_las_fichas_lleva_la_tabla_de_personal_y_el_enlace_del_reglamento(self):
+        from contextlib import ExitStack
+        from io import BytesIO
+
+        from pypdf import PdfReader
+
+        from apps.documentos.presentation.anexos_evidencia import pdf_del_anexo
+        from tests.integration.test_anexos_practicas import _sin_identidad_real
+
+        ResponsableUnidad.objects.filter(pk=self.responsable.pk).update(
+            formacion='Ingeniero de prueba en mecatrónica', acto_designacion='Memorando de prueba 001',
+            fecha_designacion=date(2026, 3, 2))
+        anexo = _anexo(self.unidad, 'FICHAS-TECNICAS')
+        with ExitStack() as pila:
+            _sin_identidad_real(pila)
+            pdf = pdf_del_anexo(anexo, *tramo_del_documento(anexo), codigo_documento='SLCID-PRUEBA', version=1)
+        lector = PdfReader(BytesIO(pdf))
+        texto = ' '.join('\n'.join(p.extract_text() or '' for p in lector.pages).split())
+        self.assertIn('4.4 PERSONAL DE LA UNIDAD', texto)
+        for dato in ('Tomás Técnico', 'Ingeniero de prueba en mecatrónica', 'Memorando de prueba 001', '02/03/2026',
+                     'Total: 1 persona · con designación registrada: 1 · con formación registrada: 1',
+                     'Reglamento de uso', 'Consultar en la página de la unidad'):
+            self.assertIn(dato, texto)
+        enlaces = [str(a.get_object()['/A']['/URI']) for pagina in lector.pages for a in pagina.get('/Annots') or ()
+                   if '/A' in a.get_object()]
+        self.assertIn('http://testserver' + self.unidad.get_absolute_url(), enlaces)

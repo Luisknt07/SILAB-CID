@@ -224,7 +224,7 @@ class ResponsableUnidadInline(TablaTraducida):
     extra = 0
     fields = [
         'usuario', 'nombre', 'rol', 'email', 'telefono', 'foto',
-        'descripcion', 'horario_atencion', 'publico',
+        'descripcion', 'horario_atencion', 'formacion', 'acto_designacion', 'fecha_designacion', 'publico',
         'recibe_reservas', 'activo', 'orden',
     ]
     raw_id_fields = ['usuario']
@@ -429,8 +429,8 @@ class ResponsableUnidadAdmin(AdministracionTraducida):
     raw_id_fields = ['unidad', 'usuario']
     fields = [
         'unidad', 'usuario', 'nombre', 'rol', 'foto', 'email', 'telefono',
-        'descripcion', 'horario_atencion', 'publico', 'recibe_reservas',
-        'permisos_operativos', 'activo', 'orden',
+        'descripcion', 'horario_atencion', 'formacion', 'acto_designacion', 'fecha_designacion',
+        'publico', 'recibe_reservas', 'permisos_operativos', 'activo', 'orden',
     ]
     ordering = ['unidad__nombre', 'orden', 'nombre']
 

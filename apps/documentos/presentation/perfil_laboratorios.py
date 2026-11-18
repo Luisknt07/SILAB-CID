@@ -42,8 +42,9 @@ REQUISITOS = {
                      'Cumplimiento en los equipos críticos, fallas y días fuera de servicio, y pruebas funcionales.'),
     'INVENTARIO-CORTE': ('Acta de revisión física y equipos con serie, código del bien, custodio, ubicación y estado.',
                          'Bajas y traspasos; reactivos por lote y vencimiento; insumos y movimientos del período.'),
-    'FICHAS-TECNICAS': ('Ficha de la unidad: ubicación, responsable, horario y capacidad.',
-                        'Espacios y talleres con capacidad, mobiliario y equipos; software y simuladores con versión y licencias.'),
+    'FICHAS-TECNICAS': ('Ficha de la unidad: ubicación, responsable, horario, capacidad y reglamento de uso.',
+                        'Espacios y talleres con capacidad, mobiliario y equipos; software y simuladores con versión y licencias;'
+                        ' personal con su formación y su designación.'),
     'PRACTICAS-FT02': ('Todas las prácticas planificadas, por asignatura: unidad y tema del syllabus, fecha y escenario.',
                        'Responsable técnico, estudiantes previstos, guía y estado de la revisión de cada una.'),
     'GUIAS': ('Guías vigentes con versión, aprobación y enlace al documento.',

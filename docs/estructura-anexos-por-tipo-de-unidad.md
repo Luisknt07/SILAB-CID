@@ -486,6 +486,10 @@ Exigencia: «Inventario o ficha técnica de laboratorios, talleres, software, si
 | Puestos con mobiliario / equipados | puestos_mobiliario, puestos_equipados |
 | Personal | capacidad_personal |
 | Carreras que atiende | Asignatura.carrera |
+| Reglamento de uso | ReglamentoUnidad.titulo del reglamento publicado / enlace a la página de la unidad donde se consulta. «Sin registrar» si no está publicado o no tiene normas |
+
+- **Responsable:** aquí solo se nombra; su formación y su designación van en la tabla 4.4.
+- **Reglamento de uso:** se identifica y se enlaza; su texto no se copia en el anexo.
 
 **Tabla 4.2 · Espacios y talleres.**
 
@@ -518,6 +522,21 @@ Exigencia: «Inventario o ficha técnica de laboratorios, talleres, software, si
 | 6 | Instalado en | Códigos de equipos (anexo 3) | equipos_instalados |
 | 7 | Uso en equipo | Opcional u obligatorio | uso_en_equipo |
 | 8 | Uso en el período | Prácticas · sesiones | anexos 5 y 1 |
+
+**Tabla 4.4 · Personal de la unidad.**
+
+- **Contenido:** una fila por responsable activo de la unidad.
+- Lo que la unidad no ha registrado se presenta como «Sin registrar».
+
+| # | Columna | Contenido | Fuente |
+| --- | --- | --- | --- |
+| 1 | Nombre | | ResponsableUnidad.nombre o la cuenta vinculada |
+| 2 | Rol | Rol / «responsable de la unidad» si es el administrador principal | rol, Unidad.administrador |
+| 3 | Formación | Título o formación | formacion |
+| 4 | Designación | Acto / fecha | acto_designacion, fecha_designacion |
+| 5 | Horario de atención | | horario_atencion |
+
+- **Pie:** personas · con designación registrada · con formación registrada.
 
 **No va aquí:** los equipos (anexo 3).
 
@@ -1212,6 +1231,7 @@ Respalda la meta de eventos de socialización de resultados.
 | Equipo: identidad, custodia y estado | Inventario | Mantenimiento, fichas técnicas, software |
 | Reactivo, insumo, materia prima y sus movimientos | Inventario | Desechos (origen), producción (consumo) |
 | Espacio, taller, línea, parcela, software, simulador | Fichas técnicas | Uso, planificación de prácticas, producción, ensayos |
+| Personal de la unidad: formación y designación | Fichas técnicas (tabla 4.4) | Ficha de la unidad (solo el nombre) |
 | Práctica planificada | Planificación de las prácticas | Guías, evidencias, desechos |
 | Guía | Guías | Planificación de las prácticas |
 | Ejecución, asistencia y evidencias | Registros de asistencia y evidencias | — |
@@ -1243,6 +1263,7 @@ Respalda la meta de eventos de socialización de resultados.
 | --- | --- | --- |
 | Unidad del syllabus | `TemaAsignatura.unidad_tematica` | Gestión de la unidad → Prácticas → temas de la asignatura |
 | Superficie de un espacio | `EspacioReservable.superficie_m2` | Gestión de la unidad → Recursos → espacios; página del área |
+| Formación y designación del personal | `ResponsableUnidad.formacion`, `acto_designacion`, `fecha_designacion` | Gestión de la unidad → Configuración → Equipo humano → responsable; admin de Django |
 | Tipo «taller» | `EspacioReservable.tipo` | La misma pantalla; los tipos que se ofrecen dependen del tipo de unidad |
 | Tipo «simulador» | `SoftwareDisponible.tipo_recurso` | Gestión de la unidad → Recursos → software |
 | Agroquímico y medicamento veterinario | `Consumible.clasificacion` | Gestión de la unidad → Recursos → insumos |
