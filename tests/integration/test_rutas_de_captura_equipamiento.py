@@ -553,9 +553,13 @@ class RutasDeCapturaDeEquipamientoTests(TestCase):
 
     # -- lo que la unidad no registra ---------------------------------------------------------------
 
-    def test_el_traspaso_de_equipos_lo_registra_la_direccion_y_no_la_cuenta_de_unidad(self):
-        # La cuenta de unidad entra a la Administración de su unidad, pero los traspasos entre unidades no son
-        # suyos: los solicita, aprueba y ejecuta la Dirección. Sale en «Bajas y traspasos» cuando se ejecuta.
+    def test_el_traspaso_lo_propone_la_unidad_en_su_panel_y_la_direccion_lo_aprueba_en_administracion(self):
+        # La cuenta de unidad propone el traspaso desde la fila del equipo; la lista de traspasos de Administración
+        # es de la Dirección, que allí lo aprueba. El circuito completo (aceptación de la unidad que recibe,
+        # aprobación, recepción y «Bajas y traspasos») está en tests/integration/test_simplificaciones_k2.py.
+        equipo = self.equipo()
+        self.assertIn(reverse('proponer_traspaso_equipo', args=[self.unidad.slug, equipo.pk]),
+                      self.panel('recursos', modo_recursos='activos'))
         self.assertEqual(self.client.get(reverse('admin:index')).status_code, 200)
         for ruta in ('admin:recursos_traspasoequipo_add', 'admin:recursos_traspasoequipo_changelist'):
             self.assertEqual(self.client.get(reverse(ruta)).status_code, 403, ruta)

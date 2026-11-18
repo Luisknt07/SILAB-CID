@@ -1,8 +1,9 @@
 """Alertas de uso de equipos y traspasos entre unidades, en el administrador.
 
-La lectura no modifica alertas. El cierre de actividad o la tarea de revisión actualiza el seguimiento. Un traspaso se solicita
-aquí o desde la ficha del equipo (llega con la unidad, el equipo y la alerta ya puestos); la Dirección lo aprueba,
-lo rechaza o lo ejecuta con las acciones de la lista, y el acta se abre desde el propio traspaso.
+La lectura no modifica alertas. El cierre de actividad o la tarea de revisión actualiza el seguimiento. Un traspaso lo
+propone la unidad que entrega desde su lista de equipos (o se solicita aquí); la unidad que recibe lo acepta en su
+panel y la Dirección lo aprueba con un clic (acción «Aprobar») o lo rechaza; la recepción física la registra la unidad
+que recibe (o la Dirección con «Ejecutar»), y el acta se abre desde el propio traspaso.
 """
 from apps.core.presentation.administracion import AdministracionTraducida
 from datetime import timedelta
@@ -11,7 +12,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from django.utils.html import format_html
 
-from apps.recursos.presentation.traspasos import detectar_equipos_sin_uso, ejecutar_traspaso, marcar_en_reasignacion, puede_aprobar, resolver_traspaso
+from apps.recursos.presentation.traspasos import (ETAPAS, detectar_equipos_sin_uso, ejecutar_traspaso, etapa_del_traspaso,
+                                                 marcar_en_reasignacion, puede_aprobar, resolver_traspaso)
 from apps.recursos.models.redistribucion import AlertaUsoEquipo, EquipoEnTraspaso, PoliticaUsoEquipo, TraspasoEquipo
 from apps.recursos.presentation.uso_equipos import politica_uso
 from apps.gestion_unidades.presentation.permisos import puede_operar_modulo_unidad, unidades_gestionables
@@ -120,16 +122,16 @@ class EquipoEnTraspasoInline(admin.TabularInline):
 
 @admin.register(TraspasoEquipo)
 class TraspasoEquipoAdmin(AdministracionTraducida):
-    list_display = ['codigo', 'unidad_origen', 'unidad_destino', 'motivo', 'estado', 'fecha_solicitud', 'acta']
+    list_display = ['codigo', 'unidad_origen', 'unidad_destino', 'motivo', 'estado', 'etapa', 'fecha_solicitud', 'acta']
     list_filter = ['estado', 'motivo', 'unidad_origen', 'unidad_destino']
     search_fields = ['codigo', 'equipos__codigo_anterior', 'equipos__codigo_nuevo', 'equipos__codigo_bien',
                      'unidad_origen__nombre', 'unidad_destino__nombre']
     inlines = [EquipoEnTraspasoInline]
     autocomplete_fields = ['area_destino']
     readonly_fields = ['codigo', 'estado', 'solicitado_por', 'fecha_solicitud', 'aprobado_por', 'fecha_aprobacion',
-                       'ejecutado_por', 'fecha_ejecucion', 'acta']
+                       'ejecutado_por', 'fecha_ejecucion', 'acta', 'etapa']
     fieldsets = (
-        ('Traspaso', {'fields': ('codigo', 'estado', 'acta', ('unidad_origen', 'unidad_destino'), 'area_destino',
+        ('Traspaso', {'fields': ('codigo', 'estado', 'etapa', 'acta', ('unidad_origen', 'unidad_destino'), 'area_destino',
                                  'motivo', 'justificacion', 'alerta')}),
         ('Dirección', {'fields': (('aprobado_por', 'fecha_aprobacion'), 'observacion_direccion')}),
         ('Entrega y recepción (firmas del acta)', {
@@ -177,6 +179,11 @@ class TraspasoEquipoAdmin(AdministracionTraducida):
             item.delete()
         if form.instance.estado == 'solicitado':
             marcar_en_reasignacion(form.instance)
+
+    @admin.display(description='Etapa')
+    def etapa(self, obj):
+        """Si espera la aceptación de la unidad que recibe, la aprobación de la Dirección o la recepción."""
+        return ETAPAS[etapa_del_traspaso(obj)] if obj.pk else '—'
 
     @admin.display(description='Acta')
     def acta(self, obj):

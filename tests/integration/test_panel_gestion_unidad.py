@@ -1926,6 +1926,11 @@ class PanelGestionUnidadTests(TestCase):
             unidad_medida="g",
             stock_total="1000",
         )
+        # El filamento tiene impresoras compatibles: se abre en una de ellas. Sin compatibles se abriría solo
+        # (tests/integration/test_rutas_de_captura_insumos.py).
+        consumible.equipos_compatibles.add(
+            EquiposServicios.objects.create(codigo="IMP-CERRADO-PANEL", nombre="Impresora ficticia del panel")
+        )
         lote = LoteConsumible.objects.create(
             consumible=consumible,
             codigo="PLA-CERRADO-001",

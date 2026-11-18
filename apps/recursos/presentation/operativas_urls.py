@@ -110,6 +110,13 @@ for _ruta, _orden in (
     (path('gestion/unidades/<slug:slug>/desechos/<int:desecho_id>/manifiesto/',
           vista_diferida('apps.recursos.presentation.desechos.manifiesto_desecho_view'),
           name='manifiesto_desecho_unidad'), 170.5),
+    # Traspasos que propone la unidad que entrega y acepta y recibe la que recibe (la Dirección aprueba en Administración).
+    (path('gestion/unidades/<slug:slug>/equipos/<int:equipo_id>/traspaso/',
+          vista_diferida('apps.recursos.presentation.traspasos.proponer_traspaso_view'),
+          name='proponer_traspaso_equipo'), 170.6),
+    (path('gestion/unidades/<slug:slug>/traspasos/<str:codigo>/',
+          vista_diferida('apps.recursos.presentation.traspasos.traspaso_unidad_view'),
+          name='traspaso_equipo_unidad'), 170.7),
 ):
     _ruta.prioridad_proyecto = _orden
     urlpatterns.append(_ruta)

@@ -60,9 +60,9 @@ function setup(kind, controls, nodes = {}, lists = {}) {
   return { root, drawer, button, form, controls, nodes };
 }
 
-function recepcion({ contenido = '1000.000', equipos = ['31', '32'] } = {}) {
+function recepcion({ contenido = '1000.000', equipos = ['31', '32'], requiere = '1' } = {}) {
   const insumo = option('7', { inventoryUnit: 'g', presentationSize: contenido, presentationName: 'bobinas',
-    presentationSingular: 'bobina', compatibleEquipmentIds: equipos.join(',') });
+    presentationSingular: 'bobina', compatibleEquipmentIds: equipos.join(','), requiresEquipment: requiere });
   const controls = {
     registro_id: control('', { type: 'hidden' }),
     consumible_id: select([option(''), insumo]),
@@ -138,9 +138,9 @@ test('poner en uso una presentación abre los datos opcionales y elige el único
   assert.equal(app.controls.numero_presentaciones.disabled, false);
 });
 
-function movimiento(lotes) {
+function movimiento(lotes, requiere = '1') {
   const insumo = option('7', { inventoryUnit: 'g', presentationSize: '1000.000', presentationName: 'bobinas',
-    compatibleEquipmentIds: '31', unitCost: '0.0300' });
+    compatibleEquipmentIds: '31', unitCost: '0.0300', requiresEquipment: requiere });
   const controls = {
     consumible_id: select([option(''), insumo]),
     tipo: select([option('ingreso'), option('salida'), option('ajuste')], 'ingreso'),
@@ -178,6 +178,27 @@ test('consumir de una presentación cerrada la abre en el mismo paso y pide el e
   assert.equal(app.controls.nota.required, true);
   assert.equal(app.controls.abrir_presentacion.value, '');
   assert.equal(app.aviso.hidden, true);
+});
+
+test('un insumo sin equipos compatibles abre la presentación cerrada sin pedir equipo', () => {
+  const cerrada = option('50', { consumibleId: '7', lotStatus: 'bodega' });
+  const app = movimiento([cerrada], '');
+  app.button.attributes = [{ name: 'data-field-consumible_id', value: '7' }, { name: 'data-field-tipo', value: 'salida' }];
+  app.button.fire('click');
+  assert.equal(app.controls.lote_inventario_id.value, '50');
+  assert.equal(app.controls.abrir_presentacion.value, '1');
+  assert.equal(app.aviso.hidden, false);
+  assert.equal(app.controls.equipo_id.required, false);
+  assert.equal(app.controls.equipo_id.value, '');
+});
+
+test('poner en uso un insumo sin equipos compatibles no exige ni elige equipo', () => {
+  const app = recepcion({ equipos: ['31'], requiere: '' });
+  app.button.attributes = [{ name: 'data-field-registro_id', value: '90' }, { name: 'data-field-consumible_id', value: '7' },
+    { name: 'data-field-cantidad_inicial', value: '1000.000' }, { name: 'data-field-estado', value: 'en_uso' }];
+  app.button.fire('click');
+  assert.equal(app.controls.equipo_en_uso_id.required, false);
+  assert.equal(app.controls.equipo_en_uso_id.value, '');
 });
 
 test('con una presentación ya abierta el consumo la prefiere y no abre otra', () => {

@@ -1,0 +1,31 @@
+{% load static %}<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Traspaso de equipos · {{ unidad.nombre }}</title>
+<link rel="stylesheet" href="{% static 'portal/css/pages/unidades/fuentes_metas.css' %}?v=1"></head><body class="fuentes-metas">
+<main>{% if equipo %}<header><small>{{ unidad.nombre }}</small><h1>Proponer el traspaso de {{ equipo.codigo_unidad }}</h1></header>
+<p>{{ equipo.equipo.nombre }}{% if equipo.codigo_bien %} · código del bien {{ equipo.codigo_bien }}{% endif %}{% if equipo.custodio %} · custodio actual: {{ equipo.custodio }}{% endif %}.</p>
+<p>Son cuatro pasos y cada uno queda en la auditoría: <strong>1.</strong> tu unidad lo propone; <strong>2.</strong> la unidad que lo recibe lo acepta o lo rechaza; <strong>3.</strong> la Dirección lo aprueba; <strong>4.</strong> la unidad que lo recibe registra la recepción física y el equipo pasa a ella con su nuevo custodio.</p>
+{% if en_curso %}<p role="alert">El equipo ya está en el traspaso {{ en_curso.codigo }} ({{ en_curso.get_estado_display }}): no admite otro mientras siga en curso.</p>
+{% else %}<form method="post">{% csrf_token %}{{ form.non_field_errors }}<div class="fuentes-metas__campos">{% for campo in form %}<div{% if campo.name == 'justificacion' %} class="is-ancho"{% endif %}>{{ campo.label_tag }}{{ campo }}{{ campo.errors }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}</div>{% endfor %}</div>
+<button type="submit">Proponer el traspaso</button></form>{% endif %}
+{% else %}<header><small>{{ unidad.nombre }}</small><h1>Traspaso {{ traspaso.codigo }}</h1></header>
+<p><strong>{{ etapa_texto }}</strong></p>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+<div class="fuentes-metas__tabla"><table><tbody>
+<tr><th>Entrega</th><td>{{ traspaso.unidad_origen.nombre }}{% if traspaso.solicitado_por %}<small>Propuesto por {{ traspaso.solicitado_por.get_full_name|default:traspaso.solicitado_por.get_username }} el {{ traspaso.fecha_solicitud|date:'d/m/Y H:i' }}</small>{% endif %}</td></tr>
+<tr><th>Recibe</th><td>{{ traspaso.unidad_destino.nombre }}{% if aceptacion %}<small>Aceptado por {{ aceptacion.usuario.get_full_name|default:aceptacion.usuario.get_username }} el {{ aceptacion.creado_en|date:'d/m/Y H:i' }}</small>{% endif %}</td></tr>
+<tr><th>Motivo</th><td>{{ traspaso.get_motivo_display }}<small>{{ traspaso.justificacion }}</small></td></tr>
+{% if traspaso.aprobado_por %}<tr><th>Dirección</th><td>{{ traspaso.get_estado_display }} por {{ traspaso.aprobado_por.get_full_name|default:traspaso.aprobado_por.get_username }} el {{ traspaso.fecha_aprobacion|date:'d/m/Y H:i' }}</td></tr>{% endif %}
+{% if traspaso.observacion_direccion %}<tr><th>Observación</th><td>{{ traspaso.observacion_direccion }}</td></tr>{% endif %}
+{% if traspaso.custodio_nuevo %}<tr><th>Nuevo custodio</th><td>{{ traspaso.custodio_nuevo }}</td></tr>{% endif %}
+<tr><th>Equipos</th><td>{% for item in items %}{{ item.codigo_anterior }} · {{ item.equipo.equipo.nombre }}{% if item.codigo_nuevo %} · ahora {{ item.codigo_nuevo }}{% endif %}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td></tr>
+</tbody></table></div>
+<p><a href="{% url 'acta_traspaso_equipos' traspaso.codigo %}?formato=pdf">Acta de traspaso</a></p>
+{% if recibe and etapa == 'propuesto' %}{% if propio %}<p>Propusiste este traspaso: lo acepta o lo rechaza otra persona de {{ traspaso.unidad_destino.nombre }}.</p>
+{% else %}<h2>¿{{ unidad.nombre }} acepta el equipo?</h2>
+<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="aceptar"><button type="submit">Aceptar el traspaso</button></form>
+<form method="post">{% csrf_token %}<input type="hidden" name="accion" value="rechazar"><div class="fuentes-metas__campos"><div class="is-ancho"><label for="motivo-rechazo">Motivo del rechazo</label><textarea id="motivo-rechazo" name="motivo" rows="2" required></textarea></div></div><button type="submit">Rechazar el traspaso</button></form>{% endif %}
+{% elif recibe and etapa == 'aprobado' %}<h2>Registrar la recepción física</h2>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="accion" value="recibir">{{ recepcion.non_field_errors }}<div class="fuentes-metas__campos">{% for campo in recepcion %}<div{% if campo.name == 'observaciones' %} class="is-ancho"{% endif %}>{{ campo.label_tag }}{{ campo }}{{ campo.errors }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}</div>{% endfor %}</div>
+<button type="submit">Registrar la recepción</button></form>{% endif %}{% endif %}
+<p><a href="{{ volver_url }}">Volver a los equipos</a></p></main>
+</body></html>

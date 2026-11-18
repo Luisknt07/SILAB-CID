@@ -376,6 +376,9 @@ class ContextoCalidad:
                         consumible__activo=True).select_related('equipo_en_uso').order_by('pk')))
         insumos, lotes = self._una_vez('insumos', cargar)
         por_insumo = defaultdict(list)
+        from apps.recursos.models.consumibles import ConsumiblePorEquipo
+        con_compatibles = set(ConsumiblePorEquipo.objects.filter(
+            consumible_id__in=[insumo.pk for insumo in insumos]).values_list('consumible_id', flat=True))
         for lote in lotes:
             por_insumo[lote.consumible_id].append(lote)
             mensajes = []
@@ -389,7 +392,8 @@ class ContextoCalidad:
                 mensajes.append('Falta la referencia de recepción del lote.')
             if lote.cantidad_actual > 0 and not (lote.bodega or lote.equipo_en_uso_id):
                 mensajes.append('Falta ubicación física del lote.')
-            if lote.estado == 'en_uso' and not lote.equipo_en_uso_id:
+            # Solo un insumo con equipos compatibles definidos se abre en un equipo.
+            if lote.estado == 'en_uso' and not lote.equipo_en_uso_id and lote.consumible_id in con_compatibles:
                 mensajes.append('Lote en uso sin equipo identificado.')
             for mensaje in mensajes:
                 self._hallazgo(hallazgos, 'LOTE_INCONSISTENTE', mensaje, lote._meta.label, lote.pk)

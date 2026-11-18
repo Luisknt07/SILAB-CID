@@ -292,6 +292,15 @@ class Consumible(models.Model):
         return super().save(*args, **kwargs)
 
     @property
+    def requiere_equipo(self):
+        """Solo un insumo con equipos compatibles definidos se abre y se consume en un equipo."""
+        if not self.pk:
+            return False
+        if not hasattr(self, '_requiere_equipo'):
+            self._requiere_equipo = self.equipos_compatibles.exists()
+        return self._requiere_equipo
+
+    @property
     def bajo_minimo(self):
         umbral = max(self.minimo or 0, self.stock_seguridad or 0)
         return umbral > 0 and self.stock_total <= umbral
@@ -459,7 +468,10 @@ class LoteConsumible(models.Model):
             and self.cantidad_actual > self.cantidad_inicial
         ):
             errores['cantidad_actual'] = 'La cantidad disponible no puede superar la recibida.'
-        if self.estado == 'en_uso' and not self.equipo_en_uso_id:
+        # El equipo se exige solo si el insumo tiene equipos compatibles definidos (p. ej. el filamento y sus
+        # impresoras); un reactivo de uso general se abre y se consume sin asignarlo a ninguno.
+        if (self.estado == 'en_uso' and not self.equipo_en_uso_id and self.consumible_id
+                and self.consumible.requiere_equipo):
             errores['equipo_en_uso'] = 'Selecciona el equipo donde se encuentra el lote abierto.'
         if self.estado == 'bodega' and not self.bodega.strip():
             errores['bodega'] = 'Registra la bodega o ambiente donde se encuentra el lote.'

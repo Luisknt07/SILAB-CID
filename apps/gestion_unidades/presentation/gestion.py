@@ -1744,6 +1744,13 @@ def gestion_agenda_accion_view(request, slug):
     )
 
 
+def _traspasos_de_unidad(unidad):
+    """La tarjeta «Traspasos por recibir» de la lista de equipos."""
+    from apps.recursos.presentation.traspasos import traspasos_de_unidad
+
+    return traspasos_de_unidad(unidad)
+
+
 def _equipos_de_unidad(unidad):
     return UnidadEquipo.objects.filter(
         Q(laboratorio=unidad) | Q(laboratorios=unidad)
@@ -2327,16 +2334,23 @@ def _operar_inventario(request, unidad):
                 "Elige en «Lote físico» la presentación de la que se consume. "
                 "El consumo se descuenta de una presentación abierta, no del total del insumo."
             )
-        if lote.estado == "bodega" and _booleano_post(request, "abrir_presentacion"):
-            # Un solo paso: la presentación cerrada se abre en el equipo indicado y de ella se descuenta.
+        requiere_equipo = consumible.requiere_equipo
+        if lote.estado == "bodega" and (
+            _booleano_post(request, "abrir_presentacion") or not requiere_equipo
+        ):
+            # Un solo paso: la presentación cerrada se abre y de ella se descuenta. Si el insumo tiene equipos
+            # compatibles se abre en el equipo indicado; si no tiene ninguno, se abre sin asignar equipo.
             equipo_apertura = (request.POST.get("equipo_id") or "").strip()
-            if not equipo_apertura:
+            if not equipo_apertura and requiere_equipo:
                 raise ValidationError(
-                    "Para abrir la presentación, elige en «Equipo relacionado» el equipo donde se usará."
+                    "Para abrir la presentación, elige en «Equipo relacionado» el equipo donde se usará: "
+                    "este insumo tiene equipos compatibles definidos."
                 )
             lote_anterior = _instantanea_objeto_operativo(lote)
             lote.estado = "en_uso"
-            lote.equipo_en_uso = _equipo_existente_bloqueado(unidad, equipo_apertura)
+            lote.equipo_en_uso = (
+                _equipo_existente_bloqueado(unidad, equipo_apertura) if equipo_apertura else None
+            )
             lote.fecha_apertura = lote.fecha_apertura or timezone.localdate()
             lote.actualizado_por = request.user
             lote.save()
@@ -2552,11 +2566,13 @@ def _operar_lote_consumible(request, unidad):
     objeto.observaciones = (request.POST.get("observaciones") or "").strip()
     equipo_id = (request.POST.get("equipo_en_uso_id") or "").strip()
     if estado_solicitado == "en_uso":
-        if not equipo_id:
+        if not equipo_id and objeto.consumible.requiere_equipo:
             raise ValidationError(
-                "Para dejar la presentación «En uso», elige el equipo en «Equipo donde está en uso»."
+                "Para dejar la presentación «En uso», elige el equipo en «Equipo donde está en uso»: "
+                "este insumo tiene equipos compatibles definidos."
             )
-        objeto.equipo_en_uso = _equipo_existente_bloqueado(unidad, equipo_id)
+        # Un insumo sin equipos compatibles definidos se abre sin asignarlo a un equipo.
+        objeto.equipo_en_uso = _equipo_existente_bloqueado(unidad, equipo_id) if equipo_id else None
         objeto.fecha_apertura = fecha_apertura or objeto.fecha_apertura or timezone.localdate()
     else:
         objeto.equipo_en_uso = None
@@ -3901,6 +3917,7 @@ def _datos_recursos_panel(
         "inventario_global": resumen_global_del_inventario(unidad) if incluir_catalogos else {},
         "mantenimientos_areas": grupos_de_filas(unidad, mantenimientos, equipo_de=lambda orden: orden.equipo) if mantenimientos else [],
         "inventario_retirados": retirados_de(unidad) if incluir_catalogos and not paginado else [],
+        "traspasos_unidad": _traspasos_de_unidad(unidad) if vista == "recursos" else {},
         **datos_pagina,
         "catalogos_equipos": catalogos_equipos,
         "catalogos_equipos_unidad": catalogos_equipos_unidad,

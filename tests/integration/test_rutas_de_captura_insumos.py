@@ -415,7 +415,8 @@ class RutaDeCapturaDeInsumosTests(TestCase):
         error = self.recibir(insumo, espera=400, codigo='LOTE-PROPIO-01')['error']
         self.assertIn('ya tiene un lote con el código «LOTE-PROPIO-01»', error)
         self.assertIn('Deja vacío', error)
-        # «En uso» sin equipo: el mensaje nombra el campo.
+        # «En uso» sin equipo, en un insumo con equipos compatibles definidos: el mensaje nombra el campo.
+        insumo.equipos_compatibles.add(self.equipo.equipo)
         error = self.recibir(insumo, modo='inventario', espera=400, estado='en_uso')['error']
         self.assertIn('«Equipo donde está en uso»', error)
         # Sin insumo elegido.
@@ -435,6 +436,8 @@ class RutaDeCapturaDeInsumosTests(TestCase):
 
     def test_lo_recibido_se_pone_en_uso_se_consume_y_se_ajusta(self):
         insumo = self.crear_insumo('USO-CAP-01', 'Buffer ficticio', unidad_medida='ml', cantidad_por_presentacion='500')
+        # Con equipos compatibles definidos el lote se abre y se consume en un equipo.
+        insumo.equipos_compatibles.add(self.equipo.equipo)
         self.recibir(insumo, numero_presentaciones='2')
         primero, segundo = LoteConsumible.objects.filter(consumible=insumo).order_by('codigo')
 
@@ -491,6 +494,64 @@ class RutaDeCapturaDeInsumosTests(TestCase):
         self.assertEqual((movimiento.tipo, movimiento.motivo, movimiento.cantidad, primero.cantidad_actual,
                           insumo.stock_total),
                          ('salida', 'ajuste_negativo', Decimal('79.500'), Decimal('300.000'), Decimal('750.000')))
+
+    def test_un_insumo_sin_equipos_compatibles_se_abre_y_se_consume_sin_asignar_equipo(self):
+        insumo = self.crear_insumo('GEN-CAP-01', 'Etanol ficticio de uso general', unidad_medida='ml',
+                                   cantidad_por_presentacion='500')
+        self.recibir(insumo, numero_presentaciones='2')
+        primero, segundo = LoteConsumible.objects.filter(consumible=insumo).order_by('codigo')
+        html = self.panel('inventario')
+        # El panel marca qué insumo exige equipo: este no, así que el selector no se pide.
+        self.assertIn(f'value="{insumo.pk}" data-compatible-equipment-ids="{self.equipo.pk}" data-requires-equipment=""',
+                      html)
+
+        # Desde bodega: el consumo abre la presentación hoy y la deja «En uso» sin equipo, en el mismo paso.
+        consumo = [b for b in self.botones(html, 'inventario', consumible_id=insumo.pk)
+                   if b.get('data-field-tipo') == 'salida'][0]
+        salida = self.guardar(self.abrir(html, 'inventario', consumo, motivo='consumo_practica', cantidad='40',
+                                         lote_inventario_id=str(primero.pk)))
+        movimiento = EntradaInventario.objects.get(pk=salida['registro']['id'])
+        primero.refresh_from_db()
+        self.assertEqual((primero.estado, primero.equipo_en_uso, primero.fecha_apertura, primero.cantidad_actual),
+                         ('en_uso', None, timezone.localdate(), Decimal('460.000')))
+        self.assertEqual((movimiento.lote_inventario, movimiento.cantidad, movimiento.motivo, movimiento.usuario,
+                          movimiento.equipo, movimiento.saldo_resultante),
+                         (primero, Decimal('40.000'), 'consumo_practica', self.gestor, None, Decimal('960.000')))
+        self.assertTrue(RegistroAuditoriaUnidad.objects.filter(
+            unidad=self.lab, entidad='recursos.LoteConsumible', objeto_id=str(primero.pk),
+            descripcion__icontains='puesta en uso').exists())
+
+        # Desde «En uso»: se sigue descontando de la presentación abierta, también sin equipo.
+        self.guardar(self.abrir(html, 'inventario', consumo, motivo='desperdicio_calidad', cantidad='10',
+                                lote_inventario_id=str(primero.pk)))
+        primero.refresh_from_db()
+        self.assertEqual(primero.cantidad_actual, Decimal('450.000'))
+
+        # «Poner en uso» desde la lista de lotes tampoco pide equipo.
+        poner = [b for b in self.botones(html, 'lote_consumible', registro_id=segundo.pk)
+                 if b.get('data-field-estado') == 'en_uso'][0]
+        self.guardar(self.abrir(html, 'lote_consumible', poner, equipo_en_uso_id=''))
+        segundo.refresh_from_db()
+        self.assertEqual((segundo.estado, segundo.equipo_en_uso), ('en_uso', None))
+        insumo.refresh_from_db()
+        self.assertEqual(insumo.stock_total, Decimal('950.000'))
+
+    def test_un_insumo_con_equipos_compatibles_sigue_exigiendo_el_equipo_al_consumir_de_bodega(self):
+        insumo = self.crear_insumo('FIL-CAP-01', 'Filamento ficticio', unidad_medida='g',
+                                   cantidad_por_presentacion='1000')
+        insumo.equipos_compatibles.add(self.equipo.equipo)
+        self.recibir(insumo)
+        lote = LoteConsumible.objects.get(consumible=insumo)
+        html = self.panel('inventario')
+        self.assertIn(f'value="{insumo.pk}" data-compatible-equipment-ids="{self.equipo.pk}" data-requires-equipment="1"',
+                      html)
+        consumo = [b for b in self.botones(html, 'inventario', consumible_id=insumo.pk)
+                   if b.get('data-field-tipo') == 'salida'][0]
+        error = self.guardar(self.abrir(html, 'inventario', consumo, motivo='consumo_practica', cantidad='5',
+                                        lote_inventario_id=str(lote.pk), abrir_presentacion='1'), 400)['error']
+        self.assertIn('equipos compatibles definidos', error)
+        lote.refresh_from_db()
+        self.assertEqual((lote.estado, lote.cantidad_actual), ('bodega', Decimal('1000.000')))
 
     # ---- documentos ---------------------------------------------------------------------------------------
 

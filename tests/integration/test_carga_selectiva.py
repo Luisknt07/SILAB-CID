@@ -33,7 +33,7 @@ class Bloqueo(importlib.abc.MetaPathFinder):
             raise ImportError('Controlador cargado antes de la petición: ' + fullname)
 sys.meta_path.insert(0, Bloqueo())
 from config.rutas_operativas import urlpatterns
-assert len(urlpatterns) == 277
+assert len(urlpatterns) == 279
 assert [p.name for p in urlpatterns].count('estado_curso') == 1
 assert [p.name for p in urlpatterns].count('logistica_identidad') == 1
 assert [p.name for p in urlpatterns].count('logistica_juego_cerveza') == 1
@@ -72,7 +72,7 @@ assert not apps.ready
     def test_todas_las_rutas_diferidas_conservan_metadatos_csrf(self):
         from asgiref.sync import iscoroutinefunction
         rutas = importlib.import_module('config.rutas_operativas').urlpatterns
-        self.assertEqual(len(rutas), 277)
+        self.assertEqual(len(rutas), 279)
         self.assertEqual([r.name for r in rutas].count('estado_curso'), 1)
         self.assertEqual([r.name for r in rutas].count('logistica_identidad'), 1)
         self.assertEqual([r.name for r in rutas].count('logistica_juego_cerveza'), 1)

@@ -15,7 +15,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.recursos.presentation.traspasos import detectar_equipos_sin_uso, ejecutar_traspaso, resolver_traspaso, solicitar_traspaso
+from apps.recursos.presentation.traspasos import (detectar_equipos_sin_uso, ejecutar_traspaso, resolver_traspaso,
+                                                 responder_traspaso, solicitar_traspaso)
 from apps.recursos.models.redistribucion import AlertaUsoEquipo, PoliticaUsoEquipo, TraspasoEquipo
 from apps.recursos.models.unidades import AliasCodigoUnidadEquipo, UnidadEquipo
 from apps.recursos.models.equipos import EquiposServicios
@@ -36,10 +37,12 @@ class TraspasosTests(TestCase):
         cls.gestor = usuarios.create_user('gestor-traspasos', password='clave')
         identificar(cls.gestor, tipo_usuario='administrativo', carrera='')
         cls.gestor.user_permissions.add(Permission.objects.get(codename='add_traspasoequipo'))
+        cls.receptor = usuarios.create_user('receptor-traspasos', password='clave')
+        identificar(cls.receptor, tipo_usuario='administrativo', carrera='')
         cls.origen = Unidad.objects.create(nombre='Laboratorio que presta', slug='lab-presta', dependencia='laboratorios',
                                            descripcion='.', fecha_inicio=date(2020, 1, 1), administrador=cls.gestor)
         cls.destino = Unidad.objects.create(nombre='Laboratorio que necesita', slug='lab-necesita', dependencia='laboratorios',
-                                            descripcion='.', fecha_inicio=date(2020, 1, 1))
+                                            descripcion='.', fecha_inicio=date(2020, 1, 1), administrador=cls.receptor)
         EspacioReservable.objects.create(unidad=cls.origen, codigo='PRE-AREA-VR', nombre='Realidad virtual', capacidad=4)
         cls.area_destino = EspacioReservable.objects.create(unidad=cls.destino, codigo='NEC-AREA-SIM', nombre='Simulación', capacidad=4)
         cls.tipo = EquiposServicios.objects.create(codigo='PRE-VR-01', nombre='Visor de realidad virtual')
@@ -84,6 +87,10 @@ class TraspasosTests(TestCase):
             resolver_traspaso(traspaso, self.gestor, True)
         with self.assertRaises(ValidationError):
             ejecutar_traspaso(traspaso, self.direccion, entrega='Quien entrega', recibe='Quien recibe')
+        # Sin la aceptación de la unidad que recibe, la Dirección todavía no aprueba.
+        with self.assertRaises(ValidationError):
+            resolver_traspaso(traspaso, self.direccion, True)
+        responder_traspaso(traspaso, self.receptor, True)
         resolver_traspaso(traspaso, self.direccion, True, 'Aprobado: evita una compra.')
         with self.assertRaises(ValidationError):
             ejecutar_traspaso(traspaso, self.direccion)

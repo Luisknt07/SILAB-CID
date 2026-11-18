@@ -2277,13 +2277,19 @@
       "desperdicio_equipo",
       "desperdicio_calidad",
     ].includes(reason?.value || "") && type?.value === "salida";
+    // El equipo se exige solo si el insumo tiene equipos compatibles definidos.
+    const requiresEquipment = consumableRequiresEquipment(consumable);
     const openLotNotice = form.querySelector("[data-inventory-open-lot]");
-    if (openLotNotice) openLotNotice.hidden = !opensClosedLot;
+    if (openLotNotice) {
+      openLotNotice.hidden = !opensClosedLot;
+      openLotNotice.querySelectorAll("[data-open-lot-with-equipment]").forEach((node) => { node.hidden = !requiresEquipment; });
+      openLotNotice.querySelectorAll("[data-open-lot-without-equipment]").forEach((node) => { node.hidden = requiresEquipment; });
+    }
     const openLotField = form.elements.namedItem("abrir_presentacion");
     if (openLotField) openLotField.value = opensClosedLot ? "1" : "";
     if (equipment) {
-      equipment.required = opensClosedLot;
-      if (opensClosedLot && !equipment.value) {
+      equipment.required = opensClosedLot && requiresEquipment;
+      if (opensClosedLot && requiresEquipment && !equipment.value) {
         const usable = Array.from(equipment.options).filter((option) => option.value && !option.disabled);
         if (usable.length === 1) equipment.value = usable[0].value;
       }
@@ -2298,6 +2304,10 @@
         consumable?.selectedOptions[0]?.dataset.unitCost || "";
     }
     if (incident) incident.required = reason?.value === "desperdicio_equipo";
+  }
+
+  function consumableRequiresEquipment(consumable) {
+    return consumable?.selectedOptions[0]?.dataset.requiresEquipment === "1";
   }
 
   function filterEquipmentByConsumable(consumable, equipment) {
@@ -2355,9 +2365,10 @@
     }
     filterEquipmentByConsumable(consumable, equipment);
     if (equipment) {
-      equipment.required = status?.value === "en_uso";
+      const requiresEquipment = consumableRequiresEquipment(consumable);
+      equipment.required = status?.value === "en_uso" && requiresEquipment;
       if (status?.value !== "en_uso") equipment.value = "";
-      if (status?.value === "en_uso" && !equipment.value) {
+      if (status?.value === "en_uso" && requiresEquipment && !equipment.value) {
         // Con un solo equipo posible no hay nada que elegir.
         const usable = Array.from(equipment.options).filter((option) => option.value && !option.disabled);
         if (usable.length === 1) equipment.value = usable[0].value;
@@ -2367,7 +2378,7 @@
     if (warehouse) warehouse.required = false;
     form.querySelectorAll("[data-lot-on-create]").forEach((node) => { node.hidden = isEditing; });
     form.querySelectorAll("[data-lot-on-edit]").forEach((node) => { node.hidden = !isEditing; });
-    // «En uso» necesita su equipo, que vive en los datos opcionales: se muestran.
+    // «En uso» puede necesitar su equipo (insumo con equipos compatibles), que vive en los datos opcionales: se muestran.
     const more = form.querySelector("[data-operation-more]");
     if (more && (isEditing || status?.value === "en_uso")) more.open = true;
     const help = form.querySelector("[data-inventory-quantity-help]");

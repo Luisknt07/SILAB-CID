@@ -446,6 +446,14 @@ class UnidadEquipo(models.Model):
                 errores['fecha_baja'] = 'El retiro no puede ser anterior a la adquisición del activo.'
             if not self.motivo_baja:
                 errores['motivo_baja'] = 'Indica el motivo técnico del retiro de operación.'
+            if self.pk and not (anterior and anterior['fecha_baja']):
+                # Un equipo con un traspaso en curso no se da de baja: primero se rechaza o se anula el traspaso.
+                from apps.recursos.models.redistribucion import EquipoEnTraspaso, TraspasoEquipo
+                en_curso = (EquipoEnTraspaso.objects.filter(equipo_id=self.pk, traspaso__estado__in=TraspasoEquipo.EN_CURSO)
+                            .values_list('traspaso__codigo', flat=True).first())
+                if en_curso:
+                    errores['fecha_baja'] = (f'El equipo está en el traspaso {en_curso}, todavía en curso: '
+                                             'resuélvelo antes de registrar la baja.')
             if not str(self.observacion_baja or '').strip():
                 errores['observacion_baja'] = 'Documenta la justificación, referencia de respaldo y destino previsto.'
         elif self.motivo_baja or self.observacion_baja or self.reemplazado_por_id:
