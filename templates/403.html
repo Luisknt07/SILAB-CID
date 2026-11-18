@@ -1,0 +1,37 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sin permiso para esta página</title>
+<link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+<link rel="stylesheet" href="{% static 'portal/css/core/tokens.css' %}?v=20261009-responsive-v4">
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f5f7fa;color:#1d2733}
+  main{max-width:40rem;margin:4rem auto;padding:2rem 1.5rem;background:#fff;border:1px solid #d8dee6;border-radius:.75rem}
+  small{color:#5b6774;text-transform:uppercase;letter-spacing:.06em}
+  h1{font-size:1.5rem;margin:.25rem 0 1rem}
+  p{line-height:1.55}
+  .acceso-negado__motivo{padding:.75rem 1rem;border-left:4px solid #b4541a;background:#fdf4ee}
+  nav{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.5rem}
+  nav a{padding:.55rem 1rem;border-radius:.5rem;border:1px solid #1f4e79;color:#1f4e79;text-decoration:none}
+  nav a:first-child{background:#1f4e79;color:#fff}
+</style>
+</head>
+<body class="acceso-negado">
+<main>
+  <small>Acceso no permitido · 403</small>
+  <h1>No tienes permiso para esta página</h1>
+  {% if exception %}
+  <p class="acceso-negado__motivo" role="alert">{{ exception|truncatechars:300 }}</p>
+  <p>Si crees que deberías tenerlo, pídelo a la coordinación de tu unidad.</p>
+  {% else %}
+  <p class="acceso-negado__motivo" role="alert">No tienes permiso para esta página. Si crees que deberías tenerlo, pídelo a la coordinación de tu unidad.</p>
+  {% endif %}
+  <nav aria-label="Salidas">
+    <a href="{% url 'home' %}">Ir a la página de inicio</a>
+    {% if user.is_authenticated %}<a href="{% url 'profile' %}">Mis reservas y perfil</a>{% endif %}
+  </nav>
+</main>
+</body>
+</html>

@@ -498,12 +498,66 @@ def editar_ejecucion_view(request, slug, plan_id):
     )
 
 
+def _registrar_cierre_desde_validacion(request, plan, ejecucion, reserva):
+    """Registra el cierre de la sesión con la función de «Completar» del panel de reservas.
+
+    Usa lo que ya declaró la ejecución: horario real, asistentes (la asistencia por
+    persona ya quedó en la sesión al guardar la ejecución), recursos utilizados,
+    cumplimiento y observaciones. No inventa consumos: si la sesión tenía insumos,
+    quedan señalados en ella como «consumos por registrar». Devuelve ``None`` si el
+    cierre quedó registrado, o el motivo por el que no pudo registrarse.
+    """
+    from apps.reservas.presentation.finalizacion import completar_reserva
+    from apps.reservas.presentation.trazabilidad import agregar_observacion
+
+    detalle = ejecucion.detalle_operativo if isinstance(ejecucion.detalle_operativo, dict) else {}
+
+    def ids(clave):
+        return [
+            str(item.get("id")) for item in detalle.get(clave) or []
+            if isinstance(item, dict) and str(item.get("id") or "").isdigit()
+        ]
+
+    datos = {
+        "ejecucion_registrada": "1",
+        "ejecucion_hora_inicio": ejecucion.hora_inicio_real.strftime("%H:%M") if ejecucion.hora_inicio_real else "",
+        "ejecucion_hora_fin": ejecucion.hora_fin_real.strftime("%H:%M") if ejecucion.hora_fin_real else "",
+        "ejecucion_asistentes_total": str(ejecucion.estudiantes_asistentes or ""),
+        "ejecucion_cumplimiento": ejecucion.cumplimiento_resultado or "si",
+        "ejecucion_observaciones": ejecucion.observaciones_docente or "",
+        "ejecucion_equipos_ids": ids("equipos"),
+        "ejecucion_software_ids": ids("software"),
+        "ejecucion_espacios_ids": ids("espacios"),
+        "ejecucion_servicios_ids": ids("servicios"),
+    }
+    observacion = f"Cierre registrado por la validación de la práctica {plan.codigo}."
+    try:
+        reserva = completar_reserva(
+            reserva, actor=request.user, datos=datos, observacion=observacion,
+            request=request, unidad_esperada=plan.unidad_id,
+        )
+    except PermissionDenied:
+        return "tu cuenta no tiene el permiso de reservas de esta unidad"
+    except (ValueError, ValidationError) as error:
+        return "; ".join(getattr(error, "messages", None) or [str(error)])
+    if reserva.consumibles_solicitados.exists():
+        agregar_observacion(
+            reserva, "Consumos por registrar",
+            "la sesión se cerró al validar la práctica sin descontar los insumos del inventario.",
+        )
+        reserva.save(update_fields=["observaciones_validacion", "fecha_actualizacion"])
+    return None
+
+
 @login_required
 @require_POST
 def accion_ejecucion_view(request, slug, plan_id):
     plan = _obtener_plan_visible(request, slug, plan_id)
     if not puede_operar_modulo_unidad(request.user, plan.unidad, "practicas"):
-        raise PermissionDenied("Solo un responsable puede validar la ejecución.")
+        raise PermissionDenied(
+            "Necesitas el permiso de prácticas de esta unidad para revisar la ejecución; "
+            "lo asigna su coordinación en Configuración de la unidad → Equipo humano."
+        )
     ejecucion = get_object_or_404(EjecucionPractica, planificacion=plan, eliminado_en__isnull=True)
     accion = request.POST.get("accion", "")
     proteccion_reserva = (
@@ -577,6 +631,18 @@ def accion_ejecucion_view(request, slug, plan_id):
                         return redirect("detalle_planificacion_practica", slug=slug, plan_id=plan.pk)
                     # El cierre operativo puede haber dejado la ejecución en revisión.
                     # Su aprobación documental conserva la instantánea física.
+                    cierre_pendiente = None
+                    if not cierre_ya_registrado and accion_reserva == "completar":
+                        # Mismo registro del cierre que «Completar» en Reservas, con los
+                        # datos de la ejecución: la sesión cuenta como atendida sin otro paso.
+                        cierre_pendiente = _registrar_cierre_desde_validacion(request, plan, ejecucion, reserva)
+                        cierre_ya_registrado = cierre_pendiente is None
+                        if cierre_pendiente:
+                            messages.warning(
+                                request,
+                                f"La sesión quedó cerrada sin su registro de uso ({cierre_pendiente}). "
+                                "Regístralo en «Reservas y agenda» con «Completar».",
+                            )
                     if not cierre_ya_registrado:
                         estado_previo = reserva.estado
                         reserva.estado = nuevo_estado

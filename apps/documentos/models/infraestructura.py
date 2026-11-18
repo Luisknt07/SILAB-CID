@@ -148,7 +148,7 @@ def errores_relaciones_infraestructura(evidencia):
     # protege además el alta de una ejecución, antes de que esa lectura exista.
     from apps.formacion.models.practicas import RegistroAuditoriaUnidad
     auditoria = RegistroAuditoriaUnidad.objects.filter(unidad_id=evidencia.unidad_id,
-        entidad=plan._meta.label, objeto_id=str(plan.pk), accion='crear').order_by('-pk').first()
+        entidad=plan._meta.label, objeto_id=str(plan.pk), accion__in=('crear', 'aprobar')).order_by('-pk').first()
     original = auditoria.datos_nuevos if auditoria else {}
     if (not auditoria or original.get('estado') != 'validado' or
             original.get('demostracion') is not plan.demostracion or auditoria.usuario_id != plan.validado_por_id or

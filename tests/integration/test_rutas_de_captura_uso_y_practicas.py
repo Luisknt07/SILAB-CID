@@ -11,7 +11,8 @@ académico) se prepara aparte.
 import json
 import re
 import tempfile
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
+from unittest import mock
 from io import BytesIO
 
 from django.contrib.auth import get_user_model
@@ -642,26 +643,28 @@ class PracticasTests(BasePracticas):
                      'real 09:05–10:55', '2 asistieron 2', 'atendidas: 1'):
             self.assertIn(dato, sesiones)
 
-    def test_la_practica_validada_antes_de_cerrar_la_sesion_cuenta_como_atendida_al_registrar_el_cierre(self):
+    def test_la_practica_validada_registra_el_cierre_de_su_sesion_y_cuenta_como_atendida(self):
         tema, guia, reserva, plan = self.practica_planificada()
         self.registrar_ejecucion(plan, 'enviar', 'bitacora', SimpleUploadedFile(
             'bitacora.pdf', pdf_legible_prueba('Bitácora ficticia'), 'application/pdf'), 'Bitácora de la práctica.')
-        self.como(self.admin).post(reverse('accion_ejecucion_practica', args=[self.lab.slug, plan.pk]),
-                                   {'accion': 'validar'})
+        # La coordinación valida al día siguiente de la sesión, sin pasar por «Reservas y agenda».
+        despues = timezone.make_aware(datetime.combine(self.fecha + timedelta(days=1), time(9, 0)))
+        with mock.patch('django.utils.timezone.now', return_value=despues):
+            respuesta = self.como(self.admin).post(
+                reverse('accion_ejecucion_practica', args=[self.lab.slug, plan.pk]), {'accion': 'validar'})
+        self.assertEqual(respuesta.status_code, 302)
         reserva.refresh_from_db()
-        # Validar cierra la reserva, pero sin el registro del cierre no cuenta como atendida en el anexo 1.
+        # La validación registra el mismo cierre que «Completar»: horario real y asistentes de la ejecución.
         self.assertEqual((reserva.estado, reserva.resultado_cierre, reserva.es_efectiva),
-                         ('completada', 'atendida', False))
-        self.assertIn('atendidas: 0', _tabla(self.anexo('REGISTRO-USO'), '1.1'))
-        # El panel de reservas la señala como pendiente de cierre y admite registrarlo.
+                         ('completada', 'atendida', True))
+        self.assertEqual(reserva.detalle_ejecucion['horario_real'], {'inicio': '09:05', 'fin': '10:55'})
+        self.assertEqual(reserva.detalle_ejecucion['registrada_por_id'], self.admin.pk)
+        sesiones = _tabla(self.anexo('REGISTRO-USO'), '1.1')
+        for dato in ('atendidas: 1', 'real 09:05–10:55', '2 asistieron 2'):
+            self.assertIn(dato, sesiones)
+        # Ya no queda pendiente de cierre en el panel de reservas.
         detalle = self.client.get(reverse('gestion_reserva_detalle', args=[self.lab.slug, reserva.pk])).json()
-        self.assertTrue(detalle['reserva']['requiere_cierre'])
-        respuesta = self.cierre(reserva, asistentes=2)
-        self.assertEqual(respuesta.status_code, 200, respuesta.content.decode())
-        reserva.refresh_from_db()
-        self.assertTrue(reserva.es_efectiva)
-        for dato in ('atendidas: 1', 'horas efectivas: 2', '2 asistieron 2'):
-            self.assertIn(dato, _tabla(self.anexo('REGISTRO-USO'), '1.1'))
+        self.assertFalse(detalle['reserva']['requiere_cierre'])
         # La ejecución validada no cambia, y su lista nominal conserva el perfil de cada persona.
         ejecucion = EjecucionPractica.objects.get(planificacion=plan)
         self.assertEqual((ejecucion.estado, ejecucion.observaciones_docente), ('validada', 'Objetivo alcanzado.'))

@@ -280,7 +280,8 @@ def leer_expedientes(unidades, anio, hoy=None, *, cortes=None):
 @transaction.atomic
 def preparar_expediente(unidad, anio, usuario, request=None):
     if not puede_operar_modulo_unidad(usuario, unidad, 'reportes'):
-        raise PermissionDenied
+        raise PermissionDenied('Necesitas el permiso de indicadores y reportes de esta unidad para preparar '
+                               'su expediente; lo asigna su coordinación en Configuración de la unidad → Equipo humano.')
     documentos = construir_expediente(unidad, anio)
     registrar_auditoria(request, unidad=unidad, usuario=usuario, accion='crear', objeto=unidad,
                         descripcion=f'Preparó el expediente de calidad {anio}',

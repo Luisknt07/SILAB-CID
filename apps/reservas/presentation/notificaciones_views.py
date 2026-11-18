@@ -48,7 +48,10 @@ def _reserva_accesible(request, reserva_id):
         request.user,
         reserva.laboratorio,
     ):
-        raise PermissionDenied
+        raise PermissionDenied(
+            'Esta reserva es de otra persona. Para verla necesitas el permiso de reservas de su unidad; '
+            'lo asigna su coordinación en Configuración de la unidad → Equipo humano.'
+        )
     return reserva, es_titular
 
 
@@ -222,7 +225,7 @@ def subir_comprobante_pago(request, reserva_id):
     reserva, es_titular = _reserva_accesible(request, reserva_id)
     destino = reverse('comprobante_reserva', args=[reserva.pk])
     if not es_titular:
-        raise PermissionDenied
+        raise PermissionDenied('Solo quien hizo la reserva puede subir su comprobante de pago.')
 
     orden = reserva.solicitudes_operativas.order_by('pk').first()
     if orden is None:

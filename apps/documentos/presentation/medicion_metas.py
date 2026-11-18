@@ -48,17 +48,9 @@ def registrar_evidencia(unidad, usuario, datos, *, verificar=False, archivo=None
                 detalle['revision_criticidad_en'] = timezone.localdate().isoformat()
             datos['detalle'] = detalle
         if archivo:
-            if Path(archivo.name).suffix.lower() not in ('.pdf', '.png', '.jpg', '.jpeg') or archivo.size > 25 * 1024 * 1024:
-                raise ValidationError('Adjunta PDF o imagen de hasta 25 MB.')
             if datos.get('recurso') or datos.get('enlace'):
                 raise ValidationError('Usa un solo respaldo: archivo nuevo, archivo existente o enlace.')
-            from apps.recursos.models.recursos import Recurso
-            recurso = Recurso(unidad=unidad, nombre=datos['titulo'], descripcion=datos['descripcion'],
-                              visibilidad='interna', descargar=True, tipo_adjunto='evidencia', subido_por=usuario)
-            recurso.archivo.save(archivo.name, archivo, save=False)
-            recordar_archivo(recurso.archivo)
-            recurso.save()
-            datos['recurso'] = recurso
+            datos['recurso'] = _recurso_de_respaldo(unidad, usuario, archivo, datos['titulo'], datos['descripcion'])
         from .medicion_perfiles import preparar_verificacion, usa_contrato_perfil
         if verificar and usa_contrato_perfil(unidad, datos.get('tipo')):
             datos['detalle'] = preparar_verificacion(unidad, usuario, datos['tipo'],
@@ -71,29 +63,94 @@ def registrar_evidencia(unidad, usuario, datos, *, verificar=False, archivo=None
             evidencia.validado_por = usuario
             evidencia.validado_en = timezone.now()
         evidencia.full_clean()
-        if verificar and evidencia.recurso_id and EvidenciaGestionUnidad.objects.filter(
-                unidad=unidad, tipo=evidencia.tipo, estado='validado',
-                recurso__hash_sha256=evidencia.recurso.hash_sha256).exists():
-            raise ValidationError('Este mismo archivo ya acredita esta actividad. No se cuenta dos veces.')
-        if evidencia.tipo in ('USO', 'DESECHOS') and verificar:
-            solapadas = EvidenciaGestionUnidad.objects.filter(unidad=unidad, tipo=evidencia.tipo,
-                estado='validado', desde__lte=evidencia.hasta, hasta__gte=evidencia.desde)
-            if solapadas.exists():
-                raise ValidationError('Ya hay una conciliación verificada para parte de ese tramo. Rectifícala antes de reemplazarla.')
+        if verificar:
+            _exigir_fuente_sin_acreditar(unidad, evidencia)
         evidencia.save()
         registrar_auditoria(unidad=unidad, usuario=usuario, accion='crear', objeto=evidencia,
             descripcion=f'Evidencia de medición: {evidencia.codigo}',
-            nuevos=dict(tipo=evidencia.tipo, estado=evidencia.estado, demostracion=evidencia.demostracion,
-                sha256=evidencia.recurso.hash_sha256 if evidencia.recurso_id else '', enlace=evidencia.enlace,
-                detalle=evidencia.detalle,
-                **({'alcance_sha256': huella_acta_inventario(evidencia)}
-                   if evidencia.tipo == 'INVENTARIO' and es_unidad_auditable(unidad) else {}),
-                **({'esquema_verificacion': ESQUEMA_VERIFICACION,
-                    'verificacion_sha256': huella_verificacion(evidencia),
-                    'validado_por': evidencia.validado_por_id,
-                    'validado_en': fecha_verificacion(evidencia.validado_en)}
-                   if es_unidad_auditable(unidad) else {}),
-                contenido_sha256=huella_resultado(evidencia) if evidencia.tipo in TIPOS_ESTRUCTURADOS else ''))
+            nuevos=_huella_auditoria(unidad, evidencia))
+        return evidencia
+
+
+# Acciones de auditoría cuyo registro congela lo comprobado: el alta y la verificación
+# posterior de un borrador. La medición lee la última de ellas.
+ACCIONES_HUELLA_EVIDENCIA = ('crear', 'aprobar')
+
+
+def _recurso_de_respaldo(unidad, usuario, archivo, titulo, descripcion):
+    if Path(archivo.name).suffix.lower() not in ('.pdf', '.png', '.jpg', '.jpeg') or archivo.size > 25 * 1024 * 1024:
+        raise ValidationError('Adjunta PDF o imagen de hasta 25 MB.')
+    from apps.recursos.models.recursos import Recurso
+    recurso = Recurso(unidad=unidad, nombre=titulo, descripcion=descripcion,
+                      visibilidad='interna', descargar=True, tipo_adjunto='evidencia', subido_por=usuario)
+    recurso.archivo.save(archivo.name, archivo, save=False)
+    recordar_archivo(recurso.archivo)
+    recurso.save()
+    return recurso
+
+
+def _exigir_fuente_sin_acreditar(unidad, evidencia):
+    """Una misma fuente no acredita dos veces la actividad ni el mismo tramo."""
+    if evidencia.recurso_id and EvidenciaGestionUnidad.objects.filter(
+            unidad=unidad, tipo=evidencia.tipo, estado='validado',
+            recurso__hash_sha256=evidencia.recurso.hash_sha256).exclude(pk=evidencia.pk).exists():
+        raise ValidationError('Este mismo archivo ya acredita esta actividad. No se cuenta dos veces.')
+    if evidencia.tipo in ('USO', 'DESECHOS'):
+        solapadas = EvidenciaGestionUnidad.objects.filter(unidad=unidad, tipo=evidencia.tipo,
+            estado='validado', desde__lte=evidencia.hasta, hasta__gte=evidencia.desde).exclude(pk=evidencia.pk)
+        if solapadas.exists():
+            raise ValidationError('Ya hay una conciliación verificada para parte de ese tramo. Rectifícala antes de reemplazarla.')
+
+
+def _huella_auditoria(unidad, evidencia):
+    return dict(tipo=evidencia.tipo, estado=evidencia.estado, demostracion=evidencia.demostracion,
+        sha256=evidencia.recurso.hash_sha256 if evidencia.recurso_id else '', enlace=evidencia.enlace,
+        detalle=evidencia.detalle,
+        **({'alcance_sha256': huella_acta_inventario(evidencia)}
+           if evidencia.tipo == 'INVENTARIO' and es_unidad_auditable(unidad) else {}),
+        **({'esquema_verificacion': ESQUEMA_VERIFICACION,
+            'verificacion_sha256': huella_verificacion(evidencia),
+            'validado_por': evidencia.validado_por_id,
+            'validado_en': fecha_verificacion(evidencia.validado_en)}
+           if es_unidad_auditable(unidad) else {}),
+        contenido_sha256=huella_resultado(evidencia) if evidencia.tipo in TIPOS_ESTRUCTURADOS else '')
+
+
+def verificar_evidencia(unidad, usuario, pk, *, archivo=None, enlace=''):
+    """Pasa un borrador a verificada con las mismas reglas que verificar en el alta.
+
+    Quien verifica queda como ``validado_por``; la auditoría «aprobar» congela lo
+    comprobado igual que el alta verificada, y la medición la lee desde entonces.
+    """
+    with operacion_de_unidad(unidad.pk, usuario):
+        evidencia = EvidenciaGestionUnidad.objects.select_for_update().get(pk=pk, unidad=unidad)
+        if evidencia.estado != 'borrador':
+            raise ValidationError('Solo una evidencia en borrador se puede verificar.')
+        from .medicion_perfiles import es_revisor_tecnico, preparar_verificacion, usa_contrato_perfil
+        if es_unidad_auditable(unidad) and not es_revisor_tecnico(unidad, usuario):
+            raise ValidationError('La evidencia debe comprobarla un responsable técnico o la coordinación activa de esta unidad.')
+        enlace = str(enlace or '').strip()
+        if archivo or enlace:
+            if evidencia.recurso_id or evidencia.enlace:
+                raise ValidationError('La evidencia ya tiene su respaldo; al verificarla no se reemplaza.')
+            if archivo and enlace:
+                raise ValidationError('Usa un solo respaldo: archivo nuevo o enlace.')
+        if archivo:
+            evidencia.recurso = _recurso_de_respaldo(unidad, usuario, archivo, evidencia.titulo, evidencia.descripcion)
+            evidencia.demostracion = bool(evidencia.demostracion or evidencia.recurso.nombre.startswith('[DEMO REPORTES]'))
+        elif enlace:
+            evidencia.enlace = enlace
+        if usa_contrato_perfil(unidad, evidencia.tipo):
+            evidencia.detalle = preparar_verificacion(unidad, usuario, evidencia.tipo, evidencia.detalle, evidencia.fecha)
+        evidencia.estado = 'validado'
+        evidencia.validado_por = usuario
+        evidencia.validado_en = timezone.now()
+        evidencia.full_clean()
+        _exigir_fuente_sin_acreditar(unidad, evidencia)
+        evidencia.save()
+        registrar_auditoria(unidad=unidad, usuario=usuario, accion='aprobar', objeto=evidencia,
+            descripcion=f'Verificación de evidencia: {evidencia.codigo}',
+            anteriores=dict(estado='borrador'), nuevos=_huella_auditoria(unidad, evidencia))
         return evidencia
 
 
@@ -175,7 +232,7 @@ def evidencias_verificadas(unidad, evidencias, inicio, fin):
     evidencias = [e for e in evidencias if e.estado == 'validado']
     from apps.formacion.models.practicas import RegistroAuditoriaUnidad
     auditorias = RegistroAuditoriaUnidad.objects.filter(unidad=unidad, entidad=EvidenciaGestionUnidad._meta.label,
-        objeto_id__in=[str(e.pk) for e in evidencias], accion='crear').order_by('pk')
+        objeto_id__in=[str(e.pk) for e in evidencias], accion__in=ACCIONES_HUELLA_EVIDENCIA).order_by('pk')
     originales = {a.objeto_id: dict(a.datos_nuevos, _actor_auditoria=a.usuario_id) for a in auditorias}
     # No se acredita una fila incompleta introducida por importación o SQL directo.
     validas = []

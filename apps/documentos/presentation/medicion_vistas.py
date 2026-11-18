@@ -21,7 +21,8 @@ from apps.documentos.models.resultados_gestion import (
     TIPOS_ESTRUCTURADOS, condiciones_de, errores_resultado, lectura_condiciones,
 )
 from apps.documentos.presentation.medicion_metas import (
-    habilitada, registrar_evidencia, rectificar_evidencia, evidencias_verificadas,
+    habilitada, registrar_evidencia, rectificar_evidencia, verificar_evidencia, evidencias_verificadas,
+    ACCIONES_HUELLA_EVIDENCIA,
 )
 from apps.documentos.presentation.infraestructura_formularios import campos_infraestructura, detalle_infraestructura
 from apps.documentos.presentation.funcionalidad_formularios import campos_funcionalidad
@@ -271,6 +272,18 @@ def fuentes_metas_view(request, slug):
                 e = get_object_or_404(EvidenciaGestionUnidad, pk=clave, unidad=unidad, tipo=tipo)
                 rectificar_evidencia(unidad, request.user, e.pk, request.POST.get('motivo'))
                 messages.success(request, 'Evidencia rectificada. El archivo anterior y el historial se conservan.')
+            elif request.POST.get('accion') == 'verificar':
+                # El borrador se verifica después con lo mismo que se comprueba al registrarlo.
+                clave = request.POST.get('evidencia', '')
+                if not clave.isdecimal():
+                    raise Http404
+                e = get_object_or_404(EvidenciaGestionUnidad, pk=clave, unidad=unidad, tipo=tipo)
+                if not request.POST.get('verificar'):
+                    raise ValidationError('Marca la casilla de comprobación para verificar la evidencia.')
+                verificar_evidencia(unidad, request.user, e.pk, archivo=request.FILES.get('archivo'),
+                                    enlace=request.POST.get('enlace', ''))
+                messages.success(request, 'Evidencia verificada. Desde ahora acredita su actividad; '
+                                 'el borrador y quién lo verificó quedan en el historial.')
             elif form.is_valid():
                 datos = {k: v for k, v in form.cleaned_data.items()
                          if k not in ('verificar', 'archivo') and k not in CLAVES_DETALLE}
@@ -314,6 +327,7 @@ def fuentes_metas_view(request, slug):
         filas=filas, anio=anio, corte=corte, tipo=tipo, resultado_estructurado=tipo in TIPOS_RESULTADO,
         infraestructura=tipo in TIPOS_INFRAESTRUCTURA, funcionalidad=tipo == TIPO_FUNCIONALIDAD,
         simulacro=tipo == TIPO_SIMULACRO,
+        admite_enlace='enlace' in form.fields, etiqueta_verificar=form.fields['verificar'].label,
         nombre=dict(EvidenciaGestionUnidad.TIPOS)[tipo]))
 
 
@@ -332,7 +346,7 @@ def respaldo_meta_view(request, slug, evidencia_id):
         raise Http404
     from apps.formacion.models.practicas import RegistroAuditoriaUnidad
     original = RegistroAuditoriaUnidad.objects.filter(unidad=unidad, entidad=evidencia._meta.label,
-        objeto_id=str(evidencia.pk), accion='crear').order_by('-pk').first()
+        objeto_id=str(evidencia.pk), accion__in=ACCIONES_HUELLA_EVIDENCIA).order_by('-pk').first()
     if not original or original.datos_nuevos.get('sha256') != evidencia.recurso.hash_sha256:
         raise Http404('El archivo cambió después de registrar la evidencia.')
     from apps.documentos.models.respaldo_medicion import validar_respaldo
