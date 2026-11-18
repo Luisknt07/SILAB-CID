@@ -2169,8 +2169,21 @@
       if (aviso) aviso.hidden = !cierra;
       if (campoSolucion) campoSolucion.required = cierra;
     };
+    /* Un incidente de seguridad puede no involucrar un equipo: entonces se
+       ubica en un espacio (o en la unidad) y se anota cuando ocurrió. */
+    const pintarSeguridad = () => {
+      const tipo = form.querySelector('input[name="tipo"]:checked');
+      const seguridad = Boolean(tipo && tipo.value === "seguridad");
+      selector.required = !seguridad;
+      form.querySelectorAll("[data-incidencia-seguridad]").forEach((campo) => {
+        campo.hidden = !seguridad;
+      });
+    };
     if (!form.dataset.incidenciaLista) {
       selector.addEventListener("change", pintarFicha);
+      form.querySelectorAll('input[name="tipo"]').forEach((radio) => {
+        radio.addEventListener("change", pintarSeguridad);
+      });
       form.querySelectorAll("[data-incidencia-estado] input").forEach((radio) => {
         radio.addEventListener("change", pintarSolucion);
       });
@@ -2178,6 +2191,7 @@
     }
     pintarFicha();
     pintarSolucion();
+    pintarSeguridad();
   }
 
   function configureFullDay(form) {

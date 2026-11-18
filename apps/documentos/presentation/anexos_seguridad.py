@@ -238,9 +238,9 @@ def _incidentes(contexto):
     incidencias = (IncidenciaEquipo.objects
                    .filter(Q(unidad=unidad) | Q(unidad__isnull=True, equipo__laboratorio=unidad)
                            | Q(unidad__isnull=True, equipo__laboratorios=unidad),
-                           tipo='seguridad', fecha_reporte__date__range=(contexto.inicio, contexto.fin))
-                   .distinct().select_related('equipo__equipo', 'reserva', 'reportada_por')
-                   .prefetch_related('ejecuciones_practica__planificacion').order_by('fecha_reporte', 'pk'))
+                           tipo='seguridad', fecha_hecho__date__range=(contexto.inicio, contexto.fin))
+                   .distinct().select_related('equipo__equipo', 'espacio', 'reserva', 'reportada_por')
+                   .prefetch_related('ejecuciones_practica__planificacion').order_by('fecha_hecho', 'pk'))
     filas = []
     abiertos = 0
     for incidencia in incidencias:
@@ -249,9 +249,17 @@ def _incidentes(contexto):
             e.planificacion.codigo for e in incidencia.ejecuciones_practica.all()
             if e.eliminado_en is None and e.planificacion.codigo))
         sesion = incidencia.reserva.codigo_reserva if incidencia.reserva_id else ''
+        # La fecha es la del hecho; si se reportó otro día, también consta cuándo.
+        cuando = fecha(incidencia.fecha_hecho)
+        if fecha(incidencia.fecha_reporte) != cuando:
+            cuando = par(cuando, f'reportado el {fecha(incidencia.fecha_reporte, "%d/%m")}')
+        if incidencia.equipo_id:
+            lugar = par(texto(incidencia.equipo.codigo_unidad), texto(incidencia.equipo.equipo.nombre, 60))
+        else:
+            lugar = texto(incidencia.espacio.nombre, 60) if incidencia.espacio_id else 'Unidad'
         filas.append([
-            fecha(incidencia.fecha_reporte),
-            par(texto(incidencia.equipo.codigo_unidad), texto(incidencia.equipo.equipo.nombre, 60)),
+            cuando,
+            lugar,
             par(texto(incidencia.titulo, 90), texto(incidencia.descripcion, 200)),
             incidencia.get_prioridad_display(),
             par(texto(practicas), texto(sesion) if sesion else '') if practicas else texto(sesion),

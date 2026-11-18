@@ -272,6 +272,48 @@ class SeguridadYCondicionesDeOperacionTests(BaseDeRutas):
         self.assertIn('Se limpió el área', fila[5])
         self.assertIn('Salpicadura ficticia', self.pdf_del_anexo('INDUCCION-SEGURIDAD'))
 
+    def test_un_incidente_sin_equipo_y_de_otro_dia_sale_en_la_8_6_con_su_lugar_y_su_fecha(self):
+        panel = self.client.get(reverse('gestion_unidad', args=[self.unidad.slug]), {'view': 'mantenimiento'})
+        self.assertContains(panel, 'name="fecha_hecho"')
+        self.assertContains(panel, 'name="espacio_id"')
+        # El hecho, dos días antes si el período lo admite; si el período empieza hoy, hoy mismo.
+        _informe, anexo = self.anexo('INDUCCION-SEGURIDAD')
+        inicio, _fin = tramo_del_documento(anexo)
+        dia = self.hoy - timedelta(days=2) if (self.hoy - inicio).days >= 2 else self.hoy
+        base = dict(modulo='incidencia', equipo_id='', tipo='seguridad', prioridad='media', estado='abierta',
+                    asignada_a='', solucion='')
+        respuesta = self.operar(**base, titulo='Caída ficticia en el pasillo', espacio_id=self.espacio.pk,
+                                fecha_hecho=f'{dia.isoformat()}T07:30',
+                                descripcion='Resbalón sin lesiones junto a la puerta.')
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        respuesta = self.operar(**base, titulo='Derrame ficticio de agua', espacio_id='', fecha_hecho='',
+                                descripcion='Derrame menor en la unidad; se secó al momento.')
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        caida = IncidenciaEquipo.objects.get(titulo='Caída ficticia en el pasillo')
+        self.assertEqual((caida.equipo, caida.espacio, caida.unidad, caida.reportada_por),
+                         (None, self.espacio, self.unidad, self.cuenta))
+        self.assertEqual(timezone.localtime(caida.fecha_hecho).date(), dia)
+        self.assertEqual(timezone.localtime(caida.fecha_reporte).date(), self.hoy)
+        tabla = self.tablas('INDUCCION-SEGURIDAD')['Incidentes de seguridad']
+        filas = {titulo: fila for fila in tabla for titulo in ('Caída', 'Derrame') if titulo in fila[2]}
+        self.assertEqual(set(filas), {'Caída', 'Derrame'}, tabla)
+        self.assertIn(dia.strftime('%d/%m/%Y'), filas['Caída'][0])
+        if dia != self.hoy:
+            self.assertIn(f'reportado el {self.hoy:%d/%m}', filas['Caída'][0])
+        self.assertIn(self.espacio.nombre, filas['Caída'][1])
+        self.assertEqual(filas['Derrame'][1], 'Unidad')
+        self.assertNotIn('reportado el', filas['Derrame'][0])
+        # Una incidencia técnica sigue exigiendo el equipo, y la fecha del hecho no puede ser futura.
+        respuesta = self.operar(**(base | dict(tipo='falla')), titulo='Falla ficticia sin equipo',
+                                descripcion='No enciende.')
+        self.assertNotEqual(respuesta.status_code, 200)
+        manana = self.hoy + timedelta(days=1)
+        respuesta = self.operar(**base, titulo='Incidente ficticio futuro', fecha_hecho=f'{manana.isoformat()}T09:00',
+                                descripcion='No debería guardarse.')
+        self.assertNotEqual(respuesta.status_code, 200)
+        self.assertFalse(IncidenciaEquipo.objects.filter(titulo__in=('Falla ficticia sin equipo',
+                                                                     'Incidente ficticio futuro')).exists())
+
 
 class GestionDeDesechosTests(BaseDeRutas):
     """Anexo 9 · Registros de gestión de desechos peligrosos y especiales."""

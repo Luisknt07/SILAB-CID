@@ -501,25 +501,28 @@ class RutasDeCapturaDeEquipamientoTests(TestCase):
 
     def test_las_fechas_y_la_orden_de_calibracion_salen_en_calibracion_de_equipos(self):
         equipo = self.equipo()
-        # Las fechas de calibración: «Editar la ficha» del equipo, sección «Modelo».
+        # Las fechas de calibración: «Editar la ficha» del equipo, sección «Esta unidad» (son del equipo físico).
         editor = reverse('editar_equipo_ficha', args=[self.unidad.slug, 'H3BAL01'])
-        formulario = self.client.get(editor, dict(seccion='modelo')).context['form_modelo']
+        self.assertNotIn('proxima_calibracion', self.client.get(editor, dict(seccion='modelo')).context['form_modelo'].fields)
+        formulario = self.client.get(editor, dict(seccion='unidad')).context['form_unidad']
         self.assertIn('proxima_calibracion', formulario.fields)
         proxima = self.hoy.replace(year=self.hoy.year + 1, day=1)
         respuesta = self.client.post(editor, dict(
-            _datos_de(formulario, fecha_ultima_calibracion=self.hoy.isoformat(),
-                      proxima_calibracion=proxima.isoformat()), seccion='modelo'), HTTP_X_REQUESTED_WITH='fetch')
+            _datos_de(formulario, ultima_calibracion=self.hoy.isoformat(),
+                      proxima_calibracion=proxima.isoformat()), seccion='unidad'), HTTP_X_REQUESTED_WITH='fetch')
         self.assertEqual(respuesta.status_code, 200, respuesta.content.decode()[:600])
         self.assertEqual(respuesta.json(), {'ok': True})
-        equipo.equipo.refresh_from_db()
-        self.assertEqual((equipo.equipo.fecha_ultima_calibracion, equipo.equipo.proxima_calibracion),
-                         (self.hoy, proxima))
-        # La orden de calibración, completada con su certificado.
+        equipo.refresh_from_db()
+        self.assertEqual((equipo.ultima_calibracion, equipo.proxima_calibracion), (self.hoy, proxima))
+        # La orden de calibración, completada con su informe: queda como certificado del equipo.
         orden = self.completar(self.orden(equipo, tipo='calibracion', titulo='Calibración ficticia anual'),
                                'certificado-de-calibracion')
+        equipo.refresh_from_db()
+        self.assertEqual((equipo.ultima_calibracion, equipo.proxima_calibracion), (self.hoy, proxima))
+        self.assertTrue(equipo.certificado_calibracion.name.startswith('equipos/calibraciones/'))
         pdf = self.consulta('calibracion')
         for dato in ('H3BAL01', self.hoy.strftime('%d/%m/%Y'), proxima.strftime('%d/%m/%Y'), 'Vigente',
-                     orden.codigo, f'Informe de {orden.codigo}'):
+                     orden.codigo, 'Certificado:'):
             self.assertIn(dato, pdf)
 
     def test_la_formacion_y_la_designacion_del_personal_salen_en_personal_de_la_unidad(self):

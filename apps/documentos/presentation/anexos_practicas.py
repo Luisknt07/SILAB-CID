@@ -406,7 +406,7 @@ def _numeros_de_anexo(contexto):
 
 
 def _incidente(ejecucion, numeros):
-    """«No», o «Sí» con el equipo y la fecha del reporte, que es como lo identifica su anexo."""
+    """«No», o «Sí» con el lugar o equipo y la fecha con que lo identifica su anexo (la del hecho, si es de seguridad)."""
     incidencia = ejecucion.incidencia if ejecucion.incidencia_id else None
     if incidencia is None:
         return par('Sí', 'sin incidencia vinculada') if ejecucion.tuvo_incidente else 'No'
@@ -414,7 +414,8 @@ def _incidente(ejecucion, numeros):
     codigo, nombre = (('INDUCCION-SEGURIDAD', 'seguridad') if incidencia.tipo == 'seguridad'
                       else ('EQUIPAMIENTO', 'equipamiento'))
     donde = f'anexo {numeros[codigo]}' if codigo in numeros else f'anexo de {nombre}'
-    return par('Sí', f'{texto(incidencia.equipo.codigo_unidad)} · {fecha(incidencia.fecha_reporte)} · {donde}')
+    cuando = incidencia.fecha_hecho if incidencia.tipo == 'seguridad' else incidencia.fecha_reporte
+    return par('Sí', f'{texto(incidencia.lugar)} · {fecha(cuando)} · {donde}')
 
 
 def _observacion(registro, solicitante, asistencia):

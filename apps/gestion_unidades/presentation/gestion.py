@@ -2119,14 +2119,19 @@ def _operar_incidencia(request, unidad):
     registro_id = (request.POST.get("registro_id") or "").strip()
     if registro_id:
         objeto = get_object_or_404(
-            IncidenciaEquipo.objects.select_for_update(),
+            IncidenciaEquipo.objects.select_for_update().filter(
+                Q(equipo__in=_equipos_de_unidad(unidad)) | Q(equipo__isnull=True)),
             pk=registro_id,
             unidad=unidad,
-            equipo__in=_equipos_de_unidad(unidad),
         )
         creado = False
     else:
-        equipo = _equipo_existente_bloqueado(unidad, request.POST.get("equipo_id"))
+        # Un incidente de seguridad puede no involucrar un equipo: queda en un espacio o en la unidad.
+        tipo = (request.POST.get("tipo") or "falla").strip()
+        equipo_id = (request.POST.get("equipo_id") or "").strip()
+        if not equipo_id and tipo != "seguridad":
+            raise ValidationError("Elige el equipo: solo un incidente de seguridad se registra sin equipo.")
+        equipo = _equipo_existente_bloqueado(unidad, equipo_id) if equipo_id else None
         objeto = IncidenciaEquipo(
             equipo=equipo,
             unidad=unidad,
@@ -2135,6 +2140,16 @@ def _operar_incidencia(request, unidad):
         creado = True
     objeto.titulo = (request.POST.get("titulo") or "").strip()
     objeto.tipo = (request.POST.get("tipo") or "falla").strip()
+    if objeto.tipo == "seguridad":
+        espacio_id = (request.POST.get("espacio_id") or "").strip()
+        objeto.espacio = (get_object_or_404(EspacioReservable, pk=espacio_id, unidad=unidad)
+                          if espacio_id.isdecimal() else None)
+        if (request.POST.get("fecha_hecho") or "").strip():
+            objeto.fecha_hecho = _fecha_hora_local(request.POST.get("fecha_hecho"))
+            if objeto.fecha_hecho is None:
+                raise ValidationError("Indica la fecha y hora del hecho con un formato válido.")
+    else:
+        objeto.espacio = None
     objeto.prioridad = (request.POST.get("prioridad") or "media").strip()
     objeto.estado = (request.POST.get("estado") or "abierta").strip()
     objeto.descripcion = (request.POST.get("descripcion") or "").strip()
@@ -3081,7 +3096,7 @@ def _datos_anteriores_operacion(request, unidad, modelo):
     if modelo is UnidadEquipo:
         consulta = consulta.filter(pk__in=_equipos_de_unidad(unidad).values("pk"))
     elif modelo in (IncidenciaEquipo, MantenimientoEquipo, PrestamoEquipo):
-        consulta = consulta.filter(equipo__in=_equipos_de_unidad(unidad))
+        consulta = consulta.filter(Q(equipo__in=_equipos_de_unidad(unidad)) | Q(equipo__isnull=True, unidad=unidad))
     elif modelo is Reserva:
         consulta = consulta.filter(laboratorio=unidad)
     elif any(campo.name == "unidad" for campo in modelo._meta.concrete_fields):
@@ -3896,7 +3911,7 @@ def _datos_recursos_panel(
                         "tipo": "incidencia",
                         "nivel": "critico" if incidencia.detiene_operacion else "aviso",
                         "titulo": incidencia.titulo,
-                        "detalle": incidencia.equipo.codigo_unidad,
+                        "detalle": incidencia.lugar,
                     }
                 )
     software_gestion = software + ([] if paginado else list(

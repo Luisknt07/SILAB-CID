@@ -400,7 +400,7 @@ conserva su regla y solo se ofrece si la unidad tiene valoraciones.
 | Documento | Qué trae | Dónde se registra el dato |
 | --- | --- | --- |
 | Capacitación del personal y difusión: registros y respaldos | Evidencias de capacitación y de difusión del rango, con su verificación y su respaldo | Fuentes de las metas → Capacitación o Difusión |
-| Calibración de equipos: última, próxima y vigencia | Equipos activos con fecha de calibración o con una orden de calibración en el rango; vigencia al corte | Ficha del equipo (última y próxima calibración) y órdenes de mantenimiento de tipo calibración |
+| Calibración de equipos: última, próxima y vigencia | Equipos activos con fecha de calibración o con una orden de calibración en el rango; vigencia al corte | Cada equipo físico (última y próxima calibración y certificado, que pone sola la orden de calibración completada) y órdenes de mantenimiento de tipo calibración |
 | Sustancias sujetas a control: existencias y autorización | Insumos activos marcados como sustancia sujeta a control: autorización, existencia, lotes con saldo y ficha de seguridad | Gestión de la unidad → Recursos → insumos |
 | Personal de la unidad: formación y designación | Responsables activos con su rol, formación, acto y fecha de designación y horario | Gestión de la unidad → Configuración → Equipo humano |
 | Simulacros y prácticas de emergencia | Simulacros del rango: emergencia, participantes, resultado, acción de mejora y respaldo | Fuentes de las metas → Simulacro, junto a las inspecciones |

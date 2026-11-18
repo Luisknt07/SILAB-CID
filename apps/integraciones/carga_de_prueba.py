@@ -561,13 +561,13 @@ class CargaDePrueba:
         respuesta = self.web.post(reverse('verificar_equipo', args=[self.slug, codigo]),
                                   dict(resultado='existe', nota=PREFIJO + 'Etiqueta ficticia legible.'))
         exigir(respuesta, 302, que='Verificación física del equipo')
-        # Calibración: «Editar la ficha» del equipo, sección «Modelo».
+        # Calibración: «Editar la ficha» del equipo, sección «Esta unidad» (las fechas son del equipo físico).
         editor = reverse('editar_equipo_ficha', args=[self.slug, codigo])
-        formulario = exigir(self.web.get(editor, dict(seccion='modelo')), 200, que='Ficha del equipo').context['form_modelo']
+        formulario = exigir(self.web.get(editor, dict(seccion='unidad')), 200, que='Ficha del equipo').context['form_unidad']
         proxima = self.hoy.replace(year=self.hoy.year + 1, day=1)
         respuesta = self.web.post(editor, dict(datos_de_formulario(
-            formulario, fecha_ultima_calibracion=self.hoy.isoformat(), proxima_calibracion=proxima.isoformat()),
-            seccion='modelo'), HTTP_X_REQUESTED_WITH='fetch')
+            formulario, ultima_calibracion=self.hoy.isoformat(), proxima_calibracion=proxima.isoformat()),
+            seccion='unidad'), HTTP_X_REQUESTED_WITH='fetch')
         exigir(respuesta, 200, que='Fechas de calibración')
         self.anotar('INVENTARIO-CORTE', '3.2 Equipos', codigo, 'Activo y verificado', 'PRUEBA-SERIE-01')
         self.anotar('calibracion', 'Calibración del equipo', codigo, 'Vigente', codigo)

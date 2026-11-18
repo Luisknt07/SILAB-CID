@@ -117,10 +117,10 @@ class DocumentosDeRespaldoTests(TestCase):
                                    archivo=_acta(codigo) if archivo else None)
 
     def equipo(self, codigo, nombre, *, unidad=None, ultima=None, proxima=None, **datos):
-        modelo = EquiposServicios.objects.create(nombre=nombre, codigo='MOD-' + codigo,
-                                                 fecha_ultima_calibracion=ultima, proxima_calibracion=proxima)
+        # La calibración es del equipo físico; el modelo no trae fechas.
+        modelo = EquiposServicios.objects.create(nombre=nombre, codigo='MOD-' + codigo)
         return UnidadEquipo.objects.create(codigo_unidad=codigo, laboratorio=unidad or self.unidad, equipo=modelo,
-                                           **datos)
+                                           ultima_calibracion=ultima, proxima_calibracion=proxima, **datos)
 
     def calibracion(self, equipo, dia, estado='programado', **datos):
         return MantenimientoEquipo.objects.create(equipo=equipo, tipo='calibracion', estado=estado,
@@ -298,10 +298,13 @@ class DocumentosDeRespaldoTests(TestCase):
         datos = reporte_calibracion(self.unidad, self.desde, self.hasta)
         self.assertEqual(datos['headers'], ['Código / nombre', 'Última calibración', 'Próxima calibración',
                                             'Vigencia al corte', 'Calibraciones del período', 'Respaldo'])
-        informe = hecha.informe.name.rsplit('/', 1)[-1]
+        # Completada con su informe, la orden dejó el informe como certificado del equipo.
+        balanza.refresh_from_db()
+        certificado = balanza.certificado_calibracion.name.rsplit('/', 1)[-1]
+        self.assertTrue(certificado.startswith(f'CAL-EQ-01-{hecha.codigo}'))
         self.assertEqual(datos['rows'], [
             ['CAL-EQ-01 · Balanza ficticia', '10/02/2026', '31/12/2026', 'Vigente',
-             f'2 ({hecha.codigo}, {programada.codigo}) · completadas: 1', f'Informe de {hecha.codigo}: {informe}'],
+             f'2 ({hecha.codigo}, {programada.codigo}) · completadas: 1', f'Certificado: {certificado}'],
             ['CAL-EQ-02 · Horno ficticio', '15/07/2025', '15/07/2026', 'Por vencer', '0', 'Sin respaldo'],
             ['CAL-EQ-03 · Estufa ficticia', '01/05/2025', '01/05/2026', 'Vencida', '0', 'Sin respaldo'],
             ['CAL-EQ-04 · Agitador ficticio', 'Sin registrar', 'Sin registrar', 'Sin programar',

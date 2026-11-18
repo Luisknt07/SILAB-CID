@@ -419,9 +419,9 @@ def _tablas_seguridad(unidad, desde, hasta):
     incidencias = IncidenciaEquipo.objects.filter(
         Q(unidad=unidad) | Q(unidad__isnull=True, equipo__laboratorio=unidad)
         | Q(unidad__isnull=True, equipo__laboratorios=unidad),
-        tipo='seguridad', fecha_reporte__date__range=(desde, corte),
-    ).distinct().select_related('equipo', 'reportada_por', 'asignada_a').order_by('fecha_reporte', 'pk')
-    incidencias_rows = [[_fecha(i.fecha_reporte), i.equipo.codigo_unidad, i.titulo,
+        tipo='seguridad', fecha_hecho__date__range=(desde, corte),
+    ).distinct().select_related('equipo', 'espacio', 'reportada_por', 'asignada_a').order_by('fecha_hecho', 'pk')
+    incidencias_rows = [[_fecha(i.fecha_hecho), i.lugar, i.titulo,
                          i.get_prioridad_display(), i.get_estado_display(),
                          'Sí' if i.detiene_operacion else 'No', _nombre(i.asignada_a),
                          i.solucion or 'Sin solución registrada', _respaldo(i.evidencia)] for i in incidencias[:200]]
@@ -464,8 +464,8 @@ def _tablas_seguridad(unidad, desde, hasta):
                ['Fecha', 'Persona', 'Requisito', 'Origen', 'Certificado / sesión', 'Vence',
                 'Estado al corte', 'Otorgada por', 'Observaciones'], habilitaciones_rows,
                'Sin inducciones ni habilitaciones registradas en el período.'),
-        _tabla('Incidencias de seguridad de equipos reportadas en el período',
-               ['Fecha', 'Equipo', 'Hallazgo', 'Prioridad', 'Estado', 'Detuvo operación',
+        _tabla('Incidentes de seguridad ocurridos en el período',
+               ['Fecha del hecho', 'Lugar o equipo', 'Hallazgo', 'Prioridad', 'Estado', 'Detuvo operación',
                 'Asignada a', 'Solución', 'Evidencia'], incidencias_rows,
                'Sin incidencias reportadas; esto no sustituye una inspección de condiciones.'),
     ]

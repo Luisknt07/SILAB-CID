@@ -47,6 +47,8 @@ class _AdminPorUnidadMixin:
                 kwargs['queryset'] = modelo.objects.filter(_alcance_por_unidad(modelo, unidades))
             elif db_field.name == 'unidad':
                 kwargs['queryset'] = db_field.remote_field.model.objects.filter(pk__in=unidades)
+            elif db_field.name == 'espacio':
+                kwargs['queryset'] = db_field.remote_field.model.objects.filter(unidad__in=unidades)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def _administra_objeto(self, request, obj):
@@ -114,7 +116,7 @@ class IncidenciaEquipoAdmin(_AdminPorUnidadMixin, AdministracionTraducida):
     fieldsets = (
         ("Reporte", {
             "fields": (
-                "equipo", "unidad", "titulo", "tipo", "prioridad", "descripcion",
+                "equipo", "espacio", "unidad", "titulo", "tipo", "prioridad", "fecha_hecho", "descripcion",
                 "detiene_operacion", "estado_equipo_previo", "evidencia",
             )
         }),

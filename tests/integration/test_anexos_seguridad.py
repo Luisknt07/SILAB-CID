@@ -255,7 +255,7 @@ class ReportesDeSeguridadTests(_ConUnidades):
         incidente = IncidenciaEquipo.objects.create(
             equipo=self.cortadora, reserva=sesion, titulo='Quemadura leve', descripcion='Contacto con la boquilla.',
             tipo='seguridad', prioridad='alta', estado='resuelta', solucion='Primeros auxilios y guarda instalada.',
-            reportada_por=self.coordinadora)
+            reportada_por=self.coordinadora, fecha_hecho=_al_mediodia(date(2026, 9, 10)))
         IncidenciaEquipo.objects.filter(pk=incidente.pk).update(fecha_reporte=_al_mediodia(date(2026, 9, 10)))
         falla = IncidenciaEquipo.objects.create(equipo=self.cortadora, titulo='No corta', descripcion='Lente sucio.',
                                                 tipo='falla', reportada_por=self.coordinadora)

@@ -646,7 +646,7 @@ class CitaDelIncidenteTests(SimpleTestCase):
     """La incidencia no tiene código propio: se cita por su equipo, su fecha y el anexo que la presenta."""
 
     def ejecucion(self, tipo=None, tuvo=True):
-        incidencia = tipo and SimpleNamespace(tipo=tipo, equipo=SimpleNamespace(codigo_unidad='EQ-07'),
+        incidencia = tipo and SimpleNamespace(tipo=tipo, lugar='EQ-07', fecha_hecho=date(2026, 9, 10),
                                               fecha_reporte=date(2026, 9, 10))
         return SimpleNamespace(tuvo_incidente=tuvo, incidencia_id=1 if incidencia else None, incidencia=incidencia)
 

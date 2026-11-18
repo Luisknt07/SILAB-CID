@@ -41,7 +41,8 @@ SECCIONES = {
     'documentos': ('Documentos', 'fas fa-file-pdf'),
 }
 CAMPOS_DEL_MODELO = {
-    'modelo': ['nombre', 'marca', 'modelo', 'origen_datos_tecnicos', 'fecha_ultima_calibracion', 'proxima_calibracion'],
+    # Las fechas de calibración del modelo quedan como referencia: se editan en cada equipo físico.
+    'modelo': ['nombre', 'marca', 'modelo', 'origen_datos_tecnicos'],
     'componentes': ['accesorios_incluidos_texto', 'accesorios_opcionales_texto', 'repuestos_texto'],
     'funcionamiento': ['modos_texto'],
     'descripcion': ['descripcion', 'uso_publico', 'instrucciones_publicas'],
@@ -236,18 +237,38 @@ class UnidadFisicaForm(forms.ModelForm):
         model = UnidadEquipo
         fields = ['codigo_bien', 'tipo_bien', 'numero_serie', 'estado_unidad', 'criticidad', 'ubicacion_especifica',
                   'version_sistema', 'sistema_actualizado', 'fecha_ultimo_mantenimiento', 'proximo_mantenimiento',
+                  'ultima_calibracion', 'proxima_calibracion', 'certificado_calibracion',
                   'garantia_hasta', 'espacios_asociados']
         labels = {'codigo_bien': 'Código del bien (bodega)', 'numero_serie': 'Número de serie', 'estado_unidad': 'Estado',
                   'ubicacion_especifica': 'Lugar dentro del área', 'fecha_ultimo_mantenimiento': 'Último mantenimiento',
                   'proximo_mantenimiento': 'Próximo mantenimiento', 'garantia_hasta': 'Garantía hasta'}
         widgets = {campo: forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d')
                    for campo in ('sistema_actualizado', 'fecha_ultimo_mantenimiento', 'proximo_mantenimiento',
-                                 'garantia_hasta')}
+                                 'ultima_calibracion', 'proxima_calibracion', 'garantia_hasta')}
 
     def __init__(self, *args, unidad=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['espacios_asociados'].queryset = EspacioReservable.objects.filter(unidad=unidad, activo=True).order_by('orden', 'nombre')
         self.fields['espacios_asociados'].initial = list(self.instance.espacios_asociados.filter(unidad=unidad)) if self.instance.pk else []
+        self.fields['certificado_calibracion'].widget = forms.ClearableFileInput(
+            attrs={'accept': 'application/pdf,image/png,image/jpeg'})
+        if self.instance.pk and self.instance.equipo_id:
+            modelo = self.instance.equipo
+            if modelo.fecha_ultima_calibracion or modelo.proxima_calibracion:
+                # Las del modelo quedan como valor de referencia, no como dato editable de este equipo.
+                self.fields['proxima_calibracion'].help_text += (
+                    f' Referencia del modelo: última {modelo.fecha_ultima_calibracion or "—"}, '
+                    f'próxima {modelo.proxima_calibracion or "—"}.')
+
+    def clean_certificado_calibracion(self):
+        archivo = self.cleaned_data.get('certificado_calibracion')
+        if archivo and hasattr(archivo, 'content_type'):
+            from apps.recursos.presentation.ciclo_vida_equipo import validar_respaldo_retiro
+            try:
+                validar_respaldo_retiro(archivo)
+            except forms.ValidationError as error:
+                raise forms.ValidationError('El certificado: ' + ' '.join(error.messages)) from error
+        return archivo
 
     def save_espacios(self, unidad):
         ajenos = list(self.instance.espacios_asociados.exclude(unidad=unidad))
@@ -365,7 +386,8 @@ def editar_equipo_view(request, slug, codigo):
         return not solo or solo == nombre
 
     datos, archivos = (request.POST, request.FILES) if request.method == 'POST' else (None, None)
-    form_unidad = UnidadFisicaForm(datos, instance=equipo, unidad=unidad, prefix='unidad') if incluye('unidad') else None
+    form_unidad = (UnidadFisicaForm(datos, archivos, instance=equipo, unidad=unidad, prefix='unidad')
+                   if incluye('unidad') else None)
     form_modelo = None
     if edita_modelo:
         campos = [campo for nombre, lista in CAMPOS_DEL_MODELO.items() if incluye(nombre) for campo in lista]

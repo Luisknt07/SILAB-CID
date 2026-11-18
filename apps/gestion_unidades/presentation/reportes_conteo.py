@@ -31,7 +31,7 @@ def _satisfaccion(unidad, desde, hasta):
 def _calibracion(unidad, desde, hasta):
     from apps.documentos.models.funcionalidad import equipos_del_alcance
     return (equipos_del_alcance(unidad).filter(activa=True, fecha_baja__isnull=True)
-            .filter(Q(equipo__fecha_ultima_calibracion__isnull=False) | Q(equipo__proxima_calibracion__isnull=False))
+            .filter(Q(ultima_calibracion__isnull=False) | Q(proxima_calibracion__isnull=False))
             .count())
 
 

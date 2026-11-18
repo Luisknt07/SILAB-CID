@@ -206,10 +206,22 @@ class IncidenciaEquipo(models.Model):
     ]
     ESTADOS_CERRADOS = {"resuelta", "cerrada", "descartada"}
 
+    # Un incidente de seguridad (una caída, un derrame) puede no involucrar un
+    # equipo: entonces se ubica en un espacio de la unidad o en la unidad entera.
     equipo = models.ForeignKey(
         UnidadEquipo,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name="incidencias",
+    )
+    espacio = models.ForeignKey(
+        'gestion_unidades.EspacioReservable',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="incidencias_seguridad",
+        help_text="Lugar del incidente de seguridad cuando no involucra un equipo.",
     )
     reserva = models.ForeignKey(
         'reservas.Reserva',
@@ -255,6 +267,11 @@ class IncidenciaEquipo(models.Model):
         related_name="incidencias_equipos_asignadas",
     )
     fecha_reporte = models.DateTimeField(auto_now_add=True)
+    fecha_hecho = models.DateTimeField(
+        "Fecha y hora del hecho",
+        default=timezone.now,
+        help_text="Cuándo ocurrió; por omisión, cuando se reporta. No puede ser futura.",
+    )
     fecha_resolucion = models.DateTimeField(null=True, blank=True, editable=False)
     solucion = models.TextField(blank=True)
     evidencia = models.FileField(upload_to="equipos/incidencias/", blank=True)
@@ -270,10 +287,34 @@ class IncidenciaEquipo(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.equipo.codigo_unidad} · {self.titulo}"
+        return f"{self.lugar} · {self.titulo}"
+
+    @property
+    def lugar(self):
+        """Dónde ocurrió: el código del equipo, el espacio o la unidad entera."""
+        if self.equipo_id:
+            return self.equipo.codigo_unidad
+        if self.espacio_id:
+            return self.espacio.nombre
+        return "Unidad"
 
     def clean(self):
-        if self.reserva_id:
+        errores = {}
+        if not self.equipo_id and self.tipo != "seguridad":
+            errores["equipo"] = "Elige el equipo: solo un incidente de seguridad se registra sin equipo."
+        if self.espacio_id and self.tipo != "seguridad":
+            errores["espacio"] = "El espacio se indica solo en los incidentes de seguridad."
+        if not self.equipo_id and self.detiene_operacion:
+            errores["detiene_operacion"] = "Detener la operación se refiere a un equipo: elígelo o desmarca la opción."
+        if not self.equipo_id and not self.unidad_id:
+            errores["unidad"] = "Indica la unidad del incidente."
+        if self.espacio_id and self.unidad_id and self.espacio.unidad_id != self.unidad_id:
+            errores["espacio"] = "El espacio no es de la unidad del incidente."
+        if self.fecha_hecho and self.fecha_hecho > timezone.now() + timedelta(minutes=1):
+            errores["fecha_hecho"] = "La fecha del hecho no puede ser futura."
+        if errores:
+            raise ValidationError(errores)
+        if self.reserva_id and self.equipo_id:
             unidad_id = self.reserva.laboratorio_id
             pertenece = (
                 self.equipo.laboratorio_id == unidad_id
@@ -295,14 +336,18 @@ class IncidenciaEquipo(models.Model):
     def save(self, *args, **kwargs):
         creada = self.pk is None
         if not self.unidad_id:
-            self.unidad = self.equipo.laboratorio
+            if self.equipo_id:
+                self.unidad = self.equipo.laboratorio
+            elif self.espacio_id:
+                self.unidad_id = self.espacio.unidad_id
         if self.estado in self.ESTADOS_CERRADOS and not self.fecha_resolucion:
             self.fecha_resolucion = timezone.now()
         elif self.estado not in self.ESTADOS_CERRADOS:
             self.fecha_resolucion = None
 
         with transaction.atomic():
-            equipo = UnidadEquipo.objects.select_for_update().get(pk=self.equipo_id)
+            equipo = (UnidadEquipo.objects.select_for_update().get(pk=self.equipo_id)
+                      if self.equipo_id else None)
             anterior = None
             if not creada:
                 anterior = type(self).objects.select_for_update().get(pk=self.pk)
@@ -312,17 +357,17 @@ class IncidenciaEquipo(models.Model):
                 and anterior.estado not in self.ESTADOS_CERRADOS
             )
             es_bloqueante = self.detiene_operacion and self.abierta
-            if es_bloqueante and not era_bloqueante:
+            if es_bloqueante and not era_bloqueante and equipo is not None:
                 self.estado_equipo_previo = estado_base_operativo(equipo)
 
             self.full_clean()
             super().save(*args, **kwargs)
-            if era_bloqueante or es_bloqueante:
+            if self.equipo_id and (era_bloqueante or es_bloqueante):
                 sincronizar_estado_operativo(
                     self.equipo_id,
                     self.estado_equipo_previo or "disponible",
                 )
-            if creada:
+            if creada and self.equipo_id:
                 EventoCicloVidaEquipo.objects.get_or_create(
                     incidencia=self,
                     tipo="incidencia",
@@ -333,7 +378,7 @@ class IncidenciaEquipo(models.Model):
                         "descripcion": self.descripcion,
                     },
                 )
-            if (
+            if self.equipo_id and (
                 anterior
                 and anterior.estado not in self.ESTADOS_CERRADOS
                 and self.estado in self.ESTADOS_CERRADOS
@@ -519,12 +564,70 @@ class MantenimientoEquipo(models.Model):
                         "descripcion": self.resultado,
                     },
                 )
+                if self.tipo == "calibracion":
+                    self._registrar_calibracion(fecha_realizada)
             if estaba_en_proceso or esta_en_proceso or (self.estado == 'completado' and self.resultado_operativo in {'no_apto', 'parcial'}):
                 sincronizar_estado_operativo(
                     self.equipo_id,
                     'no_disponible' if self.estado == 'completado' and self.resultado_operativo in {'no_apto', 'parcial'} else (self.estado_equipo_previo or "disponible"),
                 )
             self.sincronizar_bloqueo_de_agenda()
+
+    def _registrar_calibracion(self, fecha_realizada):
+        """La orden de calibración completada actualiza la calibración del equipo físico.
+
+        Última = fin real; próxima = la indicada en la orden o la frecuencia del plan de calibración del
+        equipo; si no hay ninguna, queda la anterior (o vacía si ya quedó atrás). El informe de la orden se
+        copia como certificado del equipo, para que no dependa de la vida de la orden. Deja rastro en el
+        ciclo de vida del equipo y en la auditoría de la unidad.
+        """
+        from django.core.files.base import ContentFile
+
+        equipo = UnidadEquipo.objects.select_for_update().get(pk=self.equipo_id)
+        plan = self.plan if self.plan_id and self.plan.tipo == "calibracion" else None
+        if plan is None:
+            vigentes = list(PlanMantenimientoEquipo.objects.filter(
+                equipo_id=self.equipo_id, activo=True, tipo="calibracion")[:2])
+            plan = vigentes[0] if len(vigentes) == 1 else None
+        proxima = self.proximo_mantenimiento or (
+            fecha_realizada + timedelta(days=plan.frecuencia_dias) if plan else equipo.proxima_calibracion)
+        if proxima and proxima <= fecha_realizada:
+            proxima = None
+        anteriores = {
+            "ultima_calibracion": str(equipo.ultima_calibracion or ""),
+            "proxima_calibracion": str(equipo.proxima_calibracion or ""),
+            "certificado_calibracion": equipo.certificado_calibracion.name or "",
+        }
+        equipo.ultima_calibracion, equipo.proxima_calibracion = fecha_realizada, proxima
+        campos = ["ultima_calibracion", "proxima_calibracion"]
+        if self.informe:
+            extension = (self.informe.name.rsplit(".", 1)[-1] if "." in self.informe.name else "pdf").lower()
+            with self.informe.open("rb") as origen:
+                contenido = origen.read()
+            equipo.certificado_calibracion.save(
+                f"{equipo.codigo_unidad}-{self.codigo}.{extension}", ContentFile(contenido), save=False)
+            campos.append("certificado_calibracion")
+        UnidadEquipo.objects.filter(pk=equipo.pk).update(**{campo: getattr(equipo, campo) for campo in campos})
+        nuevos = {
+            "ultima_calibracion": str(fecha_realizada),
+            "proxima_calibracion": str(proxima or ""),
+            "certificado_calibracion": equipo.certificado_calibracion.name or "",
+        }
+        descripcion = (f"Calibración {self.codigo}: última {fecha_realizada:%d/%m/%Y}"
+                       + (f", próxima {proxima:%d/%m/%Y}" if proxima else ", sin próxima programada")
+                       + (", con certificado." if self.informe else ", sin certificado adjunto."))
+        EventoCicloVidaEquipo.objects.get_or_create(
+            mantenimiento=self,
+            tipo="calibracion",
+            defaults={"equipo": equipo, "unidad": self.unidad, "usuario": self.responsable,
+                      "descripcion": descripcion},
+        )
+        if self.unidad_id:
+            from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
+
+            registrar_auditoria(None, unidad=self.unidad, accion="actualizar", objeto=equipo,
+                                descripcion=f"{equipo.codigo_unidad} · {descripcion}",
+                                anteriores=anteriores, nuevos=nuevos, usuario=self.responsable)
 
     @property
     def ventana_de_intervencion(self):

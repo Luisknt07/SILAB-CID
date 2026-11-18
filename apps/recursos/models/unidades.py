@@ -204,7 +204,19 @@ class UnidadEquipo(models.Model):
         null=True,
         help_text="Fecha estimada del próximo mantenimiento"
     )
-    
+
+    # La calibración es de cada equipo físico: dos balanzas del mismo modelo no
+    # comparten fecha ni certificado. Las completa sola la orden de calibración.
+    ultima_calibracion = models.DateField('Última calibración', null=True, blank=True)
+    proxima_calibracion = models.DateField(
+        'Próxima calibración', null=True, blank=True,
+        help_text='Con estas fechas el equipo sale en «Calibración de equipos» del Centro de reportes.',
+    )
+    certificado_calibracion = models.FileField(
+        'Certificado de calibración', upload_to='equipos/calibraciones/', blank=True,
+        help_text='PDF o imagen del último certificado. Al completar una orden de calibración se toma su informe.',
+    )
+
     # Ambos se derivan de los insumos compatibles (ConsumiblePorEquipo) de la
     # ficha tecnica en esta unidad; no se editan a mano. El texto que quedo de
     # cargas anteriores sin relacion estructurada se conserva como heredado.
@@ -426,6 +438,9 @@ class UnidadEquipo(models.Model):
         if (self.fecha_ultimo_mantenimiento and self.proximo_mantenimiento and
             self.proximo_mantenimiento <= self.fecha_ultimo_mantenimiento):
             raise ValidationError("La fecha del próximo mantenimiento debe ser posterior al último mantenimiento.")
+        if (self.ultima_calibracion and self.proxima_calibracion
+                and self.proxima_calibracion <= self.ultima_calibracion):
+            raise ValidationError({'proxima_calibracion': 'La próxima calibración debe ser posterior a la última.'})
         self._validar_retiro_y_sustitucion()
 
     def _validar_retiro_y_sustitucion(self):

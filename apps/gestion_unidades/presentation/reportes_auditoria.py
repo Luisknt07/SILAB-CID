@@ -184,8 +184,9 @@ def _vigencia_de_calibracion(proxima, corte):
 def reporte_calibracion(unit, start_date, end_date, state='', search=''):
     """Un equipo activo por fila: los que tienen fecha de calibración o una orden de calibración en el rango.
 
-    Las fechas de calibración se guardan en el modelo del equipo. Las órdenes son las de mantenimiento de
-    tipo calibración programadas, iniciadas o terminadas en el rango, sin las canceladas.
+    Las fechas de calibración son de cada equipo físico (las completa la orden de calibración al terminarse).
+    Las órdenes son las de mantenimiento de tipo calibración programadas, iniciadas o terminadas en el rango,
+    sin las canceladas. Respaldo: el certificado del equipo o, si no lo tiene, el informe de la última orden.
     """
     from apps.documentos.models.funcionalidad import equipos_del_alcance
     from apps.recursos.models.mantenimiento import MantenimientoEquipo
@@ -206,21 +207,26 @@ def reporte_calibracion(unit, start_date, end_date, state='', search=''):
     filas, vigencias = [], Counter()
     for equipo in equipos:
         modelo, suyas = equipo.equipo, ordenes[equipo.pk]
-        if not (modelo.fecha_ultima_calibracion or modelo.proxima_calibracion or suyas):
+        if not (equipo.ultima_calibracion or equipo.proxima_calibracion or suyas):
             continue
-        vigencia = _vigencia_de_calibracion(modelo.proxima_calibracion, corte)
+        vigencia = _vigencia_de_calibracion(equipo.proxima_calibracion, corte)
         completadas = sum(orden.estado == 'completado' for orden in suyas)
         cuantas = '0'
         if suyas:
             cuantas = f'{len(suyas)} ({", ".join(orden.codigo for orden in suyas)})'
             if completadas != len(suyas):
                 cuantas += f' · completadas: {completadas}'
-        # El respaldo es el informe de la calibración más reciente del rango que lo tenga.
+        # El respaldo es el certificado del equipo o, si no hay, el informe de la calibración más reciente del rango.
         con_informe = next((orden for orden in reversed(suyas) if orden.informe), None)
+        if equipo.certificado_calibracion:
+            respaldo = f'Certificado: {_archivo(equipo.certificado_calibracion)}'
+        elif con_informe:
+            respaldo = f'Informe de {con_informe.codigo}: {_archivo(con_informe.informe)}'
+        else:
+            respaldo = SIN_RESPALDO
         fila = [
             f'{equipo.codigo_unidad} · {_texto(modelo.nombre, 120)}',
-            _fecha(modelo.fecha_ultima_calibracion), _fecha(modelo.proxima_calibracion), vigencia, cuantas,
-            f'Informe de {con_informe.codigo}: {_archivo(con_informe.informe)}' if con_informe else SIN_RESPALDO,
+            _fecha(equipo.ultima_calibracion), _fecha(equipo.proxima_calibracion), vigencia, cuantas, respaldo,
         ]
         if not _contiene(buscar, *fila):
             continue

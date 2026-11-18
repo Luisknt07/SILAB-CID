@@ -751,8 +751,8 @@ Exigencia: «Protocolos de bioseguridad y reportes de seguridad y condiciones de
 
 | # | Columna | Contenido | Fuente |
 | --- | --- | --- | --- |
-| 1 | Fecha | | IncidenciaEquipo (tipo seguridad).fecha_reporte |
-| 2 | Lugar o equipo | | equipo, unidad |
+| 1 | Fecha | Fecha del hecho; si se reportó otro día, debajo «reportado el dd/mm». El período se filtra por la fecha del hecho | IncidenciaEquipo (tipo seguridad).fecha_hecho, fecha_reporte |
+| 2 | Lugar o equipo | El equipo (código y nombre); sin equipo, el espacio; sin ninguno, «Unidad» | equipo, espacio, unidad |
 | 3 | Descripción | | titulo, descripcion |
 | 4 | Prioridad | | prioridad |
 | 5 | Práctica o sesión | Código, si ocurrió en una (anexos 7 y 1) | reserva, EjecucionPractica.incidencia |

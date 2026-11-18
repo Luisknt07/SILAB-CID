@@ -31,12 +31,13 @@ PRIVADOS = {
     'MantenimientoEquipo': ('informe',), 'EventoCicloVidaEquipo': ('evidencia',),
     'RegistroDesecho': ('documento',), 'TraspasoEquipo': ('acta_firmada',),
     'EvidenciaPractica': ('archivo',), 'ResultadoArtefacto': ('archivo',),
+    'UnidadEquipo': ('certificado_calibracion',),
 }
 MODULOS = {
     'PrestamoEquipo': 'recursos', 'MovimientoFinancieroUnidad': 'finanzas',
     'IncidenciaEquipo': 'mantenimiento', 'MantenimientoEquipo': 'mantenimiento',
     'EventoCicloVidaEquipo': 'mantenimiento', 'RegistroDesecho': 'seguridad',
-    'TraspasoEquipo': 'recursos', 'ResultadoArtefacto': 'recursos',
+    'TraspasoEquipo': 'recursos', 'ResultadoArtefacto': 'recursos', 'UnidadEquipo': 'mantenimiento',
 }
 
 
@@ -97,6 +98,8 @@ def _privado_permitido(request, objeto):
         or (objeto.tipo == 'actualizacion' and objeto.descripcion.startswith('Retiro/sustitución: '))
     ):
         return any(_operador(usuario, objeto.unidad, modulo) for modulo in ('recursos', 'mantenimiento'))
+    if nombre == 'UnidadEquipo':
+        return any(_operador(usuario, objeto.laboratorio, modulo) for modulo in ('recursos', 'mantenimiento'))
     unidad = objeto.artefacto.unidad if nombre == 'ResultadoArtefacto' else objeto.unidad
     return (_operador(usuario, unidad, MODULOS[nombre])
             or (nombre == 'PrestamoEquipo' and _propietario(usuario, objeto, 'solicitante')))
