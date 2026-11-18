@@ -129,6 +129,28 @@ def categoria_del_documento(bloque):
     return _CATEGORIA_POR_CODIGO.get(codigo, 'Otros respaldos de la unidad')
 
 
+# Metas del plan sin anexo cuyo respaldo es un documento propio del Centro de reportes: su categoría y su nombre.
+_RESPALDO_DE_CAPACITACION = {'categoria': 'capacitacion', 'nombre': 'Capacitación del personal y difusión'}
+RESPALDO_DE_METAS_SIN_ANEXO = {'CAPACITACION': _RESPALDO_DE_CAPACITACION, 'DIFUSION': _RESPALDO_DE_CAPACITACION}
+# Las consultas del Centro de reportes, en el orden en que se listan: (clave, nombre, alcance, exigencia).
+GRUPOS_DE_CONSULTAS = (
+    ('respaldo', 'Respaldo para auditoría', 'se generan de los registros', 'Respaldo'),
+    ('gestion', 'Consultas de gestión', 'no se entregan ni puntúan', 'Consulta'),
+)
+
+
+@register.filter
+def grupos_de_consultas(consultas):
+    """Las consultas en sus dos categorías, sin las vacías: el respaldo para auditoría y las de gestión."""
+    grupos = []
+    for clave, nombre, alcance, etiqueta in GRUPOS_DE_CONSULTAS:
+        suyas = [c for c in consultas or [] if bool(c.get('respaldo')) == (clave == 'respaldo')]
+        if suyas:
+            grupos.append(dict(clave=clave, nombre=nombre, titulo=f'{nombre} · {alcance}', alcance=alcance,
+                               etiqueta=etiqueta, consultas=suyas))
+    return grupos
+
+
 @register.simple_tag
 def evidencias_cierre(cierre, anexos):
     """Una proyección de metas y archivos; no cambia cálculos ni datos enviados."""
@@ -157,7 +179,8 @@ def evidencias_cierre(cierre, anexos):
                 lectura.setdefault('estado', 'Pendiente de medición' if fila.get('pendiente') else
                                    'Cumple' if fila.get('porcentaje') == 100 else 'No cumple')
             bloques.append(dict(nombre=fila['nombre'], recurso=None, anexo=None,
-                                detalle_indicadores=[lectura], sin_anexo=True))
+                                detalle_indicadores=[lectura], sin_anexo=True,
+                                respaldo_auditoria=RESPALDO_DE_METAS_SIN_ANEXO.get(fila.get('codigo'))))
     grupos = grupos_anexos(bloques)
     # El número es el del anexo en el informe: el orden del expediente, no el del grupo.
     for numero, bloque in enumerate(bloques, 1):

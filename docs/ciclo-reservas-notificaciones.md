@@ -26,7 +26,7 @@ y no se contabilizan como atención efectiva.
   instalaciones) y un comentario de hasta 500 caracteres. Después la fila
   muestra la valoración y ya no el botón. No se envían correos ni avisos.
 - **Dónde se consulta:** en el Centro de reportes de la unidad, familia
-  «Seguimiento y trazabilidad», consulta **Satisfacción de los usuarios**
+  «Respaldo para auditoría», consulta **Satisfacción de los usuarios**
   (pantalla, PDF, Excel y Word). Para el rango pedido, por fecha de la reserva:
   respuestas, tasa de respuesta sobre las reservas atendidas, promedio general
   y por aspecto, distribución de 1 a 5, respuestas por mes y comentarios con su

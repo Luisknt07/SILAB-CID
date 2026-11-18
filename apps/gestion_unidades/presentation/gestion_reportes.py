@@ -88,11 +88,24 @@ REPORT_FAMILIES = (
     ("Seguimiento y trazabilidad", (
         ("mejora", "Acciones de mejora: compromisos, plazos y evidencia de cierre"),
         ("auditoria", "Auditoría y trazabilidad"),
+    )),
+    # Lo que pide una auditoría y no es anexo del informe: un documento propio por tema, generado de los registros.
+    ("Respaldo para auditoría", (
+        ("capacitacion", "Capacitación del personal y difusión: registros y respaldos"),
+        ("calibracion", "Calibración de equipos: última, próxima y vigencia"),
+        ("sustancias", "Sustancias sujetas a control: existencias y autorización"),
+        ("personal", "Personal de la unidad: formación y designación"),
+        ("reglamento", "Reglamento de uso de la unidad"),
+        ("simulacros", "Simulacros y prácticas de emergencia"),
         ("satisfaccion", "Satisfacción de los usuarios"),
     )),
 )
 REPORT_CATEGORIES = tuple(
     categoria for _, categorias in REPORT_FAMILIES for categoria in categorias
+)
+FAMILIA_RESPALDO = "Respaldo para auditoría"
+CATEGORIAS_RESPALDO = frozenset(
+    codigo for familia, categorias in REPORT_FAMILIES if familia == FAMILIA_RESPALDO for codigo, _nombre in categorias
 )
 
 
@@ -212,6 +225,9 @@ def _generic_report(
         from apps.gestion_unidades.presentation.reportes_seguimiento_documental import reporte_mejora, reporte_retiros
         construir = reporte_retiros if category == 'retiros' else reporte_mejora
         return construir(unit, start_date, end_date, state, search)
+    if category in ('capacitacion', 'calibracion', 'sustancias', 'personal', 'reglamento', 'simulacros'):
+        from apps.gestion_unidades.presentation.reportes_auditoria import REPORTES_DE_RESPALDO
+        return REPORTES_DE_RESPALDO[category](unit, start_date, end_date, state, search)
     if category == 'satisfaccion':
         from apps.gestion_unidades.presentation.reportes_satisfaccion import reporte_satisfaccion
         return reporte_satisfaccion(unit, start_date, end_date, state, search)
@@ -1653,7 +1669,11 @@ def render_unit_report_pdf(report):
             [Paragraph(escape(str(value if value not in (None, '') else "—")), cell_style) for value in row]
             for row in report["dataset"]["rows"]
         ])
-        if len(generic_rows) == 1:
+        # Un documento sin registros lo dice con sus palabras, a lo ancho de la tabla.
+        texto_vacio = dataset.get("vacio") if len(generic_rows) == 1 else ""
+        if texto_vacio:
+            generic_rows.append([Paragraph(escape(str(texto_vacio)), cell_style)] + [""] * (len(generic_rows[0]) - 1))
+        elif len(generic_rows) == 1:
             generic_rows.append(["Sin datos"] + ["—"] * (len(generic_rows[0]) - 1))
         column_count = max(1, len(generic_rows[0]))
         if matrix_kind == "planificaciones":
@@ -1695,6 +1715,8 @@ def render_unit_report_pdf(report):
             ("TOPPADDING", (0, 0), (-1, -1), 4),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ]
+        if texto_vacio:
+            detail_style.append(("SPAN", (0, 1), (-1, 1)))
         if matrix_kind == "planificaciones":
             for column in (4, 6, 7, 8, 9, 10, 11, 13, 14, 15):
                 detail_style.append(("ALIGN", (column, 1), (column, -1), "LEFT"))

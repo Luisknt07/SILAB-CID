@@ -641,8 +641,12 @@ def consultas_de_la_unidad(unidad, inicio, fin):
     Solo se ofrecen los módulos que la unidad usa: una consulta sin un solo registro no aporta.
     Tampoco la que repite un anexo: la programación por asignatura, el inventario de insumos, las visitas y
     el mantenimiento ya están en los anexos de planificación de prácticas, inventario, uso y equipamiento.
+    Los documentos de respaldo para auditoría van marcados (`respaldo`): se listan en su propia categoría
+    y se ofrecen aunque no tengan registros.
     """
-    from apps.gestion_unidades.presentation.gestion_reportes import categorias_para, documentos_del_expediente
+    from apps.gestion_unidades.presentation.gestion_reportes import (
+        CATEGORIAS_RESPALDO, categorias_para, documentos_del_expediente,
+    )
     from apps.gestion_unidades.presentation.reportes_existencia import tiene_registros
 
     evidencia = set(documentos_del_expediente(unidad))
@@ -652,7 +656,7 @@ def consultas_de_la_unidad(unidad, inicio, fin):
         {'codigo': codigo, 'nombre': nombre,
          'url': f'{base}?categoria_reporte={codigo}&desde={inicio}&hasta={fin}',
          'base': f'{base}?categoria_reporte={codigo}',
-         'desde': inicio.isoformat(), 'hasta': fin.isoformat()}
+         'desde': inicio.isoformat(), 'hasta': fin.isoformat(), 'respaldo': codigo in CATEGORIAS_RESPALDO}
         for codigo, nombre in categorias_para(unidad)
         if codigo not in evidencia and tiene_registros(codigo, unidad)
     ]

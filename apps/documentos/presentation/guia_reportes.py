@@ -87,6 +87,24 @@ REPORTES = {
                    'Eventos de auditoría de la unidad.', ''),
     'satisfaccion': ('cierre', 'Conocer cómo valoran la atención quienes usaron la unidad.',
                       'Valoraciones que cada solicitante registra en «Mis reservas» tras una reserva atendida.', ''),
+    # Respaldo para auditoría: un documento por tema, generado de los registros; no se entrega ni puntúa.
+    'capacitacion': ('registros', 'Mostrar las capacitaciones del personal y las acciones de difusión del período '
+                     'con su respaldo.',
+                     'Evidencias de capacitación y de difusión que la unidad registra como fuentes de sus metas.', ''),
+    'calibracion': ('registros', 'Mostrar la última y la próxima calibración de cada equipo y si está vigente.',
+                    'Fechas de calibración de la ficha del equipo y órdenes de mantenimiento de tipo calibración.',
+                    'mantenimiento'),
+    'sustancias': ('registros', 'Mostrar las sustancias sujetas a control, sus existencias y la autorización que las '
+                   'ampara.',
+                   'Insumos marcados como sustancia sujeta a control, con sus lotes y su ficha de seguridad.',
+                   'inventario'),
+    'personal': ('registros', 'Mostrar quién trabaja en la unidad, con qué formación y con qué acto fue designado.',
+                 'Equipo humano de la unidad: responsables activos, su formación y su designación.', 'configuracion'),
+    'reglamento': ('registros', 'Presentar el reglamento de uso que la unidad tiene publicado.',
+                   'Reglamento de uso publicado en la página de la unidad.', ''),
+    'simulacros': ('registros', 'Dejar constancia de los simulacros y prácticas de emergencia realizados.',
+                   'Simulacros que la unidad registra junto a sus inspecciones de seguridad, con su respaldo.',
+                   'seguridad'),
 }
 
 PRINCIPALES = {
@@ -130,6 +148,7 @@ GRUPOS = (
 ORIGENES = {
     'cursos': ('practicas', dict(view='cursos')),
     'inventario': ('inventario', dict(view='recursos', modo_recursos='inventario')),
+    'sustancias': ('inventario', dict(view='recursos', modo_recursos='inventario')),
     'finanzas': ('finanzas', dict(view='recursos', modo_recursos='finanzas')),
     'datos-observatorio': ('reportes', dict(view='obs_indicadores')),
     'boletines': ('reportes', dict(view='obs_publicaciones')),
@@ -153,7 +172,9 @@ def _frecuencia(exigido, unidad):
 
 def construir_guia_reportes(unidad, anio, corte, inicio, fin, documentos, entregas, usuario=None):
     """Construye navegación sin leer archivos ni escribir actividad o estados."""
-    from apps.gestion_unidades.presentation.gestion_reportes import familias_para, _registra_produccion
+    from apps.gestion_unidades.presentation.gestion_reportes import (
+        CATEGORIAS_RESPALDO, familias_para, _registra_produccion,
+    )
     from apps.gestion_unidades.presentation.permisos import permisos_operativos_unidad
 
     base = base_de(unidad)
@@ -268,7 +289,8 @@ def construir_guia_reportes(unidad, anio, corte, inicio, fin, documentos, entreg
                 alcance=' '.join(notas_del_reporte(codigo)) or proposito,
                 frecuencia='Consulta cuando la actividad aplique; no crea una entrega o meta adicional.',
                 estado='', proximo_paso='')
-            prioridad = 'Consulta de seguimiento' if codigo in ('mejora', 'retiros', 'auditoria') else 'Consulta de apoyo'
+            prioridad = ('Respaldo para auditoría' if codigo in CATEGORIAS_RESPALDO else
+                         'Consulta de seguimiento' if codigo in ('mejora', 'retiros', 'auditoria') else 'Consulta de apoyo')
             seguimiento = 'Apoya la gestión y el seguimiento. Consultar o descargar el informe no registra una entrega ni acredita cumplimiento.'
         item.update(proposito=proposito, prioridad=prioridad, origen=origen, seguimiento=seguimiento,
             validacion='Presenta los controles y limitaciones de los registros; no verifica por sí solo el contenido de un adjunto ni convierte una declaración en resultado acreditado.',

@@ -365,6 +365,38 @@ consulta, marca en el selector las categorías que además son documentos del
 expediente y, al elegir una, dice a qué documento alimenta y enlaza allí
 (`documentos_del_expediente`, `entregas_de_la_unidad`).
 
+### Respaldo para auditoría
+
+Lo que una auditoría pide y no es anexo del informe tiene un documento propio
+por tema, en la familia «Respaldo para auditoría» del Centro de reportes
+(`apps/gestion_unidades/presentation/reportes_auditoria.py`). Se generan de los
+registros para el rango de fechas elegido, en pantalla, PDF, Excel y Word; no
+se entregan ni puntúan y no llevan texto de análisis. Se ofrecen siempre,
+aunque no haya registros: el documento lo dice («No se registraron simulacros
+ni prácticas de emergencia en el período»). La satisfacción de los usuarios
+conserva su regla y solo se ofrece si la unidad tiene valoraciones.
+
+| Documento | Qué trae | Dónde se registra el dato |
+| --- | --- | --- |
+| Capacitación del personal y difusión: registros y respaldos | Evidencias de capacitación y de difusión del rango, con su verificación y su respaldo | Fuentes de las metas → Capacitación o Difusión |
+| Calibración de equipos: última, próxima y vigencia | Equipos activos con fecha de calibración o con una orden de calibración en el rango; vigencia al corte | Ficha del equipo (última y próxima calibración) y órdenes de mantenimiento de tipo calibración |
+| Sustancias sujetas a control: existencias y autorización | Insumos activos marcados como sustancia sujeta a control: autorización, existencia, lotes con saldo y ficha de seguridad | Gestión de la unidad → Recursos → insumos |
+| Personal de la unidad: formación y designación | Responsables activos con su rol, formación, acto y fecha de designación y horario | Gestión de la unidad → Configuración → Equipo humano |
+| Reglamento de uso de la unidad | El reglamento publicado: título, subtítulo, apartados con sus normas y contacto | Reglamento de uso de la unidad (contenido público) |
+| Simulacros y prácticas de emergencia | Simulacros del rango: emergencia, participantes, resultado, acción de mejora y respaldo | Fuentes de las metas → Simulacro, junto a las inspecciones |
+| Satisfacción de los usuarios | Valoraciones de las reservas atendidas del rango | «Mis reservas», tras una reserva atendida |
+
+El personal, el reglamento y las sustancias son el estado actual de la unidad:
+no dependen del rango y el documento lo indica. El observatorio no recibe
+simulacros ni sustancias, porque no lleva reportes de seguridad ni inventario
+de insumos.
+
+En la tabla de anexos del período se listan en dos categorías, después de los
+anexos: «Respaldo para auditoría · se generan de los registros» y «Consultas de
+gestión · no se entregan ni puntúan». Las metas de capacitación y de difusión
+no tienen anexo: su fila («Sin anexo específico») abre con «Ver respaldo» el
+documento de capacitación y difusión del período.
+
 ## Archivos
 
 - Modelos: `webcitt/models/expediente.py` (`DocumentoExigido.condicional`,

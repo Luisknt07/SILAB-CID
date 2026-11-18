@@ -1,12 +1,15 @@
-{% comment %}Las consultas de gestión, como última categoría de la tabla de anexos del período.
+{% load reportes_estilo %}{% comment %}Lo que el Centro de reportes genera de los registros, como últimas categorías de la tabla de anexos
+del período: primero el respaldo para auditoría y después las consultas de gestión.
 No son anexos del informe: no llevan número, meta ni puntos.{% endcomment %}
-<tbody class="cierre-grupo-consultas" id="informes-gestion"><tr><th colspan="10" scope="rowgroup">Consultas de gestión · no se entregan ni puntúan</th></tr></tbody>
-<tbody data-consultas-gestion>
-{% for consulta in consultas %}<tr data-consulta-gestion>
+{% for grupo in consultas|grupos_de_consultas %}
+<tbody class="cierre-grupo-consultas"{% if forloop.first %} id="informes-gestion"{% endif %} data-grupo-consultas="{{ grupo.clave }}"><tr><th colspan="10" scope="rowgroup">{{ grupo.titulo }}</th></tr></tbody>
+<tbody data-consultas-{{ grupo.clave }}>
+{% for consulta in grupo.consultas %}<tr data-consulta-gestion{% if grupo.clave == 'respaldo' %} data-respaldo-auditoria="{{ consulta.codigo }}"{% endif %}>
   <td class="reporte-item">—</td>
   <th scope="row"><span class="cierre-evidencia-nombre documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ consulta.nombre }}</span></span></th>
-  <td><span class="reporte-exigencia is-informativo">Consulta</span></td>
+  <td><span class="reporte-exigencia is-informativo">{{ grupo.etiqueta }}</span></td>
   <td colspan="6">{{ rango_periodo.0|date:"d/m/Y" }} – {{ rango_periodo.1|date:"d/m/Y" }} · se actualiza al consultar; puedes cambiar las fechas en el visor.</td>
   <td><a class="cierre-ver documento-accion is-pdf" href="{{ consulta.url }}" data-ver-pdf data-pdf-descarga="{{ consulta.url }}" data-pdf-titulo="{{ consulta.nombre }} · {{ etiqueta_periodo }}" data-pdf-rango="{{ consulta.base }}" data-pdf-desde="{{ consulta.desde }}" data-pdf-hasta="{{ consulta.hasta }}" aria-label="Abrir {{ consulta.nombre }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>Ver</span></a></td>
 </tr>{% endfor %}
 </tbody>
+{% endfor %}

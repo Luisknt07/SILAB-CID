@@ -105,6 +105,7 @@
 .reportes-dashboard .reportes-consultas-visibles h2 { margin:0 0 5px; color:#285d3a; font-size:17px; }
 .reportes-dashboard .reportes-consultas-visibles header p { margin:0 0 11px; color:#52675a; font-size:12px!important; }
 .reportes-consultas-visibles__tabla { max-width:100%; overflow-x:auto; border:1px solid #d8e3db; border-radius:7px; }
+.reportes-consultas-visibles__tabla + header { margin-top:18px; }
 .reportes-consultas-visibles table { width:100%; min-width:540px; border-collapse:collapse; background:#fff; font-size:12px; }
 .reportes-consultas-visibles thead th { padding:10px 12px; border-bottom:2px solid #e2bd36; background:#285d3a; color:#fff; text-align:left; }
 .reportes-consultas-visibles tbody th, .reportes-consultas-visibles tbody td { padding:11px 12px; border-bottom:1px solid #e2e9e3; text-align:left; vertical-align:middle; }

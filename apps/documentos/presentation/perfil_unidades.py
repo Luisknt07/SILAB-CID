@@ -261,6 +261,10 @@ def familias_de_perfil(unidad, familias, *, catalogo=()):
     if base == 'observatorios':
         excluidas.update(('asignaturas', 'planificaciones', 'ejecuciones', 'guias', 'seguridad', 'desechos', 'inventario', 'aula'))
     excluidas.difference_update(personalizados)
+    # El respaldo para auditoría sigue a su registro de origen: sin reportes de seguridad no hay simulacros
+    # que mostrar y, sin inventario de insumos, tampoco sustancias sujetas a control.
+    excluidas.update(respaldo for origen, respaldo in (('seguridad', 'simulacros'), ('inventario', 'sustancias'))
+                     if origen in excluidas)
     resultado = []
     for familia, opciones in familias:
         seleccion = tuple((codigo, personalizados.get(codigo, NOMBRES_CONSULTAS_POR_BASE.get(base, {}).get(codigo)
