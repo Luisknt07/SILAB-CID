@@ -197,7 +197,12 @@ def editar_planificacion_view(request, slug, plan_id=None):
             else actividades.first()
         )
         if not actividad:
-            raise PermissionDenied("Primero registra una actividad en esta unidad.")
+            # Una página 403 en blanco no decía qué hacer: la actividad nace con su guía.
+            messages.error(request, gettext(
+                "Para planificar una práctica primero crea su guía: al guardarla queda registrada "
+                "la actividad. Usa «+ Nueva guía» y vuelve a «Nueva planificación»."
+            ))
+            return redirect("lista_guias_practica", slug=slug)
         if reserva:
             plan = PlanificacionPractica(
                 **datos_planificacion_desde_reserva(reserva, actor=request.user)

@@ -442,8 +442,11 @@ def _asistencia_nominal(ejecucion):
     filas = []
     if guardados:
         por_id = {str(registro.pk): registro for registro in registros}
+        # El cierre de la sesión en el panel vuelve a crear sus registros de participantes: la lista guardada
+        # antes conserva la cuenta de cada persona, y por ella se la encuentra de nuevo.
+        por_usuario = {registro.usuario_id: registro for registro in registros if registro.usuario_id}
         for persona in guardados:
-            registro = por_id.get(str(persona.get('id') or ''))
+            registro = por_id.get(str(persona.get('id') or '')) or por_usuario.get(persona.get('usuario_id'))
             asistencia = str(persona.get('asistencia_codigo') or '')
             solicitante = (registro.rol == 'solicitante' if registro
                            else 'solicitante' in str(persona.get('rol') or '').lower())

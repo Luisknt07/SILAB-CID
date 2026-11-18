@@ -492,7 +492,10 @@ def operar_visita(request, unidad):
     else:
         visita.guia = None
     visita.observaciones = _texto(request, 'observaciones')
-    visita.save(update_fields=['guia', 'observaciones', 'actualizada_en'])
+    # El rango de edades solo si el formulario lo trae: uno abierto antes del campo no lo borra.
+    if 'rango_edades' in request.POST:
+        visita.rango_edades = _texto(request, 'rango_edades', 60)
+    visita.save(update_fields=['guia', 'rango_edades', 'observaciones', 'actualizada_en'])
     return visita, 'Visita actualizada', False
 
 

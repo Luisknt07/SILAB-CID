@@ -148,6 +148,13 @@ def aprobar_reserva(
             gettext(
                 "No hay responsables activos disponibles para esta unidad. "
                 "Configura uno que reciba reservas antes de continuar."
+            )
+            # Dónde se resuelve: sin esto la unidad no sabía qué pantalla abrir.
+            + " "
+            + gettext(
+                "En el panel de la unidad abre «Configuración de la unidad», "
+                "«Responsables activos», y marca «Puede recibir reservas» en una "
+                "persona con cuenta institucional."
             ),
             code="responsable_no_disponible",
         )

@@ -5,6 +5,7 @@
   <header><span>VISITAS</span><h3>{% translate "Guía y observaciones" %}</h3><p>{% translate "El guía acompaña al grupo durante todo el recorrido; si el grupo exige más de un guía, la unidad suma los demás el día de la visita." %}</p></header>
   <div class="unit-console-operation__grid">
     <label>{% translate "Guía" %}<input name="guia" maxlength="150" placeholder="{% translate "usuario institucional, correo o cédula" %}"><small>{% translate "Vacío: por asignar." %}</small></label>
+    <label>{% translate "Rango de edades del grupo" %}<input name="rango_edades" maxlength="60" placeholder="{% translate "15 a 17 años" %}"><small>{% translate "Si quien solicitó no lo indicó, complétalo aquí: consta en el registro de visitas." %}</small></label>
     <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="3"></textarea></label>
   </div>
   <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar" %}</button></footer>
