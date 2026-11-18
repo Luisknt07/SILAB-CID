@@ -997,6 +997,21 @@
 .my-reservations-list__empty i { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #b9d7c9; border-radius: 13px; color: var(--reservation-green); background: #fff; }
 .my-reservations-list__empty strong { color: var(--reservation-green-dark); font-size: 12px; }
 .my-reservations-list__empty span { max-width: 240px; font-size: 9px; line-height: 1.45; }
+/* Satisfacción: botón, formulario breve y resultado bajo la fila de la reserva atendida. */
+.my-reservations-rating { display: grid; gap: 8px; margin: -2px 0 4px 12px; padding: 8px 10px; border: 1px solid var(--institucion-primario-suave, #c7dcd3); border-radius: 9px; color: var(--reservation-muted); background: #fff; font-size: 12px; }
+.my-reservations-rating.is-done { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.my-reservations-rating .reservation-button { min-height: 34px; padding: 6px 12px; font-size: 12px; justify-self: start; }
+.my-reservations-rating__stars { color: var(--institucion-acento-tinta, #936f13); font-size: 15px; letter-spacing: 1px; }
+.my-reservations-stars { display: flex; gap: 8px; align-items: center; justify-content: space-between; color: var(--reservation-green-dark); font-weight: 700; }
+.my-reservations-stars__options { position: relative; display: inline-flex; flex: 0 0 auto; flex-direction: row-reverse; }
+.my-reservations-stars__options input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+.my-reservations-stars__options label { margin: 0; padding: 0 2px; color: #c5cdc9; font-size: 22px; line-height: 1; cursor: pointer; }
+.my-reservations-stars__options input:checked ~ label, .my-reservations-stars__options label:hover, .my-reservations-stars__options label:hover ~ label { color: var(--institucion-acento-tinta, #936f13); }
+.my-reservations-stars__options input:focus-visible + label { outline: 2px solid var(--reservation-green); outline-offset: 1px; }
+.my-reservations-rating textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--reservation-line); border-radius: 7px; font-size: 12px; resize: vertical; }
+.my-reservations-rating__actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: flex-end; }
+.my-reservations-rating__actions [data-valoracion-aviso] { flex: 1 1 100%; }
+.my-reservations-rating__actions [data-valoracion-aviso].is-error { color: #a12626; }
 .my-reservations-event.is-highlighted { animation: my-reservations-flash 1.6s ease-out; }
 @keyframes my-reservations-flash {
   0%, 100% { box-shadow: none; }

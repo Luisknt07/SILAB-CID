@@ -85,6 +85,8 @@ REPORTES = {
                 'Este anexo no sustituye el informe de mejora continua que se tramita cuando corresponde.', 'reportes'),
     'auditoria': ('cierre', 'Consultar quién realizó cada cambio y cuándo para revisar incidencias y decisiones.',
                    'Eventos de auditoría de la unidad.', ''),
+    'satisfaccion': ('cierre', 'Conocer cómo valoran la atención quienes usaron la unidad.',
+                      'Valoraciones que cada solicitante registra en «Mis reservas» tras una reserva atendida.', ''),
 }
 
 PRINCIPALES = {

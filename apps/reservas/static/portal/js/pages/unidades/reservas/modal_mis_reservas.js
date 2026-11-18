@@ -10,6 +10,8 @@ let misReservasReservaSolicitadaUrl = null;
 let misReservasExpedientePendiente = false;
 let misReservasModoAgenda = null;
 let misReservasListaDelDia = false;
+// Reserva cuyo formulario «Valorar atención» está abierto en la lista.
+let misReservasValorandoId = null;
 
 const MIS_RESERVAS_DIAS = [gettext('Lunes'), gettext('Martes'), gettext('Miércoles'), gettext('Jueves'), gettext('Viernes'), gettext('Sábado'), gettext('Domingo')];
 const MIS_RESERVAS_MESES = [
@@ -387,10 +389,87 @@ function renderizarListaMisReservas() {
                 <span class="my-reservations-list__when"><i class="fas fa-calendar-day" aria-hidden="true"></i>${escaparReserva(fechaReservaLegible(reserva.fecha))} · ${escaparReserva(valorReserva(reserva.hora_inicio, '--:--'))}–${escaparReserva(valorReserva(reserva.hora_fin, '--:--'))}</span>
             </span>
             <span class="reservation-history-status ${escaparReserva(reserva.estado)}">${escaparReserva(valorReserva(reserva.estado_display, reserva.estado))}</span>
-        </button>`;
+        </button>${valoracionReservaHtml(reserva)}`;
     }).join('');
     lista.querySelectorAll('[data-ir-a-reserva]').forEach(boton => {
         boton.addEventListener('click', () => irAReservaEnAgenda(Number(boton.dataset.irAReserva)));
+    });
+    lista.querySelectorAll('[data-valorar-atencion]').forEach(boton => {
+        boton.addEventListener('click', () => abrirValoracionReserva(Number(boton.dataset.valorarAtencion)));
+    });
+    lista.querySelector('[data-valoracion-cerrar]')?.addEventListener('click', () => abrirValoracionReserva(null));
+    lista.querySelector('[data-valorar-reserva]')?.addEventListener('submit', enviarValoracionReserva);
+}
+
+// ------------------------------------------------------------------
+// Satisfacción: la reserva atendida se valora una sola vez, desde su fila.
+// El servidor decide cuándo procede (puede_valorar) y valida lo enviado.
+
+const MIS_RESERVAS_VALORACION = [
+    ['general', gettext('Valoración general'), true],
+    ['atencion_personal', gettext('Atención del personal'), false],
+    ['estado_equipos', gettext('Estado de los equipos'), false],
+    ['instalaciones', gettext('Instalaciones'), false]
+];
+
+function estrellasReserva(valor) {
+    const puntos = Math.max(0, Math.min(5, Number(valor) || 0));
+    return '★'.repeat(puntos) + '☆'.repeat(5 - puntos);
+}
+
+function valoracionReservaHtml(reserva) {
+    const valoracion = reserva.valoracion;
+    if (valoracion) {
+        return window.interfaz.html`<div class="my-reservations-rating is-done"><span class="my-reservations-rating__stars" role="img" aria-label="${gettext('Tu valoración')}: ${Number(valoracion.general)} / 5">${estrellasReserva(valoracion.general)}</span><span>${gettext('Tu valoración')} · ${escaparReserva(valoracion.fecha)}</span></div>`;
+    }
+    if (!reserva.puede_valorar) return '';
+    if (Number(misReservasValorandoId) !== Number(reserva.id)) {
+        return window.interfaz.html`<div class="my-reservations-rating"><button type="button" class="reservation-button reservation-button--secondary" data-valorar-atencion="${reserva.id}"><i class="fas fa-star" aria-hidden="true"></i> Valorar atención</button></div>`;
+    }
+    const grupos = MIS_RESERVAS_VALORACION.map(([campo, etiqueta, obligatoria]) => {
+        const opciones = [5, 4, 3, 2, 1].map(valor => {
+            const identificador = `valoracion-${reserva.id}-${campo}-${valor}`;
+            return window.interfaz.html`<input type="radio" id="${identificador}" name="${campo}" value="${valor}" aria-label="${valor} / 5"${obligatoria ? ' required' : ''}><label for="${identificador}" aria-hidden="true">★</label>`;
+        }).join('');
+        return window.interfaz.html`<div class="my-reservations-stars" role="radiogroup" aria-label="${escaparReserva(etiqueta)}"><span>${escaparReserva(etiqueta)}</span><span class="my-reservations-stars__options">${opciones}</span></div>`;
+    }).join('');
+    return window.interfaz.html`<form class="my-reservations-rating" data-valorar-reserva="${reserva.id}" action="${escaparReserva(reserva.valorar_url)}">${grupos}<textarea name="comentario" rows="2" maxlength="500" aria-label="Comentario" placeholder="Comentario (opcional)"></textarea><div class="my-reservations-rating__actions"><span data-valoracion-aviso role="status"></span><button type="button" class="reservation-button reservation-button--ghost" data-valoracion-cerrar>Cancelar</button><button type="submit" class="reservation-button reservation-button--secondary"><i class="fas fa-paper-plane" aria-hidden="true"></i> Enviar</button></div></form>`;
+}
+
+function abrirValoracionReserva(reservaId) {
+    misReservasValorandoId = reservaId;
+    renderizarListaMisReservas();
+    document.querySelector('[data-valorar-reserva] input')?.focus();
+}
+
+function enviarValoracionReserva(evento) {
+    evento.preventDefault();
+    const formulario = evento.currentTarget;
+    if (!formulario.reportValidity()) return;
+    const reserva = todasLasReservas.find(item => Number(item.id) === Number(formulario.dataset.valorarReserva));
+    const aviso = formulario.querySelector('[data-valoracion-aviso]');
+    const boton = formulario.querySelector('button[type="submit"]');
+    boton.disabled = true;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    fetch(formulario.action, {
+        method: 'POST',
+        body: new FormData(formulario),
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrfToken || '', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json().then(data => ({ response, data })))
+    .then(({ response, data }) => {
+        if (!response.ok || !data.success) throw new Error(data.error || gettext('No se pudo registrar la valoración.'));
+        if (reserva) {
+            reserva.valoracion = data.valoracion;
+            reserva.puede_valorar = false;
+        }
+        abrirValoracionReserva(null);
+    })
+    .catch(error => {
+        aviso.textContent = error.message;
+        aviso.classList.add('is-error');
+        boton.disabled = false;
     });
 }
 

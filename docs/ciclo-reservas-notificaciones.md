@@ -13,6 +13,29 @@ resoluciones:
 Las solicitudes todavía pendientes al finalizar su horario pasan a `vencida`
 y no se contabilizan como atención efectiva.
 
+## Valoración de la atención (satisfacción de los usuarios)
+
+- **Quién:** solo quien hizo la reserva, una vez por reserva. Nadie valora por
+  otro, tampoco el personal de la unidad.
+- **Cuándo:** cuando la unidad cerró la reserva como `completada` con resultado
+  «atendida y completada». Una reserva pendiente, cancelada, rechazada, vencida,
+  sin presentación o no atendida no se valora.
+- **Dónde:** en **Mis reservas**, la fila de la reserva atendida muestra el
+  botón «Valorar atención»: valoración general de 1 a 5 (obligatoria), tres
+  aspectos opcionales (atención del personal, estado de los equipos,
+  instalaciones) y un comentario de hasta 500 caracteres. Después la fila
+  muestra la valoración y ya no el botón. No se envían correos ni avisos.
+- **Dónde se consulta:** en el Centro de reportes de la unidad, familia
+  «Seguimiento y trazabilidad», consulta **Satisfacción de los usuarios**
+  (pantalla, PDF, Excel y Word). Para el rango pedido, por fecha de la reserva:
+  respuestas, tasa de respuesta sobre las reservas atendidas, promedio general
+  y por aspecto, distribución de 1 a 5, respuestas por mes y comentarios con su
+  fecha y valoración, sin el nombre ni la reserva de quien los escribió. La
+  consulta se ofrece en el expediente solo si la unidad tiene valoraciones.
+- **Rastro:** la auditoría de la unidad registra que el solicitante valoró la
+  reserva; no guarda el comentario ni las puntuaciones.
+- La valoración no alimenta metas, notas de documentos ni páginas públicas.
+
 ## Qué automatiza el proceso
 
 El comando genera, de forma idempotente:

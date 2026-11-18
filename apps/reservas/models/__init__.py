@@ -16,3 +16,4 @@ from apps.reservas.models.seguridad import HabilitacionAcceso  # noqa: F401
 from apps.reservas.models.seguridad import RegistroIngreso  # noqa: F401
 from apps.reservas.models.visitas import SolicitudVisita  # noqa: F401
 from apps.reservas.models.visitas import AsistenteVisita  # noqa: F401
+from apps.reservas.models.valoraciones import ValoracionReserva  # noqa: F401

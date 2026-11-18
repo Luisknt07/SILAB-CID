@@ -105,6 +105,11 @@ def _desechos(unidad):
     return RegistroDesecho.objects.filter(unidad=unidad).exists()
 
 
+def _satisfaccion(unidad):
+    from apps.reservas.models.valoraciones import ValoracionReserva
+    return ValoracionReserva.objects.filter(reserva__laboratorio=unidad).exists()
+
+
 # Ejecuciones y desechos son consultas de detalle desde documentos.0025: su evidencia va en los anexos de
 # prácticas y de seguridad, y la consulta solo se ofrece si la unidad tiene registros.
 LECTURAS = {
@@ -113,6 +118,7 @@ LECTURAS = {
     'retiros': _retiros, 'inventario': _inventario, 'prestamos': _prestamos, 'visitas': _visitas,
     'cursos': _cursos, 'finanzas': _finanzas, 'procesos': _procesos, 'calidad': _calidad,
     'produccion': _produccion,
+    'satisfaccion': _satisfaccion,
 }
 
 

@@ -57,6 +57,7 @@ from apps.reservas.presentation.comprobantes import texto_cancelacion
 from apps.reservas.presentation.seguimiento import linea_tiempo_reserva
 from apps.reservas.presentation.conflictos import validar_conflictos_recursos
 from apps.reservas.presentation.periodos import resolver_periodo_reserva
+from apps.reservas.presentation.valoraciones import reserva_atendida, serializar_valoracion
 
 
 def _respuesta_error(mensaje, status=400):
@@ -1579,6 +1580,7 @@ def obtener_reservas_usuario(request):
             "producto_solicitado",
             "responsable_asignado",
             "responsable_asignado__usuario",
+            "valoracion",
         )
         .prefetch_related(
             "consumibles_solicitados__consumible",
@@ -1594,6 +1596,7 @@ def obtener_reservas_usuario(request):
     for reserva in reservas:
         from apps.reservas.presentation.cambios_views import serializar_solicitud_cambio
 
+        valoracion = getattr(reserva, "valoracion", None)
         solicitud_cambio = reserva.solicitudes_cambio.first()
         observaciones_seguimiento = [
             linea.strip()
@@ -1790,6 +1793,10 @@ def obtener_reservas_usuario(request):
                 args=[reserva.pk],
             ),
             "solicitud_cambio": serializar_solicitud_cambio(solicitud_cambio),
+            # Satisfacción: la misma condición que aplica valorar_reserva_usuario.
+            "puede_valorar": valoracion is None and reserva_atendida(reserva),
+            "valoracion": serializar_valoracion(valoracion),
+            "valorar_url": reverse("valorar_reserva_usuario", args=[reserva.pk]),
             # El expediente completo vive en «Mis reservas»: recorrido del
             # estado, comprobante y guía sin salir del panel.
             "linea_tiempo": linea_tiempo_reserva(

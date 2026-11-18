@@ -98,6 +98,22 @@ class LimpiarMovimientosTests(TestCase):
         # Sobre una base ya limpia no hay nada que hacer y no falla.
         self.assertIn('Limpieza aplicada', self.aplicar())
 
+    def test_la_valoracion_de_una_reserva_se_borra_con_ella(self):
+        from datetime import time
+
+        from apps.reservas.models.reservas import Reserva
+        from apps.reservas.models.valoraciones import ValoracionReserva
+        self.assertLess(MOVIMIENTOS.index('reservas.ValoracionReserva'), MOVIMIENTOS.index('reservas.Reserva'))
+        reserva = Reserva.objects.create(
+            laboratorio=self.unidad, usuario=self.real, fecha=date(2026, 3, 10), hora_inicio=time(9),
+            hora_fin=time(10), equipo_codigo='EQ-LIMPIEZA', equipo_nombre='Equipo ficticio',
+            estado='completada', resultado_cierre='atendida')
+        ValoracionReserva.objects.create(reserva=reserva, general=4, comentario='Comentario ficticio de prueba.')
+        salida = self.aplicar()
+        self.assertIn('Limpieza aplicada', salida)
+        self.assertFalse(ValoracionReserva.objects.exists())
+        self.assertFalse(Reserva.objects.exists())
+
     def test_una_cuenta_demo_ligada_a_lo_que_se_conserva_se_desactiva_en_vez_de_borrarse(self):
         from apps.core.models.gobernanza import AsignacionGobernanza
         AsignacionGobernanza.objects.create(

@@ -97,6 +97,27 @@ test('las reservas propias de fin de semana siguen visibles y el horario respeta
     assert.match(app.elements.misReservasSemanaCabecera.innerHTML, /Domingo/);
 });
 
+test('la lista ofrece «Valorar atención» solo en la reserva atendida sin valorar y después muestra la valoración', () => {
+    const atendida = { ...booking(1), estado: 'completada', puede_valorar: true, valoracion: null, valorar_url: '/reservas/usuario/1/valorar/' };
+    const valorada = { ...booking(2), estado: 'completada', puede_valorar: false, valoracion: { general: 4, fecha: '12/11/2026' } };
+    const app = historyAgenda(1440, [atendida, valorada, booking(3)]);
+    const lista = { innerHTML: '', querySelectorAll: () => [], querySelector: () => null };
+    app.context.document.querySelector = selector => (selector === '[data-reservations-list]' ? lista : null);
+    app.context.renderizarListaMisReservas();
+    assert.equal((lista.innerHTML.match(/data-valorar-atencion="1"/g) || []).length, 1);
+    assert.doesNotMatch(lista.innerHTML, /data-valorar-atencion="[23]"/);
+    assert.match(lista.innerHTML, /★★★★☆<\/span><span>Tu valoración · 12\/11\/2026/);
+    assert.doesNotMatch(lista.innerHTML, /<form/);
+    // Al pulsar el botón, la misma fila despliega el formulario breve.
+    vm.runInContext('misReservasValorandoId = 1;', app.context);
+    app.context.renderizarListaMisReservas();
+    assert.match(lista.innerHTML, /<form class="my-reservations-rating" data-valorar-reserva="1" action="\/reservas\/usuario\/1\/valorar\/"/);
+    assert.equal((lista.innerHTML.match(/type="radio"/g) || []).length, 20);
+    assert.equal((lista.innerHTML.match(/name="general" value="\d" aria-label="\d \/ 5" required/g) || []).length, 5);
+    assert.doesNotMatch(lista.innerHTML, /name="instalaciones" value="\d" aria-label="\d \/ 5" required/);
+    assert.match(lista.innerHTML, /<textarea name="comentario" rows="2" maxlength="500"/);
+});
+
 test('la escala compartida representa minutos sin cortar reservas cortas ni desplazar horas libres', () => {
     const context = { window: {} }; vm.runInNewContext(shared, context);
     const api = context.window.AgendaUpec;

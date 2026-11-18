@@ -49,7 +49,7 @@ MOVIMIENTOS = (
     'reservas.RegistroIngreso', 'reservas.HabilitacionAcceso', 'reservas.AsistenteVisita', 'reservas.SolicitudVisita',
     'reservas.ProgramacionReserva', 'reservas.NotificacionReserva', 'reservas.RegistroParticipanteReserva',
     'reservas.ReservaConsumible', 'reservas.RevisionReserva', 'reservas.SolicitudCambioReserva',
-    'reservas.ReservaAdjunto', 'reservas.Reserva',
+    'reservas.ReservaAdjunto', 'reservas.ValoracionReserva', 'reservas.Reserva',
     # Rastro de lo anterior.
     'formacion.RegistroAuditoriaUnidad', 'admin.LogEntry', 'observacion.DescargaDatos',
 )

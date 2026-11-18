@@ -88,6 +88,7 @@ REPORT_FAMILIES = (
     ("Seguimiento y trazabilidad", (
         ("mejora", "Acciones de mejora: compromisos, plazos y evidencia de cierre"),
         ("auditoria", "Auditoría y trazabilidad"),
+        ("satisfaccion", "Satisfacción de los usuarios"),
     )),
 )
 REPORT_CATEGORIES = tuple(
@@ -211,6 +212,9 @@ def _generic_report(
         from apps.gestion_unidades.presentation.reportes_seguimiento_documental import reporte_mejora, reporte_retiros
         construir = reporte_retiros if category == 'retiros' else reporte_mejora
         return construir(unit, start_date, end_date, state, search)
+    if category == 'satisfaccion':
+        from apps.gestion_unidades.presentation.reportes_satisfaccion import reporte_satisfaccion
+        return reporte_satisfaccion(unit, start_date, end_date, state, search)
     from apps.gestion_unidades.presentation.reportes_perfiles import CATEGORIAS_PERFIL, dataset_perfil
     if category in CATEGORIAS_PERFIL:
         return dataset_perfil(category, unit, start_date, end_date, state, search)

@@ -168,3 +168,8 @@ urlpatterns = [
 
 for _ruta, _orden in zip(urlpatterns, (134, 135, 136, 164, 176, 177, 178, 179, 180, 219, 220, 221, 222, 223, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255), strict=True):
     _ruta.prioridad_proyecto = _orden
+# Satisfacción: quien hizo la reserva valora la atención desde «Mis reservas».
+_valorar = path("reservas/usuario/<int:reserva_id>/valorar/",
+    vista_diferida('apps.reservas.presentation.valoraciones.valorar_reserva_usuario'), name="valorar_reserva_usuario")
+_valorar.prioridad_proyecto = 241.1
+urlpatterns.append(_valorar)
