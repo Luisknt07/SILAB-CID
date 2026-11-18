@@ -144,6 +144,17 @@ class Consumible(models.Model):
             'protección personal y limpieza tienen su propia clase.'
         ),
     )
+    sustancia_controlada = models.BooleanField(
+        'Sustancia sujeta a control',
+        default=False,
+        help_text='Márcala si es una sustancia catalogada o sujeta a fiscalización.',
+    )
+    autorizacion_control = models.CharField(
+        'Autorización o licencia de control',
+        max_length=160,
+        blank=True,
+        help_text='Referencia de la autorización o licencia que ampara el uso de la sustancia controlada.',
+    )
     unidad_medida = models.CharField(max_length=50, blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
     instrucciones_solicitud = models.TextField(

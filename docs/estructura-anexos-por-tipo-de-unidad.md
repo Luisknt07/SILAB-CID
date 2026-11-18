@@ -344,6 +344,21 @@ Exigencia: la del mismo nombre. Tipos: los cuatro. En el observatorio cubre equi
 
 - **Centro experimental:** incluye riego, invernaderos, establos y cercas.
 - **Observatorio:** incluye red, servidores y respaldos de la sala.
+
+**Tabla 2.8 · Calibración de equipos.** Un equipo activo por fila: los que tienen alguna fecha de calibración o al menos una orden de calibración en el período.
+
+| # | Columna | Contenido | Fuente |
+| --- | --- | --- | --- |
+| 1 | Código / nombre | (anexo 3) | UnidadEquipo.codigo_unidad, EquiposServicios.nombre |
+| 2 | Última calibración | | EquiposServicios.fecha_ultima_calibracion |
+| 3 | Próxima calibración | | EquiposServicios.proxima_calibracion |
+| 4 | Vigencia al corte | Vigente, por vencer (vence en los 30 días siguientes al corte), vencida o sin programar (no tiene próxima calibración) | proxima_calibracion, frente al corte |
+| 5 | Calibraciones del período | Cuántas órdenes de calibración, sin las canceladas / sus códigos (los de 2.2) | MantenimientoEquipo (tipo calibración) |
+| 6 | Respaldo | Enlace al informe de la calibración más reciente del período | MantenimientoEquipo.informe |
+
+- **Pie:** equipos con calibración registrada · vigentes · por vencer · vencidas · sin programar, si los hay.
+- **Sin equipos con calibración:** la tabla se presenta sin filas.
+
 - **No va aquí:**
   - la identificación del equipo (anexo 3);
   - los incidentes de seguridad (anexo 8).
@@ -401,9 +416,10 @@ Exigencia: «Inventario de equipamiento, reactivos e insumos». Tipos: los cuatr
 | 5 | Vencimiento | | fecha_vencimiento |
 | 6 | Ubicación | Bodega · estantería · posición | bodega, estanteria, posicion |
 | 7 | Estado del lote | | estado |
-| 8 | Ficha de seguridad | Enlace | Consumible.ficha_tecnica |
+| 8 | Controlada | Sustancia sujeta a control: «Sí · referencia de la autorización o licencia», «Sí · sin autorización registrada» o «No» | Consumible.sustancia_controlada, autorizacion_control |
+| 9 | Ficha de seguridad | Enlace | Consumible.ficha_tecnica |
 
-- **Pie:** reactivos · lotes · vencidos con saldo · que vencen en 90 días.
+- **Pie:** reactivos · lotes · vencidos con saldo · que vencen en 90 días · controlados.
 - **Centro experimental:** se llama «Reactivos, agroquímicos y medicamentos veterinarios».
 
 **Tabla 3.5 · Insumos y materiales.**
@@ -1192,7 +1208,7 @@ Respalda la meta de eventos de socialización de resultados.
 | --- | --- | --- |
 | Sesión de uso | Registros de uso | Prácticas, seguridad, investigación, transferencia |
 | Visita | Registros de uso | — |
-| Plan y orden de mantenimiento, falla técnica, prueba funcional | Plan de mantenimiento e informe de equipamiento | Evidencias de prácticas (incidente) |
+| Plan y orden de mantenimiento, falla técnica, prueba funcional, vigencia de la calibración | Plan de mantenimiento e informe de equipamiento | Evidencias de prácticas (incidente) |
 | Equipo: identidad, custodia y estado | Inventario | Mantenimiento, fichas técnicas, software |
 | Reactivo, insumo, materia prima y sus movimientos | Inventario | Desechos (origen), producción (consumo) |
 | Espacio, taller, línea, parcela, software, simulador | Fichas técnicas | Uso, planificación de prácticas, producción, ensayos |
@@ -1230,6 +1246,7 @@ Respalda la meta de eventos de socialización de resultados.
 | Tipo «taller» | `EspacioReservable.tipo` | La misma pantalla; los tipos que se ofrecen dependen del tipo de unidad |
 | Tipo «simulador» | `SoftwareDisponible.tipo_recurso` | Gestión de la unidad → Recursos → software |
 | Agroquímico y medicamento veterinario | `Consumible.clasificacion` | Gestión de la unidad → Recursos → insumos |
+| Sustancia sujeta a control y su autorización o licencia | `Consumible.sustancia_controlada`, `autorizacion_control` | Gestión de la unidad → Recursos → insumos; página de insumos de la unidad |
 | Ensayo: objetivo, tratamientos, repeticiones, variables y responsable | `CicloProductivo.es_ensayo` y los demás | Centro experimental → Plan y registros de producción → ciclo |
 | Condiciones de inspección por tipo de unidad | `detalle['condiciones_revisadas']` | Fuentes de las metas → Inspección |
 

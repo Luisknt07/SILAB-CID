@@ -2618,6 +2618,11 @@ def _operar_consumible(request, unidad):
     objeto.especificacion_tecnica = (
         request.POST.get("especificacion_tecnica") or ""
     ).strip()
+    # Un formulario abierto antes de que existieran estos campos no borra la marca ni su autorización.
+    if "sustancia_controlada" in request.POST:
+        objeto.sustancia_controlada = _booleano_post(request, "sustancia_controlada")
+    if "autorizacion_control" in request.POST:
+        objeto.autorizacion_control = (request.POST.get("autorizacion_control") or "").strip()
     objeto.unidad_medida = (request.POST.get("unidad_medida") or "").strip()
     objeto.ubicacion = (request.POST.get("ubicacion") or "").strip()
     objeto.descripcion = (request.POST.get("descripcion") or "").strip()

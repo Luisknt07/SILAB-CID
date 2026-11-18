@@ -208,3 +208,49 @@ class SoftwareEInsumosTests(BaseCaptura):
         self.assertIn('Urea granulada', origen)
         self.assertIn('Vacuna contra la fiebre aftosa', origen)
         self.assertNotIn('Sacos de yute', origen)
+
+    def test_el_panel_guarda_la_sustancia_controlada_y_su_autorizacion(self):
+        panel = self.panel(view='recursos', modo_recursos='insumos')
+        self.assertContains(panel, '<select name="sustancia_controlada">')
+        self.assertContains(panel, 'name="autorizacion_control" maxlength="160"')
+        ficha = dict(modulo='consumible', codigo='CAP-REA-CTRL', nombre='Acetona de prueba', clasificacion='reactivo',
+                     unidad_medida='l', minimo='0', activo='on')
+        respuesta = self.operar(**ficha, sustancia_controlada='true', autorizacion_control=' Licencia de prueba 001 ')
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        reactivo = Consumible.objects.get(codigo='CAP-REA-CTRL')
+        self.assertEqual((reactivo.sustancia_controlada, reactivo.autorizacion_control),
+                         (True, 'Licencia de prueba 001'))
+        # El botón de editar lleva los dos datos de vuelta al formulario.
+        panel = self.panel(view='recursos', modo_recursos='inventario')
+        self.assertContains(panel, 'data-field-sustancia_controlada="true"')
+        self.assertContains(panel, 'data-field-autorizacion_control="Licencia de prueba 001"')
+        ficha['registro_id'] = str(reactivo.pk)
+        # Un formulario abierto antes de que existieran los campos no borra la marca ni la autorización.
+        self.operar(**ficha)
+        reactivo.refresh_from_db()
+        self.assertEqual((reactivo.sustancia_controlada, reactivo.autorizacion_control),
+                         (True, 'Licencia de prueba 001'))
+        # Controlada sin autorización se guarda: no se bloquea a la unidad; el anexo lo dirá.
+        respuesta = self.operar(**ficha, sustancia_controlada='true', autorizacion_control='')
+        self.assertEqual(respuesta.status_code, 200, respuesta.content)
+        reactivo.refresh_from_db()
+        self.assertEqual((reactivo.sustancia_controlada, reactivo.autorizacion_control), (True, ''))
+        self.operar(**ficha, sustancia_controlada='false', autorizacion_control='')
+        reactivo.refresh_from_db()
+        self.assertFalse(reactivo.sustancia_controlada)
+
+    def test_la_pagina_de_insumos_edita_la_sustancia_controlada_y_su_autorizacion(self):
+        reactivo = Consumible.objects.create(unidad=self.lab, codigo='CAP-REA-PAG', nombre='Éter de prueba',
+                                             clasificacion='reactivo', unidad_medida='l')
+        url = reverse('editar_registro', args=[self.lab.slug, 'insumo', reactivo.pk])
+        campos = self.client.get(url).context['formulario'].fields
+        self.assertEqual(campos['sustancia_controlada'].label, 'Sustancia sujeta a control')
+        self.assertEqual(campos['autorizacion_control'].max_length, 160)
+        datos = {'registro-nombre': reactivo.nombre, 'registro-codigo': reactivo.codigo,
+                 'registro-clasificacion': 'reactivo', 'registro-cantidad_por_presentacion': '1',
+                 'registro-unidad_medida': 'l', 'registro-activo': 'on', 'registro-sustancia_controlada': 'on',
+                 'registro-autorizacion_control': 'Licencia de prueba 002'}
+        self.assertEqual(self.client.post(url, datos, HTTP_X_REQUESTED_WITH='fetch').json(), {'ok': True})
+        reactivo.refresh_from_db()
+        self.assertEqual((reactivo.sustancia_controlada, reactivo.autorizacion_control),
+                         (True, 'Licencia de prueba 002'))

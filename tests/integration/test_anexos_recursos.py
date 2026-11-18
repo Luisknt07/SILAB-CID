@@ -8,12 +8,13 @@ Fija lo acordado en docs/estructura-anexos-por-tipo-de-unidad.md, secciones 4.1 
   versión reducida del inventario;
 - cada tabla presenta lo del período en cualquier estado, sin lo cancelado ni lo anulado.
 """
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from datetime import timezone as zona
 from decimal import Decimal
 from tempfile import TemporaryDirectory
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 
 from apps.directorio_unidades.models.core import Unidad
@@ -41,7 +42,7 @@ ACTA = ('Acta de revisión física del período',
         ('Código', 'Fecha', 'Alcance', 'Responsable', 'Observaciones', 'Respaldo'))
 BAJAS = ('Bajas y traspasos del período', ('Equipo', 'Movimiento', 'Fecha', 'Motivo', 'Destino / reemplazo', 'Acta'))
 REACTIVOS = ('Código / nombre', 'Presentación / marca', 'Lote', 'Cantidad', 'Vencimiento', 'Ubicación',
-             'Estado del lote', 'Ficha de seguridad')
+             'Estado del lote', 'Controlada', 'Ficha de seguridad')
 # Las tablas de cada anexo y sus columnas, tal como las fija la especificación.
 TABLAS = {
     'REGISTRO-USO': [
@@ -73,6 +74,9 @@ TABLAS = {
         ('Estado de los equipos al corte', ('Estado', 'Equipos', 'De ellos, críticos')),
         ('Mantenimiento de infraestructura y espacios',
          ('Espacio o instalación', 'Intervención', 'Programada / ejecutada', 'Responsable', 'Estado', 'Respaldo')),
+        ('Calibración de equipos',
+         ('Código / nombre', 'Última calibración', 'Próxima calibración', 'Vigencia al corte',
+          'Calibraciones del período', 'Respaldo')),
     ],
     'INVENTARIO-CORTE': [
         ACTA,
@@ -460,6 +464,85 @@ class MantenimientoYEquipamientoTests(_ConUnidades):
         observatorio = self.registros('EQUIPAMIENTO', 'observatorios')[6]
         self.assertIn('(red, servidores y respaldos de la sala)', observatorio.vacio)
 
+    def calibrar(self, equipo, ultima, proxima):
+        """Las fechas de calibración se guardan en el modelo del equipo."""
+        EquiposServicios.objects.filter(pk=equipo.equipo_id).update(fecha_ultima_calibracion=ultima,
+                                                                    proxima_calibracion=proxima)
+
+    def calibracion(self):
+        contexto = self.contexto('EQUIPAMIENTO')
+        return next(r for r in constructor_de('EQUIPAMIENTO')(contexto) if r.titulo == 'Calibración de equipos')
+
+    def test_la_calibracion_se_clasifica_al_corte_y_no_lista_los_equipos_sin_calibracion(self):
+        corte = self.contexto('EQUIPAMIENTO').corte
+        termometro = self.equipo('MAN-EQ-04', 'Termómetro patrón')
+        micropipeta = self.equipo('MAN-EQ-05', 'Micropipeta')
+        retirado = self.equipo('MAN-EQ-06', 'Balanza retirada', activa=False)
+        self.calibrar(self.balanza, date(2026, 1, 10), corte + timedelta(days=31))
+        # El día 30 después del corte todavía es «por vencer»; el propio día del corte no está vencida.
+        self.calibrar(self.horno, date(2025, 6, 1), corte + timedelta(days=30))
+        self.calibrar(termometro, date(2025, 1, 15), corte - timedelta(days=1))
+        self.calibrar(micropipeta, date(2026, 2, 1), None)
+        self.calibrar(retirado, date(2026, 2, 1), corte + timedelta(days=200))
+        tabla = self.calibracion()
+        self.assertEqual(tabla.filas, [
+            [Par('MAN-EQ-01', 'Balanza analítica'), '10/01/2026', fecha(corte + timedelta(days=31)), 'Vigente', '0',
+             '—'],
+            [Par('MAN-EQ-02', 'Horno de secado'), '01/06/2025', fecha(corte + timedelta(days=30)), 'Por vencer', '0',
+             '—'],
+            [Par('MAN-EQ-04', 'Termómetro patrón'), '15/01/2025', fecha(corte - timedelta(days=1)), 'Vencida', '0',
+             '—'],
+            [Par('MAN-EQ-05', 'Micropipeta'), '01/02/2026', '—', 'Sin programar', '0', '—'],
+        ])
+        self.assertEqual(tabla.total, 'Total: 4 equipos con calibración registrada · vigentes: 1 · por vencer: 1 · '
+                                      'vencidas: 1 · sin programar: 1')
+        self.calibrar(self.horno, date(2025, 6, 1), corte)
+        self.calibrar(termometro, None, None)
+        tabla = self.calibracion()
+        self.assertEqual([(fila[0].principal, fila[3]) for fila in tabla.filas],
+                         [('MAN-EQ-01', 'Vigente'), ('MAN-EQ-02', 'Por vencer'), ('MAN-EQ-05', 'Sin programar')])
+
+    def test_la_calibracion_cita_las_ordenes_del_periodo_y_enlaza_su_informe(self):
+        corte = self.contexto('EQUIPAMIENTO').corte
+        self.calibrar(self.balanza, date(2026, 8, 10), corte + timedelta(days=200))
+        hecha = MantenimientoEquipo.objects.create(
+            equipo=self.balanza, plan=self.plan, tipo='calibracion', estado='completado', titulo='Calibración',
+            fecha_programada=_al_mediodia(date(2026, 8, 10)), fecha_inicio=_al_mediodia(date(2026, 8, 10)),
+            fecha_fin=_al_mediodia(date(2026, 8, 10)), resultado='Calibrada con pesas patrón.',
+            informe=ContentFile(b'%PDF-1.4 certificado de prueba', name='certificado-de-prueba.pdf'))
+        programada = MantenimientoEquipo.objects.create(
+            equipo=self.balanza, tipo='calibracion', estado='programado', titulo='Calibración de control',
+            fecha_programada=_al_mediodia(date(2026, 9, 1)))
+        # Una orden de calibración basta para listar el equipo, aunque no tenga fechas; una cancelada, no.
+        sola = MantenimientoEquipo.objects.create(
+            equipo=self.agitador, tipo='calibracion', estado='programado', titulo='Calibración de velocidad',
+            fecha_programada=_al_mediodia(date(2026, 9, 15)))
+        MantenimientoEquipo.objects.create(
+            equipo=self.horno, tipo='calibracion', estado='cancelado', titulo='Calibración cancelada',
+            fecha_programada=_al_mediodia(date(2026, 9, 20)))
+        # Las de otro período y los mantenimientos que no son calibración no cuentan.
+        MantenimientoEquipo.objects.create(
+            equipo=self.horno, tipo='calibracion', estado='programado', titulo='Calibración del semestre anterior',
+            fecha_programada=_al_mediodia(date(2026, 3, 1)))
+        MantenimientoEquipo.objects.create(
+            equipo=self.horno, tipo='preventivo', estado='programado', titulo='Limpieza',
+            fecha_programada=_al_mediodia(date(2026, 9, 22)))
+        tabla = self.calibracion()
+        self.assertEqual([fila[:5] for fila in tabla.filas], [
+            [Par('MAN-EQ-01', 'Balanza analítica'), '10/08/2026', fecha(corte + timedelta(days=200)), 'Vigente',
+             Par('2 · completadas: 1', f'{hecha.codigo}, {programada.codigo}')],
+            [Par('MAN-EQ-03', 'Agitador magnético'), '—', '—', 'Sin programar', Par('1 · completadas: 0', sola.codigo)],
+        ])
+        respaldo = tabla.filas[0][5]
+        self.assertIsInstance(respaldo, Enlace)
+        self.assertIn('certificado-de-prueba', respaldo.url)
+        self.assertEqual(tabla.filas[1][5], '—')
+        self.assertEqual(tabla.total, 'Total: 2 equipos con calibración registrada · vigentes: 1 · por vencer: 0 · '
+                                      'vencidas: 0 · sin programar: 1')
+        # Las órdenes que cita son filas de la tabla de mantenimientos del período.
+        ordenes = {fila[0] for fila in self.registros('EQUIPAMIENTO')[1].filas}
+        self.assertTrue({hecha.codigo, programada.codigo, sola.codigo} <= ordenes)
+
 
 class InventarioTests(_ConUnidades):
     @classmethod
@@ -549,15 +632,37 @@ class InventarioTests(_ConUnidades):
         reactivos = self.tabla('INVENTARIO-CORTE', 'Reactivos')
         self.assertEqual(reactivos.filas, [
             [Par('INV-REA-01', 'Etanol absoluto'), Par('Frasco 1 L', 'Merck'), 'L-2026-01', '2,5 l',
-             Par('01/08/2026', 'vencido'), 'Bodega A · E1 · P3', 'En bodega', '—'],
+             Par('01/08/2026', 'vencido'), 'Bodega A · E1 · P3', 'En bodega', 'No', '—'],
         ])
-        self.assertEqual(reactivos.total, 'Total: 1 reactivo · lotes: 1 · vencidos con saldo: 1 · vencen en 90 días: 0')
+        self.assertEqual(reactivos.total, 'Total: 1 reactivo · lotes: 1 · vencidos con saldo: 1 · vencen en 90 días: 0 '
+                                          '· controlados: 0')
         insumos = self.tabla('INVENTARIO-CORTE', 'Insumos y materiales')
         self.assertEqual(insumos.filas, [
             [Par('INV-INS-01', 'Filamento PLA'), 'Insumo', '4 kg', Par('5 kg', '10 kg'), '1', '—', 'Estante 3',
              'Compra pública'],
         ])
         self.assertEqual(insumos.total, 'Total: 1 artículo · bajo el mínimo: 1 · sin lotes localizables: 0')
+
+    def test_un_reactivo_controlado_se_marca_con_su_autorizacion(self):
+        Consumible.objects.create(
+            unidad=self.unidad, codigo='INV-REA-02', nombre='Acetona de prueba', clasificacion='reactivo',
+            unidad_medida='l', stock_total=1, sustancia_controlada=True, autorizacion_control='Licencia de prueba 001')
+        Consumible.objects.create(
+            unidad=self.unidad, codigo='INV-REA-03', nombre='Ácido de prueba', clasificacion='reactivo',
+            unidad_medida='l', stock_total=1, sustancia_controlada=True)
+        # Una referencia escrita sin la marca no convierte al reactivo en controlado.
+        Consumible.objects.create(
+            unidad=self.unidad, codigo='INV-REA-04', nombre='Agar de prueba', clasificacion='reactivo',
+            unidad_medida='g', stock_total=1, autorizacion_control='Licencia de prueba 002')
+        reactivos = self.tabla('INVENTARIO-CORTE', 'Reactivos')
+        self.assertEqual(reactivos.cabecera[-2:], ('Controlada', 'Ficha de seguridad'))
+        self.assertEqual({fila[0].principal: fila[7] for fila in reactivos.filas}, {
+            'INV-REA-01': 'No',
+            'INV-REA-02': 'Sí · Licencia de prueba 001',
+            'INV-REA-03': 'Sí · sin autorización registrada',
+            'INV-REA-04': 'No',
+        })
+        self.assertTrue(reactivos.total.endswith(' · controlados: 2'), reactivos.total)
 
     def test_movimientos_del_periodo_con_su_referencia(self):
         sesion = self.reserva(date(2026, 9, 10), estado='completada')
@@ -612,10 +717,10 @@ class InventarioTests(_ConUnidades):
         self.assertEqual(reactivos.filas, [
             Grupo(detalle['agroquimico'][0]),
             [Par('CE-AGRO-01', 'Fungicida cúprico'), 'Saco 1 kg', 'Sin lote registrado', '3 kg', '—',
-             'Bodega de agroquímicos', '—', '—'],
+             'Bodega de agroquímicos', '—', 'No', '—'],
             Grupo(detalle['veterinario'][0]),
             [Par('CE-VET-01', 'Vacuna triple'), 'Frasco de 50 dosis', 'Sin lote registrado', '20 unidad', '—', '—', '—',
-             '—'],
+             'No', '—'],
         ])
         self.assertTrue(reactivos.total.startswith('Total: 2 artículos · lotes: 0'))
         insumos = self.tabla('INVENTARIO-CORTE', 'Insumos y materiales', 'centro_experimental')

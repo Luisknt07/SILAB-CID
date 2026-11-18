@@ -305,6 +305,8 @@
     <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="3"></textarea></label>
     <label class="is-wide">{% translate "Especificación técnica autorizada" %}<textarea name="especificacion_tecnica" rows="3" placeholder="{% translate "Composición, diámetro, tolerancias, calidad y demás requisitos que evitan dañar el equipo." %}"></textarea></label>
     <label class="is-wide">{% translate "Orientación para solicitar" %}<textarea name="instrucciones_solicitud" rows="3" placeholder="{% translate "Indica al usuario cómo estimar o solicitar la cantidad." %}"></textarea></label>
+    <label>{% translate "Sustancia sujeta a control" %}<select name="sustancia_controlada"><option value="false">{% translate "No" %}</option><option value="true">{% translate "Sí: catalogada o sujeta a fiscalización" %}</option></select></label>
+    <label class="is-wide">{% translate "Autorización o licencia que ampara su uso" %}<input name="autorizacion_control" maxlength="160" placeholder="{% translate "Número o referencia de la autorización, si la sustancia es controlada" %}"></label>
   </div>
   <div class="unit-console-operation__section-head"><span>{% translate "PLAN DE REPOSICIÓN" %}</span><h3>{% translate "Niveles y abastecimiento" %}</h3><p>{% translate "El sistema usa estos valores y el consumo de los últimos 90 días para anticipar la compra." %}</p></div>
   <div class="unit-console-operation__grid">

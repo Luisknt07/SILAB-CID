@@ -97,7 +97,7 @@ class ConsumibleAdmin(AdministracionTraducida):
     ]
     list_filter = [
         'clasificacion', 'familia', 'color', 'origen_abastecimiento', 'unidad',
-        'visible_en_reservas', 'activo', 'unidad_medida',
+        'visible_en_reservas', 'activo', 'sustancia_controlada', 'unidad_medida',
     ]
     search_fields = [
         'nombre', 'familia', 'variante', 'color', 'marca', 'codigo',
@@ -123,6 +123,7 @@ class ConsumibleAdmin(AdministracionTraducida):
                 'clasificacion', 'familia', 'variante', 'color', 'marca',
                 'presentacion', 'cantidad_por_presentacion', 'unidad_medida',
                 'especificacion_tecnica', 'instrucciones_solicitud', 'precio_unitario',
+                'sustancia_controlada', 'autorizacion_control',
                 'imagen', 'imagen_catalogo', 'ficha_tecnica',
             )
         }),

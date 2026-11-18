@@ -200,7 +200,7 @@ REGISTRO = {
         'Insumo o material', Consumible,
         ('nombre', 'codigo', 'clasificacion', 'familia', 'marca', 'descripcion', 'presentacion',
          'cantidad_por_presentacion', 'unidad_medida', 'especificacion_tecnica', 'ubicacion', 'instrucciones_solicitud',
-         'imagen', 'visible_en_reservas', 'activo'),
+         'sustancia_controlada', 'autorizacion_control', 'imagen', 'visible_en_reservas', 'activo'),
         'inventario', lambda unidad: Consumible.objects.filter(unidad=unidad),
         nuevo=lambda unidad, padre: Consumible(unidad=unidad),
         pagina=lambda unidad, instancia: reverse('insumos_unidad', args=[unidad.slug])),
