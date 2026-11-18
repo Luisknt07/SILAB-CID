@@ -2239,23 +2239,30 @@
         "desperdicio_equipo",
         "desperdicio_calidad",
       ].includes(reason?.value || "");
-      Array.from(lot.options).forEach((option) => {
-        if (!option.value) return;
-        const belongsToConsumable = Boolean(consumable?.value) &&
+      const lotOptions = Array.from(lot.options).filter((option) => option.value);
+      lotOptions.forEach((option) => {
+        // El consumo se descuenta de una presentación abierta; una cerrada en bodega
+        // también se ofrece porque se abre al guardar, en el mismo paso.
+        const visible = Boolean(consumable?.value) &&
           option.dataset.consumibleId === consumable.value;
-        const statusAllowed = !consumesOpenPresentation ||
-          option.dataset.lotStatus === "en_uso";
-        const visible = belongsToConsumable && statusAllowed;
         option.hidden = !visible;
         option.disabled = !visible;
       });
       if (lot.selectedOptions[0]?.disabled) lot.value = "";
+      if (consumesOpenPresentation && !lot.value) {
+        // Lo habitual: seguir con la presentación ya abierta; si no hay, abrir la primera cerrada.
+        const available = lotOptions.filter((option) => !option.disabled);
+        const preferred = available.find((option) => option.dataset.lotStatus === "en_uso") || available[0];
+        if (preferred) lot.value = preferred.value;
+      }
       lot.required = consumesOpenPresentation ||
         ["caducidad", "extravio"].includes(reason?.value || "");
       const lotHelp = form.querySelector("[data-inventory-lot-help]");
       if (lotHelp) {
         lotHelp.textContent = consumesOpenPresentation
-          ? gettext("El consumo y el desperdicio solo descuentan una presentación En uso. Si aún está cerrada, cambia primero su estado y asígnala al equipo.")
+          ? (lotOptions.some((option) => !option.disabled)
+            ? gettext("El consumo se descuenta de una presentación abierta («En uso»). Si eliges una cerrada, se abre al guardar.")
+            : gettext("Este insumo no tiene presentaciones con saldo: ingrésalas antes con «Recibir existencias»."))
           : ["caducidad", "extravio"].includes(reason?.value || "")
             ? gettext("Selecciona la presentación física que se retirará por completo.")
             : "Selecciona un lote para mantener ubicación y trazabilidad; deja vacío solo para saldos históricos."
@@ -2263,6 +2270,26 @@
     }
     filterEquipmentByConsumable(consumable, equipment);
     const selectedLot = lot?.selectedOptions[0];
+    // Presentación cerrada elegida para consumir: se abre en el equipo indicado al guardar.
+    const opensClosedLot = Boolean(selectedLot?.value) && selectedLot.dataset.lotStatus === "bodega" && [
+      "consumo_produccion",
+      "consumo_practica",
+      "desperdicio_equipo",
+      "desperdicio_calidad",
+    ].includes(reason?.value || "") && type?.value === "salida";
+    const openLotNotice = form.querySelector("[data-inventory-open-lot]");
+    if (openLotNotice) openLotNotice.hidden = !opensClosedLot;
+    const openLotField = form.elements.namedItem("abrir_presentacion");
+    if (openLotField) openLotField.value = opensClosedLot ? "1" : "";
+    if (equipment) {
+      equipment.required = opensClosedLot;
+      if (opensClosedLot && !equipment.value) {
+        const usable = Array.from(equipment.options).filter((option) => option.value && !option.disabled);
+        if (usable.length === 1) equipment.value = usable[0].value;
+      }
+    }
+    const note = form.elements.namedItem("nota");
+    if (note) note.required = type?.value === "ajuste";
     if (selectedLot?.value && selectedLot.dataset.equipmentId) {
       equipment.value = selectedLot.dataset.equipmentId;
     }
@@ -2322,30 +2349,62 @@
       );
       if (!isEditing && initial) {
         initial.value = presentationSize > 0 && count > 0
-          ? String(presentationSize * count)
+          ? String(receivedTotal(presentationSize, count))
           : "";
       }
-    }
-    if (initial) {
-      initial.readOnly = true;
-      initial.required = !isEditing;
     }
     filterEquipmentByConsumable(consumable, equipment);
     if (equipment) {
       equipment.required = status?.value === "en_uso";
       if (status?.value !== "en_uso") equipment.value = "";
+      if (status?.value === "en_uso" && !equipment.value) {
+        // Con un solo equipo posible no hay nada que elegir.
+        const usable = Array.from(equipment.options).filter((option) => option.value && !option.disabled);
+        if (usable.length === 1) equipment.value = usable[0].value;
+      }
     }
-    if (warehouse) warehouse.required = status?.value === "bodega";
+    // La bodega no se exige: sin ella, el servidor toma la ubicación de la ficha o la unidad.
+    if (warehouse) warehouse.required = false;
+    form.querySelectorAll("[data-lot-on-create]").forEach((node) => { node.hidden = isEditing; });
+    form.querySelectorAll("[data-lot-on-edit]").forEach((node) => { node.hidden = !isEditing; });
+    // «En uso» necesita su equipo, que vive en los datos opcionales: se muestran.
+    const more = form.querySelector("[data-operation-more]");
+    if (more && (isEditing || status?.value === "en_uso")) more.open = true;
     const help = form.querySelector("[data-inventory-quantity-help]");
     if (help && consumable?.value) {
       const unit = consumable.selectedOptions[0]?.dataset.inventoryUnit || "unidades";
-      const presentationName = consumable.selectedOptions[0]?.dataset.presentationName || "presentaciones";
+      const names = {
+        plural: consumable.selectedOptions[0]?.dataset.presentationName || "presentaciones",
+        singular: consumable.selectedOptions[0]?.dataset.presentationSingular || "presentación",
+      };
       const count = Number(presentationCount?.value || 0);
-      const total = presentationSize > 0 && count > 0 ? presentationSize * count : 0;
-      help.textContent = total
-        ? `${count} ${presentationName} = ${total} ${unit}. Las unidades cerradas se contabilizan sin decimales.`
-        : `Cada presentación contiene ${presentationSize || "—"} ${unit}.`;
+      help.textContent = receptionSummary(presentationSize, count, unit, names, isEditing);
+    } else if (help) {
+      help.textContent = gettext("Elige un insumo para ver cuánto ingresa.");
     }
+  }
+
+  // Total que ingresa, sin los decimales espurios de multiplicar en coma flotante (0,1 × 3).
+  function receivedTotal(presentationSize, count) {
+    return Math.round(presentationSize * count * 1000) / 1000;
+  }
+
+  // «1 presentación = 1000 g → total 1000 g»: lo que el usuario necesita ver antes de guardar.
+  function receptionSummary(presentationSize, count, unit, names, isEditing) {
+    if (!(presentationSize > 0)) {
+      return "La ficha del insumo no dice cuánto trae cada presentación: edítala y completa «Contenido por presentación».";
+    }
+    const singular = names.singular;
+    const presentationName = names.plural;
+    const size = formatQuantity(presentationSize);
+    if (isEditing) return `1 ${singular} = ${size} ${unit}. La cantidad de este lote solo cambia con movimientos.`;
+    if (!(count > 0) || !Number.isInteger(count)) {
+      return `1 ${singular} = ${size} ${unit}. Escribe cuántas recibes, en número entero.`;
+    }
+    const total = formatQuantity(receivedTotal(presentationSize, count));
+    return count === 1
+      ? `1 ${singular} = ${size} ${unit} → total ${total} ${unit}`
+      : `${count} ${presentationName} × ${size} ${unit} → total ${total} ${unit}. Cada una queda como un lote con su código.`;
   }
 
   function updateInventoryUnitLabels(form, selectedOption) {
@@ -2824,6 +2883,8 @@
       configureFullDay(form);
       configureIncidentForm(form);
       const isEditing = Boolean(form.elements.namedItem("registro_id")?.value);
+      // «Más datos (opcional)»: plegado al crear y a la vista al editar, donde ya hay valores que revisar.
+      form.querySelectorAll("[data-operation-more]").forEach((details) => { details.open = isEditing; });
       configureBlockForm(form, isEditing);
       configureEquipmentForm(form, isEditing);
       configureInventoryForm(form);
@@ -2867,7 +2928,7 @@
           repuesto_mantenimiento: [gettext("Registrar pieza o accesorio"), gettext("Editar pieza o accesorio")],
           mantenimiento: [gettext("Nuevo mantenimiento"), gettext("Gestionar mantenimiento")],
           inventario: [gettext("Registrar movimiento"), gettext("Registrar movimiento")],
-          lote_consumible: [gettext("Recibir nuevo lote"), gettext("Ubicar o actualizar lote")],
+          lote_consumible: [gettext("Recibir existencias"), gettext("Ubicar o poner en uso el lote")],
           consumible: [gettext("Nuevo insumo o material"), gettext("Editar insumo o material")],
           finanzas: [gettext("Nuevo movimiento financiero"), gettext("Consultar movimiento financiero")],
           responsable: [gettext("Nuevo responsable"), gettext("Editar responsable")],
@@ -3132,6 +3193,12 @@
       event.preventDefault();
       submitAgendaOperation(form, "guardar");
     });
+    // Un campo inválido dentro de «Más datos» plegado no se puede enfocar y el navegador no avisa:
+    // se abre el pliegue para que el aviso se vea junto al campo.
+    form.addEventListener("invalid", (event) => {
+      const details = event.target?.closest?.("details");
+      if (details) details.open = true;
+    }, true);
     escucharCampo(form, "dia_completo", "change", () => {
       configureFullDay(form);
     });

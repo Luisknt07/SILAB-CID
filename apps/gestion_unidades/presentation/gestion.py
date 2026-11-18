@@ -2321,13 +2321,35 @@ def _operar_inventario(request, unidad):
     if tipo_movimiento == "salida" and motivo in motivos_que_consumen_presentacion_abierta:
         if lote is None:
             raise ValidationError(
-                "Selecciona la presentación abierta que se está utilizando. "
-                "El stock cerrado de bodega no se descuenta directamente."
+                "Elige en «Lote físico» la presentación de la que se consume. "
+                "El consumo se descuenta de una presentación abierta, no del total del insumo."
+            )
+        if lote.estado == "bodega" and _booleano_post(request, "abrir_presentacion"):
+            # Un solo paso: la presentación cerrada se abre en el equipo indicado y de ella se descuenta.
+            equipo_apertura = (request.POST.get("equipo_id") or "").strip()
+            if not equipo_apertura:
+                raise ValidationError(
+                    "Para abrir la presentación, elige en «Equipo relacionado» el equipo donde se usará."
+                )
+            lote_anterior = _instantanea_objeto_operativo(lote)
+            lote.estado = "en_uso"
+            lote.equipo_en_uso = _equipo_existente_bloqueado(unidad, equipo_apertura)
+            lote.fecha_apertura = lote.fecha_apertura or timezone.localdate()
+            lote.actualizado_por = request.user
+            lote.save()
+            registrar_auditoria(
+                request,
+                unidad=unidad,
+                accion="actualizar",
+                objeto=lote,
+                descripcion="Presentación abierta y puesta en uso al registrar su consumo",
+                anteriores=lote_anterior,
+                nuevos=_instantanea_objeto_operativo(lote),
             )
         if lote.estado != "en_uso":
             raise ValidationError(
-                "Para registrar consumo o desperdicio, primero cambia el lote a En uso "
-                "y asígnalo al equipo correspondiente."
+                "Esa presentación sigue cerrada en bodega. Marca «Abrir esta presentación y ponerla en uso» "
+                "y elige el equipo, o ábrela antes con «Poner en uso» en la lista de lotes."
             )
     objeto = EntradaInventario(
         consumible=consumible,
@@ -2366,6 +2388,38 @@ def _operar_inventario(request, unidad):
     return objeto, "Movimiento de inventario registrado", True
 
 
+def _codigos_de_lote(consumible, fecha, cantidad, codigo=""):
+    """Un código por presentación recibida, único dentro del insumo.
+
+    Sin código escrito se generan con el código del insumo, la fecha de ingreso y un consecutivo
+    (REA-001-20261118-01, -02…); con código escrito, las presentaciones siguientes llevan -02, -03…
+    """
+    if codigo:
+        codigos = [codigo] + [f"{codigo}-{numero:02d}" for numero in range(2, cantidad + 1)]
+        repetido = LoteConsumible.objects.filter(
+            consumible=consumible, codigo__in=codigos
+        ).values_list("codigo", flat=True).first()
+        if repetido:
+            raise ValidationError(
+                f"Este insumo ya tiene un lote con el código «{repetido}». Deja vacío «Código de lote o serie» "
+                "(en «Más datos») para que el sistema genere uno, o escribe otro."
+            )
+        return codigos
+    base = f"{consumible.codigo}-{fecha:%Y%m%d}"
+    usados = set(
+        LoteConsumible.objects.filter(
+            consumible=consumible, codigo__startswith=f"{base}-"
+        ).values_list("codigo", flat=True)
+    )
+    codigos, numero = [], 0
+    while len(codigos) < cantidad:
+        numero += 1
+        candidato = f"{base}-{numero:02d}"
+        if candidato not in usados:
+            codigos.append(candidato)
+    return codigos
+
+
 def _operar_lote_consumible(request, unidad):
     registro_id = (request.POST.get("registro_id") or "").strip()
     presentaciones_recibidas = 1
@@ -2377,13 +2431,20 @@ def _operar_lote_consumible(request, unidad):
         )
         creado = False
     else:
+        consumible_id = (request.POST.get("consumible_id") or "").strip()
+        if not consumible_id.isdigit():
+            raise ValidationError("Elige en «Insumo o material» qué estás recibiendo.")
+        # El bloqueo ordena dos recepciones simultáneas del mismo insumo: no generan el mismo código.
         consumible = get_object_or_404(
-            Consumible,
-            pk=request.POST.get("consumible_id"),
+            Consumible.objects.select_for_update(),
+            pk=consumible_id,
             unidad=unidad,
             activo=True,
         )
         presentaciones_texto = (request.POST.get("numero_presentaciones") or "").strip()
+        if not presentaciones_texto and not (request.POST.get("cantidad_inicial") or "").strip():
+            # Lo habitual es recibir una presentación: es el valor por omisión.
+            presentaciones_texto = "1"
         if presentaciones_texto:
             try:
                 presentaciones = int(presentaciones_texto)
@@ -2455,6 +2516,9 @@ def _operar_lote_consumible(request, unidad):
         )
     objeto.estado = estado_solicitado
     objeto.bodega = (request.POST.get("bodega") or "").strip()
+    if estado_solicitado == "bodega" and not objeto.bodega:
+        # Sin bodega escrita, el lote queda donde la ficha dice que se guarda el insumo o, si no lo dice, en la unidad.
+        objeto.bodega = ((objeto.consumible.ubicacion or "").strip() or unidad.nombre)[:120]
     objeto.estanteria = (request.POST.get("estanteria") or "").strip()
     objeto.posicion = (request.POST.get("posicion") or "").strip()
     fecha_ingreso = (request.POST.get("fecha_ingreso") or "").strip()
@@ -2462,6 +2526,11 @@ def _operar_lote_consumible(request, unidad):
         objeto.fecha_ingreso = parse_date(fecha_ingreso)
         if objeto.fecha_ingreso is None:
             raise ValidationError("Registra una fecha de ingreso válida.")
+    if creado:
+        codigos_recibidos = _codigos_de_lote(
+            objeto.consumible, objeto.fecha_ingreso, presentaciones_recibidas, objeto.codigo
+        )
+        objeto.codigo = codigos_recibidos[0]
     fecha_apertura_texto = (request.POST.get("fecha_apertura") or "").strip()
     fecha_apertura = parse_date(fecha_apertura_texto) if fecha_apertura_texto else None
     if fecha_apertura_texto and fecha_apertura is None:
@@ -2473,12 +2542,17 @@ def _operar_lote_consumible(request, unidad):
     objeto.costo_unitario = _decimal_opcional(
         request.POST.get("costo_unitario"), "El costo unitario"
     )
+    if creado and objeto.costo_unitario is None:
+        # Sin costo escrito, la recepción toma el de la ficha del insumo.
+        objeto.costo_unitario = objeto.consumible.precio_unitario
     objeto.documento_recepcion = (request.POST.get("documento_recepcion") or "").strip()
     objeto.observaciones = (request.POST.get("observaciones") or "").strip()
     equipo_id = (request.POST.get("equipo_en_uso_id") or "").strip()
     if estado_solicitado == "en_uso":
         if not equipo_id:
-            raise ValidationError("Selecciona el equipo donde se encuentra el lote abierto.")
+            raise ValidationError(
+                "Para dejar la presentación «En uso», elige el equipo en «Equipo donde está en uso»."
+            )
         objeto.equipo_en_uso = _equipo_existente_bloqueado(unidad, equipo_id)
         objeto.fecha_apertura = fecha_apertura or objeto.fecha_apertura or timezone.localdate()
     else:
@@ -2511,7 +2585,7 @@ def _operar_lote_consumible(request, unidad):
         for numero in range(2, presentaciones_recibidas + 1):
             lote_adicional = LoteConsumible.objects.create(
                 consumible=objeto.consumible,
-                codigo=f"{objeto.codigo}-{numero:02d}",
+                codigo=codigos_recibidos[numero - 1],
                 cantidad_inicial=contenido_presentacion,
                 cantidad_actual=Decimal("0"),
                 estado="bodega",
@@ -2602,6 +2676,13 @@ def _operar_consumible(request, unidad):
         return objeto, "Insumo desactivado", False
     objeto.codigo = (request.POST.get("codigo") or "").strip()
     objeto.nombre = (request.POST.get("nombre") or "").strip()
+    if not objeto.codigo or not objeto.nombre:
+        raise ValidationError("Escribe el código y el nombre del insumo.")
+    # El código identifica al insumo en toda la plataforma, no solo en la unidad.
+    if Consumible.objects.filter(codigo=objeto.codigo).exclude(pk=objeto.pk).exists():
+        raise ValidationError(
+            f"Ya existe un insumo con el código «{objeto.codigo}» (en esta u otra unidad). Usa otro código."
+        )
     objeto.clasificacion = (request.POST.get("clasificacion") or "insumo").strip()
     if objeto.clasificacion not in dict(Consumible.CLASIFICACIONES):
         raise ValidationError("Selecciona una clase de inventario válida.")
@@ -2657,11 +2738,14 @@ def _operar_consumible(request, unidad):
     objeto.proveedor_referencia = (
         request.POST.get("proveedor_referencia") or ""
     ).strip()
-    objeto.lote = (request.POST.get("lote") or "").strip()
-    fecha_vencimiento = (request.POST.get("fecha_vencimiento") or "").strip()
-    objeto.fecha_vencimiento = parse_date(fecha_vencimiento) if fecha_vencimiento else None
-    if fecha_vencimiento and objeto.fecha_vencimiento is None:
-        raise ValidationError("Registra una fecha de vencimiento válida.")
+    # La ficha del panel no pide lote ni vencimiento (van en cada presentación recibida): si no llegan, se conservan.
+    if "lote" in request.POST:
+        objeto.lote = (request.POST.get("lote") or "").strip()
+    if "fecha_vencimiento" in request.POST:
+        fecha_vencimiento = (request.POST.get("fecha_vencimiento") or "").strip()
+        objeto.fecha_vencimiento = parse_date(fecha_vencimiento) if fecha_vencimiento else None
+        if fecha_vencimiento and objeto.fecha_vencimiento is None:
+            raise ValidationError("Registra una fecha de vencimiento válida.")
     for campo_archivo in ("imagen", "ficha_tecnica"):
         archivo = request.FILES.get(campo_archivo)
         if archivo:
@@ -3562,6 +3646,9 @@ def _datos_recursos_panel(
             )
     # Los formularios necesitan compatibilidad, no el libro histórico de stock.
     for consumible in consumibles:
+        # La recepción de existencias nombra la presentación («1 bobina = 1000 g») en cualquier modo.
+        consumible.nombre_presentacion = _nombre_presentacion(consumible)
+        consumible.nombre_presentacion_singular = _nombre_presentacion_singular(consumible)
         relaciones = list(consumible.por_equipo.all())
         catalogos = {relacion.equipo_id for relacion in relaciones}
         consumible.equipos_compatibles_ids_csv = ",".join(

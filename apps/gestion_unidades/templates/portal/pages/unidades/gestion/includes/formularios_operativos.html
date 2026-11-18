@@ -1,5 +1,5 @@
 
-{% load i18n idiomas %}
+{% load i18n idiomas l10n %}
 {% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'activos' %}
 <form class="unit-console-operation" data-agenda-operation-form="equipo" data-reload-view="recursos" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
   {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="recursos"><input type="hidden" name="entidad" value="equipo"><input type="hidden" name="registro_id">
@@ -243,65 +243,79 @@
   {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="inventario">
   <header><span>{% translate "MOVIMIENTO TRAZABLE" %}</span><h3>{% translate "Ingreso, consumo o pérdida" %}</h3><p>{% translate "Registra qué ocurrió, sobre qué lote, en qué equipo y quién asume su costo." %}</p></header>
   <div class="unit-console-operation__grid">
-    <label class="is-wide">{% translate "Insumo o material" %}<select name="consumible_id" required><option value="">{% translate "Selecciona una existencia" %}</option>{% for item in consumibles %}<option value="{{ item.pk }}" data-compatible-equipment-ids="{{ item.equipos_unidad_compatibles_ids_csv }}" data-unit-cost="{{ item.precio_unitario|default:'' }}" data-inventory-unit="{{ item.unidad_medida|default:'unidades' }}" data-presentation-size="{{ item.cantidad_por_presentacion }}" data-presentation-name="{{ item.nombre_presentacion }}">{{ item.codigo }} · {{ item.nombre }} · {{ item.stock_total }} {{ item.unidad_medida }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Insumo o material" %}<select name="consumible_id" required><option value="">{% translate "Selecciona una existencia" %}</option>{% for item in consumibles %}<option value="{{ item.pk }}" data-compatible-equipment-ids="{{ item.equipos_unidad_compatibles_ids_csv }}" data-unit-cost="{{ item.precio_unitario|default_if_none:''|unlocalize }}" data-inventory-unit="{{ item.unidad_medida|default:'unidades' }}" data-presentation-size="{{ item.cantidad_por_presentacion|unlocalize }}" data-presentation-name="{{ item.nombre_presentacion }}" data-presentation-singular="{{ item.nombre_presentacion_singular }}">{{ item.codigo }} · {{ item.nombre }} · {{ item.stock_total }} {{ item.unidad_medida }}</option>{% endfor %}</select></label>
     <label>{% translate "Operación" %}<select name="tipo" data-inventory-type><option value="ingreso">{% translate "Ingreso" %}</option><option value="salida">{% translate "Salida o consumo" %}</option><option value="ajuste">{% translate "Ajustar al saldo indicado" %}</option></select></label>
     <label>{% translate "Cantidad o nuevo saldo (" %}<span data-inventory-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="cantidad" min="0" step="0.001" required><small data-inventory-quantity-help>{% translate "Selecciona un insumo para ver la unidad exacta." %}</small></label>
     <label>{% translate "Motivo" %}<select name="motivo" data-inventory-reason>{% for codigo, nombre in motivos_movimiento_inventario %}<option value="{{ codigo }}" data-inventory-direction="{% if codigo == 'recepcion' or codigo == 'devolucion' or codigo == 'ajuste_positivo' %}ingreso{% else %}salida{% endif %}">{{ nombre }}</option>{% endfor %}</select></label>
-    <label>{% translate "Lote físico" %}<select name="lote_inventario_id" data-inventory-lot><option value="">{% translate "Sin lote / existencia heredada" %}</option>{% for lote in lotes_inventario %}{% if lote.cantidad_actual > 0 %}{% if lote.estado == 'bodega' or lote.estado == 'en_uso' %}<option value="{{ lote.pk }}" data-consumible-id="{{ lote.consumible_id }}" data-lot-status="{{ lote.estado }}" data-lot-quantity="{{ lote.cantidad_actual }}" data-equipment-id="{{ lote.equipo_en_uso_id|default:'' }}" data-unit-cost="{{ lote.costo_unitario|default:'' }}">{{ lote.codigo }} · {{ lote.get_estado_display|ui }} · {{ lote.cantidad_actual|floatformat:"-3" }} {{ lote.consumible.unidad_medida }}</option>{% endif %}{% endif %}{% endfor %}</select><small data-inventory-lot-help>{% translate "Para consumir, selecciona la presentación abierta que está asignada a un equipo." %}</small></label>
+    <label>{% translate "Lote físico" %}<select name="lote_inventario_id" data-inventory-lot><option value="">{% translate "Sin lote / existencia heredada" %}</option>{% for lote in lotes_inventario %}{% if lote.cantidad_actual > 0 %}{% if lote.estado == 'bodega' or lote.estado == 'en_uso' %}<option value="{{ lote.pk }}" data-consumible-id="{{ lote.consumible_id }}" data-lot-status="{{ lote.estado }}" data-lot-quantity="{{ lote.cantidad_actual|unlocalize }}" data-equipment-id="{{ lote.equipo_en_uso_id|default:'' }}" data-unit-cost="{{ lote.costo_unitario|default_if_none:''|unlocalize }}">{{ lote.codigo }} · {{ lote.get_estado_display|ui }} · {{ lote.cantidad_actual|floatformat:"-3" }} {{ lote.consumible.unidad_medida }}</option>{% endif %}{% endif %}{% endfor %}</select><small data-inventory-lot-help>{% translate "El consumo se descuenta de una presentación abierta («En uso»)." %}</small></label>
+    <p class="unit-console-operation__resumen is-wide" data-inventory-open-lot hidden><input type="hidden" name="abrir_presentacion" value="">{% translate "Esta presentación está cerrada en bodega. Al guardar se abre y queda «En uso» en el equipo que elijas en «Equipo relacionado»; de ella se descuenta el consumo." %}</p>
     <label>{% translate "Equipo relacionado" %}<select name="equipo_id"{% if catalogos_remotos %} data-resource-select="equipos" data-resource-search-url="{% url 'gestion_recursos_buscar' unidad.slug %}"{% endif %} data-inventory-equipment><option value="">{% translate "Sin equipo específico" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
     <label>{% translate "Reserva o atención" %}<select name="reserva_id"><option value="">{% translate "Sin reserva vinculada" %}</option>{% for reserva in reservas_inventario %}<option value="{{ reserva.pk }}">{{ reserva.codigo_reserva }} · {{ reserva.fecha|date:"d/m/Y" }} · {% firstof reserva.titulo_solicitud reserva.equipo_nombre "Solicitud" %}</option>{% endfor %}</select></label>
     <label>{% translate "Incidencia causante" %}<select name="incidencia_id"><option value="">{% translate "Sin incidencia" %}</option>{% for incidencia in incidencias_inventario %}<option value="{{ incidencia.pk }}">{{ incidencia.equipo.codigo_unidad }} · {{ incidencia.titulo }}</option>{% endfor %}</select></label>
     <label>{% translate "Costo por" %} <span data-inventory-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="costo_unitario" min="0" step="0.0001"></label>
     <label>{% translate "Responsable del costo" %}<select name="responsable_costo">{% for codigo, nombre in responsables_costo_inventario %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
     <label>{% translate "Referencia" %}<input name="referencia" maxlength="100" placeholder="{% translate "Factura, acta u orden" %}"></label>
-    <label class="is-wide">{% translate "Nota" %}<textarea name="nota" rows="4" required></textarea></label>
+    <label class="is-wide">{% translate "Nota" %}<textarea name="nota" rows="3" placeholder="{% translate "Opcional; en un ajuste, explica el conteo" %}"></textarea></label>
   </div>
   <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
   <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Registrar movimiento" %}</button></footer>
 </form>
 {% endif %}
 
-{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'inventario' %}
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'inventario' or vista_gestion == 'recursos' and modo_recursos == 'insumos' %}
 <form class="unit-console-operation" data-agenda-operation-form="lote_consumible" data-reload-view="recursos" data-reload-resources-mode="inventario" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
-  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="lote_consumible"><input type="hidden" name="registro_id">
-  <header><span>{% translate "TRAZABILIDAD FÍSICA" %}</span><h3>{% translate "Rollo, envase o lote" %}</h3><p>{% translate "Identifica cada presentación, su ubicación en bodega y el equipo donde se encuentra en uso." %}</p></header>
+  {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="lote_consumible"><input type="hidden" name="registro_id"><input type="hidden" name="cantidad_inicial">
+  <header><span>{% translate "EXISTENCIAS" %}</span><h3><span data-lot-on-create>{% translate "Recibir existencias" %}</span><span data-lot-on-edit hidden>{% translate "Ubicación y estado del lote" %}</span></h3><p data-lot-on-create>{% translate "Elige el insumo y cuántas presentaciones llegaron. El sistema calcula el total, identifica cada presentación con su propio código y deja registrado el ingreso." %}</p><p data-lot-on-edit hidden>{% translate "Cambia dónde está la presentación o ponla en uso en un equipo. La cantidad solo cambia con movimientos." %}</p></header>
   <div class="unit-console-operation__grid">
-    <label class="is-wide">{% translate "Insumo o material" %}<select name="consumible_id" required><option value="">{% translate "Selecciona una ficha" %}</option>{% for item in consumibles %}<option value="{{ item.pk }}" data-compatible-equipment-ids="{{ item.equipos_unidad_compatibles_ids_csv }}" data-inventory-unit="{{ item.unidad_medida|default:'unidades' }}" data-presentation-size="{{ item.cantidad_por_presentacion }}" data-presentation-name="{{ item.nombre_presentacion }}">{{ item.codigo }} · {{ item.nombre }} · {{ item.cantidad_por_presentacion|floatformat:"-3" }} {{ item.unidad_medida }} {% translate "por presentación" %}</option>{% endfor %}</select></label>
-    <label>{% translate "Código de lote o serie" %}<input name="codigo" maxlength="100" required><small>{% translate "Si recibes varias presentaciones, el sistema añadirá -02, -03… para identificarlas por separado." %}</small></label>
-    <label>{% translate "Presentaciones comerciales recibidas" %}<input type="number" name="numero_presentaciones" min="1" step="1" required data-inventory-presentation-count><small>{% translate "Registra bobinas, rollos, envases, cajas o paquetes completos; siempre como número entero." %}</small></label>
-    <label>{% translate "Total contabilizado (" %}<span data-inventory-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="cantidad_inicial" min="0.001" step="0.001" readonly required data-inventory-calculated-quantity><small data-inventory-quantity-help>{% translate "El sistema calculará la cantidad base según la presentación comercial." %}</small></label>
+    <label class="is-wide">{% translate "Insumo o material" %}<select name="consumible_id" required><option value="">{% translate "Selecciona una ficha" %}</option>{% for item in consumibles %}<option value="{{ item.pk }}" data-compatible-equipment-ids="{{ item.equipos_unidad_compatibles_ids_csv }}" data-inventory-unit="{{ item.unidad_medida|default:'unidades' }}" data-presentation-size="{{ item.cantidad_por_presentacion|unlocalize }}" data-presentation-name="{{ item.nombre_presentacion }}" data-presentation-singular="{{ item.nombre_presentacion_singular }}">{{ item.codigo }} · {{ item.nombre }} · {{ item.cantidad_por_presentacion|floatformat:"-3" }} {{ item.unidad_medida }} {% translate "por presentación" %}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "¿Cuántas presentaciones recibes?" %}<input type="number" name="numero_presentaciones" min="1" step="1" value="1" required data-inventory-presentation-count><small>{% translate "Bobinas, rollos, envases, cajas o paquetes completos: siempre un número entero." %}</small></label>
+  </div>
+  <p class="unit-console-operation__resumen" data-inventory-quantity-help role="status" aria-live="polite">{% translate "Elige un insumo para ver cuánto ingresa." %}</p>
+  <details class="unit-console-operation__mas" data-operation-more>
+    <summary>{% translate "Más datos (opcional)" %}</summary>
+    <div class="unit-console-operation__mas-cuerpo">
+    <p data-lot-on-create>{% translate "Si los dejas vacíos, el sistema los completa: genera el código del lote, toma la bodega de la ubicación de la ficha del insumo (o el nombre de la unidad), pone la fecha de hoy y usa el costo de la ficha." %}</p>
+    <div class="unit-console-operation__grid">
+    <label>{% translate "Código de lote o serie" %}<input name="codigo" maxlength="100" placeholder="{% translate "Se genera automáticamente" %}"><small>{% translate "Si recibes varias presentaciones con un código propio, el sistema añade -02, -03… a las siguientes." %}</small></label>
     <label>{% translate "Estado" %}<select name="estado">{% for codigo, nombre in estados_lote_consumible %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
-    <label>{% translate "Equipo donde está en uso" %}<select name="equipo_en_uso_id" data-inventory-equipment><option value="">{% translate "Permanece en bodega" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select></label>
-    <label>{% translate "Bodega o ambiente" %}<input name="bodega" maxlength="120" placeholder="{% translate "Ej. Bodega FabLab" %}"></label>
+    <label>{% translate "Equipo donde está en uso" %}<select name="equipo_en_uso_id" data-inventory-equipment><option value="">{% translate "Permanece en bodega" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select><small>{% translate "Solo si el estado es «En uso»." %}</small></label>
+    <label>{% translate "Bodega o ambiente" %}<input name="bodega" maxlength="120" placeholder="{% translate "Por omisión, la ubicación de la ficha" %}"></label>
     <label>{% translate "Estantería" %}<input name="estanteria" maxlength="80" placeholder="{% translate "Ej. Estantería FDM" %}"></label>
     <label>{% translate "Posición" %}<input name="posicion" maxlength="80" placeholder="{% translate "Ej. Nivel 2 · Caja A" %}"></label>
     <label>{% translate "Fecha de ingreso" %}<input type="date" name="fecha_ingreso" value="{% now 'Y-m-d' %}"></label>
     <label>{% translate "Fecha de apertura" %}<input type="date" name="fecha_apertura"></label>
     <label>{% translate "Fecha de vencimiento" %}<input type="date" name="fecha_vencimiento"></label>
-    <label>{% translate "Costo por" %} <span data-inventory-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="costo_unitario" min="0" step="0.0001"></label>
-    <label>{% translate "Documento de recepción" %}<input name="documento_recepcion" maxlength="120"></label>
-    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="4"></textarea></label>
-  </div>
+    <label>{% translate "Costo por" %} <span data-inventory-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="costo_unitario" min="0" step="0.0001" placeholder="{% translate "El de la ficha" %}"></label>
+    <label>{% translate "Documento de recepción" %}<input name="documento_recepcion" maxlength="120" placeholder="{% translate "Factura, acta u orden" %}"></label>
+    <label class="is-wide">{% translate "Observaciones" %}<textarea name="observaciones" rows="3"></textarea></label>
+    </div>
+    </div>
+  </details>
   <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
-  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-archive"></i> {% translate "Retirar lote" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar lote" %}</button></footer>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-archive"></i> {% translate "Retirar lote" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> <b data-lot-on-create>{% translate "Recibir existencias" %}</b><b data-lot-on-edit hidden>{% translate "Guardar cambios" %}</b></button></footer>
 </form>
 {% endif %}
 
 {% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'insumos' or vista_gestion == 'recursos' and modo_recursos == 'inventario' %}
 <form class="unit-console-operation" data-agenda-operation-form="consumible" data-reload-view="recursos" data-reload-resources-mode="inventario" action="{% url 'gestion_operacion_accion' unidad.slug %}" enctype="multipart/form-data" hidden>
   {% csrf_token %}{% if catalogos_remotos %}<input type="hidden" name="catalogos_remotos" value="1"><input type="hidden" name="catalogos_seleccion_cargada" value="">{% endif %}<input type="hidden" name="modulo" value="consumible"><input type="hidden" name="registro_id">
-  <header><span>{% translate "CATÁLOGO DE ABASTECIMIENTO" %}</span><h3>{% translate "Ficha del insumo o material" %}</h3><p>{% translate "Define exactamente qué se admite, cómo se compra y cuándo debe reponerse. Las existencias solo cambian mediante movimientos trazables." %}</p></header>
+  <header><span>{% translate "CATÁLOGO DE ABASTECIMIENTO" %}</span><h3>{% translate "Ficha del insumo o material" %}</h3><p>{% translate "Para crear un insumo bastan el código, el nombre, la unidad base y el contenido de cada presentación. Las existencias no se escriben aquí: ingresan con «Recibir existencias»." %}</p></header>
   <div class="unit-console-operation__grid">
     <label>{% translate "Código" %}<input name="codigo" maxlength="50" required></label>
     <label>{% translate "Nombre" %}<input name="nombre" maxlength="200" required></label>
+    <label>{% translate "Unidad base" %}<input name="unidad_medida" maxlength="50" placeholder="{% translate "g, mL, lámina, unidad" %}" data-consumable-base-unit required><small>{% translate "Esta unidad se mostrará en todo ingreso, consumo, stock y costo." %}</small></label>
+    <label>{% translate "Contenido por presentación" %}<input type="number" name="cantidad_por_presentacion" min="0.001" step="0.001" value="1" required><small>{% translate "Cuánto trae cada envase, rollo o paquete. Ej.: 1000 si la unidad base es g y el envase es de 1 kg." %}</small></label>
+  </div>
+  <details class="unit-console-operation__mas" data-operation-more>
+    <summary>{% translate "Más datos (opcional)" %}</summary>
+    <div class="unit-console-operation__mas-cuerpo">
+  <div class="unit-console-operation__grid">
     <label>{% translate "Tipo" %}<select name="clasificacion">{% for codigo, nombre in clasificaciones_consumible %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
     <label>{% translate "Familia" %}<input name="familia" maxlength="100" placeholder="{% translate "Ej. Filamentos" %}"></label>
     <label>{% translate "Variante" %}<input name="variante" maxlength="120" placeholder="{% translate "Ej. PLA, 1,75 mm" %}"></label>
     <label>{% translate "Color" %}<input name="color" maxlength="50"></label>
     <label>{% translate "Marca admitida" %}<input name="marca" maxlength="100"></label>
     <label>{% translate "Presentación comercial" %}<input name="presentacion" maxlength="120" placeholder="{% translate "Ej. Bobina de 1 kg" %}"></label>
-    <label>{% translate "Contenido por presentación" %}<input type="number" name="cantidad_por_presentacion" min="0.001" step="0.001" value="1" required></label>
-    <label>{% translate "Unidad base" %}<input name="unidad_medida" maxlength="50" placeholder="{% translate "g, mL, lámina, unidad" %}" data-consumable-base-unit required><small>{% translate "Esta unidad se mostrará en todo ingreso, consumo, stock y costo." %}</small></label>
     <label class="is-wide">{% translate "Descripción" %}<textarea name="descripcion" rows="3"></textarea></label>
     <label class="is-wide">{% translate "Especificación técnica autorizada" %}<textarea name="especificacion_tecnica" rows="3" placeholder="{% translate "Composición, diámetro, tolerancias, calidad y demás requisitos que evitan dañar el equipo." %}"></textarea></label>
     <label class="is-wide">{% translate "Orientación para solicitar" %}<textarea name="instrucciones_solicitud" rows="3" placeholder="{% translate "Indica al usuario cómo estimar o solicitar la cantidad." %}"></textarea></label>
@@ -310,10 +324,10 @@
   </div>
   <div class="unit-console-operation__section-head"><span>{% translate "PLAN DE REPOSICIÓN" %}</span><h3>{% translate "Niveles y abastecimiento" %}</h3><p>{% translate "El sistema usa estos valores y el consumo de los últimos 90 días para anticipar la compra." %}</p></div>
   <div class="unit-console-operation__grid">
-    <label>{% translate "Punto de reposición (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="minimo" min="0" step="0.001" value="0" required></label>
-    <label>{% translate "Stock de seguridad (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="stock_seguridad" min="0" step="0.001" value="0" required></label>
-    <label>{% translate "Stock objetivo (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="stock_objetivo" min="0" step="0.001" value="0" required></label>
-    <label>{% translate "Plazo de reposición (días)" %}<input type="number" name="plazo_reposicion_dias" min="0" step="1" value="0" required></label>
+    <label>{% translate "Punto de reposición (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="minimo" min="0" step="0.001" value="0"></label>
+    <label>{% translate "Stock de seguridad (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="stock_seguridad" min="0" step="0.001" value="0"></label>
+    <label>{% translate "Stock objetivo (" %}<span data-stock-unit-label>{% translate "unidad base" %}</span>)<input type="number" name="stock_objetivo" min="0" step="0.001" value="0"></label>
+    <label>{% translate "Plazo de reposición (días)" %}<input type="number" name="plazo_reposicion_dias" min="0" step="1" value="0"></label>
     <label>{% translate "Costo por" %} <span data-stock-unit-label>{% translate "unidad base" %}</span> {% translate "(USD)" %}<input type="number" name="precio_unitario" min="0" step="0.0001"></label>
     <label>{% translate "Origen habitual" %}<select name="origen_abastecimiento">{% for codigo, nombre in origenes_abastecimiento %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
     <label class="is-wide">{% translate "Proveedor o dependencia de referencia" %}<input name="proveedor_referencia" maxlength="180"></label>
@@ -326,6 +340,8 @@
     <label>{% translate "Ficha técnica PDF" %}<input type="file" name="ficha_tecnica" accept="application/pdf"></label>
   </div>
   <fieldset class="unit-console-operation__checks"><legend>{% translate "Disponibilidad" %}</legend><label><input type="checkbox" name="visible_en_reservas" checked> {% translate "Visible en reservas" %}</label><label><input type="checkbox" name="activo" checked> {% translate "Registro activo" %}</label></fieldset>
+    </div>
+  </details>
   <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div><footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar ficha" %}</button></footer>
 </form>
 {% endif %}

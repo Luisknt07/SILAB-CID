@@ -2375,6 +2375,17 @@ body.management-embedded .unit-console__sidebar { max-height: calc(100vh - 20px)
 .unit-console-operation__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
 .unit-console-operation label { min-width: 0; color: var(--uc-green-950); font-size: 12px; font-weight: 700; }
 .unit-console-operation label.is-wide { grid-column: 1 / -1; }
+/* La unidad de medida va dentro del rótulo («Punto de reposición (g)»): en el modal de gestión la regla
+   de los rótulos del asistente de reservas la partía en tres renglones. */
+.unit-console-operation label > span[data-stock-unit-label],
+.unit-console-operation label > span[data-inventory-unit-label] { display: inline; margin: 0; color: inherit; font-size: inherit; font-weight: inherit; }
+/* Recepción de existencias: el total que ingresa a la vista y lo opcional plegado. */
+.unit-console-operation__resumen { margin: 10px 0 0; padding: 9px 11px; color: var(--uc-green-950); border: 1px solid var(--uc-line-strong); border-radius: 6px; background: #f3f8f5; font-size: 13px; font-weight: 700; line-height: 1.4; }
+.unit-console-operation__grid > .unit-console-operation__resumen { margin: 0; grid-column: 1 / -1; }
+.unit-console-operation__mas { margin: 12px 0 0; border: 1px solid var(--uc-line); border-radius: 6px; background: #f8faf9; }
+.unit-console-operation__mas > summary { padding: 9px 11px; color: var(--uc-green-800); font-size: 12px; font-weight: 800; cursor: pointer; }
+.unit-console-operation__mas-cuerpo { padding: 2px 11px 11px; }
+.unit-console-operation__mas-cuerpo > p { margin: 0 0 10px; color: var(--uc-muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
 .unit-console-operation input:not([type="checkbox"]),
 .unit-console-operation select,
 .unit-console-operation textarea {

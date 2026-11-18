@@ -1,4 +1,4 @@
-{% if campo_pac.clave == 'grupo' %}
+{% load l10n %}{% if campo_pac.clave == 'grupo' %}
   <div class="pac-campo"><span>{{ campo_pac.etiqueta }}</span><output class="pac-campo__derivado" data-pac-grupo>{{ valor_pac|default:'Por definir' }}</output><small>Se obtiene de los dos primeros caracteres de la partida.</small></div>
 {% else %}
   <label class="pac-campo{% if compacto %} pac-campo--compacto{% elif campo_pac.tipo == 'multilinea' or campo_pac.clave == 'item' %} pac-campo--ancho{% endif %}">
@@ -9,9 +9,9 @@
         {% for valor_opcion, etiqueta_opcion in campo_pac.opciones %}{% if campo_pac.clave != 'clasificacion_pac' or valor_opcion != 'por_definir' %}<option value="{{ valor_opcion }}"{% if valor_pac == valor_opcion %} selected{% endif %}>{{ etiqueta_opcion }}</option>{% endif %}{% endfor %}
       </select>
     {% elif campo_pac.tipo == 'entero' %}
-      <input class="guide-form__control" type="number" step="1" min="1" max="20" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac }}" inputmode="numeric">
+      <input class="guide-form__control" type="number" step="1" min="1" max="20" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac|default_if_none:''|unlocalize }}" inputmode="numeric">
     {% elif campo_pac.tipo == 'numero' %}
-      <input class="guide-form__control" type="number" step="any" min="0" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac }}" inputmode="decimal">
+      <input class="guide-form__control" type="number" step="any" min="0" name="compras__{{ campo_pac.clave }}" value="{{ valor_pac|default_if_none:''|unlocalize }}" inputmode="decimal">
     {% elif campo_pac.tipo == 'multilinea' %}
       <textarea class="guide-form__control" name="compras__{{ campo_pac.clave }}" rows="3" maxlength="2000">{{ valor_pac }}</textarea>
     {% else %}

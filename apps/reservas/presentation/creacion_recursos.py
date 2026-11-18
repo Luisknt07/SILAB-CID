@@ -544,8 +544,15 @@ def validar_consumibles(valor_json, unidad):
     for consumible_id, (cantidad, metodo) in cantidades.items():
         consumible = catalogo[consumible_id]
         if cantidad is not None and cantidad > consumible.stock_total:
+            if consumible.stock_total <= 0:
+                raise ValueError(
+                    f"{consumible.nombre} está agotado: quítalo de la solicitud. La reserva puede enviarse sin "
+                    "insumos; la unidad debe recibir existencias antes de ofrecerlo."
+                )
+            disponible = format(Decimal(consumible.stock_total).normalize(), "f")
             raise ValueError(
-                f"La cantidad solicitada de {consumible.nombre} supera la existencia disponible"
+                f"La cantidad solicitada de {consumible.nombre} supera la existencia disponible "
+                f"({disponible} {consumible.unidad_medida or 'unidades'}). Pide esa cantidad o menos."
             )
         resultado.append((consumible, cantidad, metodo))
     return resultado

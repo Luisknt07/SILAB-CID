@@ -1,5 +1,6 @@
 """Compila plantillas y comprueba referencias literales, sin renderizar ni consultar datos."""
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -27,6 +28,46 @@ def directorios_activos(backend):
     return directorios
 
 
+# Panel de gestión de la unidad: sus botones «editar» pasan los valores al formulario en atributos.
+PANEL_DE_GESTION = '/unidades/gestion/'
+_ATRIBUTO_CON_VARIABLE = re.compile(r'\b(data-[\w-]+|value)="([^"]*\{\{[^"]*)"')
+_VARIABLE = re.compile(r'\{\{\s*([^}]+?)\s*\}\}')
+_CONTROL_NUMERICO = re.compile(r'<(?:input\b[^>]*type="number"|progress\b|meter\b)')
+_SIN_FORMATO_LOCAL = re.compile(r"^(unlocalize|stringformat|floatformat:['\"][^'\"]*u['\"])")
+
+
+def campos_decimales():
+    """Nombres de los campos decimales o flotantes de los modelos instalados."""
+    from django.apps import apps
+    from django.db import models
+    return {campo.name for modelo in apps.get_models() for campo in modelo._meta.get_fields()
+            if isinstance(campo, (models.DecimalField, models.FloatField))}
+
+
+def decimales_localizados(source, decimales):
+    """Atributos del panel que recibirían un decimal con coma («1000,000»).
+
+    Con el idioma español las plantillas imprimen los decimales con coma; un `<input type="number">` no la
+    acepta y queda vacío, y el JavaScript que lee el atributo no puede calcular. Todo `data-*` del panel, y
+    todo `value` de un control numérico, cuya variable termina en el nombre de un campo decimal debe pasar
+    por `unlocalize` (o `floatformat` con sufijo «u»).
+    """
+    problemas = []
+    for hallazgo in _ATRIBUTO_CON_VARIABLE.finditer(source):
+        atributo, valor = hallazgo.groups()
+        if atributo == 'value':
+            etiqueta = source[source.rfind('<', 0, hallazgo.start()):hallazgo.start()]
+            if not _CONTROL_NUMERICO.match(etiqueta):
+                continue
+        for expresion in _VARIABLE.findall(valor):
+            base, *filtros = (parte.strip() for parte in expresion.split('|'))
+            if base.split('.')[-1] not in decimales:
+                continue
+            if not any(_SIN_FORMATO_LOCAL.match(filtro) for filtro in filtros):
+                problemas.append(f'{atributo}="{{{{ {expresion} }}}}"')
+    return problemas
+
+
 class Command(BaseCommand):
     help = 'Compila plantillas de las raíces Django activas y resuelve static/include/extends literales.'
 
@@ -35,6 +76,7 @@ class Command(BaseCommand):
             ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
             cwd=settings.BASE_DIR).decode().strip('\0').split('\0')
         errors, revisadas = [], set()
+        decimales = campos_decimales()
         for backend in engines.all():
             if not isinstance(backend, DjangoTemplates):
                 continue
@@ -48,6 +90,12 @@ class Command(BaseCommand):
                 try:
                     source = path.read_text(encoding=backend.engine.file_charset)
                     backend.from_string(source)
+                    if PANEL_DE_GESTION in name:
+                        localizados = decimales_localizados(source, decimales)
+                        if localizados:
+                            raise ValueError(
+                                'Decimal con formato local en un atributo numérico; aplica |unlocalize: '
+                                + '; '.join(localizados))
                     for token in Lexer(source).tokenize():
                         if token.token_type != TokenType.BLOCK:
                             continue

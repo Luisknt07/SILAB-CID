@@ -1950,7 +1950,8 @@ class PanelGestionUnidadTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertIn("primero cambia el lote a En uso", response.json()["error"])
+        self.assertIn("sigue cerrada en bodega", response.json()["error"])
+        self.assertIn("Poner en uso", response.json()["error"])
         lote.refresh_from_db()
         consumible.refresh_from_db()
         self.assertEqual(lote.cantidad_actual, Decimal("1000.000"))
