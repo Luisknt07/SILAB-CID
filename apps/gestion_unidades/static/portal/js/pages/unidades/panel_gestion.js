@@ -2555,7 +2555,8 @@
         <label><input type="checkbox" name="persona_${id}_ingresa" value="1" ${entry.ingresa === false ? "" : "checked"}> Ingresa</label>
         <label><input type="checkbox" name="persona_${id}_proteccion" value="1" ${entry.proteccion_verificada ? "checked" : ""}> Protección verificada</label>
         <label><input type="checkbox" name="persona_${id}_restricciones" value="1" ${entry.restricciones_verificadas ? "checked" : ""}> Restricciones verificadas</label>
-        <label>Hora<input type="time" name="persona_${id}_hora" value="${escapeHtml(entry.hora_ingreso || "")}"></label>
+        <label>Hora de ingreso<input type="time" name="persona_${id}_hora" value="${escapeHtml(entry.hora_ingreso || "")}"></label>
+        <label>Hora de salida<input type="time" name="persona_${id}_salida" value="${escapeHtml(entry.hora_salida || "")}"></label>
         <label class="is-wide">Motivo u observación<input name="persona_${id}_motivo" maxlength="200" value="${escapeHtml(entry.motivo || "")}"></label>`;
       rows.appendChild(row);
     });

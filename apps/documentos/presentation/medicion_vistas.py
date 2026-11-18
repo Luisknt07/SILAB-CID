@@ -220,6 +220,17 @@ class EvidenciaForm(forms.ModelForm):
         return fecha
 
 
+def codigo_propuesto(unidad, tipo, anio):
+    """El siguiente código libre de la unidad para ese tipo de evidencia y ese año: «INS-2026-003»."""
+    prefijo = f'{tipo[:3]}-{anio}-'
+    usados = set(EvidenciaGestionUnidad.objects.filter(unidad=unidad, codigo__startswith=prefijo)
+                 .values_list('codigo', flat=True))
+    numero = len(usados) + 1
+    while f'{prefijo}{numero:03d}' in usados:
+        numero += 1
+    return f'{prefijo}{numero:03d}'
+
+
 @login_required
 @require_http_methods(['GET', 'POST'])
 def fuentes_metas_view(request, slug):
@@ -247,6 +258,9 @@ def fuentes_metas_view(request, slug):
     form = EvidenciaForm(request.POST or None, request.FILES or None, unidad=unidad, tipo=tipo, inicio=inicio, fin=fin)
     if subtipo_inicial and 'subtipo' in form.fields:
         form.fields['subtipo'].initial = subtipo_inicial
+    # El código no se repite en la unidad: se propone el siguiente libre para que nadie tenga que inventarlo.
+    form.fields['codigo'].initial = codigo_propuesto(unidad, tipo, anio)
+    form.fields['codigo'].help_text = 'Propuesto por el sistema; puedes cambiarlo. No se repite dentro de la unidad.'
     if request.method == 'POST':
         try:
             if request.POST.get('accion') == 'rectificar':

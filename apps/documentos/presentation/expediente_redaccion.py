@@ -1503,7 +1503,8 @@ def problemas_cronograma(unidad, contenido, inicio, fin):
             continue
         calendario_pendiente = bool(fila.get('cronograma_auto') and fila['codigo'] in ACTIVIDADES_DOCENTES)
         mensaje = (fila.get('cronograma_origen') or 'Calendario académico pendiente de configurar.') if calendario_pendiente else (
-            'Pendiente de programar: registra las fechas de mantenimiento de los equipos exigibles.'
+            'Pendiente de programar: registra en «Mantenimiento e incidencias», en la gestión de la unidad, una '
+            'orden de mantenimiento preventivo con fecha dentro del semestre, y vuelve a abrir este editor.'
             if fila['codigo'] == 'MANTENIMIENTO' else 'Faltan meses de ejecución.')
         pendientes.append(dict(regla='calendario_docente_pendiente' if calendario_pendiente else 'actividad_incompleta',
             mensaje=f"{fila['nombre']}: {mensaje}", severidad='revision' if calendario_pendiente else 'bloqueo'))
@@ -1969,6 +1970,9 @@ def incumplimientos_del_periodo(documento):
     documentos = [
         otro for otro in leer_expediente(documento.unidad, documento.anio)
         if not documento.corte or otro.corte in ('', documento.corte)
+        # El informe no se lista a sí mismo: mientras se prepara todavía no está entregado, y esa fila
+        # desaparecía al archivarlo, con lo que su propio PDF quedaba «desactualizado» y no se podía enviar.
+        if otro.pk is None or otro.pk != documento.pk
     ]
     return [
         [falta['documento'].nombre_documental, falta['documento'].etiqueta_corte, falta['etiqueta'],

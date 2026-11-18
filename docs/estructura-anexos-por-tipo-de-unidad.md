@@ -786,7 +786,7 @@ Exigencia: «Registros de gestión de desechos peligrosos y especiales, conforme
 | 5 | Manifiesto | Número | manifiesto |
 | 6 | Documento | Enlace | documento |
 
-- **Dónde se registra:** la unidad anota la entrega y adjunta el manifiesto escaneado en Gestión de la unidad → Reportes → Registro de desechos → «Registrar entrega al gestor y manifiesto». El documento se abre con la vista protegida de la unidad.
+- **Dónde se registra:** en Gestión de la unidad → Centro de reportes → Registro de desechos. Con «Registrar desecho generado» la unidad anota cada desecho que genera (tablas 9.1 y 9.3) y lo corrige mientras siga en la unidad; con «Registrar entrega al gestor y manifiesto» anota la entrega y adjunta el manifiesto escaneado. El documento se abre con la vista protegida de la unidad.
 
 **Tabla 9.3 · Almacenado al corte.**
 

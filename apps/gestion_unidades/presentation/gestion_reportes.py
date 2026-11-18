@@ -1078,10 +1078,25 @@ def build_unit_report(request, unit):
                 dataset['registration_actions'].append(dict(
                     label='Registrar resultado y respaldo' if tipo == 'INVESTIGACION' else 'Registrar entrega y aceptación',
                     url=reverse('fuentes_metas_unidad', args=[unit.slug]) + '?' + consulta))
+            # Los documentos de respaldo de capacitación, difusión y simulacros se llenan con las mismas evidencias.
+            respaldos = {'capacitacion': (('CAPACITACION', 'Registrar capacitación del personal'),
+                                          ('DIFUSION', 'Registrar acción de difusión'))}
+            from apps.documentos.models.respaldo_medicion import requiere_inspecciones_fisicas
+            if requiere_inspecciones_fisicas(unit):
+                respaldos['simulacros'] = (('SIMULACRO', 'Registrar simulacro o práctica de emergencia'),)
+            for tipo, rotulo in respaldos.get(category, ()):
+                from django.urls import reverse
+                consulta = urlencode(dict(anio=start_date.year, corte='B' if start_date.month >= 7 else 'A', tipo=tipo))
+                dataset['registration_actions'].append(dict(
+                    label=rotulo, url=reverse('fuentes_metas_unidad', args=[unit.slug]) + '?' + consulta))
         if (category == 'desechos' and getattr(request, 'user', None) is not None
                 and puede_operar_modulo_unidad(request.user, unit, 'seguridad')):
-            # La entrega al gestor y su manifiesto se registran desde aquí, sin pasar por el panel de administración.
+            # El desecho generado, su entrega al gestor y el manifiesto se registran desde aquí, sin pasar por el
+            # panel de administración: es la misma pantalla, con sus dos pasos.
             from django.urls import reverse
+            dataset['registration_actions'].append(dict(
+                label='Registrar desecho generado',
+                url=reverse('entregas_desechos_unidad', args=[unit.slug]) + '#generacion'))
             dataset['registration_actions'].append(dict(
                 label='Registrar entrega al gestor y manifiesto',
                 url=reverse('entregas_desechos_unidad', args=[unit.slug])))

@@ -1,20 +1,25 @@
 {% load static %}<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Entregas de desechos al gestor · {{ unidad.nombre }}</title>
+<title>Desechos de la unidad · {{ unidad.nombre }}</title>
 <link rel="stylesheet" href="{% static 'portal/css/pages/unidades/fuentes_metas.css' %}?v=1"></head><body class="fuentes-metas">
-<main><header><small>{{ unidad.nombre }}</small><h1>Entregas de desechos al gestor autorizado</h1></header>
-<p>Registra a qué gestor se entregaron los desechos almacenados, con qué manifiesto y en qué fecha, y adjunta el manifiesto o acta escaneada. El anexo de gestión de desechos presenta estas entregas y enlaza su documento. La generación y el almacenamiento de cada desecho se registran en el panel de administración.</p>
+<main><header><small>{{ unidad.nombre }}</small><h1>Desechos de la unidad: generación y entrega al gestor</h1></header>
+<p>Son dos pasos. <strong>1.</strong> Cada vez que la unidad genera un desecho peligroso o especial, regístralo aquí: queda almacenado. <strong>2.</strong> Cuando el gestor autorizado se lo lleve, registra la entrega con su manifiesto escaneado. El anexo de gestión de desechos presenta lo generado, las entregas y lo que sigue almacenado.</p>
 {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+{% if not corregido %}<h2 id="generacion">{% if editado %}Corregir el desecho «{{ editado.nombre }}»{% else %}1. Registrar un desecho generado{% endif %}</h2>
+{% if editado %}<p>Se corrige mientras el desecho siga en la unidad. <a href="{% url 'entregas_desechos_unidad' unidad.slug %}">Volver sin cambiar nada</a></p>{% endif %}
+<form method="post" action="{% url 'entregas_desechos_unidad' unidad.slug %}">{% csrf_token %}<input type="hidden" name="accion" value="generar">{% if editado %}<input type="hidden" name="editar" value="{{ editado.pk }}">{% endif %}
+{{ form_generacion.non_field_errors }}<div class="fuentes-metas__campos">{% for campo in form_generacion %}<div{% if campo.name == 'nombre' or campo.name == 'observaciones' %} class="is-ancho"{% endif %}>{{ campo.label_tag }}{{ campo }}{{ campo.errors }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}</div>{% endfor %}</div>
+<button type="submit">{% if editado %}Guardar la corrección{% else %}Registrar el desecho{% endif %}</button></form>{% endif %}
 {% if corregido %}<h2>Corregir la entrega de «{{ corregido.nombre }}»</h2>
 <p>{{ corregido.cantidad|floatformat:"-3" }} {{ corregido.get_unidad_medida_display }} · generado el {{ corregido.fecha_generacion|date:'d/m/Y' }}. {% if corregido.documento %}Si no subes otro archivo, se conserva el manifiesto actual.{% else %}Esta entrega todavía no tiene su manifiesto escaneado.{% endif %} <a href="{% url 'entregas_desechos_unidad' unidad.slug %}">Volver sin cambiar nada</a></p>
-{% else %}<h2>Registrar una entrega</h2>{% endif %}
-{% if hay_almacenados %}<form method="post" enctype="multipart/form-data" action="{% url 'entregas_desechos_unidad' unidad.slug %}">{% csrf_token %}{% if corregido %}<input type="hidden" name="corregir" value="{{ corregido.pk }}">{% endif %}
+{% elif not editado %}<h2 id="entrega">2. Registrar una entrega al gestor</h2>{% endif %}
+{% if editado %}{% elif hay_almacenados %}<form method="post" enctype="multipart/form-data" action="{% url 'entregas_desechos_unidad' unidad.slug %}">{% csrf_token %}{% if corregido %}<input type="hidden" name="corregir" value="{{ corregido.pk }}">{% endif %}
 {{ form.non_field_errors }}<div class="fuentes-metas__campos">{% for campo in form %}<div{% if campo.name == 'desechos' or campo.name == 'documento' %} class="is-ancho"{% endif %}>{{ campo.label_tag }}{{ campo }}{{ campo.errors }}{% if campo.help_text %}<small>{{ campo.help_text }}</small>{% endif %}</div>{% endfor %}</div>
 <button type="submit">{% if corregido %}Guardar la corrección{% else %}Registrar la entrega{% endif %}</button></form>
-{% else %}<p>No hay desechos almacenados pendientes de entrega.</p>{% endif %}
+{% else %}<p>No hay desechos almacenados pendientes de entrega.{% if not filas %} Registra primero el desecho generado, en el paso 1.{% endif %}</p>{% endif %}
 <h2>Desechos registrados</h2><div class="fuentes-metas__tabla"><table><thead><tr><th>Generado</th><th>Desecho</th><th>Cantidad</th><th>Etapa</th><th>Entrega al gestor</th><th>Manifiesto escaneado</th><th>Corrección</th></tr></thead><tbody>
 {% for fila in filas %}<tr><td>{{ fila.fecha_generacion|date:'d/m/Y' }}</td><th>{{ fila.nombre }}<small>{{ fila.get_clase_display }}{% if fila.clave_listado %} · {{ fila.clave_listado }}{% endif %}</small></th><td>{{ fila.cantidad|floatformat:"-3" }} {{ fila.get_unidad_medida_display }}</td><td>{{ fila.get_etapa_display }}</td>
 <td>{% if fila.etapa == 'entregado' %}{{ fila.fecha_entrega|date:'d/m/Y'|default:'Sin fecha' }}<small>{{ fila.gestor_autorizado|default:'Sin gestor' }}{% if fila.licencia_gestor %} · {{ fila.licencia_gestor }}{% endif %}</small><small>Manifiesto: {{ fila.manifiesto|default:'sin número' }}</small>{% else %}—{% endif %}</td>
 <td>{% if fila.documento %}<a href="{% url 'manifiesto_desecho_unidad' unidad.slug fila.pk %}"{% if fila.documento.name|lower|slice:"-4:" == ".pdf" %} data-ver-pdf data-pdf-titulo="Manifiesto {{ fila.manifiesto }}"{% else %} target="_blank" rel="noopener"{% endif %}>Ver manifiesto</a>{% elif fila.etapa == 'entregado' %}Falta el archivo{% else %}—{% endif %}</td>
-<td>{% if fila.etapa == 'entregado' %}<a href="{% url 'entregas_desechos_unidad' unidad.slug %}?corregir={{ fila.pk }}">{% if fila.documento %}Corregir{% else %}Completar{% endif %}</a>{% else %}—{% endif %}</td></tr>
+<td>{% if fila.etapa == 'entregado' %}<a href="{% url 'entregas_desechos_unidad' unidad.slug %}?corregir={{ fila.pk }}">{% if fila.documento %}Corregir{% else %}Completar{% endif %}</a>{% else %}<a href="{% url 'entregas_desechos_unidad' unidad.slug %}?editar={{ fila.pk }}#generacion">Corregir</a>{% endif %}</td></tr>
 {% empty %}<tr><td colspan="7">La unidad no tiene desechos registrados.</td></tr>{% endfor %}</tbody></table></div></main>
 {% include 'portal/pages/unidades/aula/includes/visor_pdf_modal.html' %}</body></html>

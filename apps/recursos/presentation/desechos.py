@@ -1,9 +1,10 @@
-"""Entrega de desechos al gestor autorizado, registrada desde la gestión de la unidad.
+"""Desechos de la unidad, registrados desde su gestión: lo que genera y lo que entrega al gestor.
 
-La generación y el almacenamiento de cada desecho se registran en el panel de administración.
-Aquí la unidad anota, sobre esos registros, a qué gestor los entregó, con qué manifiesto y en
-qué fecha, y adjunta el manifiesto escaneado: es lo que presenta y enlaza la tabla «Entregas al
-gestor autorizado» del anexo de desechos. El archivo se abre solo con la vista protegida.
+La unidad anota aquí cada desecho que genera (qué es, cuánto, en qué envase y dónde queda
+almacenado) y, sobre esos registros, a qué gestor los entregó, con qué manifiesto y en qué fecha,
+con el manifiesto escaneado: es lo que presentan las tablas «Generación y almacenamiento»,
+«Entregas al gestor autorizado» y «Almacenado al corte» del anexo de desechos. El archivo del
+manifiesto se abre solo con la vista protegida.
 """
 from pathlib import Path
 
@@ -32,7 +33,20 @@ EXTENSIONES_MANIFIESTO = {'.pdf': 'application/pdf', '.png': 'image/png', '.jpg'
                           '.jpeg': 'image/jpeg'}
 MAXIMO_BYTES_MANIFIESTO = 25 * 1024 * 1024
 CAMPOS_DE_LA_ENTREGA = ('fecha_entrega', 'gestor_autorizado', 'licencia_gestor', 'manifiesto', 'responsable')
+CAMPOS_DE_LA_GENERACION = ('fecha_generacion', 'nombre', 'clase', 'clave_listado', 'estado_fisico', 'origen',
+                           'cantidad', 'unidad_medida', 'envase', 'etiquetado', 'almacenamiento', 'etapa',
+                           'responsable', 'observaciones')
+# Lo que la unidad decide al generar: queda almacenado o lo trató ella misma. «Entregado» lo deja la entrega.
+ETAPAS_EN_LA_UNIDAD = ('almacenado', 'tratado')
 REGISTROS_EN_PANTALLA = 200
+
+
+def _personal_de(unidad):
+    """Las cuentas activas del personal de la unidad y de quien la administra."""
+    personal = list(unidad.responsables_unidad.filter(activo=True).exclude(usuario=None)
+                    .values_list('usuario_id', flat=True))
+    personal.append(unidad.administrador_id)
+    return get_user_model().objects.filter(pk__in=personal, is_active=True)
 
 
 def validar_manifiesto(archivo):
@@ -66,6 +80,88 @@ def _instantanea(desecho):
             'gestor_autorizado': desecho.gestor_autorizado, 'licencia_gestor': desecho.licencia_gestor,
             'manifiesto': desecho.manifiesto, 'documento': desecho.documento.name if desecho.documento else '',
             'responsable': desecho.responsable_id}
+
+
+def _instantanea_generacion(desecho):
+    """Los datos de la generación, para dejar en la auditoría cómo estaban y cómo quedaron."""
+    datos = {campo: getattr(desecho, campo) for campo in CAMPOS_DE_LA_GENERACION if campo != 'responsable'}
+    datos.update(fecha_generacion=desecho.fecha_generacion.isoformat(), cantidad=f'{desecho.cantidad:.3f}',
+                 responsable=desecho.responsable_id)
+    return datos
+
+
+class DesechoGeneradoForm(forms.ModelForm):
+    """Un desecho que la unidad generó: qué es, cuánto, en qué envase y dónde queda almacenado."""
+
+    class Meta:
+        model = RegistroDesecho
+        fields = CAMPOS_DE_LA_GENERACION
+        labels = {
+            'nombre': 'Desecho generado', 'clase': 'Clase', 'estado_fisico': 'Estado físico',
+            'cantidad': 'Cantidad', 'unidad_medida': 'Unidad de medida', 'etapa': 'Qué se hizo con el desecho',
+            'etiquetado': 'El envase está etiquetado', 'responsable': 'Responsable en la unidad',
+            'observaciones': 'Observaciones',
+        }
+        help_texts = {
+            'clave_listado': 'Opcional. Código del desecho en el listado nacional vigente, si lo conoces.',
+            'origen': 'Opcional. Por ejemplo, la práctica o el proceso del que salió.',
+            'envase': 'Opcional. Tipo y capacidad del envase.',
+            'almacenamiento': 'Dónde queda guardado hasta que se entregue al gestor.',
+            'observaciones': 'Si la unidad lo trató o neutralizó, describe cómo.',
+        }
+        widgets = {
+            'fecha_generacion': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'cantidad': forms.NumberInput(attrs={'min': '0.001', 'step': '0.001'}),
+            'observaciones': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, unidad, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.unidad = unidad
+        self.fields['responsable'].queryset = _personal_de(unidad)
+        self.fields['responsable'].label_from_instance = lambda usuario: (
+            usuario.get_full_name() or usuario.get_username())
+        self.fields['responsable'].required = True
+        etapas = dict(RegistroDesecho.ETAPAS)
+        self.fields['etapa'].choices = [(clave, etapas[clave]) for clave in ETAPAS_EN_LA_UNIDAD]
+        if self.instance.pk is None:
+            # Lo habitual: se registra hoy, lo responde quien administra la unidad y queda almacenado.
+            self.fields['fecha_generacion'].initial = timezone.localdate()
+            self.fields['responsable'].initial = unidad.administrador_id
+            self.fields['etapa'].initial = 'almacenado'
+
+    def clean_fecha_generacion(self):
+        fecha = self.cleaned_data['fecha_generacion']
+        if fecha > timezone.localdate():
+            raise ValidationError('El desecho se registra cuando ya se generó: la fecha no puede ser futura.')
+        return fecha
+
+    def clean(self):
+        datos = super().clean()
+        if datos.get('etapa') == 'almacenado' and not (datos.get('almacenamiento') or '').strip():
+            self.add_error('almacenamiento', 'Indica dónde queda almacenado el desecho hasta su entrega.')
+        return datos
+
+
+def registrar_generacion(request, unidad, form):
+    """Guarda el desecho generado, o su corrección mientras no se haya entregado, y lo anota en la auditoría."""
+    creado = form.instance.pk is None
+    with transaction.atomic():
+        anteriores = None
+        if not creado:
+            actual = RegistroDesecho.objects.select_for_update().get(pk=form.instance.pk, unidad=unidad)
+            if actual.etapa not in ETAPAS_EN_LA_UNIDAD:
+                raise ValidationError(f'«{actual.nombre}» ya se entregó al gestor: corrige la entrega, no la generación.')
+            anteriores = _instantanea_generacion(actual)
+        desecho = form.save(commit=False)
+        if creado:
+            desecho.registrado_por = request.user
+        desecho.save()
+        registrar_auditoria(
+            request, unidad=unidad, accion='crear' if creado else 'actualizar', objeto=desecho,
+            descripcion=('Desecho generado: ' if creado else 'Corrección del desecho generado: ') + desecho.nombre,
+            anteriores=anteriores, nuevos=_instantanea_generacion(desecho))
+    return desecho
 
 
 class EntregaDesechoForm(forms.Form):
@@ -179,7 +275,7 @@ def registrar_entrega(request, unidad, form):
 @xframe_options_sameorigin
 @require_http_methods(['GET', 'POST'])
 def entregas_desechos_view(request, slug):
-    """La pantalla de la unidad: registra una entrega nueva o corrige una ya registrada."""
+    """La pantalla de la unidad: registra un desecho generado y su entrega al gestor, o los corrige."""
     unidad = get_object_or_404(Unidad, slug=slug)
     if not puede_operar_modulo_unidad(request.user, unidad, MODULO_DESECHOS):
         raise PermissionDenied('No tienes acceso al registro de desechos de esta unidad.')
@@ -190,8 +286,31 @@ def entregas_desechos_view(request, slug):
             raise Http404
         # Acota por unidad: no se confía en el identificador de un registro de otra.
         corregido = get_object_or_404(RegistroDesecho, pk=clave, unidad=unidad, etapa='entregado')
-    form = EntregaDesechoForm(request.POST or None, request.FILES or None, unidad=unidad, corregido=corregido)
-    if request.method == 'POST' and form.is_valid():
+    # El formulario de generación va aparte del de entrega: cada uno envía su propia acción.
+    genera = request.method == 'POST' and request.POST.get('accion') == 'generar'
+    clave = request.POST.get('editar') or request.GET.get('editar') or ''
+    editado = None
+    if clave:
+        if not clave.isdecimal():
+            raise Http404
+        # Solo se corrige la generación de lo que sigue en la unidad; lo entregado se corrige en su entrega.
+        editado = get_object_or_404(RegistroDesecho, pk=clave, unidad=unidad, etapa__in=ETAPAS_EN_LA_UNIDAD)
+    form_generacion = DesechoGeneradoForm(request.POST if genera else None, unidad=unidad, instance=editado,
+                                          prefix='desecho')
+    if genera and form_generacion.is_valid():
+        try:
+            desecho = registrar_generacion(request, unidad, form_generacion)
+        except ValidationError as error:
+            form_generacion.add_error(None, error)
+        else:
+            messages.success(request, (f'Desecho corregido: {desecho.nombre}.' if editado is not None else
+                                       f'Desecho registrado: {desecho.nombre}. '
+                                       + ('Cuando lo entregues al gestor, regístralo abajo con su manifiesto.'
+                                          if desecho.etapa == 'almacenado' else 'Queda como tratado en la unidad.')))
+            return redirect(reverse('entregas_desechos_unidad', args=[slug]))
+    form = EntregaDesechoForm(None if genera else request.POST or None, None if genera else request.FILES or None,
+                              unidad=unidad, corregido=corregido)
+    if request.method == 'POST' and not genera and form.is_valid():
         try:
             registros = registrar_entrega(request, unidad, form)
         except ValidationError as error:
@@ -208,6 +327,7 @@ def entregas_desechos_view(request, slug):
                  .order_by('-fecha_generacion', '-pk')[:REGISTROS_EN_PANTALLA])
     return render(request, 'portal/pages/unidades/gestion/entregas_desechos.html', {
         'unidad': unidad, 'form': form, 'corregido': corregido, 'filas': filas,
+        'form_generacion': form_generacion, 'editado': editado,
         'hay_almacenados': corregido is not None or form.fields['desechos'].queryset.exists(),
     })
 

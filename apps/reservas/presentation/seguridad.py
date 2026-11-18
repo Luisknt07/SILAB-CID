@@ -366,22 +366,30 @@ def registrar_ingresos(reserva, usuario, datos):
             )
         if not ingresa and not motivo:
             raise ValidationError(f"Indica por qué {persona['nombre']} no ingresa.")
+        valores = {
+            'usuario': registro.usuario,
+            'nombre': registro.nombre,
+            'categoria': persona['categoria'],
+            'ingresa': ingresa,
+            'motivo': motivo,
+            'hora_ingreso': hora if ingresa else None,
+            'proteccion_verificada': proteccion,
+            'restricciones_verificadas': restricciones,
+            'habilitaciones_vigentes': not persona['pendientes'],
+            'pendientes': faltan if not ingresa else [],
+            'registrado_por': usuario,
+        }
+        if (prefijo + 'salida') in datos:
+            # La hora de salida se anota al terminar; un formulario sin el campo conserva la que ya tenía.
+            salida_texto = (datos.get(prefijo + 'salida') or '').strip()
+            salida = parse_time(salida_texto) if salida_texto else None
+            if ingresa and hora and salida and salida < hora:
+                raise ValidationError(f"La salida de {persona['nombre']} no puede ser anterior a su ingreso.")
+            valores['hora_salida'] = salida if ingresa else None
         _, creado = RegistroIngreso.objects.update_or_create(
             reserva=reserva,
             participante=registro,
-            defaults={
-                'usuario': registro.usuario,
-                'nombre': registro.nombre,
-                'categoria': persona['categoria'],
-                'ingresa': ingresa,
-                'motivo': motivo,
-                'hora_ingreso': hora if ingresa else None,
-                'proteccion_verificada': proteccion,
-                'restricciones_verificadas': restricciones,
-                'habilitaciones_vigentes': not persona['pendientes'],
-                'pendientes': faltan if not ingresa else [],
-                'registrado_por': usuario,
-            },
+            defaults=valores,
         )
         creados += int(creado)
     return creados, len(ids)
