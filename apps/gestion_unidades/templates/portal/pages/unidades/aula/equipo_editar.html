@@ -38,7 +38,7 @@
       {% for error in f.non_field_errors %}<p class="editor__mensaje">{{ error }}</p>{% endfor %}
       {% if 'nombre' in f.fields %}<section class="editor__tarjeta" id="modelo">
         <header><h2>{% translate "Modelo" %} <small>{{ tipo.codigo }}</small></h2><p>{% translate "Común a" %} {{ unidades_del_modelo }} {% translate "unidad" %}{{ unidades_del_modelo|pluralize:"es" }}{% translate ": lo que cambies aquí se ve en todas sus fichas." %}</p></header>
-        <div class="editor__campos">{% for campo in f %}{% if campo.name in 'nombre marca modelo origen_datos_tecnicos' %}<div class="editor__campo{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endif %}{% endfor %}</div>
+        <div class="editor__campos">{% for campo in f %}{% if campo.name in 'nombre marca modelo origen_datos_tecnicos fecha_ultima_calibracion proxima_calibracion' %}<div class="editor__campo{% if campo.errors %} con-error{% endif %}"><label for="{{ campo.id_for_label }}">{{ campo.label }}</label>{{ campo }}{% if campo.errors %}<small class="editor__mensaje">{{ campo.errors|join:" " }}</small>{% endif %}</div>{% endif %}{% endfor %}</div>
         <p class="editor__nota">{% translate "Elige «Levantamiento validado en planta» cuando la unidad haya confirmado los datos técnicos: la ficha deja de mostrarlos como valores de referencia." %}</p>
         {% include 'portal/pages/unidades/includes/editor_referencia_comercial.html' with formulario=f %}
       </section>{% endif %}

@@ -1,0 +1,38 @@
+{% load i18n %}{# El plan de mantenimiento de un equipo y su retiro: lo que la unidad registra sin pasar por Administración. #}
+{% if not carga_selectiva_panel or vista_gestion == 'mantenimiento' %}
+<form class="unit-console-operation" data-agenda-operation-form="plan_mantenimiento" data-reload-view="mantenimiento" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="plan_mantenimiento"><input type="hidden" name="registro_id">
+  <header><span>{% translate "PLAN DE MANTENIMIENTO" %}</span><h3>{% translate "Qué se le hace a un equipo y cada cuánto" %}</h3><p>{% translate "Basta el equipo, el tipo y la frecuencia: el nombre y la próxima fecha se completan solos. Cada equipo crítico necesita un plan con responsable o proveedor." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Equipo" %}<select name="equipo_id" required><option value="">{% translate "Selecciona un equipo" %}</option>{% for equipo in equipos %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endfor %}</select><small>{% translate "Al corregir un plan, el equipo no cambia." %}</small></label>
+    <label>{% translate "Tipo" %}<select name="tipo"><option value="preventivo">{% translate "Preventivo" %}</option><option value="calibracion">{% translate "Calibración" %}</option><option value="inspeccion">{% translate "Inspección técnica" %}</option><option value="actualizacion">{% translate "Actualización" %}</option></select></label>
+    <label>{% translate "Frecuencia (días)" %}<input type="number" name="frecuencia_dias" min="1" max="3650" step="1" value="180" required></label>
+    <label class="is-wide">{% translate "Nombre del plan" %}<input name="nombre" maxlength="160" placeholder="{% translate "Vacío: se nombra con el tipo y el código del equipo" %}"></label>
+    <label>{% translate "Inicio del plan" %}<input type="date" name="fecha_inicio" value="{% now 'Y-m-d' %}"></label>
+    <label>{% translate "Próxima ejecución" %}<input type="date" name="proxima_ejecucion"><small>{% translate "Vacía: el inicio más la frecuencia." %}</small></label>
+    <label>{% translate "Quién lo ejecuta" %}<select name="ejecutor">{% for codigo, nombre in ejecutores_mantenimiento %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label>{% translate "Responsable" %}<select name="responsable"><option value="">{% translate "Sin asignar" %}</option>{% for responsable in responsables %}{% if responsable.usuario_id %}<option value="{{ responsable.usuario_id }}">{{ responsable.nombre_publico }}</option>{% endif %}{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Proveedor" %}<input name="proveedor" maxlength="180" placeholder="{% translate "Si lo ejecuta un técnico externo o la garantía" %}"></label>
+    <label class="is-wide">{% translate "Instrucciones" %}<textarea name="instrucciones" rows="3" placeholder="{% translate "Qué se revisa, se limpia, se ajusta o se cambia en cada ejecución" %}"></textarea></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><button type="button" class="is-danger" data-agenda-delete hidden><i class="fas fa-times"></i> {% translate "Desactivar" %}</button><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-save"></i> {% translate "Guardar plan" %}</button></footer>
+</form>
+{% endif %}
+{% if not carga_selectiva_panel or vista_gestion == 'recursos' and modo_recursos == 'activos' %}
+<form class="unit-console-operation" data-agenda-operation-form="baja_equipo" data-reload-view="recursos" action="{% url 'gestion_operacion_accion' unidad.slug %}" hidden>
+  {% csrf_token %}<input type="hidden" name="modulo" value="baja_equipo"><input type="hidden" name="registro_id">
+  <header><span>{% translate "BAJA DE UN EQUIPO" %}</span><h3>{% translate "Retiro de operación" %}</h3><p>{% translate "El equipo deja de reservarse y pasa a «Bajas y traspasos» del inventario del período. Es el retiro de operación: no sustituye la autorización patrimonial." %}</p></header>
+  <div class="unit-console-operation__grid">
+    <label class="is-wide">{% translate "Equipo que se retira" %}<input name="equipo_codigo" readonly></label>
+    <label>{% translate "Fecha del retiro" %}<input type="date" name="fecha_baja" value="{% now 'Y-m-d' %}" max="{% now 'Y-m-d' %}" required></label>
+    <label>{% translate "Motivo" %}<select name="motivo_baja" required><option value="">{% translate "Selecciona el motivo" %}</option>{% for codigo, nombre in motivos_baja_equipo %}<option value="{{ codigo }}">{{ nombre }}</option>{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Justificación y referencia" %}<textarea name="observacion_baja" rows="3" required placeholder="{% translate "Diagnóstico, número del acta o informe y destino previsto del equipo" %}"></textarea></label>
+    <label class="is-wide">{% translate "Equipo que lo reemplaza (opcional)" %}<select name="reemplazado_por"><option value="">{% translate "Sin reemplazo" %}</option>{% for equipo in equipos %}{% if equipo.activa and equipo.laboratorio_id == unidad.pk %}<option value="{{ equipo.pk }}">{{ equipo.codigo_unidad }} · {{ equipo.equipo.nombre }}</option>{% endif %}{% endfor %}</select></label>
+    <label class="is-wide">{% translate "Acta o respaldo del retiro (PDF o imagen, opcional)" %}<input type="file" name="respaldo_retiro" accept="application/pdf,image/png,image/jpeg"></label>
+    <label class="is-wide">{% translate "Motivo de la corrección" %}<input name="justificacion_rectificacion" maxlength="300" placeholder="{% translate "Solo si corriges un retiro ya registrado" %}"></label>
+  </div>
+  <div class="unit-console-operation__feedback" role="status" aria-live="polite"></div>
+  <footer><span></span><span></span><button type="button" data-close-agenda-drawer>{% translate "Cancelar" %}</button><button type="submit" class="is-primary"><i class="fas fa-archive"></i> {% translate "Registrar el retiro" %}</button></footer>
+</form>
+{% endif %}

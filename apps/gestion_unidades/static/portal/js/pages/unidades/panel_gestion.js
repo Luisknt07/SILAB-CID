@@ -2927,6 +2927,8 @@
           diagnostico_equipo: [gettext("Diagnóstico y decisión"), gettext("Diagnóstico y decisión")],
           repuesto_mantenimiento: [gettext("Registrar pieza o accesorio"), gettext("Editar pieza o accesorio")],
           mantenimiento: [gettext("Nuevo mantenimiento"), gettext("Gestionar mantenimiento")],
+          plan_mantenimiento: [gettext("Nuevo plan de mantenimiento"), gettext("Editar plan de mantenimiento")],
+          baja_equipo: [gettext("Dar de baja un equipo"), gettext("Dar de baja un equipo")],
           inventario: [gettext("Registrar movimiento"), gettext("Registrar movimiento")],
           lote_consumible: [gettext("Recibir existencias"), gettext("Ubicar o poner en uso el lote")],
           consumible: [gettext("Nuevo insumo o material"), gettext("Editar insumo o material")],

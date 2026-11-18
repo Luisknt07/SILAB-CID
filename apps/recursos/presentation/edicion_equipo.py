@@ -41,7 +41,7 @@ SECCIONES = {
     'documentos': ('Documentos', 'fas fa-file-pdf'),
 }
 CAMPOS_DEL_MODELO = {
-    'modelo': ['nombre', 'marca', 'modelo', 'origen_datos_tecnicos'],
+    'modelo': ['nombre', 'marca', 'modelo', 'origen_datos_tecnicos', 'fecha_ultima_calibracion', 'proxima_calibracion'],
     'componentes': ['accesorios_incluidos_texto', 'accesorios_opcionales_texto', 'repuestos_texto'],
     'funcionamiento': ['modos_texto'],
     'descripcion': ['descripcion', 'uso_publico', 'instrucciones_publicas'],
@@ -172,13 +172,18 @@ class FichaDelModeloForm(ReferenciaComercialMixin, EspecificacionesMixin, forms.
     class Meta:
         model = EquiposServicios
         fields = ['nombre', 'marca', 'modelo', 'descripcion', 'uso_publico', 'instrucciones_publicas', 'origen_datos_tecnicos',
-                  'imagen', 'ficha_tecnica', 'manual_operacion']
+                  'imagen', 'ficha_tecnica', 'manual_operacion', 'fecha_ultima_calibracion', 'proxima_calibracion']
         labels = {'descripcion': 'Descripción', 'uso_publico': 'Para qué se usa',
                   'instrucciones_publicas': 'Cuidados y uso seguro (una regla por línea)',
                   'origen_datos_tecnicos': 'Los datos técnicos son', 'imagen': 'Imagen principal',
-                  'ficha_tecnica': 'Ficha técnica del fabricante (PDF)', 'manual_operacion': 'Manual de operación (PDF)'}
+                  'ficha_tecnica': 'Ficha técnica del fabricante (PDF)', 'manual_operacion': 'Manual de operación (PDF)',
+                  'fecha_ultima_calibracion': 'Última calibración', 'proxima_calibracion': 'Próxima calibración'}
+        help_texts = {'proxima_calibracion': 'Con estas dos fechas el equipo sale en «Calibración de equipos» del '
+                                             'Centro de reportes. Vacías: el equipo no se calibra.'}
         widgets = {'descripcion': forms.Textarea(attrs={'rows': 4}), 'uso_publico': forms.Textarea(attrs={'rows': 3}),
-                   'instrucciones_publicas': forms.Textarea(attrs={'rows': 4})}
+                   'instrucciones_publicas': forms.Textarea(attrs={'rows': 4}),
+                   'fecha_ultima_calibracion': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+                   'proxima_calibracion': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d')}
 
     def __init__(self, *args, campos=None, **kwargs):
         super().__init__(*args, habilitar_referencia=(campos is None or any(
@@ -231,12 +236,13 @@ class UnidadFisicaForm(forms.ModelForm):
         model = UnidadEquipo
         fields = ['codigo_bien', 'tipo_bien', 'numero_serie', 'estado_unidad', 'criticidad', 'ubicacion_especifica',
                   'version_sistema', 'sistema_actualizado', 'fecha_ultimo_mantenimiento', 'proximo_mantenimiento',
-                  'espacios_asociados']
+                  'garantia_hasta', 'espacios_asociados']
         labels = {'codigo_bien': 'Código del bien (bodega)', 'numero_serie': 'Número de serie', 'estado_unidad': 'Estado',
                   'ubicacion_especifica': 'Lugar dentro del área', 'fecha_ultimo_mantenimiento': 'Último mantenimiento',
-                  'proximo_mantenimiento': 'Próximo mantenimiento'}
+                  'proximo_mantenimiento': 'Próximo mantenimiento', 'garantia_hasta': 'Garantía hasta'}
         widgets = {campo: forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d')
-                   for campo in ('sistema_actualizado', 'fecha_ultimo_mantenimiento', 'proximo_mantenimiento')}
+                   for campo in ('sistema_actualizado', 'fecha_ultimo_mantenimiento', 'proximo_mantenimiento',
+                                 'garantia_hasta')}
 
     def __init__(self, *args, unidad=None, **kwargs):
         super().__init__(*args, **kwargs)

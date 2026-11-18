@@ -51,6 +51,7 @@ from apps.recursos.presentation.catalogo_inventario import asignar_familia, here
 from apps.gestion_unidades.presentation.catalogos_gestion import contexto_pagina, disponibilidad_global, resultados_selector
 from apps.core.presentation.codigos_sistema import siguiente_codigo_modelo, siguiente_codigo_unidad
 from apps.recursos.presentation.mantenimiento_panel import panel_mantenimiento
+from apps.recursos.presentation.planes_mantenimiento import MODELOS_MANTENIMIENTO, OPERADORES_MANTENIMIENTO, PERMISOS_MANTENIMIENTO, completar_orden
 from apps.documentos.presentation.expediente import contexto_del_expediente, periodo_pedido
 from apps.gestion_unidades.presentation.gestion_reportes import build_unit_report, render_unit_report_pdf
 from apps.formacion.presentation.gestion_cursos import contexto_cursos
@@ -2183,6 +2184,8 @@ def _operar_mantenimiento(request, unidad):
     objeto.duracion_horas = _entero_positivo(
         request.POST.get("duracion_horas"), "la duración del mantenimiento", defecto=2, maximo=24)
     objeto.bloquea_agenda = _booleano_post(request, "bloquea_agenda")
+    # El plan al que responde y el informe que la respalda: sin ellos no cuenta como ejecutada con respaldo.
+    completar_orden(request, objeto)
     objeto.save()
     return objeto, "Mantenimiento creado" if creado else "Mantenimiento actualizado", creado
 
@@ -2941,6 +2944,12 @@ def _operar_responsable(request, unidad):
         for modulo in MODULOS_OPERATIVOS
     }
     objeto.activo = _booleano_post(request, "activo")
+    # Sin cuenta vinculada la persona no inicia sesión: consta en el personal de la unidad, pero ni recibe
+    # reservas ni opera el panel. Se guarda así en vez de rechazar las casillas que el formulario trae marcadas.
+    sin_cuenta = objeto.usuario_id is None and (objeto.recibe_reservas or any(objeto.permisos_operativos.values()))
+    if sin_cuenta:
+        objeto.recibe_reservas = False
+        objeto.permisos_operativos = dict.fromkeys(MODULOS_OPERATIVOS, False)
     if delegacion_limitada:
         if not puede_editar_personal_unidad(request.user, unidad, objeto):
             raise PermissionDenied("Solo puedes asignar roles operativos de tu unidad.")
@@ -2949,7 +2958,10 @@ def _operar_responsable(request, unidad):
             raise ValidationError("Solo puedes delegar permisos que tú tienes en esta unidad.")
     objeto.full_clean()
     objeto.save()
-    return objeto, "Responsable creado" if creado else "Responsable actualizado", creado
+    mensaje = "Responsable creado" if creado else "Responsable actualizado"
+    if sin_cuenta:
+        mensaje += " sin cuenta vinculada (no recibe reservas ni opera el panel); guardado"
+    return objeto, mensaje, creado
 
 
 def _operar_capacidad(request, unidad):
@@ -3072,6 +3084,7 @@ def _datos_anteriores_operacion(request, unidad, modelo):
             "LineaConteo": "conteo__unidad",
             "DiagnosticoIncidenciaEquipo": "incidencia__unidad",
             "RepuestoMantenimiento": "mantenimiento__unidad",
+            "PlanMantenimientoEquipo": "equipo__laboratorio",
         }.get(modelo.__name__)
         if alcance:
             consulta = consulta.filter(**{alcance: unidad})
@@ -3120,6 +3133,7 @@ def gestion_operacion_accion_view(request, slug):
     operadores.update(OPERADORES_PLANIFICACION)
     operadores.update(OPERADORES_EJERCICIOS)
     operadores.update(OPERADORES_ALMACEN)
+    operadores.update(OPERADORES_MANTENIMIENTO)
     operador = operadores.get(modulo)
     if not operador:
         return JsonResponse(
@@ -3149,6 +3163,7 @@ def gestion_operacion_accion_view(request, slug):
     permisos_por_operacion.update(PERMISOS_PLANIFICACION)
     permisos_por_operacion.update(PERMISOS_EJERCICIOS)
     permisos_por_operacion.update(PERMISOS_ALMACEN)
+    permisos_por_operacion.update(PERMISOS_MANTENIMIENTO)
     # En una sesión del ERP opera quien participa, y solo la cadena productiva.
     sesion_erp = sesion_para_operar(request, unidad)
     request.sesion_erp = sesion_erp
@@ -3191,6 +3206,7 @@ def gestion_operacion_accion_view(request, slug):
     modelos_por_operacion.update(MODELOS_PLANIFICACION)
     modelos_por_operacion.update(MODELOS_EJERCICIOS)
     modelos_por_operacion.update(MODELOS_ALMACEN)
+    modelos_por_operacion.update(MODELOS_MANTENIMIENTO)
     try:
         if (
             modulo in {"recursos", "consumible", "prestamo"}
@@ -4559,6 +4575,7 @@ def gestion_unidad_view(request, slug):
         "tipos_incidencia_ejecucion": IncidenciaEquipo.TIPOS,
         "prioridades_incidencia_ejecucion": IncidenciaEquipo.PRIORIDADES,
         "ejecutores_mantenimiento": MantenimientoEquipo.EJECUTORES,
+        "motivos_baja_equipo": UnidadEquipo.MOTIVOS_BAJA,
         "rutas_reparacion": DiagnosticoIncidenciaEquipo.RUTAS,
         "garantias_reparacion": DiagnosticoIncidenciaEquipo.GARANTIAS,
         "decisiones_reparacion": DiagnosticoIncidenciaEquipo.DECISIONES,

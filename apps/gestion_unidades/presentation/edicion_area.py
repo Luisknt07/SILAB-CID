@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.validators import MinValueValidator
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -66,9 +67,10 @@ class DatosDelAreaForm(forms.ModelForm):
     class Meta:
         model = EspacioReservable
         fields = ['nombre', 'tipo', 'descripcion_publica', 'capacidad', 'superficie_m2', 'ubicacion', 'caracteristicas',
-                  'mobiliario_incluido', 'imagen']
+                  'mobiliario_incluido', 'responsable', 'imagen']
         labels = {'tipo': 'Tipo de espacio', 'descripcion_publica': 'Descripción', 'ubicacion': 'Ubicación',
-                  'caracteristicas': 'Características', 'mobiliario_incluido': 'Mobiliario', 'imagen': 'Foto de portada'}
+                  'caracteristicas': 'Características', 'mobiliario_incluido': 'Mobiliario', 'imagen': 'Foto de portada',
+                  'responsable': 'Responsable del espacio'}
         widgets = {campo: forms.Textarea(attrs={'rows': 3}) for campo in ('descripcion_publica', 'caracteristicas', 'mobiliario_incluido')}
 
     def __init__(self, *args, **kwargs):
@@ -77,6 +79,15 @@ class DatosDelAreaForm(forms.ModelForm):
         # formulario abierto antes de este cambio llega sin el campo.
         self.fields['tipo'].choices = tipos_de_espacio(self.instance.unidad, conservar=(self.instance.tipo,))
         self.fields['tipo'].required = False
+        # El responsable del espacio es personal activo de su unidad (sale en la ficha técnica del expediente);
+        # un formulario abierto antes de que existiera el campo no lo borra.
+        if self.is_bound and self.add_prefix('responsable') not in self.data:
+            del self.fields['responsable']
+        else:
+            self.fields['responsable'].required = False
+            self.fields['responsable'].empty_label = 'Sin responsable asignado'
+            self.fields['responsable'].queryset = self.instance.unidad.responsables_unidad.filter(
+                Q(activo=True) | Q(pk=self.instance.responsable_id)).order_by('orden', 'nombre')
         # Una superficie no es negativa; el modelo solo fija su tamaño.
         self.fields['superficie_m2'].validators.append(MinValueValidator(0))
         self.fields['superficie_m2'].widget.attrs.update(min='0', step='0.01')
