@@ -2,8 +2,9 @@
 
 Son registros de lo que la unidad ya capturó: cuentan y listan, sin texto de análisis. Salen del
 Centro de reportes para un rango de fechas, en pantalla, PDF, Excel y Word; no se entregan ni
-puntúan. El personal, el reglamento y las sustancias sujetas a control son el estado actual de la
-unidad y no dependen del rango.
+puntúan. El personal y las sustancias sujetas a control son el estado actual de la unidad y no
+dependen del rango. El reglamento de uso ya no es una consulta: es un documento principal del
+expediente (REGLAMENTO-USO).
 """
 from collections import Counter, defaultdict
 from datetime import timedelta
@@ -21,8 +22,6 @@ SIN_AUTORIZACION = 'Sin autorización registrada'
 ACTIVIDADES = (('CAPACITACION', 'Capacitación'), ('DIFUSION', 'Difusión'))
 # Una calibración está por vencer si vence dentro de estos días contados desde el corte.
 DIAS_DE_AVISO_DE_CALIBRACION = 30
-APARTADOS_DEL_REGLAMENTO = (('normas_generales', 'Normas generales'), ('reservas_horarios', 'Reservas y horarios'),
-                            ('equipos_materiales', 'Equipos y materiales'), ('seguridad', 'Seguridad'))
 LARGO_DE_CELDA = 500
 
 
@@ -286,7 +285,7 @@ def reporte_sustancias(unit, start_date, end_date, state='', search=''):
                      rows=detalle, vacio='Ninguna sustancia sujeta a control tiene lotes con saldo.')])
 
 
-# -- personal y reglamento --------------------------------------------------------------------------
+# -- personal --------------------------------------------------------------------------------------
 
 def reporte_personal(unit, start_date, end_date, state='', search=''):
     """Los responsables activos de la unidad, con su formación y el acto con que fueron designados."""
@@ -321,36 +320,7 @@ def reporte_personal(unit, start_date, end_date, state='', search=''):
         vacio='La unidad no tiene personal registrado.', notas=[ESTADO_ACTUAL])
 
 
-def reporte_reglamento(unit, start_date, end_date, state='', search=''):
-    """El reglamento publicado de la unidad, con el texto de sus apartados: el documento es el reglamento."""
-    from apps.recursos.models.recursos import ReglamentoUnidad
-
-    buscar = _buscar(search)
-    reglamento = ReglamentoUnidad.objects.filter(unidad=unit, activo=True).first()
-    apartados = [(titulo, [linea.strip() for linea in str(getattr(reglamento, campo, '') or '').splitlines()
-                           if linea.strip()])
-                 for campo, titulo in APARTADOS_DEL_REGLAMENTO]
-    cabecera = ['Dato', 'Contenido']
-    if not any(normas for _titulo, normas in apartados):
-        return _documento(
-            cabecera, [], [('Apartados con normas', 0), ('Normas', 0)], notas=[ESTADO_ACTUAL],
-            vacio=('El reglamento publicado de la unidad no tiene normas escritas.' if reglamento
-                   else 'La unidad no tiene un reglamento de uso publicado.'))
-    # Una columna a todo el ancho: la norma con su número, como se lee en el reglamento.
-    tablas = [dict(titulo=titulo, headers=['Norma'],
-                   rows=[[f'{numero}. {norma}'] for numero, norma in enumerate(normas, 1) if _contiene(buscar, norma)],
-                   vacio='Sin normas en este apartado.')
-              for titulo, normas in apartados]
-    contacto = ' · '.join(parte for parte in (reglamento.contacto_texto.strip(), reglamento.contacto_email) if parte)
-    return _documento(
-        cabecera, [['Título', _texto(reglamento.titulo)], ['Subtítulo', _texto(reglamento.subtitulo)],
-                   ['Contacto', _texto(contacto)]],
-        [('Apartados con normas', sum(bool(normas) for _titulo, normas in apartados)),
-         ('Normas', sum(len(normas) for _titulo, normas in apartados))],
-        vacio='', notas=[ESTADO_ACTUAL], tablas=tablas)
-
-
 REPORTES_DE_RESPALDO = {
     'capacitacion': reporte_capacitacion, 'calibracion': reporte_calibracion, 'sustancias': reporte_sustancias,
-    'personal': reporte_personal, 'reglamento': reporte_reglamento, 'simulacros': reporte_simulacros,
+    'personal': reporte_personal, 'simulacros': reporte_simulacros,
 }

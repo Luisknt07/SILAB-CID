@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.formacion.models.asignaturas import Asignatura
-from apps.recursos.models.recursos import CarpetaRecurso, ModuloUnidad, Recurso, ReglamentoUnidad
+from apps.recursos.models.recursos import CarpetaRecurso, ModuloUnidad, Recurso
 from apps.reservas.models.reservas import CatalogoActividadReserva
 from apps.formacion.models.cursos_inscripcion import CodigoDescuento
 from apps.formacion.models.cursos import Curso, EdicionCurso, LeccionCurso, ModuloCurso, PreguntaEvaluacion
@@ -270,14 +270,8 @@ REGISTRO = {
         'Persona del equipo', ResponsableUnidad,
         ('nombre', 'email', 'telefono', 'foto', 'descripcion', 'horario_atencion', 'publico', 'orden'),
         'contenido', lambda unidad: ResponsableUnidad.objects.filter(unidad=unidad)),
-    # El reglamento de uso: la unidad lo escribe y lo publica; publicado, se ve en la ficha y es el documento
-    # «Reglamento de uso de la unidad» del Centro de reportes.
-    'reglamento': Edicion(
-        'Reglamento de uso', ReglamentoUnidad,
-        ('titulo', 'subtitulo', 'normas_generales', 'reservas_horarios', 'equipos_materiales', 'seguridad',
-         'contacto_texto', 'contacto_email', 'activo'),
-        'contenido', lambda unidad: ReglamentoUnidad.objects.filter(unidad=unidad),
-        unico=lambda unidad, pk: ReglamentoUnidad.objects.get_or_create(unidad=unidad)[0]),
+    # El reglamento de uso no se edita aquí: se redacta y se envía en el expediente (REGLAMENTO-USO) y, al
+    # enviarse, se publica en la ficha. Una sola fuente para su texto.
     'novedad': Edicion(
         'Novedad', NovedadUnidad,
         ('titulo', 'categoria', 'resumen', 'cuerpo', 'imagen', 'enlace', 'fecha_publicacion', 'fecha_evento', 'lugar',
@@ -597,13 +591,6 @@ ROTULOS = {
     'CicloProductivo.objetivo': 'Objetivo del ensayo', 'CicloProductivo.tratamientos': 'Tratamientos que se comparan',
     'CicloProductivo.repeticiones': 'Repeticiones por tratamiento',
     'CicloProductivo.variables': 'Variables que se miden',
-    'ReglamentoUnidad.titulo': 'Título', 'ReglamentoUnidad.subtitulo': 'Subtítulo',
-    'ReglamentoUnidad.normas_generales': 'Normas generales (una por línea)',
-    'ReglamentoUnidad.reservas_horarios': 'Reservas y horarios (una condición por línea)',
-    'ReglamentoUnidad.equipos_materiales': 'Equipos y materiales (una indicación por línea)',
-    'ReglamentoUnidad.seguridad': 'Seguridad (una medida por línea)',
-    'ReglamentoUnidad.contacto_texto': 'A quién acudir', 'ReglamentoUnidad.contacto_email': 'Correo de contacto',
-    'ReglamentoUnidad.activo': 'Publicado: se ve en la ficha y sale en el documento «Reglamento de uso de la unidad»',
 }
 
 

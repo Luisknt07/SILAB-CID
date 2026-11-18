@@ -100,8 +100,6 @@ REPORTES = {
                    'inventario'),
     'personal': ('registros', 'Mostrar quién trabaja en la unidad, con qué formación y con qué acto fue designado.',
                  'Equipo humano de la unidad: responsables activos, su formación y su designación.', 'configuracion'),
-    'reglamento': ('registros', 'Presentar el reglamento de uso que la unidad tiene publicado.',
-                   'Reglamento de uso publicado en la página de la unidad.', ''),
     'simulacros': ('registros', 'Dejar constancia de los simulacros y prácticas de emergencia realizados.',
                    'Simulacros que la unidad registra junto a sus inspecciones de seguridad, con su respaldo.',
                    'seguridad'),

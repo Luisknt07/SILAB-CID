@@ -795,15 +795,22 @@ class ReglamentoUnidad(models.Model):
         return f'Reglamento: {self.unidad.nombre}'
 
 
+# Texto genérico con el que nace cada unidad. El reglamento oficial se redacta en el expediente
+# (documento REGLAMENTO-USO) y, al enviarse, reemplaza este texto en la página pública.
+REGLAMENTO_GENERICO = {
+    'normas_generales': 'Utiliza responsablemente los espacios y recursos.\nMantén el orden y la limpieza.\nCumple las indicaciones del personal responsable.',
+    'reservas_horarios': 'Realiza las reservas mediante el sistema institucional.\nRespeta el horario autorizado.\nCancela con anticipación cuando no puedas asistir.',
+    'equipos_materiales': 'Verifica el estado antes de utilizar cada recurso.\nReporta daños o funcionamiento irregular.\nEntrega los equipos y materiales en las condiciones recibidas.',
+    'seguridad': 'Utiliza los elementos de protección requeridos.\nIdentifica las rutas y elementos de emergencia.\nReporta inmediatamente cualquier incidente.',
+}
+
+
 def create_default_unit_content(unidad):
     ReglamentoUnidad.objects.get_or_create(
         unidad=unidad,
         defaults={
             'titulo': f'Reglamento de uso de {unidad.nombre}',
-            'normas_generales': 'Utiliza responsablemente los espacios y recursos.\nMantén el orden y la limpieza.\nCumple las indicaciones del personal responsable.',
-            'reservas_horarios': 'Realiza las reservas mediante el sistema institucional.\nRespeta el horario autorizado.\nCancela con anticipación cuando no puedas asistir.',
-            'equipos_materiales': 'Verifica el estado antes de utilizar cada recurso.\nReporta daños o funcionamiento irregular.\nEntrega los equipos y materiales en las condiciones recibidas.',
-            'seguridad': 'Utiliza los elementos de protección requeridos.\nIdentifica las rutas y elementos de emergencia.\nReporta inmediatamente cualquier incidente.',
+            **REGLAMENTO_GENERICO,
             'contacto_email': unidad.contacto_email or 'laboratorio@upec.edu.ec',
         },
     )

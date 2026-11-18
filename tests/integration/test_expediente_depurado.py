@@ -195,7 +195,8 @@ class ExpedienteDepuradoTests(TestCase):
                 self.assertEqual((len(por_corte['A']), len(por_corte['B'])), (en_a, en_b))
                 # Lo de una vez y el plan de compras no cambian.
                 self.assertEqual({d.exigido.codigo for d in documentos if not d.corte},
-                                 {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD', 'PLAN-COMPRAS-ANUAL'})
+                                 {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD', 'REGLAMENTO-USO',
+                                  'PLAN-COMPRAS-ANUAL'})
                 self.assertFalse(set(RETIRADOS) & {d.exigido.codigo for d in documentos})
                 for corte, filas in por_corte.items():
                     plan = next(d for d in filas if d.exigido.codigo == 'PLANIFICACION')

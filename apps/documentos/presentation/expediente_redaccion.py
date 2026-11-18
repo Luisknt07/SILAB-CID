@@ -33,7 +33,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.recursos.models.consumibles import Consumible, EntradaInventario
 from apps.recursos.models.prestamos import PrestamoEquipo
-from apps.documentos.models.expediente import DocumentoElaborado, DocumentoExpediente
+from apps.documentos.models.expediente import PERMANENTES_REDACTABLES, DocumentoElaborado, DocumentoExpediente
 from apps.formacion.models.practicas import EjecucionPractica, PlanificacionPractica
 from apps.gestion_unidades.models.espacios import EspacioReservable, ResponsableUnidad
 from apps.laboratorios.operacion.models.fablab import FablabService, SolicitudFabricacion
@@ -61,9 +61,11 @@ from apps.reservas.presentation.guia_html import bloques_de_html, esta_vacio, sa
 
 MESES_CORTOS = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 NOMBRES_TIPO = {'planificacion': 'Planificación semestral', 'informe': 'Informe semestral de actividades',
-                'compras': 'Plan anual de compras', 'protocolo': 'Protocolo de seguridad y condiciones de operación'}
+                'compras': 'Plan anual de compras', 'protocolo': 'Protocolo de seguridad y condiciones de operación',
+                'reglamento': 'Reglamento de uso de la unidad'}
 CODIGOS_FORMATO = {'planificacion': 'AP-P-LAP-GO', 'informe': 'AP-P-LAP-GO · Informe',
-                   'compras': 'AP-P-LAP-GO · Compras', 'protocolo': 'SLCID-UNIDAD-SEGURIDAD'}
+                   'compras': 'AP-P-LAP-GO · Compras', 'protocolo': 'SLCID-UNIDAD-SEGURIDAD',
+                   'reglamento': 'SLCID-UNIDAD-REGLAMENTO'}
 ESTADOS_RESERVA_DESCARTADOS = ('cancelada', 'rechazada', 'vencida')
 
 
@@ -415,6 +417,9 @@ def secciones_de(tipo, unidad=None, contenido=None):
     if tipo == 'protocolo':
         from .protocolo_seguridad import secciones
         return secciones(Campo, Seccion)
+    if tipo == 'reglamento':
+        from .reglamento_uso import secciones
+        return secciones(Campo, Seccion)
     if tipo not in SECCIONES:
         raise Http404('Este documento no se redacta con el editor.')
     secciones = SECCIONES[tipo]
@@ -755,6 +760,9 @@ def valores_iniciales(documento):
     if tipo == 'protocolo':
         from .protocolo_seguridad import valores_iniciales as iniciales_protocolo
         return iniciales_protocolo(documento)
+    if tipo == 'reglamento':
+        from .reglamento_uso import valores_iniciales as iniciales_reglamento
+        return iniciales_reglamento(documento)
     inicio, fin = tramo_del_documento(documento)
     sugeridos = sugerencias_para(documento, POLITICAS_RICAS)
     contenido = {'firma_nombre': _nombre(unidad.administrador), 'firma_cargo': 'Responsable de la unidad'}
@@ -815,6 +823,9 @@ def leer_formulario(tipo, post, unidad, *, inicio=None, fin=None, documento=None
         from types import SimpleNamespace
         from .protocolo_contexto import leer_contenido
         return leer_contenido(documento or SimpleNamespace(unidad=unidad), contenido, contenido_anterior, post)
+    if tipo == 'reglamento':
+        # Conserva quién firma, que no se edita en el formulario.
+        return dict(contenido_anterior or {}, **contenido)
     if tipo == 'planificacion':
         from .recursos_periodo import preparar_recursos
         # Conserva las previsiones antiguas como antecedentes, sin recapturarlas.
@@ -1146,6 +1157,9 @@ def datos_automaticos(documento, inicio, fin, contenido=None):
     if documento.exigido.fuente_reporte == 'protocolo':
         from .protocolo_contexto import bloques_automaticos
         return bloques_automaticos(documento, contenido)
+    if documento.exigido.fuente_reporte == 'reglamento':
+        from .reglamento_uso import bloques_automaticos as bloques_reglamento
+        return bloques_reglamento(documento, contenido)
     unidad = documento.unidad
     contenido = contenido or {}
     tipo = documento.exigido.fuente_reporte
@@ -1661,7 +1675,7 @@ def componer(documento, contenido, inicio, fin):
         'codigo_etiqueta': 'Referencia interna' if es_unidad_auditable(documento.unidad) else 'Código',
         'documento': documento,
         'unidad': documento.unidad,
-        'periodo': ('Documento permanente' if tipo == 'protocolo' else
+        'periodo': ('Documento permanente' if tipo in PERMANENTES_REDACTABLES else
                     f'Año de compras {documento.anio + 1} · preparación {documento.anio}'
                     if tipo == 'compras' and contenido.get('pac_version') == 2 else documento.etiqueta_corte),
         'version': documento.version + 1,
@@ -1677,7 +1691,7 @@ def componer(documento, contenido, inicio, fin):
 def _bloques_del_campo(campo, valor, documento, contenido, inicio, fin, registros):
     if campo.clave == 'revision_recursos':
         return []
-    if documento.exigido.fuente_reporte == 'protocolo' and campo.clave == 'revision_propuestas':
+    if documento.exigido.fuente_reporte in PERMANENTES_REDACTABLES and campo.clave == 'revision_propuestas':
         return []  # La confirmación de edición no forma parte del texto formal.
     if campo.tipo == 'firmas' or campo.clave in ('firma_nombre', 'firma_cargo', 'revisa_nombre', 'revisa_cargo'):
         return []
@@ -2265,6 +2279,7 @@ def redactar_documento_view(request, slug, documento_id):
         'documento': documento,
         'redaccion': redaccion,
         'tipo': tipo,
+        'permanente': tipo in PERMANENTES_REDACTABLES,
         'nombre_tipo': (NOMBRES_TIPO[tipo] if tipo == 'compras' and contenido.get('pac_version') == 2 else
                         documento.nombre_documental if es_unidad_auditable(unidad) else NOMBRES_TIPO[tipo]),
         'pendientes_actividades': pendientes_actividades(unidad, contenido_revision, inicio, fin) if tipo == 'planificacion' else [],

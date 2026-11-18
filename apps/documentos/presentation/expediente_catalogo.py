@@ -30,6 +30,13 @@ CATALOGO = (
      'emergencias. Se envía y aprueba en la plataforma con QR; se conserva mientras siga vigente. La '
      'bioseguridad y otras medidas específicas se incluyen cuando correspondan a las actividades. '
      'Cumplimiento obligatorio: se aprueba una vez y se conserva mientras siga vigente; no se califica.', ''),
+    # documentos.0031: el reglamento deja de ser una consulta del respaldo para auditoría.
+    ('REGLAMENTO-USO', 'Reglamento de uso de la unidad', 'planeacion', 'unica', 'ambos', True, False,
+     'ninguno', 0, 'reglamento', 18,
+     'Se elabora con el editor de la unidad sobre un texto estándar que solo cambia por tipo de unidad: '
+     'usuarios, horario y reservas, acceso y conducta, uso de los recursos, seguridad, responsabilidades y '
+     'contacto. Se envía y aprueba en la plataforma con QR; al enviarse se publica en la página de la unidad. '
+     'Cumplimiento obligatorio: la Dirección confirma su conformidad una vez por versión; no se califica.', ''),
 
     # -- Una vez por año: necesidades del año siguiente, convocatoria ordinaria en mayo -----
     ('PLAN-COMPRAS-ANUAL', 'Plan anual de compras y presupuesto para el año siguiente', 'planeacion',

@@ -21,7 +21,9 @@ from django.db import models
 from django.utils import timezone
 
 # Documentos que la unidad redacta con el editor guiado antes de firmarlos.
-REDACTABLES = ('planificacion', 'informe', 'compras', 'protocolo')
+REDACTABLES = ('planificacion', 'informe', 'compras', 'protocolo', 'reglamento')
+# Documentos permanentes que se redactan con el editor: sin período, se heredan cada año.
+PERMANENTES_REDACTABLES = ('protocolo', 'reglamento')
 
 CARPETAS = [
     ('planeacion', 'Planeación'),

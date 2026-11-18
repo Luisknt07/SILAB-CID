@@ -45,7 +45,7 @@ def _p(texto, estilo):
 # Los documentos que la unidad firma llevan el formato del informe institucional: portada,
 # responsabilidad y contenido, encabezado con el logo a la izquierda y apartados en verde
 # subrayados en dorado. Los demás conservan el encabezado de tres columnas de los anexos.
-DOCUMENTOS_PRINCIPALES = frozenset(('protocolo', 'compras', 'planificacion', 'informe'))
+DOCUMENTOS_PRINCIPALES = frozenset(('protocolo', 'reglamento', 'compras', 'planificacion', 'informe'))
 
 
 def render_documento_pdf(compuesto):
@@ -122,7 +122,7 @@ def render_documento_pdf(compuesto):
         ParagraphStyle('doc', parent=base['Title'], fontName=estilos['bloque'].fontName, fontSize=14, leading=18,
                        textColor=tinta['oscuro'] if principal else verde, alignment=1, spaceBefore=2, spaceAfter=4),
     )
-    cobertura = (compuesto['periodo'] if compuesto['tipo'] == 'protocolo' or pac_por_areas else
+    cobertura = (compuesto['periodo'] if compuesto['tipo'] in ('protocolo', 'reglamento') or pac_por_areas else
                  f"{compuesto['periodo']} · {inicio:%d/%m/%Y} - {fin:%d/%m/%Y}")
     subtitulo_documento = Paragraph(
         escape(f"{cobertura} · Fecha de elaboración: {timezone.localtime(fecha):%d/%m/%Y %H:%M}"),

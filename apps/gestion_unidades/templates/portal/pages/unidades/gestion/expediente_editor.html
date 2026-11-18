@@ -21,8 +21,8 @@ y las mismas sugerencias que las guias, avance por apartado y ayuda final.
   <header class="guide-hero guide-hero--compact">
     <div>
       <span class="guide-eyebrow">{% translate "EXPEDIENTE DE CALIDAD" %} · {{ codigo_etiqueta }}: {{ codigo_formato }}</span>
-      <h1>{{ nombre_tipo }}{% if tipo != 'protocolo' %} · {% if anio_planificado %}Año planificado {{ anio_planificado }}{% else %}{{ documento.etiqueta_corte }}{% endif %}{% endif %}</h1>
-      <p>{{ unidad.nombre }}{% if tipo == 'protocolo' %} · Documento permanente · Se actualiza cuando cambian sus condiciones{% else %}{% if anio_planificado %} · Expediente {{ documento.anio }}{% endif %} · {{ inicio|date:"d/m/Y" }} – {{ fin|date:"d/m/Y" }}{% if documento.vence_el %} · {% translate "plazo" %} {{ documento.vence_el|date:"d/m/Y" }}{% endif %}{% endif %}</p>
+      <h1>{{ nombre_tipo }}{% if not permanente %} · {% if anio_planificado %}Año planificado {{ anio_planificado }}{% else %}{{ documento.etiqueta_corte }}{% endif %}{% endif %}</h1>
+      <p>{{ unidad.nombre }}{% if permanente %} · Documento permanente · Se actualiza cuando cambian sus condiciones{% else %}{% if anio_planificado %} · Expediente {{ documento.anio }}{% endif %} · {{ inicio|date:"d/m/Y" }} – {{ fin|date:"d/m/Y" }}{% if documento.vence_el %} · {% translate "plazo" %} {{ documento.vence_el|date:"d/m/Y" }}{% endif %}{% endif %}</p>
     </div>
     <div class="guide-hero__actions">
       <div class="guide-modebar__modes redaccion__modos" role="tablist" aria-label="{% translate "Modo del documento" %}">
@@ -62,6 +62,8 @@ y las mismas sugerencias que las guias, avance por apartado y ayuda final.
       {% if tipo == 'protocolo' %}
       <input type="hidden" name="protocolo_fuentes" value="{{ protocolo_fuentes }}">
       <p class="protocolo-orientacion">Los datos de la unidad y su personal se muestran automáticamente. Revisa las propuestas de cada actividad, indica si aplica y ajusta sus medidas. Al final confirma que revisaste el contenido.</p>
+      {% elif tipo == 'reglamento' %}
+      <p class="guide-alert">El texto propuesto es el reglamento estándar para este tipo de unidad; la ficha, el horario, el aforo, los requisitos de acceso y el personal se toman de la plataforma. Ajústalo a las condiciones reales y confirma al final que lo revisaste. Al enviarlo, este texto se publica en la página de la unidad.</p>
       {% endif %}
 
       {% for bloque in secciones %}

@@ -353,6 +353,7 @@ def _analizar(documento, contexto, anterior=None):
     elif not previa:
         motivos = {'RESOLUCION-CREACION': 'Documento permanente: confirma una vez su vigencia y correspondencia. Después se reutiliza automáticamente, sin rúbrica ni recalificación.',
                    'PROTOCOLO-BIOSEGURIDAD': 'Documento permanente: confirma su aprobación técnica una vez por versión; no vuelve a calificarse cada período.',
+                   'REGLAMENTO-USO': 'Documento permanente: confirma su conformidad una vez por versión; no vuelve a calificarse cada período.',
                    'PLANIFICACION': 'El sistema comprueba datos y metas; la pertinencia de los objetivos y recursos requiere criterio humano.',
                    'PLAN-COMPRAS-ANUAL': 'La justificación y autorización del presupuesto requieren criterio de la autoridad competente.'}
         hallazgos.append(_hallazgo('criterio_humano', motivos.get(codigo, 'Documento fuera de las reglas de aprobación automática.')))

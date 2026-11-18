@@ -20,7 +20,7 @@ from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
 ESQUEMA = 1
 APROBAR = 'conformidad_permanente:aprobar'
 REVOCAR = 'conformidad_permanente:revocar'
-CODIGOS = frozenset(('RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD'))
+CODIGOS = frozenset(('RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD', 'REGLAMENTO-USO'))
 ENTIDAD = 'documentos.DocumentoExpediente'
 
 

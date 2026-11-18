@@ -614,7 +614,7 @@ class PeriodoDelExpedienteTests(BaseDeCumplimiento):
         self.assertEqual(plan['anexos'], [])
         self.assertEqual(plan['anexos_integrados'], [])
         self.assertEqual({d.exigido.codigo for d in pagina.context['de_la_unidad']},
-                         {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD'})
+                         {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD', 'REGLAMENTO-USO'})
         self.assertContains(pagina, '1. Documentos base de la unidad')
         self.assertContains(pagina, '2. Planificación y respaldo de actividades')
         self.assertContains(pagina, '3. Anexos y seguimiento')

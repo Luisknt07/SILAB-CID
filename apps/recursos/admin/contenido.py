@@ -49,7 +49,13 @@ class ReglamentoUnidadInline(BloqueTraducido):
         'reservas_horarios', 'equipos_materiales', 'seguridad',
         'contacto_texto', 'contacto_email',
     ]
+    # Solo lectura: el reglamento se redacta y se envía en el expediente de calidad (REGLAMENTO-USO) y,
+    # al enviarse, se publica aquí. Así la ficha y el documento tienen un único texto.
+    readonly_fields = fields
     classes = ['collapse']
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class CarpetaRecursoForm(forms.ModelForm):

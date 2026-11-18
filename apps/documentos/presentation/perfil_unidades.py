@@ -17,6 +17,7 @@ EXCLUIDOS_POR_BASE = {
 NOMBRES_POR_BASE = {
     'plantas_piloto': {
         'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de bioseguridad e inocuidad',
+        'REGLAMENTO-USO': 'Reglamento de uso de la planta piloto',
         'PLANIFICACION': 'Planificación semestral de producción, prácticas y servicios de la planta piloto',
         'INFORME-SEMESTRAL': 'Informe semestral de producción, prácticas y cumplimiento de la planta piloto',
         'REGISTRO-USO': 'Registros de uso de la planta piloto',
@@ -26,6 +27,7 @@ NOMBRES_POR_BASE = {
     },
     'centro_experimental': {
         'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de bioseguridad',
+        'REGLAMENTO-USO': 'Reglamento de uso del centro experimental',
         'PLANIFICACION': 'Planificación semestral de actividades de campo y ensayos del centro experimental',
         'INFORME-SEMESTRAL': 'Informe semestral de actividades de campo, ensayos y cumplimiento',
         'REGISTRO-USO': 'Registros de uso del centro experimental',
@@ -36,6 +38,7 @@ NOMBRES_POR_BASE = {
     },
     'observatorios': {
         'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de seguridad de la información y condiciones de operación',
+        'REGLAMENTO-USO': 'Reglamento de uso del observatorio',
         'PLANIFICACION': 'Planificación semestral de indicadores, publicaciones y servicios del observatorio',
         'INFORME-SEMESTRAL': 'Informe semestral de datos, publicaciones y cumplimiento del observatorio',
         # Nombre de su consulta de atenciones; no es anexo del observatorio.
@@ -63,6 +66,8 @@ REQUISITOS_COMUNES = {
     'RESOLUCION-CREACION': ('Resolución correspondiente a la unidad, con autoridad, número, fecha y alcance.',),
     'PROTOCOLO-BIOSEGURIDAD': ('Alcance, responsables, peligros y controles según las actividades de la unidad.',
                               'Acceso, operación, emergencias y actualización; medidas específicas sólo cuando apliquen.'),
+    'REGLAMENTO-USO': ('Usuarios, horario y reservas, acceso, conducta y uso de los recursos de la unidad.',
+                       'Seguridad, responsabilidades, daños y contacto; texto estándar ajustado a la unidad.'),
     'PLAN-COMPRAS-ANUAL': ('Necesidades del año siguiente, cantidades, costos estimados, prioridad y financiamiento.',
                           'Justificación frente a recursos, capacidad y actividades; revisión, emisión y aprobación en la plataforma.'),
     'REGISTRO-USO': ('Todas las sesiones del período: horario previsto y real, espacio o recurso, propósito y solicitante.',

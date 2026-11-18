@@ -176,7 +176,7 @@ class ProgresoGeneralEnPantallaTests(BaseDeCumplimiento):
                 self.assertContains(pagina, 'Avance operativo acumulado')
                 self.assertContains(pagina, 'Nota oficial del cierre')
                 self.assertIsNone(pagina.context['progreso_general']['resultado_porcentaje'])
-                self.assertContains(pagina, '<caption>5 documentos obligatorios')
+                self.assertContains(pagina, '<caption>6 documentos obligatorios')
                 self.assertNotContains(pagina, 'No hay documentos obligatorios para este período.')
 
     def test_aportes_barra_y_periodos_se_muestran_sin_cambiar_la_evaluacion(self):

@@ -201,6 +201,9 @@ def sugerencias_para(documento, politicas):
         return {clave: [dict(label='Redacción base para adaptar', resumen='Ajusta este texto a la unidad.', html=valor)]
                 for clave, valor in valores_iniciales(documento).items()
                 if isinstance(valor, str) and valor.startswith('<')}
+    if documento.exigido.fuente_reporte == 'reglamento':
+        from .reglamento_uso import sugerencias
+        return sugerencias(documento)
     unidad = documento.unidad
     contexto = _contexto(unidad, documento)
     propias = POR_TIPO.get(unidad.codigo_base, {})

@@ -7,6 +7,7 @@ prácticas tienen código institucional confirmado en las fuentes aportadas.
 NOMBRES = {
     'RESOLUCION-CREACION': 'Resolución de creación de la unidad',
     'PROTOCOLO-BIOSEGURIDAD': 'Protocolo de bioseguridad',
+    'REGLAMENTO-USO': 'Reglamento de uso del laboratorio',
     'PLAN-COMPRAS-ANUAL': 'Plan anual de compras y presupuesto para el año siguiente',
     'PLANIFICACION': 'Planificación semestral del laboratorio',
     'INFORME-SEMESTRAL': 'Informe semestral de actividades y cumplimiento de la planificación',
@@ -30,6 +31,8 @@ REQUISITOS = {
     'RESOLUCION-CREACION': ('Resolución auténtica correspondiente al laboratorio, con autoridad, número y fecha.',),
     'PROTOCOLO-BIOSEGURIDAD': ('Alcance, responsables, peligros y controles, acceso, operación y emergencias de la unidad.',
                               'Medidas específicas según las actividades; emisión y aprobación en la plataforma con QR.'),
+    'REGLAMENTO-USO': ('Usuarios, horario y reservas, acceso, conducta y uso de equipos, reactivos e insumos.',
+                       'Seguridad, responsabilidades, daños y contacto; emisión y aprobación en la plataforma con QR.'),
     'PLAN-COMPRAS-ANUAL': ('Necesidades y compras del año siguiente, cantidades, costos, prioridad y financiamiento.',
                           'Justificación frente a inventario, capacidad instalada, personal y actividades; emisión y aprobación en la plataforma.'),
     'PLANIFICACION': ('Objetivos, diagnóstico, actividades, metas mínimas, responsables, recursos y cronograma.',
@@ -108,7 +111,7 @@ def requisitos_para(documento):
 # Código de referencia de cada documento: SLCID-<tipo de unidad>-<sufijo>.
 SUFIJOS_DE_REFERENCIA = {
     'PLANIFICACION': 'PLAN', 'INFORME-SEMESTRAL': 'INFORME', 'PLAN-COMPRAS-ANUAL': 'COMPRAS',
-    'ACCIONES-MEJORA': 'MEJORA', 'PROTOCOLO-BIOSEGURIDAD': 'SEGURIDAD',
+    'ACCIONES-MEJORA': 'MEJORA', 'PROTOCOLO-BIOSEGURIDAD': 'SEGURIDAD', 'REGLAMENTO-USO': 'REGLAMENTO',
     'REGISTRO-USO': 'USO', 'EQUIPAMIENTO': 'EQUIPAMIENTO', 'INVENTARIO-CORTE': 'INVENTARIO',
     'FICHAS-TECNICAS': 'FICHAS', 'PRACTICAS-FT02': 'PRACTICAS-PLAN', 'GUIAS': 'GUIAS',
     'PRACTICAS-FT03': 'PRACTICAS-EVIDENCIAS', 'INDUCCION-SEGURIDAD': 'REPORTES-SEGURIDAD',

@@ -1,7 +1,8 @@
 """Respaldo para auditoría: un documento propio por tema en el Centro de reportes.
 
-Capacitación y difusión, calibración, sustancias sujetas a control, personal, reglamento y simulacros ya no
-van como tablas dentro de anexos que hablan de otra cosa. Cada uno es una consulta de la familia «Respaldo
+Capacitación y difusión, calibración, sustancias sujetas a control, personal y simulacros ya no
+van como tablas dentro de anexos que hablan de otra cosa. El reglamento de uso salió de esta familia: es
+un documento principal del expediente (tests/integration/test_reglamento_uso.py). Cada uno es una consulta de la familia «Respaldo
 para auditoría»: se genera de los registros, se ofrece aunque no tenga registros y no se entrega ni puntúa.
 """
 import re
@@ -32,24 +33,22 @@ from apps.gestion_unidades.presentation.gestion_reportes import (
 )
 from apps.gestion_unidades.presentation.reportes_auditoria import (
     ESTADO_ACTUAL, REPORTES_DE_RESPALDO, reporte_calibracion, reporte_capacitacion, reporte_personal,
-    reporte_reglamento, reporte_simulacros, reporte_sustancias,
+    reporte_simulacros, reporte_sustancias,
 )
 from apps.gestion_unidades.presentation.reportes_existencia import tiene_registros
 from apps.recursos.models.consumibles import Consumible, LoteConsumible
 from apps.recursos.models.equipos import EquiposServicios
 from apps.recursos.models.mantenimiento import MantenimientoEquipo
-from apps.recursos.models.recursos import ReglamentoUnidad
 from apps.recursos.models.unidades import UnidadEquipo
 from tests.integration.test_direccion_recibe_y_califica import ANIO, BaseDelExpediente
 from tests.integration.utiles import identificar, pdf_legible_prueba
 
-SEIS = ('capacitacion', 'calibracion', 'sustancias', 'personal', 'reglamento', 'simulacros')
+CINCO = ('capacitacion', 'calibracion', 'sustancias', 'personal', 'simulacros')
 SIN_REGISTROS = {
     'capacitacion': 'No se registraron capacitaciones ni acciones de difusión en el período.',
     'calibracion': 'Ningún equipo activo tiene fechas de calibración ni órdenes de calibración en el período.',
     'sustancias': 'La unidad no tiene sustancias sujetas a control en su inventario.',
     'personal': 'La unidad no tiene personal registrado.',
-    'reglamento': 'La unidad no tiene un reglamento de uso publicado.',
     'simulacros': 'No se registraron simulacros ni prácticas de emergencia en el período.',
 }
 
@@ -153,7 +152,7 @@ class DocumentosDeRespaldoTests(TestCase):
 
     # ---- la familia ---------------------------------------------------------------------------------
 
-    def test_la_familia_va_despues_de_seguimiento_con_sus_seis_documentos_y_la_satisfaccion(self):
+    def test_la_familia_va_despues_de_seguimiento_con_sus_cinco_documentos_y_la_satisfaccion(self):
         nombres = [familia for familia, _categorias in REPORT_FAMILIES]
         self.assertEqual(nombres[-2:], ['Seguimiento y trazabilidad', FAMILIA_RESPALDO])
         familias = dict(REPORT_FAMILIES)
@@ -162,15 +161,14 @@ class DocumentosDeRespaldoTests(TestCase):
             ('calibracion', 'Calibración de equipos: última, próxima y vigencia'),
             ('sustancias', 'Sustancias sujetas a control: existencias y autorización'),
             ('personal', 'Personal de la unidad: formación y designación'),
-            ('reglamento', 'Reglamento de uso de la unidad'),
             ('simulacros', 'Simulacros y prácticas de emergencia'),
             ('satisfaccion', 'Satisfacción de los usuarios'),
         ))
         # La satisfacción se movió con su mismo código; ya no está en seguimiento.
         self.assertEqual([codigo for codigo, _nombre in familias['Seguimiento y trazabilidad']],
                          ['mejora', 'auditoria'])
-        self.assertEqual(CATEGORIAS_RESPALDO, frozenset((*SEIS, 'satisfaccion')))
-        self.assertEqual(set(REPORTES_DE_RESPALDO), set(SEIS))
+        self.assertEqual(CATEGORIAS_RESPALDO, frozenset((*CINCO, 'satisfaccion')))
+        self.assertEqual(set(REPORTES_DE_RESPALDO), set(CINCO))
         # Cada documento tiene su entrada en la guía de reportes y la unidad lo recibe con su nombre.
         self.assertLessEqual(CATEGORIAS_RESPALDO, set(REPORTES))
         self.assertLessEqual(CATEGORIAS_RESPALDO, set(dict(categorias_para(self.unidad))))
@@ -418,60 +416,11 @@ class DocumentosDeRespaldoTests(TestCase):
                 for ausente in ('Persona ficticia retirada', 'Persona ficticia de la unidad vecina'):
                     self.assertNotIn(ausente, contenido)
 
-    # ---- reglamento ---------------------------------------------------------------------------------------
-
-    def test_el_reglamento_publicado_sale_con_el_texto_de_sus_apartados_y_su_contacto(self):
-        ReglamentoUnidad.objects.update_or_create(unidad=self.unidad, defaults=dict(
-            titulo='Reglamento ficticio de uso', subtitulo='Lineamientos ficticios de prueba.',
-            normas_generales='Norma ficticia uno.\n\n  Norma ficticia dos.  ', reservas_horarios='Reserva ficticia.',
-            equipos_materiales='', seguridad='Medida ficticia de seguridad.',
-            contacto_texto='Escribe al equipo ficticio.', contacto_email='respaldo-qa@example.org', activo=True))
-        ReglamentoUnidad.objects.filter(unidad=self.otra).update(
-            titulo='Reglamento de la unidad vecina', normas_generales='Norma ajena de la unidad vecina.')
-
-        datos = reporte_reglamento(self.unidad, self.desde, self.hasta)
-        self.assertEqual(datos['headers'], ['Dato', 'Contenido'])
-        self.assertEqual(datos['rows'], [
-            ['Título', 'Reglamento ficticio de uso'], ['Subtítulo', 'Lineamientos ficticios de prueba.'],
-            ['Contacto', 'Escribe al equipo ficticio. · respaldo-qa@example.org']])
-        self.assertEqual([(t['titulo'], t['headers'], t['rows']) for t in datos['tablas']], [
-            ('Normas generales', ['Norma'], [['1. Norma ficticia uno.'], ['2. Norma ficticia dos.']]),
-            ('Reservas y horarios', ['Norma'], [['1. Reserva ficticia.']]),
-            ('Equipos y materiales', ['Norma'], []),
-            ('Seguridad', ['Norma'], [['1. Medida ficticia de seguridad.']]),
-        ])
-        self.assertEqual(datos['tablas'][2]['vacio'], 'Sin normas en este apartado.')
-        self.assertEqual(datos['cards'], [('Apartados con normas', 3), ('Normas', 4)])
-        self.assertEqual(datos['notes'], [ESTADO_ACTUAL])
-
-        for formato, contenido in self.en_los_cuatro_formatos('reglamento').items():
-            with self.subTest(formato=formato):
-                self.assertIn('Reglamento ficticio de uso', contenido)
-                self.assertIn('Norma ficticia dos.', contenido)
-                self.assertIn('Medida ficticia de seguridad.', contenido)
-                self.assertIn('respaldo-qa@example.org', contenido)
-                self.assertNotIn('Norma ajena de la unidad vecina.', contenido)
-
-    def test_sin_reglamento_publicado_o_sin_normas_el_documento_lo_dice(self):
-        ReglamentoUnidad.objects.filter(unidad=self.unidad).update(
-            normas_generales=' ', reservas_horarios='', equipos_materiales='', seguridad='\n')
-        sin_normas = reporte_reglamento(self.unidad, self.desde, self.hasta)
-        self.assertEqual((sin_normas['rows'], sin_normas['tablas']), ([], []))
-        self.assertEqual(sin_normas['vacio'], 'El reglamento publicado de la unidad no tiene normas escritas.')
-        self.assertEqual(sin_normas['cards'], [('Apartados con normas', 0), ('Normas', 0)])
-
-        ReglamentoUnidad.objects.filter(unidad=self.unidad).update(
-            normas_generales='Norma ficticia sin publicar.', activo=False)
-        sin_publicar = reporte_reglamento(self.unidad, self.desde, self.hasta)
-        self.assertEqual(sin_publicar['vacio'], SIN_REGISTROS['reglamento'])
-        self.assertNotIn('Norma ficticia sin publicar.', str(sin_publicar))
-
     # ---- se ofrecen siempre -------------------------------------------------------------------------------
 
-    def test_los_seis_se_ofrecen_y_se_generan_aunque_la_unidad_no_tenga_registros(self):
-        ReglamentoUnidad.objects.filter(unidad=self.unidad).update(activo=False)
+    def test_los_cinco_se_ofrecen_y_se_generan_aunque_la_unidad_no_tenga_registros(self):
         ofrecidas = {c['codigo']: c for c in consultas_de_la_unidad(self.unidad, self.desde, self.hasta)}
-        for codigo in SEIS:
+        for codigo in CINCO:
             with self.subTest(codigo=codigo):
                 self.assertTrue(tiene_registros(codigo, self.unidad))
                 self.assertTrue(ofrecidas[codigo]['respaldo'])
@@ -485,7 +434,7 @@ class DocumentosDeRespaldoTests(TestCase):
 
         # El PDF y la pantalla lo dicen con sus palabras, sin dejar la tabla en blanco.
         self.client.force_login(self.coordinadora)
-        for codigo in SEIS:
+        for codigo in CINCO:
             with self.subTest(pdf=codigo):
                 pdf = self.client.get(reverse('gestion_reporte_unidad_pdf', args=[self.unidad.slug]),
                                       self.filtros(codigo))
@@ -497,7 +446,7 @@ class DocumentosDeRespaldoTests(TestCase):
 
     def test_otra_unidad_no_abre_los_documentos_ajenos(self):
         self.client.force_login(self.vecina)
-        for codigo in SEIS:
+        for codigo in CINCO:
             for nombre in ('gestion_reporte_unidad', 'gestion_reporte_unidad_pdf'):
                 with self.subTest(codigo=codigo, vista=nombre):
                     ajena = self.client.get(reverse(nombre, args=[self.unidad.slug]), self.filtros(codigo))
@@ -508,9 +457,9 @@ class DocumentosDeRespaldoTests(TestCase):
     def test_el_observatorio_recibe_solo_los_documentos_de_lo_que_registra(self):
         """Sin reportes de seguridad ni inventario de insumos, no tiene simulacros ni sustancias que mostrar."""
         suyas = set(dict(categorias_para(self.observatorio))) & CATEGORIAS_RESPALDO
-        self.assertEqual(suyas, {'capacitacion', 'calibracion', 'personal', 'reglamento', 'satisfaccion'})
+        self.assertEqual(suyas, {'capacitacion', 'calibracion', 'personal', 'satisfaccion'})
         ofrecidas = {c['codigo'] for c in consultas_de_la_unidad(self.observatorio, self.desde, self.hasta)}
-        self.assertEqual(ofrecidas & CATEGORIAS_RESPALDO, {'capacitacion', 'calibracion', 'personal', 'reglamento'})
+        self.assertEqual(ofrecidas & CATEGORIAS_RESPALDO, {'capacitacion', 'calibracion', 'personal'})
         # Lo que no se le ofrece tampoco se abre escribiendo la dirección.
         self.client.force_login(self.coordinadora)
         for codigo in ('simulacros', 'sustancias'):
@@ -529,9 +478,9 @@ class DocumentosDeRespaldoTests(TestCase):
         self.assertEqual(html.count('id="informes-gestion"'), 1)
         seccion = html.split('id="informes-gestion"', 1)[1].split('</section>', 1)[0]
         respaldo, gestion = seccion.split('Consultas de gestión (', 1)
-        self.assertIn('Respaldo para auditoría (6) · se generan de los registros', respaldo)
+        self.assertIn('Respaldo para auditoría (5) · se generan de los registros', respaldo)
         self.assertIn('· no se entregan ni puntúan', gestion)
-        for codigo in SEIS:
+        for codigo in CINCO:
             self.assertIn(f'data-respaldo-auditoria="{codigo}"', respaldo)
             self.assertNotIn(f'categoria_reporte={codigo}&', gestion)
         self.assertIn('categoria_reporte=auditoria', gestion)
@@ -567,7 +516,7 @@ class RespaldoEnElCentroDeReportesTests(BaseDelExpediente):
         self.assertIn('Respaldo para auditoría · se generan de los registros', respaldo)
         self.assertEqual(tabla.count('class="cierre-grupo-consultas"'), 2)
         pdf = reverse('gestion_reporte_unidad_pdf', args=[self.laboratorio.slug])
-        for codigo in SEIS:
+        for codigo in CINCO:
             with self.subTest(codigo=codigo):
                 self.assertIn(f'data-respaldo-auditoria="{codigo}"', respaldo)
                 self.assertIn(f'data-pdf-rango="{pdf}?categoria_reporte={codigo}"', respaldo)
@@ -575,7 +524,7 @@ class RespaldoEnElCentroDeReportesTests(BaseDelExpediente):
         self.assertIn('data-pdf-desde=', respaldo)
         self.assertIn('data-pdf-hasta=', respaldo)
         # La exigencia las distingue: «Respaldo» en unas y «Consulta» en las otras.
-        self.assertEqual(respaldo.count('<span class="reporte-exigencia is-informativo">Respaldo</span>'), len(SEIS))
+        self.assertEqual(respaldo.count('<span class="reporte-exigencia is-informativo">Respaldo</span>'), len(CINCO))
         self.assertNotIn('is-informativo">Consulta</span>', respaldo)
         self.assertIn('is-informativo">Consulta</span>', gestion)
         self.assertNotIn('is-informativo">Respaldo</span>', gestion)

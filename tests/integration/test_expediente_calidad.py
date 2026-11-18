@@ -67,7 +67,7 @@ class CatalogoYPlazosTests(BaseDelExpediente):
         self.assertEqual({e.codigo for e in firmados}, {'PLANIFICACION', 'INFORME-SEMESTRAL'})
         self.assertTrue(all(e.requiere_firma for e in firmados))
         unicos = DocumentoExigido.objects.filter(activo=True, anexo_de__isnull=True, periodicidad='unica')
-        self.assertEqual({e.codigo for e in unicos}, {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD'})
+        self.assertEqual({e.codigo for e in unicos}, {'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD', 'REGLAMENTO-USO'})
         plan = self.exigido('PLANIFICACION')
         self.assertEqual((plan.plazo_regla, plan.plazo_dias, plan.periodicidad), ('inicio', 15, 'semestral'))
         self.assertTrue(plan.redactable and plan.generable and plan.cargable)
@@ -264,8 +264,8 @@ class GenerarCargarValidarTests(BaseDelExpediente):
         exigibles = [d for d in documentos if d.exigible]
         self.assertEqual({d.exigido.codigo for d in exigibles},
                          {'PLANIFICACION', 'INFORME-SEMESTRAL', 'RESOLUCION-CREACION', 'PROTOCOLO-BIOSEGURIDAD',
-                          'PLAN-COMPRAS-ANUAL'})
-        self.assertEqual(cifras['total'], 7)
+                          'REGLAMENTO-USO', 'PLAN-COMPRAS-ANUAL'})
+        self.assertEqual(cifras['total'], 8)
         self.assertGreater(cifras['vencidos'], 0)
         self.assertEqual(cifras['validados'], 0)
         self.assertEqual(cifras['completo'], 0)

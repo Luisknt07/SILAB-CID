@@ -42,6 +42,12 @@ CRITERIOS = {
         ('Respuesta y responsables', 'Procedimientos de emergencia, responsables y contactos claros y vigentes.'),
         ('Aplicación y seguimiento', 'Evidencia de difusión, formación, revisión y seguimiento del protocolo.'),
     ),
+    'REGLAMENTO-USO': (
+        ('Cobertura del reglamento', 'Usuarios, horario, reservas, acceso y conducta acordes con la operación de la unidad.'),
+        ('Uso de los recursos', 'Reglas claras para equipos, insumos, software o datos, según el tipo de unidad.'),
+        ('Seguridad y responsabilidades', 'Remite al protocolo, define responsabilidades y el tratamiento de daños e incumplimientos.'),
+        ('Vigencia y difusión', 'Datos de contacto vigentes y publicación del reglamento en la página de la unidad.'),
+    ),
     'RESOLUCION-CREACION': (
         ('Identificación', 'Unidad, número y fecha identificables en el documento.'),
         ('Autoridad y aprobación', 'Acto aprobado por la autoridad competente, verificable en el documento.'),

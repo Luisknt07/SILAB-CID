@@ -95,7 +95,6 @@ REPORT_FAMILIES = (
         ("calibracion", "Calibración de equipos: última, próxima y vigencia"),
         ("sustancias", "Sustancias sujetas a control: existencias y autorización"),
         ("personal", "Personal de la unidad: formación y designación"),
-        ("reglamento", "Reglamento de uso de la unidad"),
         ("simulacros", "Simulacros y prácticas de emergencia"),
         ("satisfaccion", "Satisfacción de los usuarios"),
     )),
@@ -225,7 +224,7 @@ def _generic_report(
         from apps.gestion_unidades.presentation.reportes_seguimiento_documental import reporte_mejora, reporte_retiros
         construir = reporte_retiros if category == 'retiros' else reporte_mejora
         return construir(unit, start_date, end_date, state, search)
-    if category in ('capacitacion', 'calibracion', 'sustancias', 'personal', 'reglamento', 'simulacros'):
+    if category in ('capacitacion', 'calibracion', 'sustancias', 'personal', 'simulacros'):
         from apps.gestion_unidades.presentation.reportes_auditoria import REPORTES_DE_RESPALDO
         return REPORTES_DE_RESPALDO[category](unit, start_date, end_date, state, search)
     if category == 'satisfaccion':

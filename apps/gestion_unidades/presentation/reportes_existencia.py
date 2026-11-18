@@ -12,7 +12,7 @@ from django.db.models import Q
 SIEMPRE = frozenset(('auditoria', 'uso-capacidad'))
 # El respaldo para auditoría es una lista de comprobación: el documento se ofrece aunque no haya registros,
 # porque «no se registraron simulacros en el período» también responde. La satisfacción conserva su lectura.
-SIEMPRE |= frozenset(('capacitacion', 'calibracion', 'sustancias', 'personal', 'reglamento', 'simulacros'))
+SIEMPRE |= frozenset(('capacitacion', 'calibracion', 'sustancias', 'personal', 'simulacros'))
 
 
 def _equipos(unidad):

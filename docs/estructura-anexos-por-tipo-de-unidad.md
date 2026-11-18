@@ -38,7 +38,7 @@ tablas y columnas lleva cada uno. Parte de las dos listas que pidió la universi
 | Observatorio, prácticas y desechos | No lleva | No tiene prácticas ni genera desechos peligrosos |
 | Centro experimental | Ensayos y producción agropecuaria van separados | Un ensayo es investigación; un ciclo productivo es producción |
 | Inspecciones | Se agregan condiciones propias del tipo: inocuidad en plantas piloto, agroquímicos, maquinaria y sanidad animal en el centro experimental | Las siete condiciones generales no cubren esos riesgos |
-| Lo que pide una auditoría fuera de las listas de la universidad | Calibración de equipos, sustancias controladas, personal de la unidad, reglamento de uso, simulacros, capacitación y difusión, y satisfacción de los usuarios no van en los anexos: cada tema es un documento propio de «Respaldo para auditoría» en el Centro de reportes | No cargar los anexos con información que no corresponde a su exigencia |
+| Lo que pide una auditoría fuera de las listas de la universidad | Calibración de equipos, sustancias controladas, personal de la unidad, simulacros, capacitación y difusión, y satisfacción de los usuarios no van en los anexos: cada tema es un documento propio de «Respaldo para auditoría» en el Centro de reportes. El reglamento de uso tampoco es anexo: es un documento principal permanente (`REGLAMENTO-USO`) que se redacta en el expediente, junto a la resolución de creación y el protocolo | No cargar los anexos con información que no corresponde a su exigencia |
 
 ### Dónde el nombre se aparta de la redacción de la universidad
 

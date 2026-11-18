@@ -51,7 +51,8 @@ def registrar_emision(documento, usuario):
     documento._constancia_qr = ConstanciaDocumento.objects.create(token=token, documento=documento, recurso=documento.recurso,
         version=documento.version, sha256=documento.recurso.hash_sha256, titulo=documento.nombre_documental,
         unidad_nombre=documento.unidad.nombre,
-        periodo='Documento permanente' if documento.exigido.fuente_reporte == 'protocolo' else documento.etiqueta_corte,
+        periodo=('Documento permanente' if documento.exigido.fuente_reporte in ('protocolo', 'reglamento')
+                 else documento.etiqueta_corte),
         emitido_por=usuario,
         emisor_nombre=usuario.get_full_name() or usuario.get_username(), emisor_cedula=cedula_del_usuario(usuario),
         contenido_emitido=getattr(documento, '_contenido_emitido', {}))

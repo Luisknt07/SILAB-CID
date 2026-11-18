@@ -9,7 +9,8 @@ estado que el documento cuenta y lo encuentra después en su tabla:
 - anexo 3, inventario: acta de revisión física, equipos, y bajas y traspasos (reactivos, insumos y movimientos
   se prueban con las rutas de captura del inventario de existencias);
 - anexo 4, fichas técnicas: ficha de la unidad, espacios y talleres, y software y simuladores;
-- respaldo para auditoría: calibración de equipos, personal de la unidad y reglamento de uso.
+- respaldo para auditoría: calibración de equipos y personal de la unidad. El reglamento de uso ya no se
+  edita en la ficha: se redacta en el expediente (tests/integration/test_reglamento_uso.py).
 
 El documento se pide como lo pide la unidad: el anexo, con «borrador al día» desde el Centro de reportes; el
 respaldo, como consulta del Centro de reportes en PDF.
@@ -540,26 +541,15 @@ class RutasDeCapturaDeEquipamientoTests(TestCase):
                      'Memorando ficticio 0042', self.hoy.strftime('%d/%m/%Y'), 'Lunes a viernes, 08:00 a 12:00'):
             self.assertIn(dato, pdf)
 
-    def test_el_reglamento_que_la_unidad_edita_y_publica_sale_en_su_documento(self):
-        self.assertIn(reverse('editar_registro', args=[self.unidad.slug, 'reglamento', 'unidad']),
-                      self.panel('configuracion'))
+    def test_el_reglamento_ya_no_se_edita_en_la_ficha_y_el_panel_remite_al_expediente(self):
+        panel = self.panel('configuracion')
+        self.assertNotIn('/editar/reglamento/', panel)
+        self.assertIn(reverse('gestion_expediente_unidad', args=[self.unidad.slug]) + '#entregas-documentos', panel)
+        self.assertIn('Reglamento de uso (expediente)', panel)
         ruta = reverse('editar_registro', args=[self.unidad.slug, 'reglamento', 'unidad'])
-        formulario = self.client.get(ruta).context['formulario']
-        # Despublicado, el documento lo dice; publicado, trae las normas que la unidad escribió.
-        self.assertEqual(self.client.post(ruta, _datos_de(formulario, activo='')).status_code, 302)
-        self.assertIn('no tiene un reglamento de uso publicado', self.consulta('reglamento'))
-        respuesta = self.client.post(ruta, _datos_de(
-            formulario, titulo='Reglamento ficticio del laboratorio H3', activo='on',
-            normas_generales='Usar mandil ficticio en todo momento.\nRegistrar cada sesión ficticia.',
-            seguridad='Ubicar la ducha ficticia de emergencia antes de empezar.'))
-        self.assertEqual(respuesta.status_code, 302)
-        self.assertTrue(ReglamentoUnidad.objects.get(unidad=self.unidad).activo)
-        pdf = self.consulta('reglamento')
-        for dato in ('Reglamento ficticio del laboratorio H3', '1. Usar mandil ficticio en todo momento.',
-                     '2. Registrar cada sesión ficticia.', '1. Ubicar la ducha ficticia de emergencia antes de empezar.'):
-            self.assertIn(dato, pdf)
-        self.assertTrue(RegistroAuditoriaUnidad.objects.filter(
-            unidad=self.unidad, entidad='recursos.ReglamentoUnidad', accion='actualizar').exists())
+        self.assertEqual(self.client.get(ruta).status_code, 404)
+        self.assertEqual(self.client.post(ruta, {'titulo': 'Reglamento ficticio'}).status_code, 404)
+        self.assertNotEqual(ReglamentoUnidad.objects.get(unidad=self.unidad).titulo, 'Reglamento ficticio')
 
     # -- lo que la unidad no registra ---------------------------------------------------------------
 

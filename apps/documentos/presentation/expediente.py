@@ -1146,6 +1146,10 @@ def validar_documento(documento, usuario, *, declaracion_correspondencia=None):
         documento.save(update_fields=['estado', 'validado_en', 'validado_por', 'entregado_en',
                                       'entregado_tarde', 'actualizado_en'])
         cerrar_anexos(documento, usuario)
+        if documento.exigido.fuente_reporte == 'reglamento':
+            # La versión enviada es la oficial: la página pública la muestra desde ahora.
+            from apps.documentos.presentation.reglamento_uso import publicar
+            publicar(documento, usuario)
         if emision:
             emision.enviado_por, emision.enviado_en = usuario, timezone.now()
             emision.save(update_fields=['enviado_por', 'enviado_en'])

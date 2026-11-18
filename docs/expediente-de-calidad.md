@@ -187,6 +187,8 @@ justificación que queda en el expediente y deja de contarse.
 | Carpeta | Documento | Quién | Cuándo |
 | --- | --- | --- | --- |
 | Planeación | Resolución de creación | Unidad, una vez; se hereda | Sin plazo |
+| Planeación | Protocolo de seguridad y condiciones de operación | Editor guiado → envío con QR; se hereda | Sin plazo |
+| Planeación | Reglamento de uso de la unidad | Editor guiado → envío con QR; se hereda y se publica en la ficha | Sin plazo |
 | Planeación | **Planificación semestral (firmada)** | Editor guiado → firma → carga | 15 días desde el inicio del período |
 | Planeación | Plan anual de mantenimiento | Sistema | — |
 | Ejecución | Registro de uso del período | Sistema | — |
@@ -271,8 +273,8 @@ Desde el 15 de noviembre de 2026 hay dos formatos.
 
 ### Documentos principales
 
-Son los cuatro que la unidad redacta y firma: protocolo de seguridad, plan anual de
-compras, planificación semestral e informe semestral
+Son los cinco que la unidad redacta y firma: protocolo de seguridad, reglamento de uso,
+plan anual de compras, planificación semestral e informe semestral
 (`expediente_pdf.DOCUMENTOS_PRINCIPALES`). La resolución de creación se carga, no se
 genera. Llevan el formato del informe institucional (`marco_institucional(estilo='informe')`):
 
@@ -365,6 +367,25 @@ consulta, marca en el selector las categorías que además son documentos del
 expediente y, al elegir una, dice a qué documento alimenta y enlaza allí
 (`documentos_del_expediente`, `entregas_de_la_unidad`).
 
+### Reglamento de uso de la unidad (18 de noviembre de 2026)
+
+El reglamento de uso dejó de ser una consulta de «Respaldo para auditoría» y es un documento
+principal permanente (`REGLAMENTO-USO`, `documentos.0031`), en «1. Documentos base de la unidad»
+después del protocolo y con su mismo régimen: se redacta con el editor guiado, sale con el formato
+de los documentos principales, se envía con QR, la Dirección confirma su conformidad una vez por
+versión, no se califica y se hereda cada año. Aplica a los cuatro tipos de unidad, con el nombre
+propio de cada uno («Reglamento de uso del laboratorio», «…de la planta piloto», etc.).
+
+- **Texto estándar** (`apps/documentos/presentation/reglamento_uso.py`): el mismo para todas las
+  unidades y solo cambia por tipo (inocuidad y BPM en la planta piloto; agroquímicos, maquinaria y
+  animales en el centro experimental; datos y fuentes en el observatorio). La ficha, el horario, el
+  aforo, los requisitos de acceso y el personal entran solos. Si la unidad ya había escrito su
+  reglamento publicado, ese texto es el punto de partida de su apartado.
+- **Una sola verdad:** cuando la unidad envía una versión, su contenido se publica en
+  `ReglamentoUnidad` y la página pública muestra ese reglamento. El reglamento publicado ya no se
+  edita en la página ni en el admin de la unidad (queda de solo lectura); el acceso directo del
+  panel remite al expediente.
+
 ### Respaldo para auditoría
 
 Lo que una auditoría pide y no es anexo del informe tiene un documento propio
@@ -382,11 +403,10 @@ conserva su regla y solo se ofrece si la unidad tiene valoraciones.
 | Calibración de equipos: última, próxima y vigencia | Equipos activos con fecha de calibración o con una orden de calibración en el rango; vigencia al corte | Ficha del equipo (última y próxima calibración) y órdenes de mantenimiento de tipo calibración |
 | Sustancias sujetas a control: existencias y autorización | Insumos activos marcados como sustancia sujeta a control: autorización, existencia, lotes con saldo y ficha de seguridad | Gestión de la unidad → Recursos → insumos |
 | Personal de la unidad: formación y designación | Responsables activos con su rol, formación, acto y fecha de designación y horario | Gestión de la unidad → Configuración → Equipo humano |
-| Reglamento de uso de la unidad | El reglamento publicado: título, subtítulo, apartados con sus normas y contacto | Reglamento de uso de la unidad (contenido público) |
 | Simulacros y prácticas de emergencia | Simulacros del rango: emergencia, participantes, resultado, acción de mejora y respaldo | Fuentes de las metas → Simulacro, junto a las inspecciones |
 | Satisfacción de los usuarios | Valoraciones de las reservas atendidas del rango | «Mis reservas», tras una reserva atendida |
 
-El personal, el reglamento y las sustancias son el estado actual de la unidad:
+El personal y las sustancias son el estado actual de la unidad:
 no dependen del rango y el documento lo indica. El observatorio no recibe
 simulacros ni sustancias, porque no lleva reportes de seguridad ni inventario
 de insumos.
