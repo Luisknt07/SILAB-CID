@@ -226,7 +226,7 @@ HUELLAS_REVISION = MappingProxyType({
     'apps/directorio_unidades/models/core.py': '82cdd0c03fa7902b0b2b94760c96ea8ea3748a0acc886f95c245702e42f71c6c',
     'apps/reservas/models/reservas.py': '58f72a9dec58b971aa5b9481f86636be8f9c43f630e59938ca7fa6863d68963b',
     'apps/reservas/services/codigos_reserva.py': 'd4aa106653494d054b400235c19667e60b030ef4f63f1687aac5ffe96cdc65b2',
-    'apps/recursos/models/recursos.py': '274d73cdea14eea9282c130cc735c0780e82ce112e4f4bf21804c8008d071364',
+    'apps/recursos/models/recursos.py': 'f67b53cbff63af8312ce69382196f95bf9004048f16426c3aa7034545cbcc7fa',
     'apps/core/models/usuarios.py': 'd6b47498796dac94bf594e6e7f8e481eae5dc9489ee4cad6c9ea23b52dd7d9f3',
 })
 

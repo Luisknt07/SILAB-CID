@@ -22,10 +22,10 @@ from tests.integration.test_expediente_redaccion import BaseDeRedaccion, PLAN_CO
 
 
 class AlcanceDocumentalTests(SimpleTestCase):
-    def test_diecisiete_documentos_con_nombre_y_requisitos(self):
-        # Cinco principales, los once anexos que pide la universidad (documentos.0027) y las acciones de mejora,
-        # retiradas, cuyo nombre se conserva para leer lo ya archivado.
-        self.assertEqual(len(NOMBRES), 17)
+    def test_dieciocho_documentos_con_nombre_y_requisitos(self):
+        # Seis principales (con el reglamento de uso, documentos.0031), los once anexos que pide la universidad
+        # (documentos.0027) y las acciones de mejora, retiradas, cuyo nombre se conserva para leer lo ya archivado.
+        self.assertEqual(len(NOMBRES), 18)
         self.assertEqual(set(NOMBRES), set(REQUISITOS))
         self.assertTrue(all(REQUISITOS.values()))
 
