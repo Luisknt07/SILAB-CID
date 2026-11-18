@@ -33,6 +33,17 @@ Gestionar unidad (`/gestion/unidades/<unidad>/`). «Centro de reportes» es el e
 | Anexos 10 y 11 · Investigación y transferencia | Centro de reportes → su consulta → «Registrar resultado y respaldo» / «Registrar entrega y aceptación»; el uso y los servicios salen de las reservas |
 | Respaldo para auditoría | Capacitación, difusión y simulacros: botón «Registrar…» de su documento. Calibración: ficha del equipo. Sustancias: ficha del insumo. Personal: «Configuración de la unidad». El reglamento de uso ya no es una consulta: se redacta en el expediente (documentos principales). Satisfacción: la escribe quien reservó, en «Mis reservas» |
 
+### Carga de prueba en una unidad real
+
+`manage.py cargar_registros_de_prueba` recorre estas mismas rutas con las cuentas de una unidad (por omisión el
+FabLab: `admin.fablab`, `estudiante.fablab01`, otra persona del equipo humano con cuenta para validar y
+`direccion.seguimiento` para la Dirección) y deja un registro válido en cada documento del Centro de reportes. Todo
+texto libre empieza con «[PRUEBA] », todo código elegible con `PRUEBA-` y cada respaldo es un PDF o una imagen que
+dice «DOCUMENTO DE PRUEBA · SILAB-CID». Sin `--aplicar` solo ensaya; con `--aplicar --base <base>` deja el
+manifiesto en `var/registros_de_prueba/`, y `--retirar <manifiesto>` lo retira (también ensaya salvo con
+`--aplicar --base`). Al terminar imprime, por documento, el registro cargado, su estado, si aparece en el documento
+generado y dónde verlo. Lo prueba `tests/integration/test_cargar_registros_de_prueba.py`.
+
 ## Documentos principales, anexos 8 a 11 y respaldo de capacitación, difusión y simulacros
 
 Anexos 8 a 11, respaldo de capacitación, difusión y simulacros, y los cinco documentos principales.
