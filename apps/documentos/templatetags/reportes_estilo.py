@@ -132,22 +132,116 @@ def categoria_del_documento(bloque):
 # Metas del plan sin anexo cuyo respaldo es un documento propio del Centro de reportes: su categoría y su nombre.
 _RESPALDO_DE_CAPACITACION = {'categoria': 'capacitacion', 'nombre': 'Capacitación del personal y difusión'}
 RESPALDO_DE_METAS_SIN_ANEXO = {'CAPACITACION': _RESPALDO_DE_CAPACITACION, 'DIFUSION': _RESPALDO_DE_CAPACITACION}
-# Las consultas del Centro de reportes, en el orden en que se listan: (clave, nombre, alcance, exigencia).
-GRUPOS_DE_CONSULTAS = (
-    ('respaldo', 'Respaldo para auditoría', 'se generan de los registros', 'Respaldo'),
-    ('gestion', 'Consultas de gestión', 'no se entregan ni puntúan', 'Consulta'),
+# Lo que el Centro de reportes genera de los registros no va suelto: cada documento se lee en la categoría
+# temática del anexo con el que se relaciona, o en una de las dos que solo tienen documentos generados.
+# Las claves son las categorías de REPORT_FAMILIES; una nueva sin asignar cae en «Otros respaldos de la unidad».
+CATEGORIA_PERSONAL = 'Personal, formación y difusión'
+CATEGORIA_SEGUIMIENTO = 'Seguimiento y mejora'
+CATEGORIA_SIN_ASIGNAR = 'Otros respaldos de la unidad'
+_USO, _PRACTICAS, _SEGURIDAD = (titulo for titulo, _codigos in CATEGORIAS_DE_ANEXOS[:3])
+_PRODUCCION, _SEGUN_ACTIVIDAD = CATEGORIAS_DE_ANEXOS[3][0], CATEGORIAS_DE_ANEXOS[-1][0]
+CATEGORIA_DE_CONSULTA = {
+    **dict.fromkeys(('reservas', 'uso-capacidad', 'mantenimiento', 'equipamiento', 'retiros', 'recursos',
+                     'inventario', 'prestamos', 'visitas', 'calibracion', 'sustancias', 'satisfaccion'), _USO),
+    **dict.fromkeys(('asignaturas', 'planificaciones', 'ejecuciones', 'aula', 'guias'), _PRACTICAS),
+    **dict.fromkeys(('seguridad', 'desechos', 'simulacros'), _SEGURIDAD),
+    **dict.fromkeys(('personal', 'capacitacion', 'cursos'), CATEGORIA_PERSONAL),
+    **dict.fromkeys(('produccion', 'procesos', 'calidad', 'control-calidad'), _PRODUCCION),
+    # Las fuentes propias de centros experimentales y observatorios (reportes_perfiles.CATEGORIAS_PERFIL).
+    **dict.fromkeys(('ensayos', 'produccion-agropecuaria'), CATEGORIAS_DE_ANEXOS[4][0]),
+    **dict.fromkeys(('boletines', 'datos-observatorio', 'eventos'), CATEGORIAS_DE_ANEXOS[5][0]),
+    **dict.fromkeys(('investigacion', 'transferencia', 'finanzas'), _SEGUN_ACTIVIDAD),
+    **dict.fromkeys(('mejora', 'auditoria'), CATEGORIA_SEGUIMIENTO),
+}
+# El orden en que se leen las categorías. Una que solo tiene documentos generados entra antes de la primera
+# categoría de anexos que va después de ella; los anexos conservan su orden, que es el del informe.
+ORDEN_DE_CATEGORIAS = (
+    'Respaldos de la planificación', _USO, _PRACTICAS, _SEGURIDAD, CATEGORIA_PERSONAL,
+    *(titulo for titulo, _codigos in CATEGORIAS_DE_ANEXOS[3:]),
+    CATEGORIA_SIN_ASIGNAR, 'Actividades sin anexo específico', CATEGORIA_SEGUIMIENTO,
 )
+# Las dos clases de documento generado: (clave del filtro de exigencia, etiqueta de la fila).
+EXIGENCIAS_DE_CONSULTAS = (('respaldo', 'Respaldo para auditoría'), ('gestion', 'Consulta de gestión'))
+
+
+def categoria_de_consulta(consulta):
+    return CATEGORIA_DE_CONSULTA.get(consulta.get('codigo'), CATEGORIA_SIN_ASIGNAR)
+
+
+def _lectura_de_consulta(consulta):
+    """La consulta con su categoría, su exigencia y su estado: así la fila no queda vacía."""
+    clave = 'respaldo' if consulta.get('respaldo') else 'gestion'
+    con_registros = consulta.get('con_registros')
+    return dict(consulta, categoria=categoria_de_consulta(consulta), exigencia_clave=clave,
+                etiqueta=dict(EXIGENCIAS_DE_CONSULTAS)[clave],
+                registrado=consulta.get('registrado') or 'Se genera al consultar',
+                estado=('Con registros' if con_registros else 'Sin registros en el período'
+                        if con_registros is False else 'Disponible'))
+
+
+def _posicion(categoria):
+    return ORDEN_DE_CATEGORIAS.index(categoria) if categoria in ORDEN_DE_CATEGORIAS else None
+
+
+@register.simple_tag
+def filas_de_la_tabla(grupos, consultas=None):
+    """Los anexos en el orden del informe y, al final de su categoría, los documentos generados de ese tema.
+
+    Cada fila es `{'categoria', 'bloque'}` (un anexo o actividad) o `{'categoria', 'consulta'}`.
+    """
+    pendientes = {}
+    for consulta in consultas or []:
+        lectura = _lectura_de_consulta(consulta)
+        pendientes.setdefault(lectura['categoria'], []).append(lectura)
+    filas = []
+
+    def volcar(categoria):
+        filas.extend(dict(categoria=categoria, consulta=c) for c in pendientes.pop(categoria, []))
+
+    def volcar_anteriores(posicion):
+        for categoria in sorted((c for c in pendientes if (_posicion(c) or 0) < posicion), key=_posicion):
+            volcar(categoria)
+
+    anterior = None
+    for bloque in en_orden(grupos):
+        categoria = bloque['categoria']
+        if categoria != anterior:
+            if anterior is not None:
+                volcar(anterior)
+            posicion = _posicion(categoria)
+            if posicion:
+                volcar_anteriores(posicion)
+            anterior = categoria
+        filas.append(dict(categoria=categoria, bloque=bloque))
+    if anterior is not None:
+        volcar(anterior)
+    volcar_anteriores(len(ORDEN_DE_CATEGORIAS))
+    primera = next((fila for fila in filas if 'consulta' in fila), None)
+    if primera:
+        primera['primera_consulta'] = True
+    return filas
+
+
+@register.simple_tag
+def exigencias_de_consultas(consultas):
+    """Las opciones del filtro de exigencia para los documentos generados que hay en la tabla."""
+    presentes = {'respaldo' if c.get('respaldo') else 'gestion' for c in consultas or []}
+    return [(clave, etiqueta) for clave, etiqueta in EXIGENCIAS_DE_CONSULTAS if clave in presentes]
 
 
 @register.filter
-def grupos_de_consultas(consultas):
-    """Las consultas en sus dos categorías, sin las vacías: el respaldo para auditoría y las de gestión."""
+def consultas_por_categoria(consultas):
+    """Las consultas sin tabla de anexos, en las mismas categorías temáticas y en su orden."""
+    return [dict(categoria=categoria, consultas=[fila['consulta'] for fila in filas])
+            for categoria, filas in _agrupadas(filas_de_la_tabla([], consultas))]
+
+
+def _agrupadas(filas):
     grupos = []
-    for clave, nombre, alcance, etiqueta in GRUPOS_DE_CONSULTAS:
-        suyas = [c for c in consultas or [] if bool(c.get('respaldo')) == (clave == 'respaldo')]
-        if suyas:
-            grupos.append(dict(clave=clave, nombre=nombre, titulo=f'{nombre} · {alcance}', alcance=alcance,
-                               etiqueta=etiqueta, consultas=suyas))
+    for fila in filas:
+        if not grupos or grupos[-1][0] != fila['categoria']:
+            grupos.append((fila['categoria'], []))
+        grupos[-1][1].append(fila)
     return grupos
 
 

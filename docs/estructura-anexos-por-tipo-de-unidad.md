@@ -54,7 +54,21 @@ Los demás nombres son el texto de la universidad, sin recortes (documentos.0028
 
 ### Lectura por categorías en el Centro de reportes
 
-Los anexos se leen por temas, en el mismo orden y con el mismo número que llevan en el informe: uso, equipamiento e inventario; evidencias de las prácticas; seguridad; los propios del tipo de unidad; y los que dependen de la actividad del período (desechos, investigación y transferencia). Las consultas de gestión quedan aparte, juntas y plegadas: no se entregan ni puntúan, y no se ofrece la que repite un anexo (prácticas por asignatura, inventario de insumos, mantenimiento y visitas).
+Los anexos se leen por temas, en el mismo orden y con el mismo número que llevan en el informe: uso, equipamiento e inventario; evidencias de las prácticas; seguridad; los propios del tipo de unidad; y los que dependen de la actividad del período (desechos, investigación y transferencia).
+
+Los documentos que el Centro de reportes genera de los registros (el respaldo para auditoría y las consultas de gestión) no van en bloques aparte: cada uno es una fila más al final de la categoría del anexo con el que se relaciona, o en una de dos categorías que solo tienen documentos generados. La asignación está en `CATEGORIA_DE_CONSULTA` (`apps/documentos/templatetags/reportes_estilo.py`):
+
+| Categoría | Documentos generados que se suman |
+| --- | --- |
+| Uso, equipamiento e inventario | Capacidad y aprovechamiento, calibración de equipos, sustancias sujetas a control, satisfacción de los usuarios, préstamos, visitas, inventario, retiros y las demás de uso o recursos |
+| Evidencias de las prácticas | Asignaturas, prácticas planificadas y ejecutadas, aula y guías |
+| Seguridad | Simulacros y prácticas de emergencia, bioseguridad y desechos |
+| Personal, formación y difusión (solo documentos generados) | Personal de la unidad, capacitación del personal y difusión, formación: cursos y eventos |
+| Las propias de cada tipo | Producción, procesos y calidad (plantas piloto); ensayos y producción agropecuaria (centros experimentales); datos, boletines y eventos (observatorios) |
+| Según la actividad del período | Investigación, transferencia y sostenibilidad financiera |
+| Seguimiento y mejora (solo documentos generados, al final) | Acciones de mejora, auditoría y trazabilidad |
+
+Una consulta nueva sin asignar cae en «Otros respaldos de la unidad», y la prueba `tests/integration/test_categorias_centro_reportes.py` lo detecta. Cada fila lleva en «Exigencia» su etiqueta («Respaldo para auditoría» o «Consulta de gestión»); en «Registrado», cuántos registros tiene en el período o, si describe el estado actual, cuántos elementos hay («4 personas», «2 sustancias», «6 equipos con calibración»), o «Se genera al consultar» si no tiene un conteo sencillo; y en «Estado», «Con registros», «Sin registros en el período» o «Disponible», con estilo neutro porque no es una meta ni puntúa. Cada fila cuesta un conteo como máximo (`apps/gestion_unidades/presentation/reportes_conteo.py`). Los filtros de la tabla las incluyen: el buscador las encuentra por nombre y el filtro de exigencia ofrece sus dos etiquetas. Sin tabla de anexos (vista del año), la lista de documentos generados usa las mismas categorías. No se ofrece la consulta que repite un anexo (prácticas por asignatura, inventario de insumos, mantenimiento y visitas).
 
 ## 2. Reglas comunes del formato
 

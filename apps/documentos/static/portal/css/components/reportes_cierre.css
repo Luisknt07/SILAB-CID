@@ -61,7 +61,7 @@
 .cierre-dashboard .cierre-anexos-tabla caption { padding:8px 10px; color:#64728a; font-size:10px; background:#fff; }
 .cierre-dashboard .cierre-anexos-tabla tbody, .cierre-dashboard .cierre-anexos-tabla tbody:nth-of-type(even) { background:#fff; }
 .cierre-dashboard .cierre-anexos-tabla tbody[data-meta-bloque]:hover { background:#f8faff; }
-.cierre-dashboard .cierre-anexos-tabla .cierre-grupo th, .cierre-dashboard .cierre-anexos-tabla .cierre-grupo-consultas th { padding:5px 9px; border-left:0; background:#f3f5f9; color:#52627b; font-size:10px; }
+.cierre-dashboard .cierre-anexos-tabla .cierre-grupo th { padding:5px 9px; border-left:0; background:#f3f5f9; color:#52627b; font-size:10px; }
 .cierre-dashboard .cierre-anexos-tabla th[scope=rowgroup], .cierre-dashboard .cierre-anexos-tabla th[scope=row] { color:#1c2b42; font-weight:650; }
 .cierre-dashboard .cierre-indicadores__tabla small { margin-top:3px; color:#6a7890; font-size:10px; }
 .cierre-dashboard .cierre-documento-icono { color:#007e58; }

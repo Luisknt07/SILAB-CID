@@ -1,15 +1,16 @@
-{% load reportes_estilo %}{% comment %}Lo que el Centro de reportes genera de los registros, como últimas categorías de la tabla de anexos
-del período: primero el respaldo para auditoría y después las consultas de gestión.
-No son anexos del informe: no llevan número, meta ni puntos.{% endcomment %}
-{% for grupo in consultas|grupos_de_consultas %}
-<tbody class="cierre-grupo-consultas"{% if forloop.first %} id="informes-gestion"{% endif %} data-grupo-consultas="{{ grupo.clave }}"><tr><th colspan="10" scope="rowgroup">{{ grupo.titulo }}</th></tr></tbody>
-<tbody data-consultas-{{ grupo.clave }}>
-{% for consulta in grupo.consultas %}<tr data-consulta-gestion{% if grupo.clave == 'respaldo' %} data-respaldo-auditoria="{{ consulta.codigo }}"{% endif %}>
+{% comment %}Un documento que el Centro de reportes genera de los registros, como una fila más de su categoría
+temática en la tabla de anexos del período. No es anexo del informe: no lleva número, meta ni puntos, pero sí
+su etiqueta, lo que tiene registrado y su estado.{% endcomment %}<tbody data-meta-bloque data-meta-exigencia="{{ consulta.exigencia_clave }}"{% if primera_consulta %} id="informes-gestion"{% endif %}>
+<tr data-consulta-gestion{% if consulta.respaldo %} data-respaldo-auditoria="{{ consulta.codigo }}"{% endif %} data-meta-codigo="{{ consulta.codigo }}" data-meta-estado="neutro">
   <td class="reporte-item">—</td>
   <th scope="row"><span class="cierre-evidencia-nombre documento-titulo">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>{{ consulta.nombre }}</span></span></th>
-  <td><span class="reporte-exigencia is-informativo">{{ grupo.etiqueta }}</span></td>
-  <td colspan="6">{{ rango_periodo.0|date:"d/m/Y" }} – {{ rango_periodo.1|date:"d/m/Y" }} · se actualiza al consultar; puedes cambiar las fechas en el visor.</td>
+  <td><span class="reporte-exigencia is-informativo">{{ consulta.etiqueta }}</span></td>
+  <td>{% if consulta.respaldo %}Se genera de los registros{% else %}No se entrega ni puntúa{% endif %}</td>
+  <td>—</td>
+  <td>{{ consulta.registrado }}</td>
+  <td><strong class="reporte-estado is-neutro"><span aria-hidden="true">{% if consulta.con_registros %}●{% else %}○{% endif %}</span> {{ consulta.estado }}</strong></td>
+  <td class="cierre-avance">—</td>
+  <td class="cierre-detalle"><small>{{ rango_periodo.0|date:"d/m/Y" }} – {{ rango_periodo.1|date:"d/m/Y" }} · se actualiza al consultar</small></td>
   <td><a class="cierre-ver documento-accion is-pdf" href="{{ consulta.url }}" data-ver-pdf data-pdf-descarga="{{ consulta.url }}" data-pdf-titulo="{{ consulta.nombre }} · {{ etiqueta_periodo }}" data-pdf-rango="{{ consulta.base }}" data-pdf-desde="{{ consulta.desde }}" data-pdf-hasta="{{ consulta.hasta }}" aria-label="Abrir {{ consulta.nombre }}">{% include 'portal/pages/unidades/gestion/includes/icono_pdf.html' %}<span>Ver</span></a></td>
-</tr>{% endfor %}
+</tr>
 </tbody>
-{% endfor %}

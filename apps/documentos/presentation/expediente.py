@@ -641,25 +641,30 @@ def consultas_de_la_unidad(unidad, inicio, fin):
     Solo se ofrecen los módulos que la unidad usa: una consulta sin un solo registro no aporta.
     Tampoco la que repite un anexo: la programación por asignatura, el inventario de insumos, las visitas y
     el mantenimiento ya están en los anexos de planificación de prácticas, inventario, uso y equipamiento.
-    Los documentos de respaldo para auditoría van marcados (`respaldo`): se listan en su propia categoría
-    y se ofrecen aunque no tengan registros.
+    Los documentos de respaldo para auditoría van marcados (`respaldo`) y se ofrecen aunque no tengan
+    registros. Cada uno trae lo que hay detrás (`registrado`, `con_registros`), con un conteo como máximo.
     """
     from apps.gestion_unidades.presentation.gestion_reportes import (
         CATEGORIAS_RESPALDO, categorias_para, documentos_del_expediente,
     )
+    from apps.gestion_unidades.presentation.reportes_conteo import lo_registrado
     from apps.gestion_unidades.presentation.reportes_existencia import tiene_registros
 
     evidencia = set(documentos_del_expediente(unidad))
     evidencia.update(consulta for consulta, anexo in CONSULTAS_CUBIERTAS_POR_ANEXO.items() if anexo in evidencia)
     base = reverse('gestion_reporte_unidad_pdf', args=[unidad.slug])
-    return [
-        {'codigo': codigo, 'nombre': nombre,
-         'url': f'{base}?categoria_reporte={codigo}&desde={inicio}&hasta={fin}',
-         'base': f'{base}?categoria_reporte={codigo}',
-         'desde': inicio.isoformat(), 'hasta': fin.isoformat(), 'respaldo': codigo in CATEGORIAS_RESPALDO}
-        for codigo, nombre in categorias_para(unidad)
-        if codigo not in evidencia and tiene_registros(codigo, unidad)
-    ]
+    consultas = []
+    for codigo, nombre in categorias_para(unidad):
+        if codigo in evidencia or not tiene_registros(codigo, unidad):
+            continue
+        registrado, con_registros = lo_registrado(codigo, unidad, inicio, fin)
+        consultas.append({
+            'codigo': codigo, 'nombre': nombre,
+            'url': f'{base}?categoria_reporte={codigo}&desde={inicio}&hasta={fin}',
+            'base': f'{base}?categoria_reporte={codigo}',
+            'desde': inicio.isoformat(), 'hasta': fin.isoformat(), 'respaldo': codigo in CATEGORIAS_RESPALDO,
+            'registrado': registrado, 'con_registros': con_registros})
+    return consultas
 
 
 @politica_consistente

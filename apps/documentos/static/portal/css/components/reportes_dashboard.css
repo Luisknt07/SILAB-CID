@@ -112,6 +112,7 @@
 .reportes-consultas-visibles tbody th { color:#233e2e; width:46%; }
 .reportes-consultas-visibles small { display:block; margin-top:3px; color:#5d6e62; font-size:10.5px; }
 .reportes-consultas-visibles .documento-accion { white-space:nowrap; }
+.reportes-consultas-visibles tbody .reportes-consultas-visibles__categoria th { width:auto; padding:6px 12px; background:#eef2f0; color:#4b5c53; font-size:11px; }
 .reportes-dashboard .entregas__tabla { min-width:1240px; color: #27364e; font-size: 11px; line-height: 1.4; }
 .reportes-dashboard .entregas__tabla .col-item { width:3%; }
 .reportes-dashboard .entregas__tabla .col-documento { width:22%; }

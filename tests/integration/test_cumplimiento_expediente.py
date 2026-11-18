@@ -1052,7 +1052,7 @@ class GeneracionExplicitaDeAnexosTests(BaseDeCumplimiento):
         self.assertNotIn('finanzas', {c['codigo'] for c in pagina.context['consultas']})
 
     def test_las_consultas_van_visibles_en_la_tabla_de_anexos_del_periodo(self):
-        """Con un período elegido son la última categoría de la tabla de anexos."""
+        """Con un período elegido van dentro de la tabla de anexos, en su categoría temática."""
         self.client.force_login(self.coordinador)
         url = reverse('gestion_expediente_unidad', args=[self.laboratorio.slug])
         html = self.client.get(url, {'anio': 2026, 'corte': 'A'}).content.decode()
@@ -1060,13 +1060,15 @@ class GeneracionExplicitaDeAnexosTests(BaseDeCumplimiento):
         # Nada plegado: ni <details> ni sección aparte; van dentro de la tabla de anexos.
         self.assertNotIn('reportes-consultas-visibles', html)
         tabla = html.split('data-cierre-evidencias', 1)[1].split('</table>', 1)[0]
+        self.assertNotIn('Consultas de gestión · no se entregan ni puntúan', tabla)
         categoria = tabla.split('id="informes-gestion"', 1)[1]
-        self.assertIn('Consultas de gestión · no se entregan ni puntúan', categoria)
         self.assertIn('data-consulta-gestion', categoria)
-        self.assertIn('categoria_reporte=auditoria', categoria)
         self.assertIn('data-pdf-rango', categoria)
-        # Van después de los anexos del informe, no entre ellos.
-        self.assertNotIn('data-meta-bloque', categoria)
+        # La auditoría y trazabilidad es la última categoría: «Seguimiento y mejora».
+        seguimiento = tabla.split('scope="rowgroup">Seguimiento y mejora</th>', 1)[1]
+        self.assertIn('categoria_reporte=auditoria', seguimiento)
+        self.assertIn('is-informativo">Consulta de gestión</span>', seguimiento)
+        self.assertNotIn('class="cierre-grupo"', seguimiento)
 
     def test_actualizar_anexos_vuelve_a_producirlos_con_lo_registrado(self):
         self.client.force_login(self.coordinador)

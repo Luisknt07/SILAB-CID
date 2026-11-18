@@ -470,26 +470,47 @@ class DocumentosDeRespaldoTests(TestCase):
 
     # ---- la lista de consultas sin tabla de anexos --------------------------------------------------------
 
-    def test_la_vista_del_ano_lista_las_dos_categorias_en_una_sola_seccion(self):
+    def test_la_vista_del_ano_agrupa_los_documentos_por_las_categorias_tematicas(self):
+        ResponsableUnidad.objects.create(unidad=self.unidad, usuario=self.tecnico, rol='responsable_tecnico', orden=2)
         consultas = consultas_de_la_unidad(self.unidad, self.desde, self.hasta)
         html = render_to_string('portal/pages/unidades/gestion/includes/consultas_gestion.html', dict(
             consultas=consultas, consultas_integradas=False, rango_periodo=(self.desde, self.hasta),
             etiqueta_periodo='Año 2026'))
         self.assertEqual(html.count('id="informes-gestion"'), 1)
         seccion = html.split('id="informes-gestion"', 1)[1].split('</section>', 1)[0]
-        respaldo, gestion = seccion.split('Consultas de gestión (', 1)
-        self.assertIn('Respaldo para auditoría (5) · se generan de los registros', respaldo)
-        self.assertIn('· no se entregan ni puntúan', gestion)
+        # Ni bloques sueltos de respaldo y consultas: cada documento en su tema, cada tema una sola vez.
+        self.assertNotIn('Respaldo para auditoría (', seccion)
+        self.assertNotIn('Consultas de gestión (', seccion)
+        temas = re.findall(r'<th colspan="6" scope="rowgroup">([^<]+)</th>', seccion)
+        self.assertEqual(len(temas), len(set(temas)))
+        ubicacion, tema = {}, None
+        for encabezado, codigo in re.findall(
+                r'scope="rowgroup">([^<]+)</th>|<tr data-consulta-gestion.*?categoria_reporte=([\w-]+)&',
+                seccion.replace('\n', ' ')):
+            tema = encabezado or tema
+            if codigo:
+                ubicacion[codigo] = tema
+        self.assertEqual(ubicacion['personal'], 'Personal, formación y difusión')
+        self.assertEqual(ubicacion['capacitacion'], 'Personal, formación y difusión')
+        self.assertEqual(ubicacion['simulacros'], 'Seguridad')
+        self.assertEqual(ubicacion['calibracion'], 'Uso, equipamiento e inventario')
+        self.assertEqual(ubicacion['auditoria'], 'Seguimiento y mejora')
+        self.assertEqual(temas[-1], 'Seguimiento y mejora')
         for codigo in CINCO:
-            self.assertIn(f'data-respaldo-auditoria="{codigo}"', respaldo)
-            self.assertNotIn(f'categoria_reporte={codigo}&', gestion)
-        self.assertIn('categoria_reporte=auditoria', gestion)
-        self.assertNotIn('categoria_reporte=auditoria', respaldo)
+            self.assertIn(f'data-respaldo-auditoria="{codigo}"', seccion)
+        # Cada fila dice su etiqueta, lo registrado y su estado.
+        self.assertEqual(seccion.count('is-informativo">Respaldo para auditoría</span>'),
+                         sum(bool(c['respaldo']) for c in consultas))
+        self.assertIn('is-informativo">Consulta de gestión</span>', seccion)
+        self.assertIn('<td>1 persona</td>', seccion)
+        self.assertIn('<td>0 simulacros</td>', seccion)
+        self.assertIn('Sin registros en el período</strong>', seccion)
+        self.assertIn('Con registros</strong>', seccion)
         self.assertEqual(seccion.count('data-consulta-gestion'), len(consultas))
 
 
 class RespaldoEnElCentroDeReportesTests(BaseDelExpediente):
-    """La tabla de anexos del período separa el respaldo de las consultas y enlaza el respaldo de las metas."""
+    """La tabla de anexos del período lleva cada documento generado en su tema y enlaza el respaldo de las metas."""
 
     def pagina(self, usuario=None):
         from apps.documentos.presentation.expediente_redaccion import obtener_redaccion
@@ -503,34 +524,63 @@ class RespaldoEnElCentroDeReportesTests(BaseDelExpediente):
             self.client.force_login(usuario)
         return self.client.get(url, dict(anio=ANIO, corte=informe.corte))
 
-    def test_la_tabla_muestra_el_respaldo_y_las_consultas_como_dos_categorias_separadas(self):
+    def test_cada_documento_generado_va_en_su_categoria_tematica_y_no_queda_suelto(self):
         respuesta = self.pagina()
         html = respuesta.content.decode()
         self.assertEqual(html.count('id="informes-gestion"'), 1)
         self.assertNotIn('reportes-consultas-visibles', html)
         tabla = html.split('data-cierre-evidencias', 1)[1].split('</table>', 1)[0]
-        final = tabla.split('id="informes-gestion"', 1)[1]
-        # Van después de los anexos del informe, en este orden: respaldo y luego consultas de gestión.
-        self.assertNotIn('data-meta-bloque', final)
-        respaldo, gestion = final.split('Consultas de gestión · no se entregan ni puntúan', 1)
-        self.assertIn('Respaldo para auditoría · se generan de los registros', respaldo)
-        self.assertEqual(tabla.count('class="cierre-grupo-consultas"'), 2)
+        # Ya no hay dos bloques aparte al final de la tabla.
+        self.assertNotIn('cierre-grupo-consultas', tabla)
+        self.assertNotIn('Respaldo para auditoría · se generan de los registros', tabla)
+        self.assertNotIn('Consultas de gestión · no se entregan ni puntúan', tabla)
+        # Recorre la tabla: tema de cada encabezado, anexos y documentos generados bajo él.
+        cuerpos = re.findall(r'<tbody([^>]*)>(.*?)</tbody>', tabla, re.S)
+        temas, ubicacion, tema, anexos_por_tema = [], {}, None, {}
+        for atributos, contenido in cuerpos:
+            if 'class="cierre-grupo"' in atributos:
+                tema = re.search(r'scope="rowgroup">([^<]+)</th>', contenido).group(1)
+                temas.append(tema)
+            elif 'data-consulta-gestion' in contenido:
+                codigo = re.search(r'data-meta-codigo="([\w-]+)"', contenido).group(1)
+                ubicacion[codigo] = tema
+                self.assertIn('data-meta-bloque', atributos)
+                # El reglamento pasa a documento principal; mientras llegue como consulta, no rompe la tabla.
+                if codigo != 'reglamento':
+                    self.assertNotEqual(tema, 'Otros respaldos de la unidad', codigo)
+                # La fila dice su etiqueta, lo registrado y su estado; no queda «sin nada».
+                self.assertRegex(contenido, r'is-informativo">(Respaldo para auditoría|Consulta de gestión)</span>')
+                self.assertRegex(contenido, r'<td>(\d+ [^<]+|Se genera al consultar)</td>')
+                self.assertRegex(contenido, r'reporte-estado is-neutro">.*(Con registros|Sin registros en el '
+                                            r'período|Disponible)</strong>')
+            elif 'data-meta-bloque' in atributos:
+                anexos_por_tema[tema] = anexos_por_tema.get(tema, 0) + 1
+        self.assertEqual(len(temas), len(set(temas)), temas)
+        self.assertEqual(ubicacion['calibracion'], 'Uso, equipamiento e inventario')
+        self.assertEqual(ubicacion['sustancias'], 'Uso, equipamiento e inventario')
+        self.assertEqual(ubicacion['simulacros'], 'Seguridad')
+        self.assertEqual(ubicacion['personal'], 'Personal, formación y difusión')
+        self.assertEqual(ubicacion['capacitacion'], 'Personal, formación y difusión')
+        self.assertEqual(ubicacion['auditoria'], 'Seguimiento y mejora')
+        self.assertEqual(temas[-1], 'Seguimiento y mejora')
+        # Dentro de un tema con anexos, el documento generado va después de ellos.
+        uso = tabla.split('scope="rowgroup">Uso, equipamiento e inventario</th>', 1)[1].split('class="cierre-grupo"')[0]
+        self.assertTrue(anexos_por_tema.get('Uso, equipamiento e inventario'))
+        self.assertLess(uso.index('data-reporte-anexo'), uso.index('data-consulta-gestion'))
+        # El identificador va una vez, en el primer documento generado; el visor conserva su rango.
+        self.assertIn('id="informes-gestion"', tabla)
         pdf = reverse('gestion_reporte_unidad_pdf', args=[self.laboratorio.slug])
         for codigo in CINCO:
             with self.subTest(codigo=codigo):
-                self.assertIn(f'data-respaldo-auditoria="{codigo}"', respaldo)
-                self.assertIn(f'data-pdf-rango="{pdf}?categoria_reporte={codigo}"', respaldo)
-                self.assertNotIn(f'categoria_reporte={codigo}&', gestion)
-        self.assertIn('data-pdf-desde=', respaldo)
-        self.assertIn('data-pdf-hasta=', respaldo)
-        # La exigencia las distingue: «Respaldo» en unas y «Consulta» en las otras.
-        self.assertEqual(respaldo.count('<span class="reporte-exigencia is-informativo">Respaldo</span>'), len(CINCO))
-        self.assertNotIn('is-informativo">Consulta</span>', respaldo)
-        self.assertIn('is-informativo">Consulta</span>', gestion)
-        self.assertNotIn('is-informativo">Respaldo</span>', gestion)
-        self.assertIn(f'{pdf}?categoria_reporte=auditoria', gestion)
-        self.assertNotIn('data-respaldo-auditoria', gestion)
-        self.assertEqual(final.count('data-consulta-gestion'), len(respuesta.context['consultas']))
+                self.assertIn(f'data-respaldo-auditoria="{codigo}"', tabla)
+                self.assertIn(f'data-pdf-rango="{pdf}?categoria_reporte={codigo}"', tabla)
+        self.assertIn('data-pdf-desde=', tabla)
+        self.assertIn('data-pdf-hasta=', tabla)
+        self.assertNotRegex(tabla, r'data-respaldo-auditoria="auditoria"')
+        self.assertEqual(tabla.count('data-consulta-gestion'), len(respuesta.context['consultas']))
+        # El filtro de exigencia ofrece las dos etiquetas nuevas.
+        self.assertIn('<option value="respaldo">Respaldo para auditoría</option>', html)
+        self.assertIn('<option value="gestion">Consulta de gestión</option>', html)
 
     def test_la_fila_de_capacitacion_y_la_de_difusion_abren_su_documento_de_respaldo(self):
         respuesta = self.pagina()
