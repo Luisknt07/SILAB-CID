@@ -167,9 +167,12 @@ class CierreDesdeEjecucionTests(TestCase):
         reserva.refresh_from_db()
         self.assertEqual(reserva.estado, 'completada', respuesta.content[:1500])
         self.assertEqual(reserva.resultado_cierre, 'atendida')
+        # El cierre se registra con la misma función de «Completar» del panel de
+        # reservas, que deja su rastro como actualización con el origen descrito.
         self.assertTrue(
             RegistroAuditoriaUnidad.objects.filter(
-                entidad=Reserva._meta.label, objeto_id=str(reserva.pk), accion='completar'
+                entidad=Reserva._meta.label, objeto_id=str(reserva.pk), accion='actualizar',
+                descripcion__contains=f'validación de la práctica {plan.codigo}',
             ).exists()
         )
         self.assertTrue(NotificacionReserva.objects.filter(reserva=reserva).exists())

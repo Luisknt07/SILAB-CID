@@ -623,11 +623,16 @@ class MantenimientoEquipo(models.Model):
                       "descripcion": descripcion},
         )
         if self.unidad_id:
-            from apps.gestion_unidades.presentation.auditoria import registrar_auditoria
+            # Mismo formato que registrar_auditoria, sin que el modelo dependa de la
+            # capa de presentación: se resuelve el modelo de auditoría por la aplicación.
+            from django.apps import apps
 
-            registrar_auditoria(None, unidad=self.unidad, accion="actualizar", objeto=equipo,
-                                descripcion=f"{equipo.codigo_unidad} · {descripcion}",
-                                anteriores=anteriores, nuevos=nuevos, usuario=self.responsable)
+            apps.get_model("formacion", "RegistroAuditoriaUnidad").objects.create(
+                unidad=self.unidad, usuario=self.responsable, accion="actualizar",
+                entidad=equipo._meta.label, objeto_id=str(equipo.pk),
+                descripcion=f"{equipo.codigo_unidad} · {descripcion}"[:255],
+                datos_anteriores=anteriores, datos_nuevos=nuevos,
+            )
 
     @property
     def ventana_de_intervencion(self):

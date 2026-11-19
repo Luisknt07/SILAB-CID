@@ -7,7 +7,6 @@ cuánta vida útil le queda y qué pasó con los que se dieron de baja.
 
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
@@ -560,19 +559,20 @@ class SinEquiposNoAplicaTests(TestCase):
         # Sin equipos no se dibuja el semáforo ni la tabla del parque.
         self.assertNotIn('mant-cifras', contenido)
 
-    def test_observatorio_no_abre_mantenimiento_fuera_de_su_navegacion(self):
+    def test_observatorio_sin_equipos_abre_mantenimiento_y_no_le_aplica(self):
+        # El observatorio lleva los anexos de equipos y mantenimiento (servidores,
+        # estaciones, software): su panel los abre y, sin equipos, no le aplica.
         observatorio = Unidad.objects.create(
             nombre='Observatorio propio', slug='observatorio-mantenimiento-no-aplica',
             dependencia='observatorios', descripcion='Indicadores sin parque de equipos.',
             fecha_inicio=date(2025, 1, 1), administrador=self.coordinador,
         )
         self.client.force_login(self.coordinador)
-        with patch('apps.gestion_unidades.presentation.gestion.panel_mantenimiento',
-                   side_effect=AssertionError('No cargar un módulo fuera de la navegación autorizada')):
-            pagina = self.client.get(reverse('gestion_unidad', args=[observatorio.slug]),
-                                     {'view': 'mantenimiento'})
+        pagina = self.client.get(reverse('gestion_unidad', args=[observatorio.slug]),
+                                 {'view': 'mantenimiento'})
         self.assertEqual(pagina.status_code, 200)
-        self.assertEqual(pagina.context['vista_gestion'], 'obs_indicadores')
-        self.assertContains(pagina, 'data-management-view="obs_indicadores"')
-        self.assertNotContains(pagina, 'data-management-view="mantenimiento"')
-        self.assertNotIn('panel_mantenimiento', pagina.context)
+        self.assertEqual(pagina.context['vista_gestion'], 'mantenimiento')
+        self.assertContains(pagina, 'data-management-view="mantenimiento"')
+        contenido = pagina.content.decode()
+        self.assertIn('todavía no tiene equipos registrados', contenido)
+        self.assertIn('no aplica', contenido)

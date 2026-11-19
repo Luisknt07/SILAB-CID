@@ -177,7 +177,8 @@ class Contenidos:
 
     @cached_property
     def articulaciones(self):
-        return list(self.centro.articulaciones.all())
+        # El orden del modelo empata entre filas con el mismo «orden»: el alta desempata.
+        return list(self.centro.articulaciones.order_by('tipo', 'orden', 'pk'))
 
     @cached_property
     def relaciones(self):
